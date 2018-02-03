@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css?family=Sarala');
+
+body { font-family: 'Sarala', 'Open Sans', sans-serif; }
+
+.container { margin-top: 60px; }
+
+/* ---------- Navbar ------------------------------------------- */
+nav { border-bottom: 3px solid crimson !important; }
+
+.navbar-inverse .navbar-brand { color: white; }
+
+.nav-tabs { padding-left: 20px; }
+.tab-pane { padding: 20px; }
+
+#user { position:absolute; min-height: 18px; 
+	background: crimson; 
+	font-size: 12px; padding: 0px 50px; color: white;
+	border-radius: 0 0 0 12px;
+	right: 0; top: 50px; margin-bottom: -18px; }
+
+#user select { 
+	display: none; position:absolute; top:20px; right: 0; z-index: 100; color: black; }
+
+
+.table>thead>tr>th { border-bottom-color: black; }
+
+/* ---------- General Styles ----------------------------------- */
+td, th { white-space: nowrap; }
+
+div.command-group {
+	margin-top: -40px;
+	float:right;
+}
+
+td.command-group { text-align: right; }
+
+/* ---------- Competition Tags --------------------------------- */
+.label-league, .label-cup, .label-team { 
+	border:1px solid #7ab733; padding: 1px 5px 2px 5px; margin-right: 2px; }
+
+.label-league { 
+	background-color: #7ab733; }
+
+.label-cup { 
+	background-color: #eeffcc; color: #7ab733; }
+
+.label-team { 
+	border:1px solid #b7337a;
+	background-color: #b7337a; }
+
+.label-list {
+	white-space: wrap;
+}
+

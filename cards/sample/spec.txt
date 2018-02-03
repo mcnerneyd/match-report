@@ -1,0 +1,64 @@
+Use Cases
+=========
+
+Player wants to:
+* Login
+* Submit a matchcard
+	* Add players
+	* Add unregistered player
+	* Remove players
+	* Add goals
+	* Remove goals
+	* Add cards
+	* Remove cards
+	* Specify umpire
+* View profile
+* Update profile
+	* Update photograph
+	* Update player number
+* View fixtures
+	* View late fixtures
+	* View missing fixtures
+
+Umpire wants to:
+* Login
+* Add cards (red/yellow)
+	* Add reason
+* Remove cards
+
+Secretary wants to:
+* Login
+* View fixtures
+	* Postpone fixtures
+	* Reverse fixtures
+	* View late fixtures
+	* View missing fixtures
+* Upload registration
+* Reset club password
+
+Admin wants to:
+* Login
+* Upload configuration
+* Add umpires
+* Remove umpires
+* Reset umpire password
+* Fine for missing cards
+* Send report to clubs
+* Send report to LHA/LHUA
+* Identify matchcard photograph
+* Process matchcard photograph
+
+Automation wants to:
+* Auto submit matchcards
+* Provide Secretary Logins
+* Receipt matchcards
+* Provide weekly updates
+* Provide weekly admin update
+* Handle incoming matchcard emails
+* Resubmit registration monthly
+
+Imperfections
+=============
+1. Remember section/username on Login page
+2. First login after session timeout does not work
+3. Login problems

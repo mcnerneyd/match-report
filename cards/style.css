@@ -1,0 +1,34 @@
+/*
+ * style.css
+ */
+@import url('https://fonts.googleapis.com/css?family=Sarala');
+
+body { font-family: 'Sarala', sans-serif; padding-top: 80px; padding-bottom: 70px; }
+.login { color: white; }
+html { overflow-y: scroll; }
+*:active,
+*:hover {
+		cursor: pointer;
+}
+.navbar-brand { color: white !important; margin-top: -2px; }
+pre {white-space:pre-wrap;}
+header { border-bottom: 3px solid crimson !important; }
+#user { position:absolute; min-height: 18px; 
+	background: crimson; 
+	font-size: 12px; padding: 0px 50px; color: white;
+	border-radius: 0 0 0 12px;
+	right: 0; top: 50px; margin-bottom: -18px; }
+
+.navbar-brand { margin-top: 0; }
+
+/* ---------- Competition Tags --------------------------------- */
+.label-league, .label-cup { 
+	border:1px solid #7ab733; padding: 1px 5px 2px 5px; margin-right: 2px; }
+
+.label-league { 
+	background-color: #7ab733; }
+
+.label-cup { 
+	background-color: #eeffcc; color: #7ab733 !important; }
+
+
