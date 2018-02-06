@@ -51,7 +51,7 @@ function rangeEnd($now = null) {
 
 //-----------------------------------------------------------------------------
 function parse($str) {
-	$config = file('sites/'.site().'/patterns.ini');
+	$config = file('../../../cards/sites/'.site().'/patterns.ini');
 
 	$patterns = array();
 	$replacements = array();
@@ -89,7 +89,7 @@ function parse($str) {
 
 //-----------------------------------------------------------------------------
 function parseCompetition($str, $competitions) {
-	$config = file('sites/'.site().'/patterns.ini');
+	$config = file('../../../cards/sites/'.site().'/patterns.ini');
 
 	$patterns = array();
 	$replacements = array();
@@ -106,7 +106,7 @@ function parseCompetition($str, $competitions) {
 
 	if ($str == '!') return null;
 
-	if (!in_array($str, $competitions)) {
+	if ($competitions != null && !in_array($str, $competitions)) {
 		throw new Exception("Cannot resolve competition '$str'");
 	}
 

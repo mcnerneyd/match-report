@@ -94,7 +94,7 @@
 							 <span class="icon-bar"></span>
 							 <span class="icon-bar"></span>
 						</button>
-						<div class='navbar-brand'><?= TITLE ?></div>
+						<div class='navbar-brand' data-help='general'><?= TITLE ?></div>
 					</div>
 
 					<div class='collapse navbar-collapse' id='navbar-collapse-menu'>
@@ -171,5 +171,21 @@
 			<span class='hidden-md'>C</span>
 			<span class='hidden-lg'>D</span-->
 		</footer>
+
+		<div class="modal" id='help-modal' tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Help</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<p>Help Detail</p>
+					</div>
+				</div>
+			</div>
+		</div>
   </body>
 </html>

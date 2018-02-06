@@ -116,7 +116,7 @@ class Controller_Report extends Controller_Hybrid
 		$teams = array();
 		$competitions = array();
 
-		foreach (Model_Fixture::getAll() as $fixture) {
+		foreach (Model_Fixture::getAll(true) as $fixture) {
 			$competitions[$fixture['competition']] = "xx";
 			$teams[$fixture['home']] = "xx";
 			$teams[$fixture['away']] = "xx";
@@ -124,7 +124,7 @@ class Controller_Report extends Controller_Hybrid
 
 		foreach ($competitions as $competition=>$x) {
 			$comp = Model_Fixture::parseCompetition($competition);
-			$competitions[$competition] = in_array($comp, $dbComps);
+			$competitions[$competition] = array('valid'=>in_array($comp, $dbComps), 'name'=>$comp);
 		}
 
 		foreach ($teams as $team=>$x) {
@@ -137,8 +137,35 @@ class Controller_Report extends Controller_Hybrid
 		ksort($teams);
 		$data = array('competitions'=>$competitions,'teams'=>$teams);
 
-		$this->template->title = "Fixture Report";
+		$this->template->title = "Parsing";
 		$this->template->content = View::forge('report/parsing', $data);
+	}
+
+	public function get_mismatch() {
+		$mismatches = array();
+
+		foreach (Model_Fixture::getAll() as $fixture) {
+			$card = Model_Card::find_by_fixture($fixture['fixtureID']);
+			if (!$card) continue;
+
+			if (($card['home']['goals'] == $fixture['home_score'])
+					and ($card['away']['goals'] == $fixture['away_score'])) continue;
+
+			$card['home_score'] = $fixture['home_score'];
+			$card['home_team'] = $card['home']['club'].' '.$card['home']['team'];
+			$card['away_score'] = $fixture['away_score'];
+			$card['away_team'] = $card['away']['club'].' '.$card['away']['team'];
+
+			$mismatches[] = $card;
+		}
+
+		/*
+		uasort($mismatches, function ($a, $b) {
+			return $a['date'] - $b['date'];
+		});*/
+
+		$this->template->title = "Mismatch Results";
+		$this->template->content = View::forge('report/mismatch', array('mismatches'=>$mismatches));
 	}
 
 	// --------------------------------------------------------------------------

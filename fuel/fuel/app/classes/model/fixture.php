@@ -19,86 +19,91 @@ class Model_Fixture extends \Model
 			return null;
 	}
 
-	public static function getAll() {
+	public static function getAll($flush = false) {
 
 		Log::debug('Loading fixtures');
 
 		// TODO Skip processing with cksums - only process if source has changed
-		try {
-			$allfixtures = Model_Fixture::$cache->get();
-		} catch (\CacheNotFoundException $e) {
-			Log::info('Fixtures full load');
+		if (!$flush) {
+			try {
+				return Model_Fixture::$cache->get();
+			} catch (\CacheNotFoundException $e) {
+			}
+		}
 
-			Config::load('custom.db', 'config');
+		Log::info('Fixtures full load');
 
-			$allfixtures = array();
+		Config::load('custom.db', 'config');
 
-			$fixture_feed = Config::get("config.fixtures");
+		$allfixtures = array();
 
-			$ct=1;
-			foreach (explode("\n", $fixture_feed) as $feed) {
-	
-				if (!$feed) continue;
+		$fixture_feed = Config::get("config.fixtures");
 
-				$fixtures = array();
+		$ct=1;
+		foreach (explode("\n", $fixture_feed) as $feed) {
 
-				if (preg_match('/.*\.csv/', $feed)) {
-					$src = file_get_contents($feed);
-					$fixtures = Model_Fixture::load_csv($src);
-				} else if (preg_match('/^!.*/', $feed)) {
-					$src = file_get_contents(substr($feed, 1));
-					//$fixtures = Model_Fixture::load_scrape($src);
-				} else if (preg_match('/^=.*/', $feed)) {
-					$values = str_getcsv(substr($feed, 1));
-					$fixture = array('datetime'=>$values[0],
-						'competition'=>$values[1],
-						'home'=>$values[2],
-						'away'=>$values[3],
-						'home_score'=>null,
-						'away_score'=>null,
-						);
-					$fixture['fixtureID'] = $ct++;	
+			if (!$feed) continue;
 
-					if (count($values) > 4 && is_numeric($values[4])) $fixture['home_score'] = $values[4];
-					if (count($values) > 5 && is_numeric($values[5])) $fixture['away_score'] = $values[5];
+			$fixtures = array();
 
-					$fixtures = array($fixture);
-				} else {
-					$src = file_get_contents($feed);
+			if (preg_match('/.*\.csv/', $feed)) {
+				$src = file_get_contents($feed);
+				$fixtures = Model_Fixture::load_csv($src);
+			} else if (preg_match('/^!.*/', $feed)) {
+				$src = file_get_contents(substr($feed, 1));
+				//$fixtures = Model_Fixture::load_scrape($src);
+			} else if (preg_match('/^=.*/', $feed)) {
+				$values = str_getcsv(substr($feed, 1));
+				$fixture = array('datetime'=>$values[0],
+					'competition'=>$values[1],
+					'home'=>$values[2],
+					'away'=>$values[3],
+					'home_score'=>null,
+					'away_score'=>null,
+					);
+				$fixture['fixtureID'] = $ct++;	
 
-					$fixtures = json_decode($src, true);
-				}
+				if (count($values) > 4 && is_numeric($values[4])) $fixture['home_score'] = $values[4];
+				if (count($values) > 5 && is_numeric($values[5])) $fixture['away_score'] = $values[5];
 
-				$allfixtures = array_merge($allfixtures, $fixtures);
+				$fixtures = array($fixture);
+			} else {
+				$src = file_get_contents($feed);
+
+				$fixtures = json_decode($src, true);
 			}
 
-			foreach ($allfixtures as $key => $fixture) {
-				$k = Model_Fixture::parseCompetition($fixture['competition']);
-				if (!$k) {
-					unset($allfixtures[$key]); 
-					continue;
-				}
+			$allfixtures = array_merge($allfixtures, $fixtures);
+		}
 
-				$allfixtures[$key]['datetime'] = Date::create_from_string($fixture['datetime'], 'mysql');
-				$allfixtures[$key]['competition'] = $k;
-				$k = Model_Fixture::parseClub($fixture['home']);
-				if ($k != null) {
-					$allfixtures[$key]['home'] = $k['name'];
-					$allfixtures[$key]['home_club'] = $k['club'];
-					$allfixtures[$key]['home_team'] = $k['team'];
-				}
-				$k = Model_Fixture::parseClub($fixture['away']);
-				if ($k != null) {
-					$allfixtures[$key]['away'] = $k['name'];
-					$allfixtures[$key]['away_club'] = $k['club'];
-					$allfixtures[$key]['away_team'] = $k['team'];
-				}
-				if (!isset($allfixtures[$key]['played'])) $allfixtures[$key]['played'] = 'no';
+		foreach ($allfixtures as $key => $fixture) {
+			$k = Model_Fixture::parseCompetition($fixture['competition']);
+			if (!$k) {
+				unset($allfixtures[$key]); 
+				continue;
 			}
 
-			Model_Fixture::$cache->set($allfixtures, 100);
-		} // end of catch
+			if (strpos($fixture['datetime'], '0000') == 0) {
+				continue;
+			}
+			$allfixtures[$key]['datetime'] = Date::create_from_string($fixture['datetime'], 'mysql');
+			$allfixtures[$key]['competition'] = $k;
+			$k = Model_Fixture::parseClub($fixture['home']);
+			if ($k != null) {
+				$allfixtures[$key]['home'] = $k['name'];
+				$allfixtures[$key]['home_club'] = $k['club'];
+				$allfixtures[$key]['home_team'] = $k['team'];
+			}
+			$k = Model_Fixture::parseClub($fixture['away']);
+			if ($k != null) {
+				$allfixtures[$key]['away'] = $k['name'];
+				$allfixtures[$key]['away_club'] = $k['club'];
+				$allfixtures[$key]['away_team'] = $k['team'];
+			}
+			if (!isset($allfixtures[$key]['played'])) $allfixtures[$key]['played'] = 'no';
+		}
 
+		Model_Fixture::$cache->set($allfixtures, 100);
 		Log::debug('Loading fixtures complete');
 
 		return $allfixtures;
@@ -158,65 +163,65 @@ class Model_Fixture extends \Model
 		return $fixtures;
 	}
 
-//-----------------------------------------------------------------------------
-static function parseClub($str) {
-	$config = explode("\n", Config::get("config.pattern_team"));
+	//-----------------------------------------------------------------------------
+	static function parseClub($str) {
+		$config = explode("\n", Config::get("config.pattern_team"));
 
-	$patterns = array();
-	$replacements = array();
-	array_shift($config);
-	foreach ($config as $pattern) {
-		if (trim($pattern) == '') break;
-		$parts = explode($pattern[0], $pattern);
-		if (count($parts) < 3) continue;
-		$patterns[] = "/${parts[1]}/i";
-		$replacements[] = $parts[2];
+		$patterns = array();
+		$replacements = array();
+		array_shift($config);
+		foreach ($config as $pattern) {
+			if (trim($pattern) == '') break;
+			$parts = explode($pattern[0], $pattern);
+			if (count($parts) < 3) continue;
+			$patterns[] = "/${parts[1]}/i";
+			$replacements[] = $parts[2];
+		}
+
+		$str = preg_replace($patterns, $replacements, trim($str));
+
+		if ($str == '!') return null;
+
+		$matches = array();
+		if (!preg_match('/^([a-z ]*[a-z])(?:\s+([0-9]+))?$/i', trim($str), $matches)) {
+			Log::warning("Cannot match '$str'");
+			return null;
+		}
+
+		$result = array('club'=>$matches[1], 'raw'=>$str);
+
+		if (count($matches) > 2) {
+			$result['team'] = $matches[2];
+		} else {
+			$result['team'] = 1;
+		}
+
+		$result['name'] = $result['club'] .' '. $result['team'];
+
+		return $result;
 	}
 
-	$str = preg_replace($patterns, $replacements, trim($str));
+	//-----------------------------------------------------------------------------
+	static function parseCompetition($str) {
+		$config = explode("\n", Config::get("config.pattern_competition"));
 
-	if ($str == '!') return null;
+		$patterns = array();
+		$replacements = array();
+		array_shift($config);
+		foreach ($config as $pattern) {
+			if (trim($pattern) == '') break;
+			$parts = explode($pattern[0], $pattern);
+			if (count($parts) < 3) continue;
+			$patterns[] = "/${parts[1]}/i";
+			$replacements[] = $parts[2];
+		}
 
-	$matches = array();
-	if (!preg_match('/^([a-z ]*[a-z])(?:\s+([0-9]+))?$/i', trim($str), $matches)) {
-		Log::warning("Cannot match '$str'");
-		return null;
+		$str = trim(preg_replace($patterns, $replacements, trim($str)));
+
+		if ($str == '!') return null;
+
+		return $str;
 	}
-
-	$result = array('club'=>$matches[1]);
-
-	if (count($matches) > 2) {
-		$result['team'] = $matches[2];
-	} else {
-		$result['team'] = 1;
-	}
-
-	$result['name'] = $result['club'] .' '. $result['team'];
-
-	return $result;
-}
-
-//-----------------------------------------------------------------------------
-static function parseCompetition($str) {
-	$config = explode("\n", Config::get("config.pattern_competition"));
-
-	$patterns = array();
-	$replacements = array();
-	array_shift($config);
-	foreach ($config as $pattern) {
-		if (trim($pattern) == '') break;
-		$parts = explode($pattern[0], $pattern);
-		if (count($parts) < 3) continue;
-		$patterns[] = "/${parts[1]}/i";
-		$replacements[] = $parts[2];
-	}
-
-	$str = trim(preg_replace($patterns, $replacements, trim($str)));
-
-	if ($str == '!') return null;
-
-	return $str;
-}
 }
 
 Model_Fixture::init();

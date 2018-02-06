@@ -85,7 +85,14 @@
 					<li><a href='http://cards.leinsterhockey.ie/cards/index.php?site=<?= Session::get('site') ?>&controller=card&action=index'>Matches</a></li>
 					<li><a href='http://cards.leinsterhockey.ie/cards/index.php?site=<?= Session::get('site') ?>&controller=club&action=register'>Registration</a></li>
 					<?php } ?>
-					<li><a href='<?= Uri::create('Report') ?>'>Reports</a></li>
+					<li><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
+					<ul class='dropdown-menu'>
+						<li><a href='<?= Uri::create('Report/Scorers') ?>'>Top Scorers</a></li>
+						<?php if (\Auth::has_access('nav.[admin]')) { ?>
+            <li role="separator" class="divider"></li>
+						<li><a href='<?= Uri::create('Report/Parsing') ?>'>Parsing</a></li>
+						<?php } ?>
+					</ul>
 				</ul>
 
 				<!-- Search box -->
