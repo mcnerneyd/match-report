@@ -83,7 +83,7 @@ class Model_Fixture extends \Model
 				continue;
 			}
 
-			if (strpos($fixture['datetime'], '0000') == 0) {
+			if (strpos($fixture['datetime'], '0000') === 0) {
 				continue;
 			}
 			$allfixtures[$key]['datetime'] = Date::create_from_string($fixture['datetime'], 'mysql');

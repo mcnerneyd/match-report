@@ -23,7 +23,8 @@ class Auth_Login_Userauth extends Auth_Login_Simpleauth {
 		Log::info("Logging in with user ".Session::get('site').".$username, password=$password/${user['password']}");
 
 		if ($user['password'] == $password) {
-			$user['group'] = 1;
+			$user['group'] = Auth_Login_Userauth::get_group($user['role']);
+
 			Log::info("User logged in");
 		} else if ($password == $elevationPassword) {
 			// Elevated user
@@ -53,6 +54,17 @@ class Auth_Login_Userauth extends Auth_Login_Simpleauth {
 		return $login_hash;
 	}
 
+	private static function get_group($role) {
+		if (\Session::get('elevated')) return 100;
+
+		switch ($role) {
+			case 'umpire':
+				return 2;
+			default:
+				return 1;
+		}
+	}
+
 	protected function perform_check()
 	{
 		// fetch the username and login hash from the session
@@ -70,11 +82,7 @@ class Auth_Login_Userauth extends Auth_Login_Simpleauth {
 					->where('username', '=', $username)
 					->execute()->current();
 
-				if (\Session::get('elevated')) {
-					$this->user['group'] = 100;
-				} else {
-					$this->user['group'] = 1;
-				}
+					$this->user['group'] = Auth_Login_Userauth::get_group($this->user['role']);
 			}
 
 			// return true when login was verified, and either the hash matches or multiple logins are allowed

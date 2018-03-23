@@ -18,6 +18,14 @@ class Controller_Admin extends Controller_Hybrid
 		$this->template->content = View::forge('admin/tasks', array('tasks'=>$tasks));
 	}
 
+	public function get_testtask() {
+		echo "Execute test task";
+
+		$t = new \Fuel\Task\TestTask();
+		
+		return new Response("", 200);
+	}
+
 	/**
 	 * Archives all matchcards and incidents from before the current season
 	 * start.
@@ -371,6 +379,7 @@ class Controller_Admin extends Controller_Hybrid
 
 		Config::set("config.title", Input::post("title"));
 		Config::set("config.salt", Input::post("salt"));
+		Config::set("config.fine", Input::post("fine"));
 		Config::set("config.elevation_password", Input::post("elevation_password"));
 		Config::set("config.admin_email", Input::post("admin_email"));
 		Config::set("config.strict_comps", Input::post("strict_comps"));
@@ -398,6 +407,7 @@ class Controller_Admin extends Controller_Hybrid
 		$this->template->content = View::forge('admin/config', array(
 			"title"=>Config::get("config.title"),
 			"salt"=>Config::get("config.salt"),
+			"fine"=>Config::get("config.fine", 25),
 			"elevation_password"=>Config::get("config.elevation_password"),
 			"admin_email"=>Config::get("config.admin_email"),
 			"strict_comps"=>Config::get("config.strict_comps"),

@@ -28,6 +28,7 @@
 		<?php if (user('admin')) { ?>
 		#user { font-style: italic; }
 		<?php } ?>
+		.help { padding: 2px 5px; color: #9999dd; }
 		</style>
   </head>
 
@@ -52,6 +53,7 @@
 						e.preventDefault();
 						window.location.href = '<?= Uri::create('Card') ?>?q='+$('#search input').val();
 					});
+
 				});
 
 			function incident(type,club,player,detail,cardid) {
@@ -102,10 +104,24 @@
 							<?php if (user()) { ?>
 							<li><a href='<?= url(null,'index', 'card') ?>'>Matches</a></li>
 							<?php } ?>
+
 							<?php if (user('secretary') or user('admin')) { ?>
 							<li><a href='<?= url(null,'register', 'club') ?>'>Registration</a></li>
 							<?php } ?>
-							<li><a href='<?= Uri::create('Report') ?>'>Reports</a></li>
+
+							<li><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
+							<ul class='dropdown-menu'>
+								<li><a href='<?= Uri::create('Report/Scorers') ?>'>Top Scorers</a></li>
+								<li><a href='<?= Uri::create('Report/Mismatch') ?>'>Mismatch Results</a></li>
+								<?php if (user('admin') || user('umpire')) { ?>
+								<li role="separator" class="divider"></li>
+								<li><a href='<?= Uri::create('Report/Cards') ?>'>Red/Yellow Cards</a></li>
+								<?php } ?>
+								<?php if (user('admin')) { ?>
+								<li role="separator" class="divider"></li>
+								<li><a href='<?= Uri::create('Report/Parsing') ?>'>Parsing</a></li>
+								<?php } ?>
+							</ul>
 						</ul>
 
 						<!-- Search box -->
@@ -176,10 +192,8 @@
 			<div class="modal-dialog" role="document">
 				<div class="modal-content">
 					<div class="modal-header">
-						<h5 class="modal-title">Help</h5>
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-							<span aria-hidden="true">&times;</span>
-						</button>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
+						<h4 class="modal-title">Help</h4>
 					</div>
 					<div class="modal-body">
 						<p>Help Detail</p>
@@ -187,5 +201,21 @@
 				</div>
 			</div>
 		</div>
+		<script>
+		$(document).ready(function() {
+					$('[data-help]').each(function () {
+						$(this).append("<span class='help glyphicon glyphicon-question-sign' data-helpid='"+$(this).data("help")+"'></span>");
+					});
+
+					$('[data-helpid]').click(function() {
+						$.get('/cards/fuel/public/help?id='+$(this).data('helpid'), function(data) {
+							$('#help-modal .modal-body').html(data);
+							var title = $('#help-modal .modal-body :first').detach();
+							$('#help-modal .modal-title').text(title.text());
+							$('#help-modal').modal('show');
+						});
+					});
+		});
+		</script>
   </body>
 </html>

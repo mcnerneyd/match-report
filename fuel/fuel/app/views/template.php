@@ -67,6 +67,7 @@
 </head>
 
 <body>
+	<!-- Groups <?= print_r(Auth::get_groups(), true) ?> -->
 	<nav class='navbar navbar-inverse navbar-fixed-top'>
 		<div class='container-fluid'>
 			<div class='navbar-header'>
@@ -88,7 +89,13 @@
 					<li><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
 					<ul class='dropdown-menu'>
 						<li><a href='<?= Uri::create('Report/Scorers') ?>'>Top Scorers</a></li>
+						<li><a href='<?= Uri::create('Report/Mismatch') ?>'>Mismatch Results</a></li>
+						<?php if (\Auth::has_access('nav.[umpire]')) { ?>
+            <li role="separator" class="divider"></li>
+						<li><a href='<?= Uri::create('Report/Cards') ?>'>Red/Yellow Cards</a></li>
+						<?php } ?>
 						<?php if (\Auth::has_access('nav.[admin]')) { ?>
+            <li role="separator" class="divider"></li>
             <li role="separator" class="divider"></li>
 						<li><a href='<?= Uri::create('Report/Parsing') ?>'>Parsing</a></li>
 						<?php } ?>

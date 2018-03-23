@@ -62,6 +62,11 @@ $(document).ready(function(event) {
 					<label>Strict</label>
 					<input name='strict_comps' type='text' class='form-control' value='<?= $strict_comps ?>'></input>
 				</div>
+
+				<div class='form-group col-sm-6'>
+					<label>Standard Fine</label>
+					<input name='fine' type='text' class='form-control' value='<?= $fine ?>'></input>
+				</div>
 			</div>
 
 			<fieldset>

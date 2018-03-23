@@ -6,22 +6,33 @@ if (!isset($fixture['card'])) throw new Exception("Card does not exist");
 
 $card = $fixture['card'];
 $whoami = false;
+global $strictProcessing;
 $strictProcessing = false;
-if (isset($card['competition-strict']) && $card['competition-strict'] == 'yes') $strictProcessing = true;
+if (isset($fixture['competition-strict']) && $fixture['competition-strict'] == 'yes') {
+	$strictProcessing = true;
+}
 if (isset($_REQUEST['strict'])) $strictProcessing = true;
 if (user() and isset($fixture[user()])) {
 	$whoami = $fixture[user()];
 }
 
-debug("Result Card:".print_r($card, true));
-
 function renderHeadshot($cardid, $club, $player, $detail, $allowCtx = false) {
+		//$strictProcessing = $GLOBALS['strictProcessing'];
+		global $strictProcessing;
+
+		echo "<!-- ".print_r($detail, true)." -->";
+
 		if ($_SESSION['club'] != $club) $allowCtx = false;
 		if (user('umpire')) $allowCtx = true;
 
-		debug("Club:$club ".print_r($detail, true));
+		debug("Club:$club ".trim(preg_replace('/\s\s+/', ' ', print_r($detail, true))));
 		$extraclass = "";
-		if (isset($detail['ineligible'])) $extraclass = " ineligible";
+		if (isset($detail['ineligible'])) $extraclass .= " ineligible";
+		if ($strictProcessing) {
+			if (!isset($detail['number']) or !$detail['number']) {
+				$extraclass .= " numberless";
+			}
+		}
 		$profileUrl = "";
 		if ($allowCtx) {
 			$key = createsecurekey("profile$player$club");
@@ -35,7 +46,7 @@ function renderHeadshot($cardid, $club, $player, $detail, $allowCtx = false) {
 			if ($detail['score'] > 0) echo " <span class='score'>".$detail['score']."</span>";
 			if (isset($detail['card'])) echo "<span data-card='".$detail['card']."' class='penalty-card glyphicon glyphicon-bookmark'></span>";
 			$imagekey = createsecurekey("image$player$club");
-			$cleanPlayer = explode(',', clean($player));
+			$cleanPlayer = explode(',', $player);
 			?>
 			<img src='image.php?site=<?= site() ?>&player=<?= $player ?>&w=200&club=<?= $club ?>&x=<?= $imagekey ?>'/>
 			<?php if (count($cleanPlayer) > 1) { ?>
@@ -46,16 +57,14 @@ function renderHeadshot($cardid, $club, $player, $detail, $allowCtx = false) {
 <?php if ($allowCtx) { ?>
 		</a>
 <?php }
-	}
+}
 
 function clean($name) {
 	if (!strpos($name, ',')) return $name;
 
 	$nameParts = explode(',', $name);
 	return str_replace(' ','&nbsp;',trim(ucwords(strtolower($nameParts[1] . ' ' . $nameParts[0]))));
-}
-
-?>
+} ?>
 <style>
 	span[data-card='red'] { color:red; vertical-align:middle; }
 	span[data-card='yellow'] { color:yellow; vertical-align:middle; }
@@ -85,6 +94,7 @@ function clean($name) {
 	figure.ineligible, figure.ineligible figcaption:nth-of-type(1) {
 		background: repeating-linear-gradient( 45deg, #fdd, #fdd 10px, orange 10px, orange 20px);
 	}
+	figure.numberless { border: 5px solid red; }
 	h1 { border-bottom: 1px solid black; }
 	h2 { clear: both; margin-bottom: 25px; }
   #rycards, #notes { clear: both; }
@@ -94,13 +104,13 @@ function clean($name) {
 	.lockcode { font-weight:bold; font-size: 1.5em; color: #45a; clear: left; }
 	.alert { margin: 20px 0; }
 	.with-errors { font-size: 0.8em; margin-top: 0; }
-	.alert-danger { position: absolute; z-index: 1000; margin: 0; }
+	.xalert-danger { position: absolute; z-index: 1000; margin: 0; }
 	.hint { margin: 15px 0; }
 	#submit-form { position: relative; }
 </style>
 <script>
 		$(document).ready(function () {
-			$('.alert-danger').delay(4000).fadeOut(1000);
+			//$('.alert-danger').delay(4000).fadeOut(1000);
 		});
 </script>
 <a href='<?= url(null, 'index') ?>#results' class='btn btn-primary'><span class='glyphicon glyphicon-chevron-left'></span>&nbsp;Back</a>
@@ -137,7 +147,7 @@ if ($whoami) {
 					data-error='You must provide the score for <?= $oppositionClub ?>'/>
 				<div class="help-block with-errors"></div>
 			</div>
-			<button type='submit' class='btn btn-success'>Submit Card</button>
+			<button id='submit-card-button' type='submit' class='btn btn-success'>Submit Card</button>
 			<button class='btn btn-info' disabled><i class='glyphicon glyphicon-comment'></i> Add Comment</button>
 		</form>
 
@@ -185,7 +195,19 @@ if ($whoami) {
 }	// if ($whoami)...
 ?>
 
+<?php if ($strictProcessing) { ?>
+	<div class="alert alert-info" data-help='strict-processing'>Important: Strict processing applies to this card</div>
+	<script>
+	$(document).ready(function() {
+		if ($('.numberless').length > 0) {
+			$('#submit-card-button').attr('disabled','disabled');
+			$('[data-help="strict-processing"]').before("<div class='alert alert-danger' data-help='adding-shirt-numbers'>Submit Card button is disabled</strong> because there are players without assigned shirt numbers</div>");
+		}
+	});
+	</script>
+<?php } else { ?>
 	<div class="hint text-info"><strong>Hint</strong> Tap the player to add goals, cards or update their picture</div>
+<?php } ?>
 	<h1><?= $card['competition'] ?></h1>
 
 	<div id='matchcard-home' class='col-md-6 col-xs-12'>
@@ -274,10 +296,10 @@ if ($whoami) {
 		<?php if (!user('umpire')) { ?>
 		<li class='score-up'><a><span class='score'>1</span>Scored</a></li>
 		<li class='score-clear'><a><span class='score'>0</span>No Score</a></li>
-		<li class='divider'></li>
 		<?php } ?>
 
 		<?php if (!$strictProcessing || user('umpire')) { ?>
+		<li class='divider'></li>
 		<li class='card-yellow'><a><img width='18px' src='img/yellow-card.png'/> Technical - Breakdown</a></li>
 		<li class='card-yellow'><a><img width='18px' src='img/yellow-card.png'/> Technical - Delay/Time Wasting</a></li>
 		<li class='card-yellow'><a><img width='18px' src='img/yellow-card.png'/> Technical - Dissent</a></li>

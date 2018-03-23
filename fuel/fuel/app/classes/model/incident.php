@@ -10,16 +10,22 @@ class Model_Incident extends \Orm\Model
 		'matchcard_id',
 		'detail',
 		'resolved',
+		'user_id',
 	);
 
 	protected static $_belongs_to = array('club');
 
 	protected static $_has_one = array(
+		'user'=>array(
+			'key_to'=>'id',
+			'key_from'=>'user_id',
+			'model_to'=>'Model_User',
+		),
 		'card'=>array(
 			'key_to'=>'id',
 			'key_from'=>'matchcard_id',
 			'model_to'=>'Model_Card',
-		)
+		),
 	);
 
 	protected static $_table_name = 'incident';

@@ -1,6 +1,23 @@
 <?php
 class Controller_Report extends Controller_Hybrid
 {
+
+	// --------------------------------------------------------------------------
+	public function action_cards() {
+		$cards = Model_Incident::find('all', array(
+			'where'=> array(
+				array('type','Red Card'),
+				'or'=>array('type','Yellow Card'),
+			),
+			'order_by'=>array('date'=>'desc'),
+		));
+
+		$this->template->title = "Red/Yellow Cards";
+		$this->template->content = View::forge('report/cards', array(
+			'cards'=>$cards
+		));
+	}
+
 	// --------------------------------------------------------------------------
 	public function action_summary() {
 		$club = \Input::get('c');
@@ -159,11 +176,6 @@ class Controller_Report extends Controller_Hybrid
 			$mismatches[] = $card;
 		}
 
-		/*
-		uasort($mismatches, function ($a, $b) {
-			return $a['date'] - $b['date'];
-		});*/
-
 		$this->template->title = "Mismatch Results";
 		$this->template->content = View::forge('report/mismatch', array('mismatches'=>$mismatches));
 	}
@@ -208,6 +220,11 @@ class Controller_Report extends Controller_Hybrid
 						if (preg_match("/\bPP\b|\bpostpone|not played/i", $fixture['comment'])) continue;
 				}
 
+				if (!isset($fixture['datetime']) || !is_object($fixture['datetime'])) {
+					echo "Non-object error, cardid=".$cardId['id']."\n";
+					continue;
+				}
+
 				// Match time is in the future
 				if ($fixture['datetime'] > Date::forge()) continue;
 
@@ -236,6 +253,12 @@ class Controller_Report extends Controller_Hybrid
 
 				if (isset($fixture['comment'])) {
 						if (preg_match("/\bPP\b|\bpostpone|not played/i", $fixture['comment'])) continue;
+				}
+
+				if (!isset($fixture['datetime']) || !is_object($fixture['datetime'])) {
+					echo "Non-object error, cardid=".$cardId['id']."\n";
+					print_r($fixture);
+					continue;
 				}
 
 				// Match time is in the future
@@ -270,7 +293,8 @@ class Controller_Report extends Controller_Hybrid
 			if (\Input::param("execute")) {
 				foreach ($fines as $fine) {
 					try {
-					$fine->save();
+						echo "Executing fine: ".print_r($fine, true)."<br>";
+						$fine->save();
 					} catch (Exception $e1) {
 						Log::error("Failed to issue fine: ${fine['matchcard_id']}/${fine['team']} ".$e1->getMessage());
 					}
@@ -290,13 +314,16 @@ class Controller_Report extends Controller_Hybrid
 			if (isset($clubcard['umpire'])) return false;
 			if (!$clubcard['players']) return false;
 
+			Config::load('custom.db', 'config');
+			$value = \Config::get('config.fine', 10);
+
 			$newfine = new Model_Fine();
 			$newfine->competition = $card['competition'];
 			$newfine->cardtime = $cardTime;
 			$newfine->team = "${clubcard['club']} ${clubcard['team']}";
 			$newfine->fixture_id = $card['fixture_id'];
 			$newfine->matchcard_id = $card['id'];
-			$newfine->detail = '10:Card not submitted';
+			$newfine->detail = $value.':Card not submitted';
 			$newfine->club_id = $clubcard['club_id'];
 			$newfine->type = 'Missing';
 			$newfine->message = "Card must be submitted by midnight";
@@ -328,6 +355,9 @@ class Controller_Report extends Controller_Hybrid
 			if ($onTimePlayerCount >= 7) return false;
 			$fCardTime = date("Y.m.d G:i", $cardTime);
 
+			Config::load('custom.db', 'config');
+			$value = \Config::get('config.fine', 10);
+
 			$newfine = new Model_Fine();
 			$newfine->competition = $card['competition'];
 			$newfine->cardtime = $cardTime;
@@ -335,7 +365,7 @@ class Controller_Report extends Controller_Hybrid
 			$newfine->fixture_id = $card['fixture_id'];
 			$newfine->matchcard_id = $card['id'];
 			$newfine->club_id = $clubcard['club_id'];
-			$newfine->detail = '10:Card Incomplete at Match Time';
+			$newfine->detail = $value.':Card Incomplete at Match Time';
 			$newfine->type = 'Missing';
 			$newfine->message = "$onTimePlayerCount players on card";
 			$newfine->resolved = 0;

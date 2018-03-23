@@ -39,12 +39,14 @@ return array(
 		 -1   => array('name' => 'Banned', 'roles' => array('banned')),
 		 0    => array('name' => 'Guests', 'roles' => array()),
 		 1    => array('name' => 'Users', 'roles' => array('user')),
+		 2    => array('name' => 'Umpires', 'roles' => array('umpire')),
 		 50   => array('name' => 'Moderators', 'roles' => array('user', 'moderator')),
 		 100  => array('name' => 'Administrators', 'roles' => array('user', 'moderator', 'admin')),
 	),
 
 	'roles' => array(
 		 'admin'  => array('nav' => array('admin'), 'admin' => array('all')),
+		 'umpire'  => array('nav' => array('umpire')),
 		 'user'  => array('comments' => array('create', 'read')),
 		 'moderator'  => array('comments' => array('update', 'delete')),
 		 '#'  => array('website' => array('read')),
