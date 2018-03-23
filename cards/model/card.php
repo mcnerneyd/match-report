@@ -753,8 +753,10 @@ class Card {
           $side = 'away';
       }
 
-      if (array_key_exists($row['player'],$card[$side]['players'])) {
-        $card[$side]['players'][$row['player']]['number'] = $row['detail'];
+			$cName = Player::cleanName($row['player']);
+
+      if (array_key_exists($cName, $card[$side]['players'])) {
+        $card[$side]['players'][$cName]['number'] = $row['detail'];
       }
     }
 
