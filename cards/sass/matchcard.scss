@@ -1,0 +1,183 @@
+/* ---------- Matchcard Formatting ------------------------------ */
+#match-card {
+	width: 100%;
+	overflow-x: hidden;
+	position: relative;
+
+	h1 {
+		width: 100%;
+		margin-top: 0;
+		border-bottom: 2px solid black;
+		font-size: 30px;
+		font-weight: bold;
+	}
+
+	#headshot {
+		position: absolute;
+		right: 0;
+	}
+
+	#teams {
+		margin-right: 0;
+	}
+
+	.team {
+		width: 100%;
+		margin-bottom: 30px;
+	}
+
+
+	/* where screen is wide enough put side by side */
+	@media (min-width: 768px) {
+	#teams {
+		margin-right: -20px;
+		}
+
+	.team {
+			width: 50%;
+			padding-right: 20px;
+			float: left;
+		}
+	}
+
+	table {
+		width: 100%;
+	}
+
+	tr td {
+		padding: 5px 10px 5px 0;
+		border-bottom: 1px solid #ddd;
+	}
+
+	tr td:nth-child(2) {
+		font-style: italic;
+	}
+
+	tr td:nth-child(3) {
+		width: 60%;
+	}
+
+	detail {
+		width: 100%;
+		min-height: 50px;
+		clear: both;
+		display: block;
+		float: left;
+	}
+
+	detail dl {
+		padding-right: 40px;
+		float: left;
+	}
+
+	#lock-code {
+		float: right;
+		padding-right: 0;
+	}
+
+	#lock-code *{
+		text-align: right;
+	}
+
+	tr {
+		height: 2em;
+
+		span {
+			float: right;
+		}
+
+		th:first-child {
+			text-align: center;
+			width: 2em;
+		}
+
+		&.filler {
+			background: repeating-linear-gradient( 45deg, white, white 9px, #eee 2px, #eee 11px);
+		}
+
+		img.card {
+			width: 1.5em;
+			margin: -0.5em -0.3em -0.5em 0.5em;
+		}
+	}
+
+	span.score {
+		color: #484;
+		padding-left: 0.5em;
+		font-weight: bold;
+
+	}
+
+	figure span.score::before, tr span.score::before {
+		content: "x";
+	}
+
+	caption {
+		font-size: 20px;
+		color: black;
+		padding: 5px 10px 5px 0;
+		border-bottom: 1px solid black;
+		border-top: 1px solid black;
+
+		span.score {
+			float: right;
+			color: #484;
+			font-weight: bold;
+		}
+	}
+
+	.ineligible {
+		background: repeating-linear-gradient( 45deg, white, white 10px, #fea 10px, #fea 20px);
+	}
+
+	div.figures {
+		padding-top: 5px;
+	}
+
+	figure {
+		float: left;
+		margin: 5px 5px 0 0;
+		border: 1px solid #ccc;
+		padding: 5px;
+		position: relative;
+		overflow: hidden;
+		box-shadow: 2px 2px 2px #ccc;
+
+		img {
+			width: 100%;
+		}
+
+		img.card {
+			width: 1.5em;
+			position: absolute;
+			top: 4px;
+			left: 4px;
+		}
+
+		.score {
+			position: absolute;
+			top: 5px;
+			right: 8px;
+		}
+
+		.number {
+			width: 15px;
+			text-align: center;
+			display: block;
+		}
+	}
+
+	figcaption {
+		margin-top: -19px;
+		font-size: 70%;
+		text-align: left;
+		margin-left: 18px;
+		height: 1.6rem;
+
+		&::first-line {
+			font-size: 60%;
+			font-style: italic;
+		}
+	}
+}
+

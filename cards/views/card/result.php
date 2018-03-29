@@ -1,7 +1,14 @@
+<?php
+if (isset($_GET['alternate'])) {
+	require_once("matchcard.php");
+	return;
+}
+?>
 <!--
 <?php print_r($fixture); ?>
 -->
 <?php 
+
 if (!isset($fixture['card'])) throw new Exception("Card does not exist");
 
 $card = $fixture['card'];
@@ -199,7 +206,7 @@ if ($whoami) {
 	<div class="alert alert-info" data-help='strict-processing'>Important: Strict processing applies to this card</div>
 	<script>
 	$(document).ready(function() {
-		if ($('.numberless').length > 0) {
+		if ($('#matchcard-<?= $whoami ?> .numberless').length > 0) {
 			$('#submit-card-button').attr('disabled','disabled');
 			$('[data-help="strict-processing"]').before("<div class='alert alert-danger' data-help='adding-shirt-numbers'>Submit Card button is disabled</strong> because there are players without assigned shirt numbers</div>");
 		}

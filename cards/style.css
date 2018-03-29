@@ -1,34 +1,217 @@
 /*
  * style.css
  */
-@import url('https://fonts.googleapis.com/css?family=Sarala');
+@import url(https://fonts.googleapis.com/css?family=Sarala);
+body {
+  font-family: "Sarala", sans-serif;
+  padding-top: 80px;
+  padding-bottom: 70px;
+}
 
-body { font-family: 'Sarala', sans-serif; padding-top: 80px; padding-bottom: 70px; }
-.login { color: white; }
-html { overflow-y: scroll; }
+.login {
+  color: white;
+}
+
+html {
+  overflow-y: scroll;
+}
+
 *:active,
 *:hover {
-		cursor: pointer;
+  cursor: pointer;
 }
-.navbar-brand { color: white !important; margin-top: -2px; }
-pre {white-space:pre-wrap;}
-header { border-bottom: 3px solid crimson !important; }
-#user { position:absolute; min-height: 18px; 
-	background: crimson; 
-	font-size: 12px; padding: 0px 50px; color: white;
-	border-radius: 0 0 0 12px;
-	right: 0; top: 50px; margin-bottom: -18px; }
 
-.navbar-brand { margin-top: 0; }
+.navbar-brand {
+  color: white !important;
+  margin-top: -2px;
+}
+
+pre {
+  white-space: pre-wrap;
+}
+
+header {
+  border-bottom: 3px solid crimson !important;
+}
+
+#user {
+  position: absolute;
+  min-height: 18px;
+  background: crimson;
+  font-size: 12px;
+  padding: 0px 50px;
+  color: white;
+  border-radius: 0 0 0 12px;
+  right: 0;
+  top: 50px;
+  margin-bottom: -18px;
+}
+
+.navbar-brand {
+  margin-top: 0;
+}
 
 /* ---------- Competition Tags --------------------------------- */
-.label-league, .label-cup { 
-	border:1px solid #7ab733; padding: 1px 5px 2px 5px; margin-right: 2px; }
+.label-league, .label-cup {
+  border: 1px solid #7ab733;
+  padding: 1px 5px 2px 5px;
+  margin-right: 2px;
+}
 
-.label-league { 
-	background-color: #7ab733; }
+.label-league {
+  background-color: #7ab733;
+}
 
-.label-cup { 
-	background-color: #eeffcc; color: #7ab733 !important; }
+.label-cup {
+  background-color: #eeffcc;
+  color: #7ab733 !important;
+}
 
-
+/* ---------- Matchcard Formatting ------------------------------ */
+#match-card {
+  width: 100%;
+  overflow-x: hidden;
+  position: relative;
+  /* where screen is wide enough put side by side */
+}
+#match-card h1 {
+  width: 100%;
+  margin-top: 0;
+  border-bottom: 2px solid black;
+  font-size: 30px;
+  font-weight: bold;
+}
+#match-card #headshot {
+  position: absolute;
+  right: 0;
+}
+#match-card #teams {
+  margin-right: 0;
+}
+#match-card .team {
+  width: 100%;
+  margin-bottom: 30px;
+}
+@media (min-width: 768px) {
+  #match-card #teams {
+    margin-right: -20px;
+  }
+  #match-card .team {
+    width: 50%;
+    padding-right: 20px;
+    float: left;
+  }
+}
+#match-card table {
+  width: 100%;
+}
+#match-card tr td {
+  padding: 5px 10px 5px 0;
+  border-bottom: 1px solid #ddd;
+}
+#match-card tr td:nth-child(2) {
+  font-style: italic;
+}
+#match-card tr td:nth-child(3) {
+  width: 60%;
+}
+#match-card detail {
+  width: 100%;
+  min-height: 50px;
+  clear: both;
+  display: block;
+  float: left;
+}
+#match-card detail dl {
+  padding-right: 40px;
+  float: left;
+}
+#match-card #lock-code {
+  float: right;
+  padding-right: 0;
+}
+#match-card #lock-code * {
+  text-align: right;
+}
+#match-card tr {
+  height: 2em;
+}
+#match-card tr span {
+  float: right;
+}
+#match-card tr th:first-child {
+  text-align: center;
+  width: 2em;
+}
+#match-card tr.filler {
+  background: repeating-linear-gradient(45deg, white, white 9px, #eee 2px, #eee 11px);
+}
+#match-card tr img.card {
+  width: 1.5em;
+  margin: -0.5em -0.3em -0.5em 0.5em;
+}
+#match-card span.score {
+  color: #484;
+  padding-left: 0.5em;
+  font-weight: bold;
+}
+#match-card figure span.score::before, #match-card tr span.score::before {
+  content: "x";
+}
+#match-card caption {
+  font-size: 20px;
+  color: black;
+  padding: 5px 10px 5px 0;
+  border-bottom: 1px solid black;
+  border-top: 1px solid black;
+}
+#match-card caption span.score {
+  float: right;
+  color: #484;
+  font-weight: bold;
+}
+#match-card .ineligible {
+  background: repeating-linear-gradient(45deg, white, white 10px, #fea 10px, #fea 20px);
+}
+#match-card div.figures {
+  padding-top: 5px;
+}
+#match-card figure {
+  float: left;
+  margin: 5px 5px 0 0;
+  border: 1px solid #ccc;
+  padding: 5px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 2px 2px 2px #ccc;
+}
+#match-card figure img {
+  width: 100%;
+}
+#match-card figure img.card {
+  width: 1.5em;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+}
+#match-card figure .score {
+  position: absolute;
+  top: 5px;
+  right: 8px;
+}
+#match-card figure .number {
+  width: 15px;
+  text-align: center;
+  display: block;
+}
+#match-card figcaption {
+  margin-top: -19px;
+  font-size: 70%;
+  text-align: left;
+  margin-left: 18px;
+  height: 1.6rem;
+}
+#match-card figcaption::first-line {
+  font-size: 60%;
+  font-style: italic;
+}
