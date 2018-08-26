@@ -210,9 +210,11 @@
 				debug("L:".print_r($items, true));
 
 				if (count($items) > 1) {
-					$player = PLayer::cleanName(str_replace(' ','',trim(strtoupper($items[0]))) .", ".trim($items[1]));
+					//$player = Player::cleanName(str_replace(' ','',trim(strtoupper($items[0]))) .", ".trim($items[1]));
+					$player = cleanName(str_replace(' ','',trim(strtoupper($items[0]))) .", ".trim($items[1]), 'LN, Fn');
 				} else {
-					$player = Player::cleanName($items[0]);
+					//$player = Player::cleanName($items[0]);
+					$player = cleanName($items[0], 'LN, Fn');
 				}
 				$result[$player] = -1;
 			}
@@ -602,4 +604,3 @@
 			return false;
 		}
   }
-?>

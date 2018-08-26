@@ -185,14 +185,14 @@ if ($whoami) {
 		}
 		
 		$(document).ready(function () {
-			window.setInterval(function () {
+			var interval_id = window.setInterval(function () {
 					var tstr = timestr();
 					if (tstr != null) {
 						$('#countdown').text("Card will automatically submit in " + tstr);
 						$('#countdown').show();
 					} else {
 						$('#countdown').hide();
-						window.clearInterval();
+						window.clearInterval(interval_id);
 					}
 				}, 1000);
 

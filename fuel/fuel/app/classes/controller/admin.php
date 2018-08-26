@@ -57,6 +57,7 @@ class Controller_Admin extends Controller_Hybrid
 		foreach (array_reverse(explode("\n", $src)) as $line) {
 			$match = array();
 			if (!preg_match("/(.*) - (.*) --> (.*)/", $line, $match)) continue;
+
 			switch ($match[1]) {
 				case "ERROR":
 					echo "<code style='color:red'>".$match[2]." <strong>".$match[1]."</strong> ".$match[3]."</code><br>";
@@ -68,6 +69,13 @@ class Controller_Admin extends Controller_Hybrid
 					echo "<code>".$match[2]." <strong>".$match[1]."</strong> <i style='color:#666'>".$match[3]."</i></code><br>";
 					break;
 				default:
+					$match2 = array();
+					if (preg_match("/Fuel.Core.Request::__construct - Creating a new main Request with URI = \"(.*)\"/", $match[3], $match2)) {
+						$squeak = substr("----- ".$match2[1]." ".str_repeat("-", 120),0,120);
+						echo "<code style='color:green'>".$match[2]." $squeak </code><br>";
+						break;
+					}
+
 					echo "<code>".$match[2]." <strong>".$match[1]."</strong> ".$match[3]."</code><br>";
 					break;
 			}
@@ -100,7 +108,7 @@ class Controller_Admin extends Controller_Hybrid
 		$regs = array();
 		$clubs = array();
 
-		foreach (Model_Registration::find_all() as $reg) {
+		foreach (Model_Registration::find_all_db() as $reg) {
 			if (!in_array($reg['club'], $clubs)) {
 				$reg['head'] = true;
 				$clubs[] = $reg['club'];
@@ -202,120 +210,66 @@ class Controller_Admin extends Controller_Hybrid
 		return $response;
 	}
 
-	public function post_configfile() {
-		$file = Input::file("configfile");
-
-		$data = loadFile($file);
-
-		$compNames = str_getcsv(array_shift($data));
-
-		if ($compNames[0] or $compNames[1]) throw new Exception("Not a valid configuration file");
-
-		$compSizes = str_getcsv(array_shift($data));
-		$compCodes = str_getcsv(array_shift($data));
+	public function get_refresh() {
 
 		try {
 				DB::start_transaction();
-				DB::update('competition')->value('sequence', -1)->execute();
-
-				for ($i=3; $i<count($compNames);$i++) {
-						$matches = array();
-						$teamSize = null;
-						$teamStars = null;
-
-						if (preg_match("/([0-9]+)(?:\+([0-9]+))?/", $compSizes[$i], $matches)) {
-								if (count($matches) > 2) $teamStars = $matches[2];
-								else $teamStars = 0;
-								$teamSize = $matches[1] + $teamStars;
-						}
-
-						$comp = Model_Competition::find_by_name($compNames[$i]) ?: 
-							Model_Competition::forge(array('name'=>$compNames[$i]));
-
-						$comp->code = $compCodes[$i];
-						$comp->teamsize = $teamSize;
-						$comp->teamstars = $teamStars;
-						$comp->sequence = $i-3;
-
-						$comp->save();
-				}
-
 				DB::delete('entry')->execute();		// Delete all entrys
 
-				foreach ($data as $line) {
-						$club = str_getcsv($line);
+				$fixtures = Model_Fixture::getAll();
+				$competitionTeams = array();
+				$clubTeams = array();
+				$teamLookup = array();
 
-						if (!$club[0]) continue;
+				foreach ($fixtures as $fixture) {
+					
+					Controller_Admin::treeset($competitionTeams, $fixture['competition'], $fixture['home']);					 
+					Controller_Admin::treeset($competitionTeams, $fixture['competition'], $fixture['away']);					 
+					
+					Controller_Admin::treeset($clubTeams, $fixture['home_club'], $fixture['home']);					 
+					Controller_Admin::treeset($clubTeams, $fixture['away_club'], $fixture['away']);					 
 
-						$clubX = Model_Club::find_by_name($club[0]) ?: 
-							Model_Club::forge(array('name'=>$club[0]));
+					$teamLookup[$fixture['home']] = array('club'=>$fixture['home_club'],'team'=>$fixture['home_team']);
+					$teamLookup[$fixture['away']] = array('club'=>$fixture['away_club'],'team'=>$fixture['away_team']);
+				}
+				
+				foreach ($teamLookup as $team=>$detail) {
+					$t = Model_Team::find_by_name($team);
+					if ($t) continue;
 
-						// Not ideal - but best of worst
-						$oddClub = Model_Club::find_by_code($club[1]);
-						if ($oddClub && $oddClub->name != $club[0]) {
-							$oddClub->delete();
-						}
+					$clubName = $detail['club'];
+					$club = Model_Club::find_by_name($clubName);
+					if (!$club) {
+						throw new Exception("Unknown club $clubName");
+					}
+					$t = new Model_Team();
+					$t->club = $club;
+					$t->team = $detail['team'];
+					$t->save();
+				}
 
-						$clubX->code = $club[1];
+				foreach ($competitionTeams as $competition=>$teams) {
+					$comp = Model_Competition::find_by_name($competition);
+					if (!$comp) {
+						throw new Exception("Unknown competition $competition");
+					}
+					foreach ($teams as $team) {
+						$comp->team[] = Model_Team::find_by_name($team);
+					}
+					$comp->save();
+				}
 
-						$clubUser = Model_User::find_by_username($club[0]);
+				foreach (Model_Card::query()
+					->where('home_id','=',null)
+					->or_where('away_id','=',null)->get() as $card) {
+					
+					foreach ($fixtures as $fixture) {
+						if ($fixture['fixtureID'] != $card['fixture_id']) continue;
 
-						if (!$clubUser) {
-							Log::info("Creating new user:".$club[0]);
-							$clubUser = new Model_User();
-							$clubUser->username = $club[0];
-							$clubUser->club_id = $clubX->id;
-							$clubUser->role = "user";
-							$clubUser->password = generatePassword(4);
-						} else {
-							Log::info("User exists:".$club[0]);
-						}
-
-						$clubUser->email = $club[2];
-						$clubUser->save();
-
-						$secretary = Model_User::find_by_username($club[2]);
-						
-						if (!$secretary) {
-							Log::info("Creating secretary:".$club[0]);
-							$secretary = new Model_User();
-							$secretary->username = $club[2];
-						}
-
-						$secretary->club_id = $clubX->id;
-						$secretary->role = "secretary";
-						$secretary->email = $club[2]; 
-						$secretary->password = '';
-						$secretary->save();
-
-						foreach ($clubX->team as $team) $team->competition = array();
-
-						$entries = array();
-
-						for ($j=3;$j<count($compNames);$j++) {
-								if ($club[$j]) {
-										$comp = Model_Competition::find_by_name($compNames[$j]);
-										foreach (explode(",", $club[$j]) as $entry) {
-											$matchTeam = null;
-											foreach ($clubX->team as $v) if ($v->team == $entry) { $matchTeam = $v; break; }
-											if (!$matchTeam) {
-												$matchTeam = Model_Team::forge();
-												$matchTeam->team = $entry;
-												$matchTeam->competition = array();
-												$matchTeam->club = $clubX;
-												$clubX->team[] = $matchTeam;
-											}
-											$matchTeam->save();
-											DB::insert('entry')
-													->set(array(
-														'team_id'=>$matchTeam->id, 
-														'competition_id'=>$comp->id))
-													->execute();
-										}
-								}
-						}
-
-						$clubX->save();
+						if (!$card['home_id']) $card['home_id'] = Model_Team::find_by_name($fixture['home'])->id;
+						if (!$card['away_id']) $card['away_id'] = Model_Team::find_by_name($fixture['away'])->id;
+						$card->save();
+					}
 				}
 
 				DB::commit_transaction();
@@ -325,37 +279,74 @@ class Controller_Admin extends Controller_Hybrid
 				throw $e;
 			}
 
-		Response::redirect("admin/competitions");
+			$this->template->title = 'Refresh';
+			$this->template->content = "";
+
+		//Response::redirect("admin/competitions");
 	}
 
-	// --------------------------------------------------------------------------
-	public function action_clubs() {
+	private static function treeset(&$t, $k, $v) {
+		if (!isset($t[$k])) {
+			$t[$k] = array();
+		}
+
+		if (!in_array($v, $t[$k])) {
+			$t[$k][] = $v;
+		}
+	}
+
+	// ----- Clubs --------------------------------------------------------------
+	public function get_clubs() {
 		$data['clubs'] = array();
 		
 		foreach (Model_Club::find('all', 
 			array('order_by'=>array('name'=>'asc'))) as $club) {
-			foreach ($club->team as $team) {
-				if (count($team->competition) > 0) {
-					$data['clubs'][] = $club;
-					break;
-				}
-			}
+			$data['clubs'][] = $club;
 		}
 
 		$this->template->title = "Clubs";
 		$this->template->content = View::forge('admin/clubs', $data);
 	}
 
-	public function action_competitions() {
-		$data['competitions'] = Model_Competition::find('all',
-			array(
-			'where' => array(
-				array('sequence', '>', 0),
-				),
-			));
+	public function post_club() {
+		$club = new Model_Club();
+		$club->name = Input::post('clubname');
+		$club->code = Input::post('clubcode');
+		$club->save();
+
+		return new Response("Club created", 201);
+	}
+
+	public function delete_club() {
+		$club = Model_Club::find_by_code(Input::delete('code'));
+		$club->delete();
+
+		return new Response("Club deleted", 201);
+	}
+
+	// ----- Competitions -------------------------------------------------------
+	public function get_competitions() {
+		$data['competitions'] = Model_Competition::find('all');
 
 		$this->template->title = "Competitions";
 		$this->template->content = View::forge('admin/competitions', $data);
+	}
+
+	public function post_competition() {
+		$competition = new Model_Competition();
+		$competition->name = Input::post('competitionname');
+		$competition->code = Input::post('competitioncode');
+		$competition->sequence = 0;
+		$competition->save();
+
+		return new Response("Competition created", 201);
+	}
+
+	public function delete_competition() {
+		$competition = Model_Competition::find_by_code(Input::delete('code'));
+		$competition->delete();
+
+		return new Response("Competition deleted", 201);
 	}
 
 	public function action_teams() {
@@ -389,6 +380,7 @@ class Controller_Admin extends Controller_Hybrid
 		if ($pw) {
 			Config::set("config.automation_password", $pw);
 		}
+		Config::set("config.automation_allowrequest", Input::post('allow_registration'));
 		Config::set("config.pattern_competition", Input::post("fixescompetition"));
 		Config::set("config.pattern_team", Input::post("fixesteam"));
 		Config::save('custom.db', 'config');
@@ -424,6 +416,7 @@ class Controller_Admin extends Controller_Hybrid
 	private function convertConfig() {
 		$site = Session::get('site');
 		$path = APPPATH."../../../sites/$site";
+		mkdir($path);
 		$configFile = "$path/config.ini";
 
 		$file = fopen($configFile,'w');

@@ -38,6 +38,32 @@
 			return null;
 		}
 
+		public static function getPlayerHistorySummary($club) {
+			$db = Db::getInstance();
+
+			$req = $db->query("select distinct player, c.name club, COALESCE(th.team, ta.team) team from incident i 
+					join club c on i.club_id = c.id 
+						join matchcard m on i.matchcard_id = m.id
+						left join team th on m.home_id = th.id and th.club_id = c.id
+						left join team ta on m.away_id = ta.id and ta.club_id = c.id
+						where c.name = '$club'");
+
+			$result = array();
+			foreach ($req->fetchAll() as $row) {
+				$playerName = cleanName($row['player']);
+				$team = $row['team'];
+				if (!isset($result[$playerName])) {
+					$result[$playerName] = array('teams'=>array());
+				}
+
+				if (!in_array($team, $result[$playerName]['teams'])) {
+					$result[$playerName]['teams'][] = $team;
+				}
+			}
+
+			return $result;
+		}
+
 		public static function getEmail($club) {
 			$db = Db::getInstance();
 
@@ -115,6 +141,31 @@
 
 			return $req->fetchAll();
 
+		}
+
+		public static function getTeamSizes($club) {
+		  $db = Db::getInstance();
+
+		  $sql = "SELECT distinct teamsize, teamstars, sequence from competition x join entry e on e.competition_id = x.id
+	join team t on e.team_id = t.id
+    join club c on t.club_id = c.id
+where c.name = '$club' and teamsize is not null
+    order by x.sequence";
+
+			$req = $db->prepare($sql);
+			$req->execute();
+
+			$result = array();
+			$carry = 0;
+			foreach ($req->fetchAll() as $row) {
+				$size = $row['teamsize'];
+				$size += $carry;
+				$carry = $row['teamstars'];		
+				$size -= $carry;
+				$result[] = $size;
+			}
+
+			return $result;
 		}
 
 		public static function addClub($name, $code, $regsec, $entries) {

@@ -131,7 +131,7 @@ return array(
 	 * \Fuel::L_INFO
 	 * \Fuel::L_ALL
 	 */
-	'log_threshold'    => \Fuel::L_INFO,
+	'log_threshold'    => \Fuel::L_DEBUG,
 
 	/**
 	 * Log file and path. If no filename is given, it will be generated.

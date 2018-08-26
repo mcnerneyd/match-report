@@ -71,11 +71,11 @@ if (isset($action) && $action == 'loginUC') {
 	$controller = null;
 	$action = null;
 
-	if (user('secretary')) {
+	/*if (user('secretary')) {
 		$q = null;
-		if ($_REQUEST['validate']) $q='validate=1';
+		if (isset($_REQUEST['validate'])) $q='validate=1';
 		throw new RedirectException("User logged in", url($q, 'register', 'club'));
-	}
+	}*/
 
 	throw new RedirectException("User logged in", url(null, 'index', 'card'));
 }
@@ -202,7 +202,7 @@ function securekey($key) {
 
 	$t = substr($hash, 32);
 	if ($hash != createsecurekey($key, $t)) {
-		throw new Exception('Security key match failed');
+		throw new Exception("Security key match failed: $hash/$key $t");
 	}
 }
 

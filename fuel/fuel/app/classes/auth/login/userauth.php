@@ -9,16 +9,31 @@ class Auth_Login_Userauth extends Auth_Login_Simpleauth {
 			return false;
 		}
 
+		\Session::delete('elevated');
+		\Config::load('custom.db', 'config');
+		$elevationPassword = \Config::get("config.elevation_password", "");
+		if (trim($elevationPassword) == "") $elevationPassword = '1234';
+
+		if ($username === 'admin') {
+			if ($password !== $elevationPassword) {
+				return false;
+			}
+
+			\Session::set('elevated', true);
+
+			return array('username'=>'admin', 'group'=>100);
+		}
+
 		$user = \DB::select('username', 'password', 'club.name', 'role')
 			->from('user')
 			->join('club', 'LEFT')->on('user.club_id','=','club.id')
 			->where('username', '=', $username)
 			->execute()->current();
 
-		\Session::delete('elevated');
-		\Config::load('custom.db', 'config');
-		$elevationPassword = \Config::get("config.elevation_password", "");
-		if (trim($elevationPassword) == "") $elevationPassword = '1234';
+		if (!$user) {
+			Log::warning("No such user: $username");
+			return false;
+		}
 
 		Log::info("Logging in with user ".Session::get('site').".$username, password=$password/${user['password']}");
 
@@ -33,10 +48,12 @@ class Auth_Login_Userauth extends Auth_Login_Simpleauth {
 			Log::info("User logged in (Elevated)");
 		} else {
 			Log::warning("Invalid user $username");
-			$user = false;
+			return false;
 		}
 
-		return $user ?: false;
+		\Session::set('club', $user['name']);
+
+		return $user;
 	}
 
 	public function create_login_hash()
@@ -58,6 +75,8 @@ class Auth_Login_Userauth extends Auth_Login_Simpleauth {
 		if (\Session::get('elevated')) return 100;
 
 		switch ($role) {
+			case 'secretary':
+				return 25;
 			case 'umpire':
 				return 2;
 			default:
@@ -123,11 +142,13 @@ class Auth_Login_Userauth extends Auth_Login_Simpleauth {
 		{
 			$this->user = \Config::get('simpleauth.guest_login', true) ? static::$guest_login : false;
 			\Session::delete('username');
+			\Session::delete('club');
 			\Session::delete('login_hash');
 			return false;
 		}
 
 		\Session::set('username', $this->user['username']);
+		\Session::set('club', $this->user['club.name']);
 		\Session::set('login_hash', $this->create_login_hash());
 		// Legacy compatability
 		$_SESSION['__org']['user'] = $this->user['username'];

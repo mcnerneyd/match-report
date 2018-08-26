@@ -180,7 +180,7 @@
       $db = Db::getInstance();
       $names = Player::splitName($name);
 
-      $sql = "
+      /*$sql = "
         select firstname, lastname, c.name club, i.detail number, v.id image_id
           from registration r
             join club c 
@@ -200,7 +200,7 @@
 
       $result = $req->fetch();
 
-      $result['name'] = $result['lastname'].", ".$result['firstname'];
+      $result['name'] = $result['lastname'].", ".$result['firstname'];*/
 
       $sql = "
        select i.date, 
@@ -475,4 +475,3 @@
 			return $names[1].", ".$names[0];
 		}
   }
-?>

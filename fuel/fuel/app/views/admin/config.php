@@ -18,6 +18,20 @@ $(document).ready(function(event) {
 				type: 'success'});
 		});
 	});
+	$('#security-salt .btn').click(function(e) {
+		debugger;
+		var chars = "0123456789"
+			+ "abcdefghijklmnopqrstuvwxyz"
+			+ "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+			+ "#$%!@";
+		var salt = "";
+		while (salt.length < 32) {
+			var charIndex = Math.floor(Math.random() * chars.length);
+			salt += chars.charAt(charIndex);
+		}
+		$('#security-salt input').val(salt);
+		$('#configform').submit();
+	});
 });
 </script>
 
@@ -84,7 +98,8 @@ $(document).ready(function(event) {
 				</div>
 
 				<div class='checkbox'>
-					<label> <input type='checkbox'></input> Allow Registration</label>
+					<label> <input type='checkbox' name='allow_registration' <?php 
+						if ($automation_allowrequest) echo 'checked'; ?>></input> Allow Registration</label>
 				</div>
 			</fieldset>
 
@@ -112,9 +127,17 @@ $(document).ready(function(event) {
 		</div> <!-- #fixtures -->
 
 		<div class='tab-pane' id='security'>
-				<div class='form-group col-sm-6'>
+				<div class='form-group col-sm-6' id='security-salt'>
 					<label>Salt</label>
-					<input name='salt' type='text' class='form-control' value='<?= $salt ?>'></input>
+					<div class='input-group'>
+						<span class='input-group-btn'>
+							<button class='btn btn-success' type='button'>
+								<i class='glyphicon glyphicon-refresh'></i>
+							</button>
+						</span>
+						<input name='salt' type='text' class='form-control' value='<?= $salt ?>'></input>
+						
+					</div>
 				</div>
 
 				<div class='form-group col-sm-6'>

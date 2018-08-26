@@ -55,8 +55,6 @@ class CardController {
 					}
 			}
 
-			//debug("Fixture ID:".$card['id']." status=".$card['status']." home=".$card['home']['team']." away=".$card['away']['team']." date=".date('Y-m-d', $card['date']));
-
 			$homeValid = false;
 			$awayValid = false;
 			foreach ($teamMap as $team) {
@@ -76,9 +74,7 @@ class CardController {
 				}
 
 			if ($homeValid) $card['home']['valid'] = true;
-			//else echo "Invalid:".print_r($card['home'], true);
 			if ($awayValid) $card['away']['valid'] = true;
-			//else echo "Invalid:".print_r($card['away'], true);
 
 			$cards[] = $card;
 		}
@@ -104,27 +100,9 @@ class CardController {
 			});
 
 		$counts = array_count_values(array_map(function($card) { return $card['status']; }, $cards));
-
-		debug("Counts:".print_r($counts, true));
+		$clubs = Club::all();
 
 		require_once('views/card/index.php');
-	}
-
-	// ------------------------------------------------------------------------
-	public function fine() {
-		$id = $_REQUEST['fixtureid'];
-
-		$fixture = Card::getFixture($id);
-
-		if (!isset($fixture['card'])) {
-			$cardid = Card::create($fixture);
-		} else {
-			$cardid = $fixture['card']['id'];
-		}
-
-		Card::addCardIncident($cardid, 'Missing', checkuser('admin'));	
-
-		redirect('card', 'index');
 	}
 
 	// ------------------------------------------------------------------------
@@ -145,7 +123,7 @@ class CardController {
 		if (!$fixture) throw new Exception("No such fixture (fid=$id)");
 
 		if (user('umpire')) {
-			require_once('views/card/result.php');
+			require_once('views/card/matchcard.php');
 			return;
 		}
 
@@ -154,27 +132,65 @@ class CardController {
 		if (!isset($fixture['card'])) {
 			info("Creating new card for ${fixture['id']}");
 			$fixture['cardid'] = Card::create($fixture);
-			$players = ClubController::getPlayers(date('Y-m-d'), $club, $fixture[$fixture[$club]]['teamnumber']);
+			//$players = ClubController::getPlayers(date('Y-m-d'), $club, $fixture[$fixture[$club]]['teamnumber']);
+			$players = CardController::getPlayers($club, date('Y-m-d'), $fixture[$fixture[$club]]['teamnumber']);
+			//$players = CardController::getPlayers($club, date('Y-m-d'));
 			require_once('views/card/fixture.php');
 			return;
 		}
 
 		$teamcard = $fixture['card'][$fixture[$club]];
-		debug("WhoAmI:".print_r($teamcard,true));
+
+		foreach ($fixture['card']['rycards'] as $rycard) {
+			$player = &$fixture['card'][$rycard['side']]['players'][$rycard['player']];
+			if (!isset($player['cards'])) $player['cards'] = array();
+			$player['cards'][] = array('type'=>$rycard['type'],'detail'=>$rycard['detail']);
+		}
 
 		if (isset($teamcard['locked']) or isset($teamcard['closed'])) {
-			require_once('views/card/result.php');
+			$fixture['card']['away']['suggested-score'] = emptyValue($fixture['card']['home']['oscore'], 0);
+			$fixture['card']['home']['suggested-score'] = emptyValue($fixture['card']['away']['oscore'], 0);
+			
+			require_once('views/card/matchcard.php');
 			return;
 		}
 
+		debug("Last player for: $club ".$teamcard['teamx']);
+		//echo "Last player for: $club".$teamcard['teamx'];
 		$lastPlayers = Card::getLastPlayers($club, $teamcard['teamx']) or array();
-		$players = ClubController::getPlayers(date('Y-m-d'), $club, $fixture[$fixture[$club]]['teamnumber']);
+		echo "<!-- Last Players:\n ".print_r($lastPlayers, true). "-->";
+		//$players = ClubController::getPlayers(date('Y-m-d'), $club, $fixture[$fixture[$club]]['teamnumber']);
+		$players = CardController::getPlayers($club, date('Y-m-d'), $fixture[$fixture[$club]]['teamnumber']);
+		//$players = CardController::getPlayers($club, date('Y-m-d'));
 
-		info("Card opened");
-		
 		require_once('views/card/fixture.php');
 	}
 
+
+	// ------------------------------------------------------------------------
+	public function fine() {
+		$id = $_REQUEST['fixtureid'];
+
+		$fixture = Card::getFixture($id);
+
+		if (!isset($fixture['card'])) {
+			$cardid = Card::create($fixture);
+		} else {
+			$cardid = $fixture['card']['id'];
+		}
+
+		Card::addCardIncident($cardid, 'Missing', checkuser('admin'));	
+
+		redirect('card', 'index');
+	}
+
+	// ------------------------------------------------------------------------
+	public function note() {
+		$id = $_POST['cardid'];
+		$msg = $_POST['note'];
+
+		Card::addNote($id, checkuser(), $msg);
+	}
 
 	// ------------------------------------------------------------------------
 	public function player() {
@@ -189,11 +205,11 @@ class CardController {
 		if (isset($_REQUEST['club'])) {
 			$club = $_REQUEST['club'];
 
-			if (!user('umpire') && user() != $club) {
+			if (!user('umpire') && $_SESSION['club'] != $club) {
 				throw new LoginException("User is not in this club");
 			}
 		} else {
-			$club = user();
+			$club = $_SESSION['club'];
 		}
 
 		$key = "played";
@@ -245,7 +261,7 @@ class CardController {
 
 		securekey("card$cardid");
 
-		$lockCode = Card::lock($cardid, user());
+		$lockCode = Card::lock($cardid, $_SESSION['club']);
 
 		$this->redirectGet(Card::getFixtureByCardId($cardid));
 	}
@@ -272,6 +288,7 @@ class CardController {
 	}
 
 	// ------------------------------------------------------------------------
+	/* Moved to fuel Card/Signature
 	public function commit() {
 		checkuser();
 		$cardid = $_REQUEST['cid'];
@@ -309,6 +326,7 @@ class CardController {
 
 		$this->redirectGet($fixture);
 	}
+	*/
 
 	public function close() {
 		checkuser('admin');
@@ -414,5 +432,144 @@ class CardController {
 
 		require_once('views/card/create.php');
 	}
+
+// ------------------------- COPIED FROM FUEL
+
+	public static function getPlayers($rclub, $date, $teamNo) {
+		$result = array();
+
+		$skip = 0;
+		foreach (Club::getTeamSizes($rclub) as $index=>$teamSize) {
+			if ($index < $teamNo - 1) $skip += $teamSize;
+		}
+		$history = Club::getPlayerHistorySummary($rclub);
+		echo "<!-- Skip:$skip $teamNo \n";
+		print_r($history);
+		echo "-->";
+
+		foreach (CardController::find_before_date($rclub, strtotime($date)) as $player) {
+			if ($skip-->0) continue;
+
+			if (isset($history[$player['name']])) $teams = $history[$player['name']]['teams'];
+			else $teams = array();
+
+			$result[$player['name']] = array('teams'=>$teams);
+		}
+
+		return $result;
+	}
+
+	public static function find_before_date($rclub, $date) {
+		echo "<!--\n";
+		$match = null;
+		$club = strtolower($rclub);
+		foreach (CardController::find_all($club) as $registration) {
+			echo "Comp:".$registration['timestamp']."=".$date."\n";
+			if ($registration['timestamp'] < $date) {
+				$match = $registration['name'];
+				echo "Match:$match";
+			}
+		}
+		echo "-->";
+
+		$result = array();
+		if ($match != null) {
+			$file = CardController::getRoot($club, $match);
+			$result = CardController::readRegistrationFile($file, $club);
+		}
+
+		return $result;
+	}
+
+	public static function find_all($club) {
+		$result = array();
+
+		$club = strtolower($club);
+
+		$root = CardController::getRoot($club);
+
+		if (is_dir($root)) {
+			$files = glob("$root/*.csv");
+			if ($files) {
+				foreach ($files as $name) {
+					$result[] = array("club"=>$club,
+						"name"=>basename($name),
+						"timestamp"=>filemtime($name),
+						"cksum"=>md5_file($name));
+				}
+			}
+		}
+
+		return $result;
+	}
+
+	public static function getRoot($club = null, $file = null) {
+		$root = "../archive/".site()."/registration";
+
+		if ($club) $root .= "/".strtolower($club);
+		if ($file) $root .= "/$file";
+
+		if (!file_exists($root)) {
+			mkdir($root,0777,TRUE);
+		}
+
+		return $root;
+	}
+
+	/**
+	 * Open a file and read a list of players from it. Strips headers
+	 * and assigns teams as required.
+	 */
+	public static function readRegistrationFile($file, $rclub = null) {
+		$result = array();
+		echo "<!-- readRegistrationFile: club=$rclub file=$file -->\n";
+		$team = 1;
+		$pastHeaders = false;
+		foreach (file($file) as $player) {
+			$arr = str_getcsv($player);
+			if (!$pastHeaders) {
+				if (!$arr[0]) continue;
+
+				if (stripos($arr[0], '------') === 0) {
+					$pastHeaders = true;
+					continue;
+				}
+
+				if (preg_match('/club:|last name|first name|name|do not delete/i', $arr[0])) {
+					continue;
+				}
+				if ($rclub && stripos($arr[0], $rclub) === 0) continue;
+
+			}
+			$pastHeaders = true;
+			while (is_numeric($arr[0])) array_shift($arr);
+
+			if (stripos($arr[0], 'team:')) {
+				$team = trim(substr($arr[0], 5));
+				continue;
+			}
+
+			$player = $arr[0];
+
+			if (count($arr) > 1) $player .= ",".$arr[1];
+			$player = cleanName($player);
+
+			$playerTeam = $team;
+
+			for ($i=count($arr)-1;$i>0;$i--) {
+				if ($arr[$i]) {
+					if (is_numeric($arr[$i])) $playerTeam = $arr[$i];
+					break;
+				}
+			}
+
+			if ($player) $result[] = array("name"=>$player,
+				"status"=>"registered",
+				"phone"=>phone($player), 
+				"team"=>$playerTeam,
+				"club"=>$rclub);
+		}
+
+		return $result;
+	}
 }
-?>

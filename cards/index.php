@@ -1,4 +1,13 @@
 <?php
+/* Raven/Sentry */
+require_once 'Raven/Autoloader.php';
+Raven_Autoloader::register();
+$client = new Raven_Client('https://0e648f1a6af5407985c427afb086e5bb:37b68176201d451a849bbbb4c81ec6f6@sentry.io/1242091');
+$error_handler = new Raven_ErrorHandler($client);
+$error_handler->registerExceptionHandler();
+$error_handler->registerErrorHandler();
+$error_handler->registerShutdownFunction();
+
 	define("ROOT_DIR", './');
 	ini_set('display_errors',1);
 	ini_set('display_startup_errors',1);
@@ -205,5 +214,5 @@ $(document).ready(function() {
 </script>
 	<?php }
 
-	echo "<!-- Site=$site Controller=$controller Action=$action User=".user()."-->";
+	echo "<!-- Site=$site Controller=$controller Action=$action User=".user()." Club=".$_SESSION['club']."-->";
 ?>

@@ -44,19 +44,37 @@ div#site-select {
 div#site-select a {
 	margin: 5px;
 }
+.switch-login {
+	text-align: center;
+	margin-top: 8px;
+	font-size: 90%;
+	display: block;
+}
 </style>
 
-<?php if (!Session::get('site', false)) { ?>
+<?php 
+// --------------------------------------------------------
+//  Site Select
+// --------------------------------------------------------
+if (!Session::get('site', false)) { ?>
 <div id='site-select'>
 	<a data-site='lhamen' class='btn btn-success col-md-12 col-xs-12' href='<?= Uri::create('/Login', array(), array('site'=>'lhamen')) ?>'>Leinster Mens Hockey</a>
 	<a data-site='lhaladies' class='btn btn-success col-md-12 col-xs-12' href='<?= Uri::create('/Login', array(), array('site'=>'lhaladies')) ?>'>Leinster Ladies Hockey</a>
+	<a data-site='lhajunior' class='btn btn-success col-md-12 col-xs-12' href='<?= Uri::create('/Login', array(), array('site'=>'lhajunior')) ?>'>Leinster Junior</a>
 	<a data-site='test' class='btn btn-success col-md-12 col-xs-12' href='<?= Uri::create('/Login', array(), array('site'=>'test')) ?>'>Test Site</a>
 </div>
-<?php } else { ?>
+<?php return; } ?>
+
+<?php 
+// --------------------------------------------------------
+//  User Login
+// --------------------------------------------------------
+?>
 <form id='login' class='form-signin' method="POST">
 	<h2><?= \Config::get('config.title') ?></h2>
 	<a href='<?= Uri::create('/Login', array(), array('site'=>'none')) ?>'>Change Section</a>
 
+	<?php if (!isset($_REQUEST['role'])) { ?>
 	<select id='user-select' class='form-control' name='user'>
 			<option value="" disabled selected>Select user&hellip;</option>
 			<?php
@@ -69,25 +87,12 @@ div#site-select a {
 			?>
 	</select>
 
-	<script>
-	$(document).ready(function() {
-		var site = <?= "'" + Session::get('site') + "'" ?: 'null' ?>;
-
-		$('#user-select').change(function() {
-			$("input[name='pin']").prop('disabled', false);
-		});
-
-		if (site != null) $('#site-select').val(site);
-		else $('#site-select').val('');
-
-		<?php if ($preferredUser) { ?>
-		$('#user-select').val('<?= $preferredUser ?>');
-		$("input[name='pin']").prop('disabled', false);
-		<?php } ?>
-	});
-	</script>
-
 	<input type='number' name='pin' class='form-control pin' placeholder='PIN Number' required autocomplete='off' disabled/>
+	<?php } else { ?>
+	<input id='user-select' class='form-control' placeholder='Club Secretary Email Address' name='user' type='text' autocomplete='off'/>
+
+	<input type='password' name='pin' class='form-control pin' placeholder='Password' required autocomplete='off' disabled/>
+	<?php } ?>
 
 	<div class="checkbox row">
 		<div class='col-xs-6'>
@@ -95,12 +100,36 @@ div#site-select a {
 				<input type="checkbox" name="remember-me" <?= /*$_COOKIE['noremember']*/false ? '' : 'checked' ?>> Keep me logged in
 			</label>
 		</div>
+		<?php if (isset($_REQUEST['role'])) { ?>
 		<div class='col-xs-6'>
-			<a href='user/forgotten.php?cc=' class='pull-right'>Forgotten PIN</a>
+			<a href='<?= Uri::create('/User/ForgottenPassword') ?>' class='pull-right'>Forgotten Password</a>
 		</div>
+		<?php } ?>
 	</div>
 
 	<button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
 
+	<?php if (!isset($_REQUEST['role'])) { ?>
+	<a class='switch-login' href='<?= Uri::create('/Login', array(), array('role'=>'secretary')) ?>'>Secretary Login</a>
+	<?php } else { ?>
+	<a class='switch-login' href='<?= Uri::create('/Login') ?>'>Standard Login</a>
+	<?php } ?>
+
 </form>
-<?php } 
+
+<script>
+$(document).ready(function() {
+	var site = <?= "'" + Session::get('site') + "'" ?: 'null' ?>;
+
+	$('#user-select').change(function() {
+		$("input[name='pin']").prop('disabled', $(this).val() == "");
+	});
+
+	$('#user-select').keyup(function() {
+		$("input[name='pin']").prop('disabled', $(this).val() == "");
+	});
+
+	if (site != null) $('#site-select').val(site);
+	else $('#site-select').val('');
+});
+</script>

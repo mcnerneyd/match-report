@@ -1,50 +1,283 @@
+/* vim: set ts=4 sw=4 expandtab */
 $(document).ready(function() {
-	$('tr.player').click(function() {
-		$(this).css('background','red');
-	});
 
-	$('#match-card').prepend("<button id='headshot' data-mode='L'><i class='glyphicon glyphicon-th-list'></i></button>");
-
-	$('#headshot').click(function() {
-		if ($('#headshot').data('mode') == 'H') {
-			$('.team table tbody').show();
-			$('div.figures').hide();
-
-			$('#headshot').data('mode','L');
-			$('#headshot i').removeClass('glyphicon-th-large').addClass('glyphicon-th-list');
-		} else {
-			$('.team table tbody').hide();
-			$('div.figures').show();
-			resize();
-
-			$('#headshot').data('mode','H');
-			$('#headshot i').removeClass('glyphicon-th-list').addClass('glyphicon-th-large');
-		}
-	});
-
+	// initializations
 	$('span.card-red').html("<img class='card card-red' src='img/red-card.png'/>");
 	$('span.card-yellow').html("<img class='card card-yellow' src='img/yellow-card.png'/>");
+	$('#context-menu li.card-red').prepend("<img src='img/red-card.png'/>");
+	$('#context-menu li.card-yellow').prepend("<img src='img/yellow-card.png'/>");
+	$('#context-menu li.card-clear').prepend("<img src='img/no-card.png'/>");
+	$('.ours caption:first-child').append(
+	"<a class='add-player' data-toggle='modal' data-target='#add-player-modal'>Add Player</a>");
+	$('.add-player').html("<img src='img/add-user.png' title='Add Player...'/>");
+
+	// add headshots
+	$('#match-card').prepend(`<div id='headshot' class="btn-group btn-group-toggle">
+		<button class="btn btn-sm btn-primary active" value='list'><i class='glyphicon glyphicon-th-list'></i></button>
+		<button class="btn btn-sm btn-primary" value='headshot'><i class='glyphicon glyphicon-th-large'></i></button>
+</div>`);
+
+	$('#headshot button').click(function() { setHeadshot($(this).attr('value')=='list'); });
 
 	$('div.team table').append("<div class='figures'></div>");
 	$('div.figures').hide();
-
-	$('tr.player').each(function(index) {
-		var number = parseInt($(this).children(":eq(0)").text()) || "?";
-		var score = parseInt($(this).find(".score").text()) || 0;
-		var newFig = $(this).closest('div.team').find('div.figures').append("<figure class='"+$(this).attr("class")+"'>"
-			+"<img src='"+$(this).data('imageurl')+"'/>"
-			+"<span class='number'>"+number+"</span>"
-			+"<figcaption>"
-			+$(this).children(":eq(1)").data('firstname') + "<br>" + $(this).children(":eq(2)").data('surname')
-			+"</figcaption></figure>");
-		newFig.children().last().append($(this).find('span').clone());
-		newFig.find('span[data-score=0]').remove();
+	$('tr.player').each(function(index) { createHeadshot($(this)); });
+	$('a.unlock').click(function() {
+		var side = $(this).closest('[data-side]').data('side');
+		window.location=unlockUrl + "&" + side;
 	});
-	resize();
 
+	// Open Context Menu
+	$('div.team .player').click(function() {
+		var contextMenu = $('#context-menu');
+
+		if (contextMenu.length == 0) return;
+
+		var playerName = $(this).data('name');
+
+		contextMenu.css("top", "1em");
+		contextMenu.css("left", "1em");
+
+		contextMenu.find('.dropdown-menu').show();
+		contextMenu.find('input[name=shirt-number]').val($(this).find('th').text());
+		contextMenu.find('.dropdown-title').get(0).firstChild.nodeValue=playerName;
+		contextMenu.data('player', playerName);
+		contextMenu.data('club', $(this).closest('table').data('club'));
+		contextMenu.data('tr', $(this));
+		contextMenu.show();
+	});
+
+	// Submit Matchcard Dialog Box
+	$('#submit-matchcard').on('shown.bs.modal', function() {
+			$('#submit-matchcard .modal-body').height(260)
+			$('#submit-form-detail').show();
+			$('#submit-form-signature').hide();
+			$('#submit-matchcard .modal-footer .btn-success').hide();
+			$('#submit-matchcard .modal-footer a').show();
+		
+			if (!$('#submit-form-detail .form-group').length) {
+				$('#submit-matchcard a.btn-success').click();
+			}
+	});
+
+	$('#submit-matchcard a.btn-success').click(function(e) {
+			$('#submit-form-detail').hide();
+			$('#submit-form-signature').show();
+			$('#submit-matchcard .modal-footer .btn-success').show();
+			$('#submit-matchcard .modal-footer a').hide();
+
+			var c = $("#submit-form-signature canvas");
+			var ctx = c[0].getContext("2d");
+			ctx.canvas.width = c.parent().width();
+			ctx.canvas.height = c.parent().height();
+			new SignaturePad(c[0]);
+	});
+
+	$('.sign-card').click(function() {
+			$('#submit-matchcard').data('sign-only', true);
+			$('#submit-form-detail').hide();
+			$('#submit-form-signature').show();
+			$('#submit-matchcard .modal-footer .btn-success').show();
+			$('#submit-matchcard .modal-footer a').hide();
+			$('#submit-matchcard .modal-title').text("Sign Matchcard");
+			$('#submit-matchcard .modal-footer button[type=submit]').text("Sign Matchcard");
+
+			var c = $("#submit-form-signature canvas");
+			var ctx = c[0].getContext("2d");
+			ctx.canvas.width = c.parent().width();
+			ctx.canvas.height = c.parent().height();
+			new SignaturePad(c[0]);
+	});
+
+	$('#submit-matchcard button.btn-success').click(function(e) {
+			var score = $('#submit-matchcard input[name=opposition-score]').val();
+			var umpire = $('#submit-matchcard input[name=umpire]').val();
+			var receipt = $('#submit-matchcard input[name=receipt-email]').val();
+			var myscore = $('#teams .ours caption .score').get(0).firstChild.nodeValue;
+			var club = $('#teams .ours>table').data('club');
+			var canvas = $("#submit-form-signature canvas").get(0);
+			var cardId = $('#match-card').data('cardid');
+			var dataUrl = cropSignatureCanvas(canvas);
+	
+			$.post(restUrl + "/Signature",
+					{
+						"card_id":cardId,
+						"umpire":umpire,
+						"myscore":myscore,
+						"score":score,
+						"receipt":receipt,
+						"signature":dataUrl,
+						"c":club
+					})
+			.done(function() { 
+				location.reload(); 
+				});
+	});
+
+	$('#add-player-modal .btn-success').on('click', function(e) {
+		$.post(baseUrl + "&action=player&ineligible="+$('#player-name').val(),
+				null, 
+				function() { 
+					location.reload(); 
+					});
+	});
+
+
+	$('#context-close').click(function() {
+		$('#context-menu').hide();
+	});
+
+	$('#signature [type=reset]').click(function() {
+		signaturePad.clear();
+	});
+
+	$('#signature [type=submit]').click(function() {
+		var dataUrl = cropSignatureCanvas(canvas);
+		var cardId = $('#match-card').data('cardid');
+		var playerName = $('#signature').data('name');
+		var club = $('#teams .ours>table').data('club');
+		$.post('http://cards.leinsterhockey.ie/cards/fuel/public/Card/Signature',
+			{'player':playerName, 'signature':dataUrl, 'card_id':cardId, 'c':club})
+			.done(function() {
+				location.reload();
+			});
+		signaturePad.clear();
+		$('#signature').hide();
+				$('#mysig').attr('src',dataUrl);
+	});
+
+	$('#cancel-signature').click(function() {
+		signaturePad.clear();
+		$('#signature').hide();
+	});
+
+	$('#add-note .btn-success').click(function() {
+		var cardId = $('#match-card').data('cardid');
+		var msg = $('#add-note textarea').val();
+		$.post('http://cards.leinsterhockey.ie/cards/fuel/public/Card/Note',
+			{'card_id':cardId, 'msg':msg})
+			.done(function() {
+				location.reload();
+			});
+	});
+
+	$('#postpone').click(function() {
+		var cardId = $('#match-card').data('cardid');
+		var msg = 'Match Postponed';
+		$.post('http://cards.leinsterhockey.ie/cards/fuel/public/Card/Note',
+			{'card_id':cardId, 'msg':msg})
+			.done(function() {
+				location.reload();
+			});
+	});
+
+	$('#set-number').click(function() {
+		var playerRow = getPlayerRow();
+		var playerName = playerRow.data('name');
+		var club = playerRow.closest('table').data('club');
+		var number = $(this).closest('.input-group').find('[name=shirt-number]').val();
+		if (number) {
+			$.post('http://cards.leinsterhockey.ie/cards/fuel/public/Registration/Number',
+			{'c':club,'p':playerName,'n':number})
+				.done(function() {
+					location.reload();
+			});
+		}
+	});
+
+	var cardId = $('#match-card').data('cardid');
+	$.get('http://cards.leinsterhockey.ie/cards/fuel/public/Card/Signatures.json?card_id=' + cardId,
+		function(data) {
+			if (data !== undefined) {
+				for (var i=0;i<data.length;i++) {
+					var sig = data[i];
+					var name = sig['player'];
+					if (sig['club']) name += "<br>" + sig['club'];
+					$('#signatures').append("<div><span>" + name + "</span><img src='data:"+ sig['signature'] + "'/></div>");
+				}
+				if (!data) $('#signatures').hide();
+			} else {
+				$('#signatures').hide();
+			}
+			$('#signatures .progress').hide();
+		});
+
+	// ------------------------------------------------------
+	// Context Menu Functions
+	
+	$('li.card-yellow').click(function() {
+		incident('yellow',$(this).text(), function() {
+			getPlayerRow().find('.player-annotations')
+				.append("<span class='card card-yellow'><img class='card card-yellow' src='img/yellow-card.png'/></span>");
+			$('#context-menu').hide();
+		});
+	});
+
+	$('li.card-red').click(function() {
+		incident('red',$(this).text(), function() {
+			getPlayerRow().find('.player-annotations')
+				.append("<span class='card card-red'><img class='card card-red' src='img/red-card.png'/></span>");
+			$('#context-menu').hide();
+		});
+	});
+
+	$('#add-goal').click(function() {
+		var goals=getPlayerRow().find('.score');
+		if (goals.length) goals = 1+parseInt(goals.text());
+		else goals = 1;
+		incident('goal',goals, function() {
+			var holder=getPlayerRow().find('.score');
+			if (holder.length == 0) {
+				getPlayerRow().find(".player-annotations")
+					.prepend("<span class='score'/>");
+				holder=getPlayerRow().find('.score');
+			}
+			holder.text(goals);
+			updateGoals(holder);
+		});
+		$('#context-menu').hide();
+	});
+	
+	$('#clear-goal').click(function() {
+		incident('goal',0, function() {
+			var holder=getPlayerRow();
+			holder.find('.score').remove();
+			updateGoals(holder);
+		});
+		$('#context-menu').hide();
+	});
+
+	$('li.card-clear').click(function() {
+		incident('clearcards','', function() {
+			getPlayerRow().find('.player-annotations .card').remove();
+		});
+		$('#context-menu').hide();
+	});
+	
+	resize();
 
 	$(window).resize(resize);
 });
+
+function updateGoals(holder) {
+			var totalGoals = 0;
+			holder.closest('table').find('.player-annotations .score').each(function() {
+				totalGoals += parseInt($(this).text());
+			});
+			holder.closest('table').find('caption>.score').get(0).firstChild.nodeValue=totalGoals;
+}
+
+function getPlayerRow(name) {
+	return $('#context-menu').data('tr');
+}
+
+function incident(type, value, onSuccess) {
+	var url = incidentUrl + "&player=" + $('#context-menu').data('player')
+		+"&club=" + $('#context-menu').data('club')
+		+"&" + type + "=" + value;
+
+	$.post(url).done(onSuccess);
+}
 
 function resize() {
 	var hs = $('figure.player:first');
@@ -59,4 +292,87 @@ function resize() {
 		var imgPadding = $(this).width()*88/70 - $(this).height();
 		$(this).css('padding-bottom', imgPadding); 
 	});
+
+	/*var c = $("#signature canvas");
+	var ctx = c[0].getContext("2d");
+	ctx.canvas.width = c.parent().width();
+	ctx.canvas.height = c.parent().height();*/
+}
+
+function setHeadshot(state) {
+		if (state) {
+			$('.team table tbody').show();
+			$('div.figures').hide();
+			$('#headshot button[value=list]').addClass('active');
+			$('#headshot button[value=headshot]').removeClass('active');
+		} else {
+			$('.team table tbody').hide();
+			$('div.figures').show();
+			resize();
+			$('#headshot button[value=headshot]').addClass('active');
+			$('#headshot button[value=list]').removeClass('active');
+		}
+}
+
+function createHeadshot(row) {
+	var playerName = row.data('name');
+	var number = parseInt(row.children(":eq(0)").text()) || "?";
+	var score = parseInt(row.find(".score").text()) || 0;
+	var playerClasses = row.attr("class");
+
+	var newFig = row.closest('div.team').find('div.figures').append("<figure class='"+playerClasses+"' data-name='"+playerName+"'>"
+		+"<img src='"+row.data('imageurl')+"'/>"
+		+"<span class='number'>"+number+"</span>"
+		+"<figcaption>"
+		+row.children(":eq(1)").data('firstname') + "<br>" + row.children(":eq(2)").data('surname')
+		+"</figcaption></figure>");
+	newFig.children().last().append(row.find('span').clone());
+	newFig.find('span[data-score=0]').remove();
+}
+
+/**
+ * Crop signature canvas to only contain the signature and no whitespace.
+ *
+ * @since 1.0.0
+ */
+function cropSignatureCanvas(canvas) {
+
+		// First duplicate the canvas to not alter the original
+		var croppedCanvas = document.createElement('canvas'),
+				croppedCtx    = croppedCanvas.getContext('2d');
+
+				croppedCanvas.width  = canvas.width;
+				croppedCanvas.height = canvas.height;
+				croppedCtx.drawImage(canvas, 0, 0);
+
+		// Next do the actual cropping
+		var w         = croppedCanvas.width,
+				h         = croppedCanvas.height,
+				pix       = {x:[], y:[]},
+				imageData = croppedCtx.getImageData(0,0,croppedCanvas.width,croppedCanvas.height),
+				x, y, index;
+
+		for (y = 0; y < h; y++) {
+				for (x = 0; x < w; x++) {
+						index = (y * w + x) * 4;
+						if (imageData.data[index+3] > 0) {
+								pix.x.push(x);
+								pix.y.push(y);
+
+						}
+				}
+		}
+		pix.x.sort(function(a,b){return a-b});
+		pix.y.sort(function(a,b){return a-b});
+		var n = pix.x.length-1;
+
+		w = pix.x[n] - pix.x[0];
+		h = pix.y[n] - pix.y[0];
+		var cut = croppedCtx.getImageData(pix.x[0], pix.y[0], w, h);
+
+		croppedCanvas.width = w;
+		croppedCanvas.height = h;
+		croppedCtx.putImageData(cut, 0, 0);
+
+		return croppedCanvas.toDataURL();
 }

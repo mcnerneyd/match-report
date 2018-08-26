@@ -8,20 +8,21 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1"/>
 
 		<link rel="shortcut icon" href="img/favicon.png">
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+		<link rel="stylesheet" href="http://cards.leinsterhockey.ie/cards/fuel/public/assets/css/bootstrap.min.css"/>
 		<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 		<link rel="stylesheet" href="style.css"/>
 
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+		<script src="http://cards.leinsterhockey.ie/cards/fuel/public/assets/js/jquery-3.2.1.min.js"></script>
+		<script src="http://cards.leinsterhockey.ie/cards/fuel/public/assets/js/bootstrap.min.js"></script>
+		<script src="http://cards.leinsterhockey.ie/cards/fuel/public/assets/js/notify.min.js"></script>
+		<script src="http://cards.leinsterhockey.ie/cards/fuel/public/assets/js/raven.min.js"></script>
+
 		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js" type="text/javascript"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
 
 
-		<script src="img/bootstrap.min.js"></script>
 		<script src="img/bootstrap-confirmation.min.js"></script>
 		<script src="img/validator.min.js"></script>
-		<script type="text/javascript" src="http://cards.leinsterhockey.ie/cards/fuel/public/assets/js/notify.min.js?1508015068"></script>
-		<script src="https://cdn.ravenjs.com/3.7.0/raven.min.js"></script>
 		<script src="https://use.fontawesome.com/73c8798688.js"></script>
 
 		<style>
@@ -106,7 +107,7 @@
 							<?php } ?>
 
 							<?php if (user('secretary') or user('admin')) { ?>
-							<li><a href='<?= url(null,'register', 'club') ?>'>Registration</a></li>
+							<li><a href='<?= Uri::create('Registration/') ?>'>Registration</a></li>
 							<?php } ?>
 
 							<li><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
@@ -166,7 +167,9 @@
 			</header>
 
 			<?php if (user()) { ?>
-			<div id='user'><?= user() ?></div>
+			<div id='user'><?php 
+				echo user();
+				if ($_SESSION['club'] != user()) echo "(".$_SESSION['club'].")"; ?></div>
 			<?php } ?>
 
 		<div class='container' data-controller='<?= $controller ?>' data-action='<?= $action ?>'>

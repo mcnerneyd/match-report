@@ -26,6 +26,7 @@
 
 <div class='form-group command-group'>
 	<a class='btn btn-primary' href='#upload-registration' data-toggle='modal'><i class='glyphicon glyphicon-upload'></i> Upload</a>
+	<button class='btn btn-normal' href='#rename-player' data-toggle='modal'><i class='glyphicon glyphicon-transfer'></i> Rename Player</a>
 </div>
 
 <table id='competitions-table' class='table table-condensed table-striped'>
@@ -77,3 +78,38 @@
     </div>
   </div>
 </div> <!-- #upload-registration -->
+
+<div id='rename-player' class='modal' role='dialog'>
+  <div class='modal-dialog'>
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Rename Player</h4>
+      </div>
+      <div class="modal-body">
+        <form action='<?= Uri::create('/Admin/Registration') ?>' method='POST' enctype="multipart/form-data">
+					<div class='form-group'>
+						<label>Club</label>
+						<select>
+							<option>Select Club</option>
+						</select>
+						<label>Player</label>
+						<select>
+							<option>Select Player</option>
+						</select>
+					</div>
+					<div class='form-group'>
+						<label>First Name</label>
+						<input type='text' name='first-name'/>
+						<label>Last Name</label>
+						<input type='text' name='last-name'/>
+					</div>
+				</form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal" onclick="$('form').submit()">Rename</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div> <!-- #rename-player -->

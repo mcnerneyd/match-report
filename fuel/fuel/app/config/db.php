@@ -52,6 +52,20 @@ return array(
 		'table_prefix' => '',
 	),
 
+	'lhajunior' => array(
+		'type'        => 'mysqli',
+		'connection'  => array(
+			'hostname'   => 'localhost',
+			'port'       => '3306',
+			'username'   => 'regjunior',
+			'password'   => 'password',
+			'database'   => 'registration_junior',
+			'persistent' => false,
+			'compress' => false
+		),
+		'table_prefix' => '',
+	),
+
 	'test' => array(
 		'type'        => 'mysqli',
 		'connection'  => array(

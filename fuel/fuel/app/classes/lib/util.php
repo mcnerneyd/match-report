@@ -1,5 +1,59 @@
 <?php
 //-----------------------------------------------------------------------------
+function cleanName($player, $format = "Fn LN") {
+		$zPlayer = $player;
+		$a = strpos($player, ",");
+		if ($a) {
+			$lastname = substr($player, 0, $a);
+			$b = strpos($player, "," , $a+1);
+			if (!$b) $b = strlen($player);
+			$firstname = substr($player, $a+1, $b);
+		} else {
+			$c = strrpos(unicode_trim($player), " ");
+			$lastname = substr($player, $c+1);
+			$firstname = substr($player, 0, $c);
+		}
+
+		$firstname = trim(preg_replace('/[^A-Za-z ]/', '', $firstname));
+		$lastname = trim(preg_replace('/[^A-Za-z ]/', '', $lastname));
+
+		switch ($format) {
+			case "LN, Fn":
+				$player = strtoupper($lastname).", $firstname";
+				break;
+					
+			case "Fn LN":
+			default:
+				$player = $firstname." ".strtoupper($lastname);
+				break;
+		}
+
+		$player = trim($player);
+
+		//echo "Clean:$zPlayer->$player ($lastname,$firstname/$a$c)\n";
+
+		return $player;
+}
+
+//-----------------------------------------------------------------------------
+function unicode_trim ($str) {
+    return preg_replace('/^[\pZ\pC]+|[\pZ\pC]+$/u','',$str);
+}
+
+//-----------------------------------------------------------------------------
+function phone($player) {
+	$result = "";
+
+	foreach (explode(" ", $player) as $name) {
+		if (!$name) continue;
+		if ($result) $result .= " ";
+		$result .= metaphone($name);
+	}
+
+	return $result;
+}
+
+//-----------------------------------------------------------------------------
 function currentSeasonStart() {
 	$year = date('Y');
 	$month = date('n');
@@ -164,6 +218,25 @@ function loadFile($file) {
 	}
 
 	return $result;
+}
+
+//-----------------------------------------------------------------------------
+function convertXls($name, $tmpfile) {
+		$cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
+		$cacheSettings = array( 'memoryCacheSize' => '2GB');
+		PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
+
+		$inputFileType = PHPExcel_IOFactory::identify($tmpfile);
+		$reader = PHPExcel_IOFactory::createReader($inputFileType);
+		$reader->setReadDataOnly(true);
+
+		$excel = $reader->load($tmpfile);
+
+		$writer = PHPExcel_IOFactory::createWriter($excel, 'CSV');
+		$tmpfname = tempnam("../tmp", "xlsx");
+		$writer->save($tmpfname);
+
+		return $tmpfname;
 }
 
 //-----------------------------------------------------------------------------

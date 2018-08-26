@@ -69,7 +69,7 @@ if (site() and !defined('DB_DATABASE')) {
 		define("RULES_CLASS", 'LeinsterMensSectionRules');
 		define("AUTO_REGISTER", true);
 	}
-	define("FIXTURE_FEED", implode("\n", getConfig($config,'main','fixturefeed')));
+	define("FIXTURE_FEED", implode("\n", getConfig($config,'main','fixturefeed', array())));
 	define("STRICT", implode("\n", getConfig($config,'main','strict', array())));
 	define("UPLOAD_FORMAT", getConfig($config,'main','uploadformat'));
 } else {

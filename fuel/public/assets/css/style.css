@@ -1,6 +1,6 @@
-@import url('https://fonts.googleapis.com/css?family=Sarala');
+@import url('https://fonts.googleapis.com/css?family=Roboto');
 
-body { font-family: 'Sarala', 'Open Sans', sans-serif; }
+body { font-family: 'Roboto', 'Open Sans', sans-serif; }
 
 .container { margin-top: 60px; }
 
@@ -33,6 +33,18 @@ div.command-group {
 }
 
 td.command-group { text-align: right; }
+
+.modal-header {
+	background: olivedrab;
+	color: white;
+	border-radius: 4px 4px 0 0;
+}
+
+.close {
+	color: white;
+	opacity: 1.0;
+	text-shadow: none;
+}
 
 /* ---------- Competition Tags --------------------------------- */
 .label-league, .label-cup, .label-team { 

@@ -184,11 +184,11 @@ CREATE TABLE IF NOT EXISTS config (
   config longtext NOT NULL,
   hash char(13) NOT NULL,
   PRIMARY KEY (identifier)
-)
+);
 
 CREATE TABLE IF NOT EXISTS task ( 
-	id INT NOT NULL AUTO_INCREMENT ,
-	command INT NOT NULL , 
+	id INT(10) NOT NULL AUTO_INCREMENT ,
+	command INT(10) NOT NULL , 
 	datetime DATETIME NOT NULL , 
 	status ENUM('Queued','Success','Failure') NOT NULL DEFAULT 'Queued' , 
 	recur VARCHAR(100) NULL , 

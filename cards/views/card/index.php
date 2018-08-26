@@ -72,15 +72,15 @@ $(document).ready(function () {
 </script>
 
 <form class='form-inline'>
-	<div class='form-group col-md-5'>
-		<label for='competition-selector'>Competition</label>
-		<select id='competition-selector' class='form-control' name='competition'>
-			<option value=''>All competitions</option>
-		<?php foreach ($competitions as $competition) { ?>
-			<option <?= (isset($_REQUEST['competition']) and ($competition->name == $_REQUEST['competition'])) ? 'selected' : '' ?>><?= $competition ?></option>  
-		<?php } ?>
-		</select>
-	</div> 	<!-- .form-group -->
+       <div class='form-group col-md-5'>
+               <label for='competition-selector'>Competition</label>
+               <select id='competition-selector' class='form-control' name='competition'>
+                       <option value=''>All competitions</option>
+               <?php foreach ($competitions as $competition) { ?>
+                       <option <?= (isset($_REQUEST['competition']) and ($competition->name == $_REQUEST['competition'])) ? 'selected' : '' ?>><?= $competition ?></option> 
+               <?php } ?>
+               </select>
+       </div>  <!-- .form-group -->
 </form>
 
 <ul class="nav nav-tabs" id='tabs'>

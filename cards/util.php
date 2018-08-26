@@ -7,6 +7,14 @@
 use \SimpleXMLElement;
 
 //-----------------------------------------------------------------------------
+// Returns a default value for empty value
+function emptyValue(&$var, $def) {
+	if (empty($var)) return $def;
+
+	return $var;
+}
+
+//-----------------------------------------------------------------------------
 // Apply style to matching Xpaths
 function style($xml, $xpath, $style) {
 	$xml = new \SimpleXMLElement($xml);
@@ -16,6 +24,60 @@ function style($xml, $xpath, $style) {
 	}
 
 	return $xml;
+}
+
+//-----------------------------------------------------------------------------
+function cleanName($player, $format = "Fn LN") {
+		$zPlayer = $player;
+		$a = strpos($player, ",");
+		if ($a) {
+			$lastname = substr($player, 0, $a);
+			$b = strpos($player, "," , $a+1);
+			if (!$b) $b = strlen($player);
+			$firstname = substr($player, $a+1, $b);
+		} else {
+			$c = strrpos(unicode_trim($player), " ");
+			$lastname = substr($player, $c+1);
+			$firstname = substr($player, 0, $c);
+		}
+
+		$firstname = trim(preg_replace('/[^A-Za-z ]/', '', $firstname));
+		$lastname = trim(preg_replace('/[^A-Za-z ]/', '', $lastname));
+
+		switch ($format) {
+			case "LN, Fn":
+				$player = strtoupper($lastname).", ".ucwords(strtolower($firstname));
+				break;
+					
+			case "Fn LN":
+			default:
+				$player = ucwords(strtolower($firstname))." ".strtoupper($lastname);
+				break;
+		}
+
+		$player = trim($player);
+
+		//echo "Clean:$zPlayer->$player ($lastname,$firstname/$a$c)\n";
+
+		return $player;
+}
+
+//-----------------------------------------------------------------------------
+function phone($player) {
+	$result = "";
+
+	foreach (explode(" ", $player) as $name) {
+		if (!$name) continue;
+		if ($result) $result .= " ";
+		$result .= metaphone($name);
+	}
+
+	return $result;
+}
+
+//-----------------------------------------------------------------------------
+function unicode_trim ($str) {
+    return preg_replace('/^[\pZ\pC]+|[\pZ\pC]+$/u','',$str);
 }
 
 //-----------------------------------------------------------------------------
@@ -79,6 +141,7 @@ function rangeEnd($now = null) {
 //-----------------------------------------------------------------------------
 function parse($str) {
 	$configFile ='sites/'.site().'/patterns.ini';
+	echo "<!-- match:$str -->";
 	if (file_exists($configFile)) {
 		$config = file($configFile);
 
@@ -115,6 +178,7 @@ function parse($str) {
 
 	$result['name'] = $result['club'] .' '. $result['team'];
 
+	echo "<!-- to:".print_r($result, true)." -->";
 	return $result;
 }
 
@@ -141,6 +205,7 @@ function parseCompetition($str, $competitions) {
 	}
 
 	if ($competitions != null && !in_array($newstr, $competitions)) {
+		echo "<!-- Competitions:\n".print_r($competitions, true)." -->\n";
 		throw new Exception("Cannot resolve competition '$str'");
 	}
 

@@ -1,6 +1,6 @@
 <!--
-<?php print_r($fixture);
-		if ($fixture['home']['club'] == user()) {
+<?php
+		if ($fixture['home']['club'] == $_SESSION['club']) {
 			$whoami = 'home';
 		} else {
 			$whoami = 'away';
@@ -141,6 +141,11 @@ $(document).ready(function () {
 		$('tr.selected').each(function() {
 			selectPlayer($(this), false);
 		});
+		$.ajax('<?= Uri::create("CardApi/Team") ?>', {
+			method: "DELETE",
+			data: { cardid: <?= $fixture['cardid'] ?> },
+		});
+			
 	});
 
 	$('tr.summary td').hide();
@@ -171,7 +176,6 @@ $(document).ready(function () {
 		echo $team['team'];
 	?></h1>
 
-
 	<span id='count'></span>
 
 	<?php 
@@ -186,7 +190,12 @@ $(document).ready(function () {
 		}
 
 		if (isset($fixture['card'][$whoami]['players'])) {
-			$selected=array_keys($fixture['card'][$whoami]['players']);
+			$selected=array();
+			
+			foreach (array_keys($fixture['card'][$whoami]['players']) as $player) {
+				if (!$player) continue;
+				$selected[] = cleanName($player);
+			}
 		}
 
 		foreach ($players as $player=>$detail) {
@@ -239,3 +248,13 @@ $(document).ready(function () {
 		</tbody>
 	</table>
 </div>
+
+<!--
+<?php 
+ echo "Fixture:\n";
+ print_r($fixture);
+ echo "\nPlayers:\n";
+ print_r($players); ?>
+
+-->
+

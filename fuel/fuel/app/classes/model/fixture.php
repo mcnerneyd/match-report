@@ -42,10 +42,13 @@ class Model_Fixture extends \Model
 		$ct=1;
 		foreach (explode("\n", $fixture_feed) as $feed) {
 
+			$feed = trim($feed);
+
 			if (!$feed) continue;
 
 			$fixtures = array();
 
+			try {
 			if (preg_match('/.*\.csv/', $feed)) {
 				$src = file_get_contents($feed);
 				$fixtures = Model_Fixture::load_csv($src);
@@ -74,6 +77,9 @@ class Model_Fixture extends \Model
 			}
 
 			$allfixtures = array_merge($allfixtures, $fixtures);
+			} catch (Exception $e) {
+				echo "Failed to scan feed: $feed\n";
+			}
 		}
 
 		foreach ($allfixtures as $key => $fixture) {
@@ -169,7 +175,6 @@ class Model_Fixture extends \Model
 
 		$patterns = array();
 		$replacements = array();
-		array_shift($config);
 		foreach ($config as $pattern) {
 			if (trim($pattern) == '') break;
 			$parts = explode($pattern[0], $pattern);
@@ -207,7 +212,6 @@ class Model_Fixture extends \Model
 
 		$patterns = array();
 		$replacements = array();
-		array_shift($config);
 		foreach ($config as $pattern) {
 			if (trim($pattern) == '') break;
 			$parts = explode($pattern[0], $pattern);

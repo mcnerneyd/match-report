@@ -82,6 +82,7 @@ class Card {
 					AND c.Name = '$club'");
 	}
 
+	/* Moved to fuel Card/Signature
 	public static function commit($id, $club, $umpire, $score) {
 		$db = Db::getInstance();
 
@@ -95,6 +96,7 @@ class Card {
 			select c.id, $id, 'Signed', '$score/$umpire'
 				from club c where c.name = '$club'");
 	}
+	*/
 
 	public static function warn($id) {
 		$db = Db::getInstance();
@@ -137,6 +139,13 @@ class Card {
 			$db->exec("insert into incident (matchcard_id, type, user_id) 
 				select $id, '$type', id from user where username = '$user'");
 		}
+	}
+
+	public static function addNote($id, $user, $msg) {
+		$db = Db::getInstance();
+		$stmt = $db->prepare("insert into incident (matchcard_id, type, user_id, detail) 
+				select $id, 'other', id from user where username = '$user', :detail");
+		$stmt->execute(array(":detail"=>$msg));
 	}
 
 	public static function addIncident($id, $name, $club, $type, $user, $detail = null) {
@@ -186,6 +195,9 @@ class Card {
 
 	public static function removePlayer($cardId, $playerName) {
 		$db = Db::getInstance();
+
+		$playerName = cleanName($playerName, 'LN, Fn');
+		echo "Remove $playerName from $cardId\n";
 
 		$db->exec("UPDATE incident SET resolved = 1 WHERE matchcard_id = $cardId 
 				AND player = '$playerName' AND type = 'Played'");
@@ -245,6 +257,8 @@ class Card {
 		$ctr = 1;
 
 		foreach (explode("\n", FIXTURE_FEED) as $feed) {
+
+			if (!$feed) continue;
 
 			debug("Fixture feed:$feed");
 
@@ -373,6 +387,7 @@ class Card {
 		$fixtures = Card::getFixtures();
 
 		$comps = Competition::all();
+		//echo "<!-- Competitions\n".print_r($comps, false)." -->";
 
     $result = array();
 
@@ -433,8 +448,6 @@ class Card {
 
 		foreach ($comps as $comp) $recomps[$comp['name']] = $comp;
 
-		debug("Comps:".print_r($recomps, true));
-
 		$competition = parseCompetition($fixture->competition, array_keys($recomps));
 
 		if ($competition == null) return false;
@@ -469,7 +482,10 @@ class Card {
 
 		if (isset($recomps[$competition])) {
 			$result['competition-code'] = $recomps[$competition]['code'];
-		} 
+		} else {
+			throw new Exception("Unknown competition: $competition");
+		}
+
 
 		if (in_array(strtolower($result['competition-code']),explode("\n", STRICT))) {
 			$result['competition-strict'] = 'yes';
@@ -582,7 +598,7 @@ class Card {
 		$result = array();
     foreach ($req->fetchAll() as $row) {
 			$player = $row['player'];
-			if ($player) $result[] = $player;
+			if ($player) $result[] = cleanName($player);
 		}
 
 		return $result;
@@ -687,7 +703,7 @@ class Card {
 			if ($player['type'] == 'Signed') {
 				$card[$side]['closed'] = strtotime(date('Y-m-d', strtotime($player['date'])).' 23:59');
 				$matches = array();
-				if (preg_match('/^([0-9]*)\/(.*)$/', $player['detail'], $matches) == 1) {
+				if (preg_match('/^([0-9]*)\/(.*)(?:;(.*))$/', $player['detail'], $matches) == 1) {
 					$card[$side]['umpire'] = $matches[2];
 					$card[$side]['oscore'] = $matches[1];
 				}
@@ -696,9 +712,11 @@ class Card {
 				continue;
 			}
 
-      if (!isset($card[$side]['players'][$player['player']])) {
-        $card[$side]['players'][$player['player']] = array('score'=>0,'datetime'=>$player['date']);
-      }
+			if ($player['player']) {
+				if (!isset($card[$side]['players'][$player['player']])) {
+					$card[$side]['players'][$player['player']] = array('score'=>0,'datetime'=>$player['date']);
+				}
+			}
 
       if ($player['type'] == 'Scored') {
         $card[$side]['score'] += $player['detail'];
@@ -727,7 +745,7 @@ class Card {
       }
 
 			if ($player['type'] == 'Other') {
-				if ($player['detail'][0] == '"') {
+				if ($player['detail'] && $player['detail'][0] == '"') {
 					if (!isset($card['notes'])) $card['notes'] = array();
 					$card['notes'][] = array('note'=>substr($player['detail'],1,-1), 'user'=>$player['username']);
 				}
@@ -753,7 +771,8 @@ class Card {
           $side = 'away';
       }
 
-			$cName = Player::cleanName($row['player']);
+			//$cName = Player::cleanName($row['player']);
+			$cName = cleanName($row['player'], "LN, Fn");
 
       if (array_key_exists($cName, $card[$side]['players'])) {
         $card[$side]['players'][$cName]['number'] = $row['detail'];
@@ -763,4 +782,3 @@ class Card {
     return $card;
   }
 }
-?>
