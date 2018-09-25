@@ -1,8 +1,11 @@
 *** Settings ***
-Resource	Common.robot
+Resource				Common.robot
+Suite Setup			Secretary Login	admin	1234
+Suite Teardown	Close Browser
 
 *** Test Cases ***
 Admin User Can Login
+	User is logged in		admin	
 
 Admin User Can Add Any CSV Registration
 
@@ -23,4 +26,7 @@ Admin User Can Add Admin User
 Admin User Can Add New Competition Regex
 
 Admin User Can Add New Club Regex
+
+*** Keywords ***
+
 

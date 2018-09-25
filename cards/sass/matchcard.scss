@@ -149,6 +149,26 @@
 		background: repeating-linear-gradient( 45deg, white, white 10px, #fea 10px, #fea 20px);
 	}
 
+	.late {
+		color: #d9534f;
+	}
+
+	.deleted td {
+		position: relative;
+		color: #d9534f80;
+		
+	}
+
+	.deleted td:after {
+		content: "";
+		display: block;
+		width: 100%;
+		height: 1px;
+		position: absolute;
+		top: 50%;
+		background: #d9534f80;
+	}
+
 	div.figures {
 		padding-top: 5px;
 	}

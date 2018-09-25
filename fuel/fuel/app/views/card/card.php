@@ -25,6 +25,7 @@ class Tag {
 		$this->content = $content;
 	}
 }
+echo "<!--\n".print_r($card,true)."\n-->\n";
 ?>
 <script>
 $(document).ready(function() {

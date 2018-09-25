@@ -1,5 +1,5 @@
 <?php
-class Controller_UserApi extends Controller_Rest
+class Controller_UserApi extends Controller_RestApi
 {
 	public function before() {
 		if (!\Auth::has_access('admin.all')) throw new HttpNoAccessException;
@@ -33,12 +33,12 @@ class Controller_UserApi extends Controller_Rest
 		$user = Model_user::find_by_username($username);
 
 		if (!$user) {
-			return new Response("User deleted", 409);
+			return new Response("No such user: $username", 404);
 		}
 
 		$user->delete();
 
-		return new Response("User deleted", 204);
+		return new Response("User deleted: $username", 204);
 	}
 
 	// --------------------------------------------------------------------------
@@ -56,12 +56,21 @@ class Controller_UserApi extends Controller_Rest
 		$role = Input::post('role');
 		$email = Input::post('email');
 
-		if ($role == 'user' || $role == 'umpire') {
-			if (Model_User::find_by_username($username)) {
-				return new Response("User already exists", 409);
+		if ($email) {
+			if (Model_User::find_by_email($email)) {
+				return new Response("Email already in use $email", 409);
 			}
 		}
 
+		if ($role == 'user') $username = $clubName;
+
+		if ($role == 'user' || $role == 'umpire') {
+			if (Model_User::find_by_username($username)) {
+				return new Response("User already exists: $username", 409);
+			}
+		}
+
+		/*
 		if ($role == 'secretary') {
 			$existingUser = Model_User::query()->where('club_id', $club['id'])->where('role','secretary')->get_one();
 			if ($existingUser) {
@@ -73,17 +82,31 @@ class Controller_UserApi extends Controller_Rest
 
 			$username = $email;
 		}
+		*/
 
 
 		$newUser = new Model_User();
-		$newUser->username = $username;
-		$newUser->email = Input::post('email');
-		$newUser->password = generatePassword(4);
-		$newUser->club = $club;
 		$newUser->role = $role;
+
+		if ($role == 'secretary') {
+			$newUser->username = $email;
+			$newUser->password = "";
+			$newUser->email = $email;
+			$newUser->club = $club;
+		} else if ($role == 'umpire') {
+			$newUser->username = $username;
+			$newUser->email = $email;
+			$newUser->password = generatePassword(4);
+		} else {
+			$newUser->username = $username;
+			$newUser->password = generatePassword(4);
+			$newUser->club = $club;
+			$newUser->email = "";
+		}
+
 		$newUser->save();
 
-		return new Response("Created user", 201);
+		return new Response("Created $role: ".$newUser->username, 201);
 	}
 
 	// --------------------------------------------------------------------------
@@ -98,10 +121,16 @@ class Controller_UserApi extends Controller_Rest
 			return new Response("User not found", 404);
 		}
 
+		$oldPassword = $user->password;
+
 		$user->password = generatePassword(4);
 		$user->save();
 
+		Log::info("Previous PIN: $oldPassword");
+
 		Session::set_flash("notify", array("msg"=>"PIN updated for user $username",
 			"className"=>"warn"));
+
+		return new Response("PIN Updated for user: ".$username, 201);
 	}
 }

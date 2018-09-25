@@ -30,6 +30,8 @@ class Model_Team extends \Orm\Model
 			}
 		}
 
+		\Log::warning("Unable to locate team: $name");
+
 		return null;
 	}
 }

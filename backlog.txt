@@ -1,23 +1,28 @@
 Hockey Matchcard System
 =======================
 
+* DEFECTS
+	! Enforce shirt numbers on strict cards	
+	! LastPlayers only up to season start
+
 * Security
 	× Cookie consent
 	· Cookie cleanup
 	× Preferred User on client only
 	· Synchronize logout on server/client
+	· Ensure authorization
 
 * Registration
 	· Registration secretary dashboard
-		· Registration file management
-		· PIN number view/edit
+		x Registration file management
+		x PIN number view/edit
 	· Verify registration against ranking
-	· Date of birth
-	· Add Club Secretary
+	x Date of birth
+	x Add Club Secretary
 	× Reset registration secretary password by email
 		× Include salt in hash
 		× Confirm password
-	· Excel support
+	x Excel support
 
 * Matchcard
 	× Postpone/Cancel Game
@@ -26,17 +31,22 @@ Hockey Matchcard System
 	· Alternate card view
 		· Strict Processing
 		× Add name
-		· Sign card
+		x Sign card
 			× Store signatures
 		· Context menu
 			× Change shirt number
 			· Set Captain/Goal Keeper/Manager/Physio...
 			· Take photograph
-			· Add signature
 			× Add/Remove Cards
 			× Add/Remove Goals
 	× Submit Cards (Umpire/Opposition Goals)
-		· Email matchcards (to user and supplied email)
+		× Email matchcards (to supplied email)
+		· Add signature (specify name/role)
+		· Autosubmit
+	· Email summary (to fixtures secretary)
+	· Allow unlock until match time
+	· Remove player (strikethrough) after lock
+
 
 * Umpires
 

@@ -1,6 +1,9 @@
 <?php
 //-----------------------------------------------------------------------------
 function cleanName($player, $format = "Fn LN") {
+
+		if (!$player) return $player;
+
 		$zPlayer = $player;
 		$a = strpos($player, ",");
 		if ($a) {
@@ -16,15 +19,16 @@ function cleanName($player, $format = "Fn LN") {
 
 		$firstname = trim(preg_replace('/[^A-Za-z ]/', '', $firstname));
 		$lastname = trim(preg_replace('/[^A-Za-z ]/', '', $lastname));
+		if (!$firstname) return cleanName($lastname);
 
 		switch ($format) {
 			case "LN, Fn":
-				$player = strtoupper($lastname).", $firstname";
+				$player = strtoupper($lastname).", ".ucwords(strtolower($firstname));
 				break;
 					
 			case "Fn LN":
 			default:
-				$player = $firstname." ".strtoupper($lastname);
+				$player = ucwords(strtolower($firstname))." ".strtoupper($lastname);
 				break;
 		}
 
@@ -161,7 +165,7 @@ function parseCompetition($str, $competitions) {
 	if ($str == '!') return null;
 
 	if ($competitions != null && !in_array($str, $competitions)) {
-		throw new Exception("Cannot resolve competition '$str'");
+		throw new Exception("Cannot resolve competitionx '$str'");
 	}
 
 	return $str;
@@ -330,3 +334,19 @@ function scrape($src) {
 
 		return $fixtures;
 }
+
+//-----------------------------------------------------------------------------
+function enqueue($task) {
+	$cacheName = "queue-".Session::get('site');
+	$queue = null;
+	try {
+		$queue = Cache::get($cacheName);
+	} catch (\CacheNotFoundException $e) {
+		$queue = array();
+	}
+
+	$queue[] = $task;
+
+	Cache::set($cacheName, $queue);
+}
+

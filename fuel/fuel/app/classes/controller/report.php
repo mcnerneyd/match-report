@@ -18,6 +18,21 @@ class Controller_Report extends Controller_Hybrid
 		));
 	}
 
+
+	// --------------------------------------------------------------------------
+	public function action_regsec() {
+		if (!\Auth::has_access("admin.all")) {
+			return new Response("Not permitted: administrator only", 403);
+		}
+
+		$reportDate = time();
+
+		$this->template->title = "Registration Secretary Report";
+		$this->template->content = View::forge('report/registration', array(
+			'reportDate'=>$reportDate
+		));
+	}
+
 	// --------------------------------------------------------------------------
 	public function action_summary() {
 		$club = \Input::get('c');
@@ -89,7 +104,7 @@ class Controller_Report extends Controller_Hybrid
 		$dates = Db::query('select distinct date from incident order by date');
 	}
 
-	public function get_card() {
+	public function action_card() {
 		$cardId = $this->param('id');
 
 		if (substr($cardId,0,1) == "n") {
@@ -133,7 +148,7 @@ class Controller_Report extends Controller_Hybrid
 		$teams = array();
 		$competitions = array();
 
-		foreach (Model_Fixture::getAll(true) as $fixture) {
+		foreach (Model_Fixture::getAll() as $fixture) {
 			$competitions[$fixture['competition']] = "xx";
 			$teams[$fixture['home']] = "xx";
 			$teams[$fixture['away']] = "xx";
@@ -172,6 +187,22 @@ class Controller_Report extends Controller_Hybrid
 			$card['home_team'] = $card['home']['club'].' '.$card['home']['team'];
 			$card['away_score'] = $fixture['away_score'];
 			$card['away_team'] = $card['away']['club'].' '.$card['away']['team'];
+
+			$outcomeAffected = false;
+
+			if ($card['home_score'] == $card['away_score']) {
+				if ($card['home']['goals'] != $card['away']['goals']) $outcomeAffected = true;
+			}
+
+			if ($card['home']['goals'] == $card['away']['goals']) {
+				if ($card['home_score'] != $card['away_score']) $outcomeAffected = true;
+			}
+
+			if ((($card['home']['goals'] - $card['away']['goals']) * ($card['home_score'] - $card['away_score'])) < 0) {
+				$outcomeAffected = true;
+			}
+
+			$card['outcome_affected'] = $outcomeAffected;
 
 			$mismatches[] = $card;
 		}

@@ -14,6 +14,6 @@ class Model_Task extends \Orm\Model
 
 	public static function command($task) {
 			//return dirname(dirname(\Uri::base(false)))."/".$task['command'];
-			return "http://cards.leinsterhockey.ie/cards/".$task['command'];
+			return "http://cards.leinsterhockey.ie/cards/".$task;
 	}
 }

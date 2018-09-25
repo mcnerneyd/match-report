@@ -1,9 +1,9 @@
 <?php
-class Controller_Card extends Controller_Hybrid
+class Controller_Card extends Controller_Template
 {
 
 	// --------------------------------------------------------------------------
-	public function get_index() {
+	public function action_index() {
 		$cardId = $this->param('id');
 		$query = \Input::get('q', false);
 
@@ -21,6 +21,9 @@ class Controller_Card extends Controller_Hybrid
 				$card['div-number'] = 0;
 			}
 
+			$card['home']['umpire'] = self::cleanUmpire($card['home']);
+			$card['away']['umpire'] = self::cleanUmpire($card['away']);
+
 			$data['card'] = $card;
 			$data['searchUrl'] = Uri::create('Card/Index', array(), array('q'=>$query));
 
@@ -36,98 +39,37 @@ class Controller_Card extends Controller_Hybrid
 		}
 	}
 
-	public function delete_index() {
-		$fixtureId = $this->param('id');
+	private static function cleanUmpire($root) {
+		if (!isset($root['umpire'])) return '';
 
-		Log::info("Trying to delete $fixtureId");
+		$str = $root['umpire'];
 
-		if (!\Auth::has_access('nav.[admin]')) return new Response("Access denied", 403);
-
-		$cards = DB::select('id')->from('matchcard')->where('fixture_id', '=', $fixtureId)->execute();
-		foreach ($cards as $card) {
-			DB::delete('incident')->where('matchcard_id', '=', $card)->execute();
-			DB::delete('matchcard')->where('id', '=', $card)->execute();
+		$a = strpos($str, ";");
+		if ($a) {
+			$umpire = substr($str, 0, $a);
+		} else {
+			return "";
 		}
 
-		Log::warning("Card deleted: fixture_id=$fixtureId"); 
+		$b = strpos($umpire, "/");
 
-		return new Response("Card(s) deleted", 204);
-	}
-
-	public function post_note() {
-		$clubName = Session::get("username");
-
-		$club = Model_Club::find_by_name($clubName);
-
-		$incident = new Model_Incident();
-		$incident->player = '';
-		$incident->matchcard_id = Input::post('card_id');
-		$incident->detail = '"'.Input::post('msg').'"';
-		$incident->type = 'Other';
-		$incident->club = $club;
-		$incident->resolved = 0;
-		$incident->save();
-
-		return new Response("Note Added", 201);
-	}
-
-	public function post_signature() {
-		$clubName = Input::param("c");
-
-		$club = Model_Club::find_by_name($clubName);
-		$player = Input::post('player');
-		$score = Input::post('score');
-		$umpire = Input::post('umpire');
-		$detail = "";
-		if ($score) $detail = $score;
-		if ($umpire) $detail.= "/$umpire";
-		if (!$player) $player = "";
-
-		$incident = new Model_Incident();
-		$incident->player = $player;
-		$incident->matchcard_id = Input::post('card_id');
-		$sig = Input::post('signature');
-		$sig = explode(',', $sig, 2);
-		$sig = $sig[1];
-		$sig = base64_decode($sig);
-		$sig = gzcompress($sig);
-		$sig = base64_encode($sig);
-		$incident->detail = "$detail;$sig";
-		$incident->type = 'Signed';
-		$incident->club = $club;
-		$incident->resolved = 0;
-		$incident->save();
-
-		return new Response("Card signed", 201);
-	}
-
-	public function get_signatures() {
-		$cardId = Input::get('card_id');
-		$signatures = array();
-		$incidents = Model_Incident::find('all', array(
-			'where' => array(
-				array('matchcard_id', $cardId),
-				array('type','Signed')
-				)));
-			
-		foreach ($incidents as $incident) {
-			try {
-				$sig = $incident['detail'];
-				$sig = explode(';',$sig);
-				$sig = $sig[1];
-				$sig = base64_decode($sig);
-				$sig = gzuncompress($sig);
-				$sig = base64_encode($sig);
-
-				$signatures[] = array('player'=>$incident['player'],
-					'club'=>$incident['club']['name'],
-					'signature'=>"image/png;base64,$sig");
-			} catch (Exception $e) {
-				$signatures[] = array('player'=>$incident['player'],
-					'error'=>$e->getMessage());
-			}
+		if ($b) { 
+			$umpire = substr($umpire, $b+1);
 		}
 
-		return $this->response($signatures);
+		return $umpire;
+	}
+
+	public function action_report() {
+		$cardId = Input::param('card_id');
+		$clubName = Input::param("club");
+
+		$card = Model_Card::card($cardId);
+
+		echo "<!-- Card: $cardId\n".print_r($card, true)." -->";
+
+		return new Response(View::forge("card/receipt", array(
+			"card"=>$card,
+			"club"=>$clubName)), 200);
 	}
 }

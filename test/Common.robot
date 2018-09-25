@@ -2,6 +2,7 @@
 Documentation     An example resource file
 Library           Selenium2Library
 Library						RequestsLibrary
+Library						String
 
 *** Variables ***
 ${HOST}           cards.leinsterhockey.ie/cards/fuel/public
@@ -11,17 +12,31 @@ ${BROWSER}        Chrome
 
 *** Keywords ***
 Login
-	[Arguments]    ${site} 	${username} 	${pin}
+	[Arguments]    ${username} 	${pin}
 	Open Browser    					${LOGIN URL}    ${BROWSER}
-	Click Element							xpath=//a[@data-site='${site}']
+	Click Element							xpath=//div[@id='cookie-consent']/button		
+	Click Element							xpath=//a[@data-site='test']
 	Select From List By Label	user-select		${username}
 	Input Text    						name=pin    ${pin}
 	Click Element							xpath=//form[@id='login']/button
-	Element Should Contain		user	${username}
+
+Secretary Login
+	[Arguments]    ${username} 	${pin}
+	Open Browser    					${LOGIN URL}    ${BROWSER}
+	Click Element							xpath=//div[@id='cookie-consent']/button		
+	Click Element							xpath=//a[@data-site='test']
+	Click Link								Secretary Login
+	Input Text								name=user		${username}
+	Input Text    						name=pin    ${pin}
+	Click Element							xpath=//form[@id='login']/button
+
+User is logged in		
+	[Arguments]								${username}
+	Element Should Contain		id:user		${username}
 
 Select Player
 	[Arguments]			${player}
-	${name}=				Get Element Attribute		xpath=//tr[contains(@data-name,'${player}')]@data-name
+	${name}=				Get Element Attribute		xpath=//tr[contains(@data-name,'${player}')]	data-name
 	Execute Javascript		window.jQuery("[data-name='${name}']")[0].scrollIntoView(true);
 	Execute Javascript		window.scrollBy(0, -150);
 	Sleep						2s
@@ -29,7 +44,7 @@ Select Player
 
 Check Player
 	[Arguments]			${player}		${class}
-	${attr}					Get Element Attribute		xpath=//tr[contains(@data-name,'${player}')]@class
+	${attr}					Get Element Attribute		xpath=//tr[contains(@data-name,'${player}')]	class
 	Should Be Equal	${attr}		${class}		Player ${player} not ${class}
 
 Go To Matches
@@ -52,21 +67,13 @@ Submit Card
 	Click Element		jquery=#submit-form .btn-success
 
 Reset Card	
-	[Arguments]			${fixture}
-	Go To Matches
-	${fixtureid}=		Get Element Attribute		jquery=[data-key='${fixture}']@data-id
+	[Arguments]			${fixtureid}
 	${auth}=				Create List		Aardvarks		1234
 	Create Session	cards		http://${HOST}	auth=${auth}
-	Delete Request	cards		/cards/${fixtureid}?site=test
+	Delete Request	cards		/cardapi?site=test&id=${fixtureid}
 
 Open Card
 	[Arguments]			${cardkey}
 	Go To Matches
-	Click Element		xpath=//tr[@data-key='${cardkey}']
-
-Player Menu
-	[Arguments]			${player}		${menuitem}
-	Execute Javascript							scrollTo(0,280)
-	Click Element		xpath=//figure[(contains(@title,'${player}'))]
-	Click Element		partial link=${menuitem}
+	Click Element		xpath=//tr[@data-id='${cardkey}']
 

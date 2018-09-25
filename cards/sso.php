@@ -34,6 +34,7 @@ if (md5($raw) != $key) {
 
 if (isset($data['session'])) {
 	$session = $data['session'];
+	echo "(Session:".print_r($session,true).")\n";
 	session_start();
 	$_SESSION['site'] = $site;
 	$_SESSION['user'] = $session['user'];

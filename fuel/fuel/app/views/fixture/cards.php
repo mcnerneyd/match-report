@@ -41,6 +41,10 @@
 }
 </style>
 
+<div class='form-group command-group hidden-sm hidden-xs'>
+	<a class='btn btn-success' href='<?= Uri::create('Admin/Refresh?flush=2') ?>'><i class='glyphicon glyphicon-refresh'></i> Refresh Fixtures</a>
+</div>
+
 <table id='fixtures-table' class='table table-condensed table-striped' style='display:none'>
 	<thead>
 	<tr>

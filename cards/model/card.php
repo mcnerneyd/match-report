@@ -144,7 +144,7 @@ class Card {
 	public static function addNote($id, $user, $msg) {
 		$db = Db::getInstance();
 		$stmt = $db->prepare("insert into incident (matchcard_id, type, user_id, detail) 
-				select $id, 'other', id from user where username = '$user', :detail");
+				select $id, 'other', id, :detail from user where username = '$user'");
 		$stmt->execute(array(":detail"=>$msg));
 	}
 
@@ -197,10 +197,14 @@ class Card {
 		$db = Db::getInstance();
 
 		$playerName = cleanName($playerName, 'LN, Fn');
+
+		if (!$playerName) return;
 		echo "Remove $playerName from $cardId\n";
 
-		$db->exec("UPDATE incident SET resolved = 1 WHERE matchcard_id = $cardId 
+		$db->exec("UPDATE incident SET resolved = 1, detail = '' WHERE matchcard_id = $cardId 
 				AND player = '$playerName' AND type = 'Played'");
+
+		$db->exec("DELETE FROM incident WHERE player = '$playerName' AND matchcard_id = $cardId AND type IN ('Scored','Red Card', 'Yellow Card')");
 	}
 
 	public static function searchAndRemoveIncident($cardId, $name, $club, $type) {
@@ -229,7 +233,15 @@ class Card {
 	}
 
 	public static function getFixture($id) {
-		return Card::fixtureFind(null, $id); 
+		$f = Card::fixtureFind(null, $id); 
+
+		if (isset($f['card'])) {
+			if ($f['competition-strict'] == 'yes') {
+				$f['card']['official'][] = 'ALL';
+			}
+		}
+
+		return $f;
 	}
 
 	public static function getDateRange() {
@@ -349,7 +361,6 @@ class Card {
 		$comps = Competition::all();
 		$deadlineTime = strtotime($deadline);
 
-		debug("Deadline: $deadline ($deadlineTime)");
 
 		foreach (Card::getFixtures() as $fixture) {
 			//if ($fixture->played == 'yes') continue;
@@ -387,7 +398,7 @@ class Card {
 		$fixtures = Card::getFixtures();
 
 		$comps = Competition::all();
-		//echo "<!-- Competitions\n".print_r($comps, false)." -->";
+		//echo "<!-- Competitions\n".print_r($comps, true)." -->";
 
     $result = array();
 
@@ -636,6 +647,7 @@ class Card {
       'competition-code'=>$result['competitioncode'],
 			'leaguematch'=>($result['teamsize'] == null ? false : true),
       'date'=>date("F j, Y", time($result['date'])),
+      'datetime'=>	time($result['date']),
       'home'=>array(
         'club'=>$result['homeclub'],
         'teamx'=>$result['hometeam'],
@@ -657,12 +669,11 @@ class Card {
         'players'=>array()
 				));
 
-    $sql = "select i.id, i.player, i.club_id, i.type, i.detail, i.date, u.username, u.role
+    $sql = "select i.id, i.player, i.club_id, i.type, i.detail, i.date, u.username, u.role, i.resolved
         from incident i
 					left join user u on i.user_id = u.id
         where i.type in ('Played', 'Scored', 'Ineligible', 'Yellow Card', 'Red Card', 'Locked', 'Signed', 'Missing', 'Late', 'Other') 
 					and i.matchcard_id = :id
-          and i.resolved = 0
         order by i.id";
 
     $req = $db->prepare($sql);
@@ -670,40 +681,44 @@ class Card {
 
 		$locked = null;
 		$card['open'] = false;
+		$card['official'] = array();
 		$card['rycards'] = array();
 
-    foreach ($req->fetchAll() as $player) {
+    foreach ($req->fetchAll() as $row) {
+
+			if ($row['type'] != 'Played' and $row['resolved'] == 1) continue;
+
 			$card['open'] = true;
 
-			if ($player['type'] == 'Late') {
+			if ($row['type'] == 'Late') {
 				$card['late'] = true;
 				continue;
 			}
 
-			if ($player['type'] == 'Missing') {
+			if ($row['type'] == 'Missing') {
 				$card['missing'] = true;
 				continue;
 			}
 
-      if ($player['club_id'] == $result['homeclubid']) {
+      if ($row['club_id'] == $result['homeclubid']) {
         $side = 'home';
       } else {
         $side = 'away';
       }
 
-			$player['side'] = $side;
-			$player['club'] = $card[$side]['club'];
+			$row['side'] = $side;
+			$row['club'] = $card[$side]['club'];
 
-			if ($player['type'] == 'Locked') {
-				$card[$side]['locked'] = $player['detail'];
+			if ($row['type'] == 'Locked') {
+				$card[$side]['locked'] = $row['detail'];
 
 				continue;
 			}
 
-			if ($player['type'] == 'Signed') {
-				$card[$side]['closed'] = strtotime(date('Y-m-d', strtotime($player['date'])).' 23:59');
+			if ($row['type'] == 'Signed') {
+				$card[$side]['closed'] = strtotime(date('Y-m-d', strtotime($row['date'])).' 23:59');
 				$matches = array();
-				if (preg_match('/^([0-9]*)\/(.*)(?:;(.*))$/', $player['detail'], $matches) == 1) {
+				if (preg_match('/^([0-9]*)\/(.*)(?:;(.*))$/', $row['detail'], $matches) == 1) {
 					$card[$side]['umpire'] = $matches[2];
 					$card[$side]['oscore'] = $matches[1];
 				}
@@ -712,45 +727,80 @@ class Card {
 				continue;
 			}
 
-			if ($player['player']) {
-				if (!isset($card[$side]['players'][$player['player']])) {
-					$card[$side]['players'][$player['player']] = array('score'=>0,'datetime'=>$player['date']);
+			if ($row['type'] == 'Other') {
+				if ($row['detail']) {
+					if ($row['detail'][0] == '"') {	// Note
+						if (!isset($card['notes'])) $card['notes'] = array();
+						$card['notes'][] = array('note'=>substr($row['detail'],1,-1), 'user'=>$row['username']);
+						continue;
+					}
+
+					if ($row['detail'] == 'Official Umpire') {
+						$card['official'][] = $row['username'];
+						continue;
+					}
 				}
 			}
 
-      if ($player['type'] == 'Scored') {
-        $card[$side]['score'] += $player['detail'];
-        $card[$side]['players'][$player['player']]['score'] += $player['detail'];
-      }
+			if (!$row['player']) continue;
 
-      if ($player['type'] == 'Ineligible') {
-        $card[$side]['players'][$player['player']]['ineligible'] = true;
-      }
+			$late = false;
+			if (strtotime($row['date']) > strtotime($result['date'])) $late = true;
 
-      if ($player['type'] == 'Yellow Card') {
-				if (user('umpire') && $player['role'] != 'umpire') continue;
+			if (($row['resolved'] == 1) and !$late) continue; 
 
-        if (!isset($card[$side]['players'][$player['player']]['card'])) {
-          $card[$side]['players'][$player['player']]['card'] = 'yellow';
-        }
-
-				$card['rycards'][] = $player;
-      }
-
-      if ($player['type'] == 'Red Card') {
-				if (user('umpire') && $player['role'] != 'umpire') continue;
-
-        $card[$side]['players'][$player['player']]['card'] = 'red';
-				$card['rycards'][] = $player;
-      }
-
-			if ($player['type'] == 'Other') {
-				if ($player['detail'] && $player['detail'][0] == '"') {
-					if (!isset($card['notes'])) $card['notes'] = array();
-					$card['notes'][] = array('note'=>substr($player['detail'],1,-1), 'user'=>$player['username']);
-				}
+			$playerName = $row['player'];
+			if (!isset($card[$side]['players'][$playerName])) {
+				$card[$side]['players'][$playerName] = array('score'=>0,'datetime'=>$row['date']);
 			}
-    }
+
+			$player = &$card[$side]['players'][$playerName];
+
+			switch ($row['type']) {
+				case 'Played':
+					if ($row['detail']) {
+						$player['detail'] = json_decode($row['detail']);
+					}
+
+					if ($late) {
+						if ($row['resolved'] == 1) {
+							$player['deleted'] = 1;
+						}
+						$player['late'] = 1;
+					}
+					break;
+
+				case 'Scored':
+					$card[$side]['score'] += $row['detail'];
+					$player['score'] += $row['detail'];
+					break;
+
+				case 'Ineligible':
+					$player['ineligible'] = true;
+					break;
+
+				case 'Yellow Card':
+					if (user('umpire') && $row['role'] != 'umpire') continue;
+
+					$card['rycards'][] = array('card'=>'yellow',
+						'type'=>$row['type'],
+						'detail'=>$row['detail'],
+						'player'=>$playerName,
+						'side'=>$side);
+				 break;
+
+				case 'Red Card':
+					if (user('umpire') && $row['role'] != 'umpire') continue;
+
+					$card['rycards'][] = array('card'=>'red',
+						'type'=>$row['type'],
+						'detail'=>$row['detail'],
+						'player'=>$playerName,
+						'side'=>$side);
+					break;
+
+			}	// switch type
+    }	// foreach players
 
 		if (isset($card['home']['closed']) and isset($card['away']['closed'])) {
 			$card['home']['closed'] = true;

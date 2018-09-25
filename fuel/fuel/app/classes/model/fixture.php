@@ -21,7 +21,7 @@ class Model_Fixture extends \Model
 
 	public static function getAll($flush = false) {
 
-		Log::debug('Loading fixtures');
+		Log::debug("Loading fixtures: flush=$flush");
 
 		// TODO Skip processing with cksums - only process if source has changed
 		if (!$flush) {
@@ -48,42 +48,46 @@ class Model_Fixture extends \Model
 
 			$fixtures = array();
 
+			Log::info("Pulling fixtures $feed");
+
 			try {
-			if (preg_match('/.*\.csv/', $feed)) {
-				$src = file_get_contents($feed);
-				$fixtures = Model_Fixture::load_csv($src);
-			} else if (preg_match('/^!.*/', $feed)) {
-				$src = file_get_contents(substr($feed, 1));
-				//$fixtures = Model_Fixture::load_scrape($src);
-			} else if (preg_match('/^=.*/', $feed)) {
-				$values = str_getcsv(substr($feed, 1));
-				$fixture = array('datetime'=>$values[0],
-					'competition'=>$values[1],
-					'home'=>$values[2],
-					'away'=>$values[3],
-					'home_score'=>null,
-					'away_score'=>null,
-					);
-				$fixture['fixtureID'] = $ct++;	
+				if (preg_match('/.*\.csv/', $feed)) {
+					$src = file_get_contents($feed);
+					$fixtures = self::load_csv($src);
+				} else if (preg_match('/^!.*/', $feed)) {
+					$src = file_get_contents(substr($feed, 1));
+					$fixtures = self::load_scrape($src);
+				} else if (preg_match('/^=.*/', $feed)) {
+					$values = str_getcsv(substr($feed, 1));
+					$fixture = array('datetime'=>$values[0],
+						'competition'=>$values[1],
+						'home'=>$values[2],
+						'away'=>$values[3],
+						'home_score'=>null,
+						'away_score'=>null,
+						);
+					$fixture['fixtureID'] = $ct++;	
 
-				if (count($values) > 4 && is_numeric($values[4])) $fixture['home_score'] = $values[4];
-				if (count($values) > 5 && is_numeric($values[5])) $fixture['away_score'] = $values[5];
+					if (count($values) > 4 && is_numeric($values[4])) $fixture['home_score'] = $values[4];
+					if (count($values) > 5 && is_numeric($values[5])) $fixture['away_score'] = $values[5];
 
-				$fixtures = array($fixture);
-			} else {
-				$src = file_get_contents($feed);
+					$fixtures = array($fixture);
+				} else {
+					$src = file_get_contents($feed);
 
-				$fixtures = json_decode($src, true);
-			}
+					$fixtures = json_decode($src, true);
+				}
 
-			$allfixtures = array_merge($allfixtures, $fixtures);
+				foreach ($fixtures as $fixture) $allfixtures[] = (array)$fixture;
+
+				Log::info("Loaded ".count($fixtures)." fixtures");
 			} catch (Exception $e) {
-				echo "Failed to scan feed: $feed\n";
+				Log::error("Failed to scan feed: $feed, ".($e->getTraceAsString()));
 			}
 		}
 
 		foreach ($allfixtures as $key => $fixture) {
-			$k = Model_Fixture::parseCompetition($fixture['competition']);
+			$k = self::parseCompetition($fixture['competition']);
 			if (!$k) {
 				unset($allfixtures[$key]); 
 				continue;
@@ -92,24 +96,27 @@ class Model_Fixture extends \Model
 			if (strpos($fixture['datetime'], '0000') === 0) {
 				continue;
 			}
-			$allfixtures[$key]['datetime'] = Date::create_from_string($fixture['datetime'], 'mysql');
+			//$allfixtures[$key]['datetime'] = Date::create_from_string($fixture['datetime']);	//, 'mysql');
+			$allfixtures[$key]['datetime'] = Date::forge(strtotime($fixture['datetime']));	//, 'mysql');
 			$allfixtures[$key]['competition'] = $k;
-			$k = Model_Fixture::parseClub($fixture['home']);
+			$k = self::parseClub($fixture['home']);
 			if ($k != null) {
 				$allfixtures[$key]['home'] = $k['name'];
 				$allfixtures[$key]['home_club'] = $k['club'];
 				$allfixtures[$key]['home_team'] = $k['team'];
+				$allfixtures[$key]['x'] = $k;
 			}
-			$k = Model_Fixture::parseClub($fixture['away']);
+			$k = self::parseClub($fixture['away']);
 			if ($k != null) {
 				$allfixtures[$key]['away'] = $k['name'];
 				$allfixtures[$key]['away_club'] = $k['club'];
 				$allfixtures[$key]['away_team'] = $k['team'];
+				$allfixtures[$key]['y'] = $k;
 			}
 			if (!isset($allfixtures[$key]['played'])) $allfixtures[$key]['played'] = 'no';
 		}
 
-		Model_Fixture::$cache->set($allfixtures, 100);
+		self::$cache->set($allfixtures, null);
 		Log::debug('Loading fixtures complete');
 
 		return $allfixtures;
@@ -148,7 +155,8 @@ class Model_Fixture extends \Model
 		return $fixtures;
 	}
 
-	static function load_scrape($feed) {
+	static function load_scrape($src) {
+
 		$fixtures = array();
 
 		foreach (scrape($src) as $line) {

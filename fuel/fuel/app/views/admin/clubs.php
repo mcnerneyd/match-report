@@ -12,7 +12,8 @@
 			]
 			});
 		$('#clubs-table tbody').show();
-		$('a[rel=delete]').click(function(e) {
+		// $('a[rel=delete]').click(function(e) {
+		$('#clubs-table').on('click', 'a[rel=delete]', function(e) {
 			e.preventDefault();
 			var code = $(this).closest('tr').data('code');
 			$.ajax('<?= Uri::create('Admin/Club') ?>',

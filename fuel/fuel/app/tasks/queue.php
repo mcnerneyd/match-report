@@ -5,65 +5,146 @@ class Queue
 {
 	public static function run() {
 
-		\Log::info("Queue Execute");
+		\Log::debug("Queue Execute");
 
 		try {
+		\Log::info("Queue Execute");
+			$t = static::getNextTask();
+			\Log::info("Pulled task:".print_r($t,true));
 
-			$task = \Model_Task::query()->order_by('datetime','asc')
-				->where('status', '=', 'Queued')
-				->where('datetime', '<', date("Y-m-d H:i:s"))
-				->rows_limit(1)
-				->get_one();
 
-			if ($task) {
-				$date = strtotime($task['datetime']);
+				$task = \Model_Task::query()->order_by('datetime','asc')
+					->where('status', '=', 'Queued')
+					->where('datetime', '<', date("Y-m-d H:i:s"))
+					->rows_limit(1)
+					->get_one();
 
-				switch ($task['recur']) {
-					case 'Quarter':
-						$date = strtotime("+15 minutes", $date);
-						break;
-					case 'Hour':
-						$date = strtotime("+1 hour", $date);
-						break;
-					case 'Day':
-						$date = strtotime("+1 day", $date);
-						break;
-					case 'Week':
-						$date = strtotime("+1 week", $date);
-						break;
-					case 'Month':
-						$date = strtotime("+1 month", $date);
-						break;
-					case 'Year':
-						$date = strtotime("+1 year", $date);
-						break;
-					default:
-						$date = null;
-						break;
-				}
+				if ($task) {
+					$date = strtotime($task['datetime']);
 
-				if ($date != null) {
-					$task['datetime'] = date("Y-m-d H:i:s", $date);
-				} else {
-					$task['datetime'] = null;
-				}
+					switch ($task['recur']) {
+						case 'Quarter':
+							$date = strtotime("+15 minutes", $date);
+							break;
+						case 'Hour':
+							$date = strtotime("+1 hour", $date);
+							break;
+						case 'Day':
+							$date = strtotime("+1 day", $date);
+							break;
+						case 'Week':
+							$date = strtotime("+1 week", $date);
+							break;
+						case 'Month':
+							$date = strtotime("+1 month", $date);
+							break;
+						case 'Year':
+							$date = strtotime("+1 year", $date);
+							break;
+						default:
+							$date = null;
+							break;
+					}
 
-				$task->save();
+					if ($date != null) {
+						$task['datetime'] = date("Y-m-d H:i:s", $date);
+					} else {
+						$task['datetime'] = null;
+					}
 
-				$command = \Model_Task::command($task);
+					$task->save();
+					$command = $task['command'];
+
+				$command = \Model_Task::command($command);
 				\Log::info("Execute command: ".$command);
 
 				$curl = \Request::forge($command,'curl');
 				$curl->execute();
 
 				\Log::info("Command execution complete");
-			} else {
-				Queue::processMail();
+				return;
 			}
-		} catch (Exception $e) {
+
+			//Queue::processMail();
+		} catch (Throwable $e) {
 			\Log::error("Failed to execute command:".$e->getMessage());
 		}
 	}	
+
+	private static function getNextTask() {
+		$fp = fopen("lha.secureweb.ie/queue", "r+");
+
+		$resultTask = null;
+
+		if (flock($fp, LOCK_EX)) {
+			$line = array();
+			while(true) {
+				$line = fgets($fp);
+				if ($line === FALSE) break;
+				if ($resultTask == null) {
+					$task = json_decode($line);
+					if (!isset($task->date) || strtotime($task->date) < time()) {
+						$resultTask = $task;
+						continue;
+					}
+				}
+
+				$lines[] = $line;
+			}
+
+			if ($resultTask) {
+				rewind($fp);
+				ftruncate($fp, 0);
+				foreach ($lines as $line) {
+					fputs($fp, $line);
+				}
+
+				if (isset($resultTask->recur)) {
+					$date = "now";
+					if (isset($resultTask->date)) $date = $resultTask->date;
+					$copyOfResultTask = $resultTask;
+					$copyOfResultTask->date = static::recur($date, $resultTask->recur);
+					if ($copyOfResultTask->date != null) {
+						fputs($fp, json_encode($copyOfResultTask));
+					}
+				}
+			}
+		}
+
+		fclose($fp);
+
+		return $resultTask;
+	}
+
+	public static function recur($date, $interval) {
+		$date = strtotime($date);
+
+		switch ($interval) {
+			case 'Quarter':
+				$date = strtotime("+15 minutes", $date);
+				break;
+			case 'Hour':
+				$date = strtotime("+1 hour", $date);
+				break;
+			case 'Day':
+				$date = strtotime("+1 day", $date);
+				break;
+			case 'Week':
+				$date = strtotime("+1 week", $date);
+				break;
+			case 'Month':
+				$date = strtotime("+1 month", $date);
+				break;
+			case 'Year':
+				$date = strtotime("+1 year", $date);
+				break;
+			default:
+				\Log::warning("Unknown task interval: $interval");
+				return null;
+		}
+
+		return date("Y-m-d H:i:s", $date);
+	}
 
 	public static function processMail() {
 		\Log::info("!Processed mail");

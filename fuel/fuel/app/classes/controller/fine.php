@@ -1,4 +1,6 @@
 <?php
+require APPPATH.'classes/fines/ifine.php';
+
 class Controller_Fine extends Controller_Hybrid
 {
 	// --------------------------------------------------------------------------
@@ -43,6 +45,12 @@ class Controller_Fine extends Controller_Hybrid
 		$response = new Response("Fine created", 201);
 		$response->set_header("Location", Uri::create("fine/".$newfine['id']));
 		return $response;
+	}
+
+	public function get_index2() {
+		$f = new Fines_CardNotOpenedByMidnight();
+
+		$f->find();
 	}
 
 	// index delete deletes a fine or a list of fines

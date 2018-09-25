@@ -7,15 +7,23 @@ $(document).ready(function() {
 	$('#context-menu li.card-red').prepend("<img src='img/red-card.png'/>");
 	$('#context-menu li.card-yellow').prepend("<img src='img/yellow-card.png'/>");
 	$('#context-menu li.card-clear').prepend("<img src='img/no-card.png'/>");
-	$('.ours caption:first-child').append(
-	"<a class='add-player' data-toggle='modal' data-target='#add-player-modal'>Add Player</a>");
-	$('.add-player').html("<img src='img/add-user.png' title='Add Player...'/>");
+
+	if (cardIsOpen) {
+		$('.ours caption:first-child').append(
+		"<a class='add-player' data-toggle='modal' data-target='#add-player-modal'>Add Player</a>");
+		$('.add-player').html("<img src='img/add-user.png' title='Add Player...'/>");
+	}
+
+	$('.alert-detail').hide();
+	$('.alert').click(function() {
+		$(this).find('.alert-detail').toggle();
+	});
 
 	// add headshots
-	$('#match-card').prepend(`<div id='headshot' class="btn-group btn-group-toggle">
-		<button class="btn btn-sm btn-primary active" value='list'><i class='glyphicon glyphicon-th-list'></i></button>
-		<button class="btn btn-sm btn-primary" value='headshot'><i class='glyphicon glyphicon-th-large'></i></button>
-</div>`);
+	$('#match-card').prepend("<div id='headshot' class='btn-group btn-group-toggle'>"+
+		"<button class='btn btn-sm btn-primary active' value='list'><i class='glyphicon glyphicon-th-list'></i></button>"+
+		"<button class='btn btn-sm btn-primary' value='headshot'><i class='glyphicon glyphicon-th-large'></i></button>"+
+"</div>");
 
 	$('#headshot button').click(function() { setHeadshot($(this).attr('value')=='list'); });
 
@@ -27,25 +35,19 @@ $(document).ready(function() {
 		window.location=unlockUrl + "&" + side;
 	});
 
-	// Open Context Menu
-	$('div.team .player').click(function() {
-		var contextMenu = $('#context-menu');
+	function getText(obj, text) {
+		if (obj === undefined || obj === null) return null;
 
-		if (contextMenu.length == 0) return;
+		return obj.firstChild.nodeValue;
+	}
 
-		var playerName = $(this).data('name');
+	function setText(obj, text) {
+		if (obj === undefined || obj === null) return false;
 
-		contextMenu.css("top", "1em");
-		contextMenu.css("left", "1em");
+		obj.firstChild.nodeValue = text;
 
-		contextMenu.find('.dropdown-menu').show();
-		contextMenu.find('input[name=shirt-number]').val($(this).find('th').text());
-		contextMenu.find('.dropdown-title').get(0).firstChild.nodeValue=playerName;
-		contextMenu.data('player', playerName);
-		contextMenu.data('club', $(this).closest('table').data('club'));
-		contextMenu.data('tr', $(this));
-		contextMenu.show();
-	});
+		return true;
+	}
 
 	// Submit Matchcard Dialog Box
 	$('#submit-matchcard').on('shown.bs.modal', function() {
@@ -58,6 +60,11 @@ $(document).ready(function() {
 			if (!$('#submit-form-detail .form-group').length) {
 				$('#submit-matchcard a.btn-success').click();
 			}
+
+			var receipt = localStorage.getItem("receipt_email");
+
+			if (receipt) $('#submit-matchcard input[name=receipt-email]').val(receipt);
+
 	});
 
 	$('#submit-matchcard a.btn-success').click(function(e) {
@@ -93,11 +100,13 @@ $(document).ready(function() {
 			var score = $('#submit-matchcard input[name=opposition-score]').val();
 			var umpire = $('#submit-matchcard input[name=umpire]').val();
 			var receipt = $('#submit-matchcard input[name=receipt-email]').val();
-			var myscore = $('#teams .ours caption .score').get(0).firstChild.nodeValue;
+			var myscore = getText($('#teams .ours caption .score').get(0));
 			var club = $('#teams .ours>table').data('club');
 			var canvas = $("#submit-form-signature canvas").get(0);
 			var cardId = $('#match-card').data('cardid');
 			var dataUrl = cropSignatureCanvas(canvas);
+
+			if (receipt) localStorage.setItem("receipt_email", receipt);
 	
 			$.post(restUrl + "/Signature",
 					{
@@ -136,7 +145,7 @@ $(document).ready(function() {
 		var cardId = $('#match-card').data('cardid');
 		var playerName = $('#signature').data('name');
 		var club = $('#teams .ours>table').data('club');
-		$.post('http://cards.leinsterhockey.ie/cards/fuel/public/Card/Signature',
+		$.post('http://cards.leinsterhockey.ie/cards/fuel/public/CardApi/Signature',
 			{'player':playerName, 'signature':dataUrl, 'card_id':cardId, 'c':club})
 			.done(function() {
 				location.reload();
@@ -151,24 +160,21 @@ $(document).ready(function() {
 		$('#signature').hide();
 	});
 
-	$('#add-note .btn-success').click(function() {
+	function addNote(msg) {
 		var cardId = $('#match-card').data('cardid');
-		var msg = $('#add-note textarea').val();
-		$.post('http://cards.leinsterhockey.ie/cards/fuel/public/Card/Note',
+		$.post('http://cards.leinsterhockey.ie/cards/fuel/public/CardApi/Note',
 			{'card_id':cardId, 'msg':msg})
 			.done(function() {
 				location.reload();
 			});
+	}
+
+	$('#add-note .btn-success').click(function() {
+		addNote($('#add-note textarea').val());
 	});
 
 	$('#postpone').click(function() {
-		var cardId = $('#match-card').data('cardid');
-		var msg = 'Match Postponed';
-		$.post('http://cards.leinsterhockey.ie/cards/fuel/public/Card/Note',
-			{'card_id':cardId, 'msg':msg})
-			.done(function() {
-				location.reload();
-			});
+		addNote('Match Postponed');
 	});
 
 	$('#set-number').click(function() {
@@ -186,7 +192,7 @@ $(document).ready(function() {
 	});
 
 	var cardId = $('#match-card').data('cardid');
-	$.get('http://cards.leinsterhockey.ie/cards/fuel/public/Card/Signatures.json?card_id=' + cardId,
+	$.get('http://cards.leinsterhockey.ie/cards/fuel/public/CardApi/Signatures.json?card_id=' + cardId,
 		function(data) {
 			if (data !== undefined) {
 				for (var i=0;i<data.length;i++) {
@@ -205,6 +211,28 @@ $(document).ready(function() {
 	// ------------------------------------------------------
 	// Context Menu Functions
 	
+	// Open Context Menu
+	$('div.team .player').click(function() {
+		if ($(this).hasClass('deleted')) return;
+
+		var contextMenu = $('#context-menu');
+
+		if (contextMenu.length == 0) return;
+
+		var playerName = $(this).data('name');
+
+		contextMenu.css("top", "1em");
+		contextMenu.css("left", "1em");
+
+		contextMenu.find('.dropdown-menu').show();
+		contextMenu.find('input[name=shirt-number]').val($(this).find('th').text());
+		setText(contextMenu.find('.dropdown-title').get(0), playerName);
+		contextMenu.data('player', playerName);
+		contextMenu.data('club', $(this).closest('table').data('club'));
+		contextMenu.data('tr', $(this));
+		contextMenu.show();
+	});
+
 	$('li.card-yellow').click(function() {
 		incident('yellow',$(this).text(), function() {
 			getPlayerRow().find('.player-annotations')
@@ -247,6 +275,15 @@ $(document).ready(function() {
 		$('#context-menu').hide();
 	});
 
+	$('#remove-player').click(function() {
+		incident('remove',null, function() {
+			var holder=getPlayerRow();
+			holder.addClass('deleted');
+			holder.find('.player-annotations').remove();
+		});
+		$('#context-menu').hide();
+	});
+
 	$('li.card-clear').click(function() {
 		incident('clearcards','', function() {
 			getPlayerRow().find('.player-annotations .card').remove();
@@ -264,7 +301,7 @@ function updateGoals(holder) {
 			holder.closest('table').find('.player-annotations .score').each(function() {
 				totalGoals += parseInt($(this).text());
 			});
-			holder.closest('table').find('caption>.score').get(0).firstChild.nodeValue=totalGoals;
+			setText(holder.closest('table').find('caption>.score').get(0), totalGoals);
 }
 
 function getPlayerRow(name) {
@@ -274,7 +311,9 @@ function getPlayerRow(name) {
 function incident(type, value, onSuccess) {
 	var url = incidentUrl + "&player=" + $('#context-menu').data('player')
 		+"&club=" + $('#context-menu').data('club')
-		+"&" + type + "=" + value;
+		+"&" + type;
+		
+	if (value) url += "=" + value;
 
 	$.post(url).done(onSuccess);
 }
@@ -362,6 +401,9 @@ function cropSignatureCanvas(canvas) {
 						}
 				}
 		}
+
+		if (pix.x.length == 0 || pix.y.length == 0) return null;
+
 		pix.x.sort(function(a,b){return a-b});
 		pix.y.sort(function(a,b){return a-b});
 		var n = pix.x.length-1;

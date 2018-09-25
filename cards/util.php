@@ -6,6 +6,18 @@
 
 use \SimpleXMLElement;
 
+function &arr_get(&$arr, $subindex) {
+	if (!isset($arr[$subindex])) $arr[$subindex] = array();
+
+	return $arr[$subindex];
+}
+
+function arr_add(&$arr, $subindex, $val) {
+	if (!isset($arr[$subindex])) $arr[$subindex] = array();
+
+	$arr[$subindex][] = $val;
+}
+
 //-----------------------------------------------------------------------------
 // Returns a default value for empty value
 function emptyValue(&$var, $def) {
@@ -28,6 +40,9 @@ function style($xml, $xpath, $style) {
 
 //-----------------------------------------------------------------------------
 function cleanName($player, $format = "Fn LN") {
+
+		if (!$player) return $player;
+
 		$zPlayer = $player;
 		$a = strpos($player, ",");
 		if ($a) {
@@ -43,6 +58,7 @@ function cleanName($player, $format = "Fn LN") {
 
 		$firstname = trim(preg_replace('/[^A-Za-z ]/', '', $firstname));
 		$lastname = trim(preg_replace('/[^A-Za-z ]/', '', $lastname));
+		if (!$firstname) return cleanName($lastname);
 
 		switch ($format) {
 			case "LN, Fn":
@@ -104,6 +120,16 @@ function log_write($level, $msg) {
 }
 
 //-----------------------------------------------------------------------------
+function currentSeasonStart() {
+	$year = date('Y');
+	$month = date('n');
+
+	if ($month < 6) $year = $year - 1;
+
+	return strtotime($year."-06-01 00:00");
+}
+
+//-----------------------------------------------------------------------------
 function firstThursday($now = null) {
 	if ($now == null) $now = date('Y-m-d');
 
@@ -141,7 +167,7 @@ function rangeEnd($now = null) {
 //-----------------------------------------------------------------------------
 function parse($str) {
 	$configFile ='sites/'.site().'/patterns.ini';
-	echo "<!-- match:$str -->";
+	//echo "<!-- match:$str -->";
 	if (file_exists($configFile)) {
 		$config = file($configFile);
 
@@ -205,8 +231,7 @@ function parseCompetition($str, $competitions) {
 	}
 
 	if ($competitions != null && !in_array($newstr, $competitions)) {
-		echo "<!-- Competitions:\n".print_r($competitions, true)." -->\n";
-		throw new Exception("Cannot resolve competition '$str'");
+		throw new Exception("Cannot resolve competition '$newstr' ('$str')");
 	}
 
 	return $newstr;

@@ -13,6 +13,7 @@
 		<link rel="stylesheet" href="style.css"/>
 
 		<script src="http://cards.leinsterhockey.ie/cards/fuel/public/assets/js/jquery-3.2.1.min.js"></script>
+		<script src="http://cards.leinsterhockey.ie/cards/fuel/public/assets/js/jquery-ui.js"></script>
 		<script src="http://cards.leinsterhockey.ie/cards/fuel/public/assets/js/bootstrap.min.js"></script>
 		<script src="http://cards.leinsterhockey.ie/cards/fuel/public/assets/js/notify.min.js"></script>
 		<script src="http://cards.leinsterhockey.ie/cards/fuel/public/assets/js/raven.min.js"></script>
@@ -56,25 +57,6 @@
 					});
 
 				});
-
-			function incident(type,club,player,detail,cardid) {
-				debugger;
-
-				var command = 'i=' + type;
-
-				if (club) command += '&c=' + club;
-				if (player) command += '&p=' + player;
-				if (detail) command += '&d=' + detail;
-
-				var baseUrl = window.location.href;
-				baseUrl = baseUrl.substr(0, baseUrl.lastIndexOf('/'));
-				baseUrl = baseUrl.substr(0, baseUrl.lastIndexOf('/'));
-				var url = baseUrl + '/services.php?' + command;
-
-				var req = new XMLHttpRequest();
-				req.open('PUT', url, true);
-				req.send('');
-			}
 			</script>
 
 			<!--
@@ -97,7 +79,7 @@
 							 <span class="icon-bar"></span>
 							 <span class="icon-bar"></span>
 						</button>
-						<div class='navbar-brand' data-help='general'><?= TITLE ?></div>
+						<div class='navbar-brand'><?= TITLE ?></div>
 					</div>
 
 					<div class='collapse navbar-collapse' id='navbar-collapse-menu'>
@@ -107,7 +89,12 @@
 							<?php } ?>
 
 							<?php if (user('secretary') or user('admin')) { ?>
-							<li><a href='<?= Uri::create('Registration/') ?>'>Registration</a></li>
+							<li><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Registration <span class="caret"></span></a>
+								<ul class='dropdown-menu'>
+									<li><a href='<?= Uri::create('Registration') ?>'>Registrations</a></li>
+									<li><a href='<?= Uri::create('Registration/Info') ?>'>Club Info</a></li>
+								</ul>
+							</li>
 							<?php } ?>
 
 							<li><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
@@ -143,13 +130,13 @@
 							<ul class="dropdown-menu">
 								<li><a href="<?= Uri::create('competitions') ?>">Competitions</a></li>
 								<li><a href="<?= Uri::create('clubs') ?>">Clubs</a></li>
-								<li><a href="<?= Uri::create('Admin/Registration') ?>">Registrations</a></li>
 								<li role="separator" class="divider"></li>
 								<li><a href="<?= Uri::create('fixtures') ?>">Fixtures</a></li>
 								<li><a href="<?= Uri::create('fines') ?>">Fines</a></li>
 								<li role="separator" class="divider"></li>
 								<li><a href="<?= Uri::create('users') ?>">Users</a></li>
 								<li><a href="<?= Uri::create('Admin/Config') ?>">Configuration</a></li>
+								<li><a href="<?= Uri::create('Admin/Log') ?>">System Log</a></li>
 							</ul>
 							</li>
 							<?php } ?>

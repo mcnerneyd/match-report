@@ -70,12 +70,13 @@ class Controller_Registration extends Controller_Hybrid
 	public function post_index() {
 		// FIXME Check user admin or matches club
 		$access = 'admin.all';
+		Config::load('custom.db', 'config');
 		if (Config::get('config.automation_allowrequest')) {
 			$access = 'registration.post';
 		}
 		
 		if (!\Auth::has_access($access)) {
-			return new Response("Not permitted to register", 403);
+			return new Response("Not permitted to register: $access", 403);
 		}
 
 		$club = Input::param("club");
@@ -89,7 +90,16 @@ class Controller_Registration extends Controller_Hybrid
 			return new Response("Registration Failed", 400);
 		}
 
-		Model_Registration::addRegistration($file['tmp_name'], $club);
+		$filename = Model_Registration::addRegistration($file['tmp_name'], $club);
+
+		if (\Auth::has_access('admin.all')) {
+			$date = Input::param('d', null);
+			if ($date) {
+				$date = Date::create_from_string($date, "%Y-%m-%d");
+				touch($filename, $date->get_timestamp());
+				echo "Setting timestamp on $filename: $date";
+			}
+		}
 
 		//return new Response("Registration Uploaded", 201);
 		Response::redirect("registration");
@@ -135,6 +145,14 @@ class Controller_Registration extends Controller_Hybrid
 		$user = Model_User::find_by_username(Session::get("username"));
 		$club = $user['club']['name'];
 
+		if (\Auth::has_access("admin.all")) {
+			$club = \Input::param('c', $club);
+		}
+
+		if (!$club) {
+			return new Response("No club specified for registration", 404);
+		}
+
 		$file = Input::param('f', null);
 
 		if ($file != null) {
@@ -156,10 +174,13 @@ class Controller_Registration extends Controller_Hybrid
 		}
 
 		$registration = $this->stage($club, $thurs, $date->get_timestamp());
-		
+
+		$history = Model_Player::getHistory($club);
+
 		$this->template->title = "Registrations";
 		$this->template->content = View::forge('registration/list', array(
 			'registration'=>$registration,
+			'history'=>$history,
 			'club'=>$club,
 			'all'=>Model_Registration::find_before_date($club, Date::forge()->get_timestamp()),
 			'ts'=>$date, 'base'=>Date::forge($thurs)));
@@ -177,7 +198,7 @@ class Controller_Registration extends Controller_Hybrid
 			$currentLookup[$player['name']] = $player;
 		}
 		$initial = Model_Registration::find_before_date($club, $initialDate);
-		echo "<!-- Initial\n".print_r($initial,true)."-->";
+		echo "<!-- Initial:$club\n".print_r($initial,true)."-->";
 		$order = 0;
 		foreach ($initial as $player) {
 			if (($key = array_search($player['name'], $currentNames)) !== false) {
@@ -196,21 +217,29 @@ class Controller_Registration extends Controller_Hybrid
 			$result[] = $player;
 		}
 
+		$lastTeam = 1;
 		$teamsAllocation = array();
 		$teamSizes = Model_Club::find_by_name($club)->getTeamSizes();
 		for ($i=0;$i<count($teamSizes);$i++) {
 			for ($j=0;$j<$teamSizes[$i];$j++) {
 				$teamsAllocation[] = $i+1;
 			}
+			$lastTeam = $i+1;
 		}
 
-		$lastTeam = null;
+		foreach ($result as $player) {
+			if ($player['team'] > $lastTeam) $lastTeam = $player['team'];
+		}
+
 		foreach ($result as &$player) {
-			if (!$player['team']) {
-				if ($teamsAllocation) {
-				$lastTeam = array_shift($teamsAllocation);
+			if ($player['team']) {
+				$key = array_search($player['team'], $teamsAllocation);
+				if ($key !== FALSE) {
+					unset($teamsAllocation[$key]);
 				}
-				$player['team'] = $lastTeam;
+				echo "<!-- Removed $key ct=".count($teamsAllocation)." -->";
+			} else {
+				$player['team'] = $teamsAllocation ? array_shift($teamsAllocation) : $lastTeam;
 			}
 		}
 

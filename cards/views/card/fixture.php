@@ -1,4 +1,3 @@
-<!--
 <?php
 		if ($fixture['home']['club'] == $_SESSION['club']) {
 			$whoami = 'home';
@@ -8,21 +7,21 @@
 
 		$team = $fixture[$whoami];
 
-?>-->
+?>
 <style>
-table { width: 100%; }
-table tr.regular, table tr.other { border: 1px dotted #bbb; }
-table td { padding: 10px; }
-table tr.selected td { border: 1px solid #555; background: #bfa; }
-tr.regular { font-weight: bold; }
-tr.other { font-style: italic; }
-tr.summary td { padding: 0; text-align: center; background: #584; color: white; border: 1px solid #584; }
-tr.warning td { padding: 0; text-align: center; background: #822; color: white; border: 1px solid #822; }
-#count { position: fixed; top:80px; right:0; left:0; text-align:center; 
-	color: #120; font-size: 200pt; font-weight: bold; }
-.buttons { position:absolute; top:0; right:0; }
-#fixture { position:relative; }
-.alert { margin-top: 10px; margin-bottom: 10px; }
+	table { width: 100%; }
+	table tr.regular, table tr.other { border: 1px dotted #bbb; }
+	table td { padding: 10px; }
+	table tr.selected td { border: 1px solid #555; background: #bfa; }
+	tr.regular { font-weight: bold; }
+	tr.other { font-style: italic; }
+	tr.summary td { padding: 0; text-align: center; background: #584; color: white; border: 1px solid #584; }
+	tr.warning td { padding: 0; text-align: center; background: #822; color: white; border: 1px solid #822; }
+	#count { position: fixed; top:80px; right:0; left:0; text-align:center; 
+		color: #120; font-size: 200pt; font-weight: bold; }
+	.buttons { position:absolute; top:0; right:0; }
+	#fixture { position:relative; }
+	.alert { margin-top: 10px; margin-bottom: 10px; }
 </style>
 <script>
 function addSorted($selector, $item, $sort) {
@@ -52,6 +51,19 @@ $(document).ready(function () {
 		$(this).children('td').first().append("<span class='badge pull-right'>"+c+"</span>");
 	});
 
+	function addNote(msg) {
+		var cardId=<?= $fixture['cardid'] ?>;
+		$.post('http://cards.leinsterhockey.ie/cards/fuel/public/CardApi/Note',
+			{'card_id':cardId, 'msg':msg})
+			.done(function() {
+				window.location = 'http://cards.leinsterhockey.ie/';
+			});
+	}
+
+	$('#postpone').click(function() {
+		addNote('Match Postponed');
+	});
+
 	function counts(flash) {
 			var ct = $("tr.selected").length;
 			if (flash && ct > 0) $("#count").text(ct).show().fadeOut();
@@ -65,7 +77,7 @@ $(document).ready(function () {
 			}
 
 			<?php if ($fixture['date'] > time()) { ?>
-			if (ct >= 7) {
+			if (ct >= -1) {
 				$(".warning td").hide();
 			} else {
 				$(".warning td").show().text((7-ct) + ' more players required before <?= $fixture['datetime'] ?>');
@@ -78,7 +90,7 @@ $(document).ready(function () {
 					} 
 				}
 				echo "var mct=$ct;" ?>
-			if (mct >= 7) {
+			if (mct >= -1) {
 				$(".warning td").hide();
 			} else if (mct == 0) {
 				$(".warning td").show().text('No players on card at start time');
@@ -119,13 +131,18 @@ $(document).ready(function () {
 	}
 
 	$(document).on('click', 'tr', function () {
-		$(this).fadeOut(400, function() {
-
 			var playerName = $(this).data('name');
 
 			if (playerName === undefined) {
-				throw "No player associated with this row";
+				// FIXME temporary - should just return where no player associated
+				var html = $(this).html();
+				if (html.includes("The following players")) return;
+				if (html.includes("been selected for this team")) return;
+
+				throw "No player associated with this row: " + html;
 			}
+
+			$(this).fadeOut(400, function() {
 
 			selectPlayer($(this), !$(this).hasClass('selected'));
 		});
@@ -163,14 +180,16 @@ $(document).ready(function () {
 	<div class='row'>
 		<p class='subtitle col-md-6 col-xs-12'><?= $fixture['home']['team'] ?> v <?= $fixture['away']['team'] ?></p>
 		<p class='subtitle col-md-6 col-xs-12'><?= date('j F, Y', $fixture['date']) ?></p>
-
 	</div>
 
 	<a href='<?= url("cid=${fixture['cardid']}&x=".createsecurekey('card'.$fixture['cardid']), "lock", "card") ?>' class='btn btn-success'>Submit Team</a>
 	<a id='button-clear' class='btn btn-danger'>Clear</a>
 	<a id='button-copy' class='btn btn-primary' title='Copy players from last match'>Last Match</a>
-
-	<!--div class='alert alert-info'><strong>Important</strong> You do not need to submit your team before your match. You just need to select the players below to avoid the fine.</div-->
+	<button id='postpone' class='btn btn-warning pull-right'
+		data-toggle='confirmation' data-placement='bottom'
+		data-title='Mark match as postponed' 
+		data-content='Postponements must be prior approved by the relevant section committee to avoid a penalty'
+		data-btn-ok-label='Postponed' data-btn-cancel-label='Cancel'>Postponed</button>
 
 	<h1><?php
 		echo $team['team'];
@@ -255,6 +274,4 @@ $(document).ready(function () {
  print_r($fixture);
  echo "\nPlayers:\n";
  print_r($players); ?>
-
 -->
-

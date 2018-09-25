@@ -1,4 +1,5 @@
 <?php
+ini_set("auto_detect_line_endings", true);
 
 class Model_Registration 
 {
@@ -25,6 +26,14 @@ class Model_Registration
 		return $root;
 	}
 
+	public static function delete($club, $filename) {
+		$file = self::getRoot($club, $filename);
+
+		Log::info("delete file: $file");
+
+		unlink($file);
+	}
+
 	public static function find_all_players($date) {
 		$result = array();
 
@@ -39,18 +48,19 @@ class Model_Registration
 
 	public static function find_all($club) {
 		$result = array();
-
 		$club = strtolower($club);
-
 		$root = self::getRoot($club);
+		$seasonStart = currentSeasonStart()->get_timestamp();
 
 		if (is_dir($root)) {
 			$files = glob("$root/*.csv");
 			if ($files) {
 				foreach ($files as $name) {
+					$ts=filemtime($name);
+					if ($ts < $seasonStart) continue;
 					$result[] = array("club"=>$club,
 						"name"=>basename($name),
-						"timestamp"=>filemtime($name),
+						"timestamp"=>$ts,
 						"cksum"=>md5_file($name));
 				}
 			}
@@ -82,14 +92,17 @@ class Model_Registration
 	 * and assigns teams as required.
 	 */
 	public static function readRegistrationFile($file, $rclub = null) {
+		Config::load('custom.db', 'config');
 		$result = array();
 		Log::debug("readRegistrationFile: club=$rclub file=$file");
 		$pastHeaders = false;
 		$team = null;
 		foreach (file($file) as $player) {
+			if ($player[0] == '#') continue;
 			$arr = str_getcsv($player);
+			while ($arr && !$arr[0]) array_shift($arr);
+			if (!$arr) continue;
 			if (!$pastHeaders) {
-				if (!$arr[0]) continue;
 
 				if (stripos($arr[0], '------') === 0) {
 					$pastHeaders = true;
@@ -103,7 +116,9 @@ class Model_Registration
 
 			}
 			$pastHeaders = true;
-			while (is_numeric($arr[0])) array_shift($arr);
+			while ($arr && is_numeric($arr[0])) array_shift($arr);
+
+			if (!$arr) continue;
 
 			if (stripos($arr[0], 'team:')) {
 				$team = trim(substr($arr[0], 5));
@@ -117,14 +132,15 @@ class Model_Registration
 
 			$playerTeam = $team;
 
-			for ($i=count($arr)-1;$i>0;$i--) {
-				if ($arr[$i]) {
-					if (is_numeric($arr[$i])) {
-						if (preg_match('/^[0-9]+$/', $arr[$i])) {
-							$playerTeam = $arr[$i];
-						}
+			if (Config::get("config.allowassignment")) {
+				for ($i=count($arr)-1;$i>0;$i--) {
+					if ($arr[$i]) {
+							$matches = array();
+							if (preg_match('/^([0-9]+)(st|nd|rd|th)?$/', $arr[$i], $matches)) {
+								$playerTeam = $matches[1];
+							}
+						break;
 					}
-					break;
 				}
 			}
 

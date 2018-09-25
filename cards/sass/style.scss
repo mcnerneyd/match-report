@@ -36,6 +36,12 @@ header { border-bottom: 3px solid crimson !important; }
 	line-height: 1;
 }
 
+.alert-detail {
+	margin-top: 5px;
+	padding-top: 5px;
+	border-top: 1px dotted lightgray;
+}
+
 /* ---------- Competition Tags --------------------------------- */
 .label-league, .label-cup { 
 	border:1px solid #7ab733; padding: 1px 5px 2px 5px; margin-right: 2px; }

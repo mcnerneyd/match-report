@@ -49,7 +49,7 @@ if (site() and !defined('DB_DATABASE')) {
 	$configFile = $root.'/sites/'.site().'/config.ini';
 	$config = parse_ini_file($configFile, true);
 
-	//debug("Config: $configFile\n".print_r($config, true));
+	//echo "<!-- Config: $configFile\n".print_r($config, true)." -->";
 
 	define("TITLE", getConfig($config,'main','title'));
 	define("HASH_TEMPLATE", getConfig($config,'main','hashtemplate'));
@@ -62,15 +62,9 @@ if (site() and !defined('DB_DATABASE')) {
 	define("DB_USERNAME", getConfig($config,'database','username'));
 	define("DB_PASSWORD", getConfig($config,'database','password'));
 	define("SITE_NAME", getConfig($config,'main','title'));
-	if (site() == 'lhaladies') {
-		define("RULES_CLASS", 'LeinsterLadiesSectionRules');
-		define("AUTO_REGISTER", false);
-	} else {
-		define("RULES_CLASS", 'LeinsterMensSectionRules');
-		define("AUTO_REGISTER", true);
-	}
 	define("FIXTURE_FEED", implode("\n", getConfig($config,'main','fixturefeed', array())));
 	define("STRICT", implode("\n", getConfig($config,'main','strict', array())));
+	define("EXPLICIT_TEAMS", getConfig($config,'main','allowassignment', true));
 	define("UPLOAD_FORMAT", getConfig($config,'main','uploadformat'));
 } else {
 	define("TITLE", "");

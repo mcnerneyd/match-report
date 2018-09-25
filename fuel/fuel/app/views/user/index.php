@@ -29,25 +29,74 @@
 			e.preventDefault();
 			var username = $(this).closest('tr').data('user');
 			$.ajax({method: 'PUT',
-				url: '<?= Uri::create("user/refreshpin") ?>',
+				url: '<?= Uri::create("userapi/refreshpin") ?>',
 				data: { 'username' : username }}).done(function(data) {
 					window.location.reload();
 				});
 		});
-		$('#users-table a[href="delete-user"]').click(function(e) {
+		$('#users-table').on('click','a[href="delete-user"]',function(e) {
 			e.preventDefault();
-			var username = $(this).closest('tr').data('user');
+			var userrow = $(this).closest('tr');
 			$.ajax({method: 'DELETE',
-				url: '<?= Uri::create("User") ?>',
-				data: { 'username' : username }}).done(function(data) {
-					window.location.reload();
+				url: '<?= Uri::create("UserApi") ?>',
+				data: { 'username' : userrow.data('user') }}).done(function(data) {
+					//window.location.reload();
+					userrow.remove();
 			});
 		});
+
+		$('#add-user').click(function() {
+			$('#add-user-modal .form-group').hide();
+			$('#add-user-modal [name=club]').closest('.form-group').show();
+			$('#add-user-modal [name=role]').val('user');
+			$('#add-user-modal').modal('show');
+		});
+		$('#add-umpire').click(function() {
+			$('#add-user-modal .form-group').hide();
+			$('#add-user-modal [name=username]').closest('.form-group').show();
+			$('#add-user-modal [name=email]').closest('.form-group').show();
+			$('#add-user-modal [name=role]').val('umpire');
+			$('#add-user-modal').modal('show');
+		});
+		$('#add-secretary').click(function() {
+			$('#add-user-modal .form-group').hide();
+			$('#add-user-modal [name=email]').closest('.form-group').show();
+			$('#add-user-modal [name=club]').closest('.form-group').show();
+			$('#add-user-modal [name=role]').val('secretary');
+			$('#add-user-modal').modal('show');
+		});
+
+		$("#add-user-modal button[type='submit']").click(function() {
+			$.post('<?= Uri::create('userapi') ?>', $('#add-user-modal form').serialize(), function(data) {
+				window.location.reload();
+				$.notify({message: 'User Created'}, {
+					placement: { from: 'top', align: 'right' },		
+					delay: 1000,
+					animate: {
+						enter: 'animated bounceInDown',
+						exit: 'animated bounceOutUp'
+					},
+					type: 'success'});
+				});
+		});
+
 	});
 </script>
 
 <div class='form-group command-group'>
-	<a class='btn btn-danger' data-target='#add-user' data-toggle='modal'><i class='glyphicon glyphicon-plus-sign'></i> Add User</a>
+	<div class='btn-group'>
+		<button type='button' class='btn btn-success dropdown-toggle' data-toggle='dropdown'>
+			<i class='glyphicon glyphicon-plus-sign'></i> Add User</a>
+			<span class='caret'></span>
+		</button>
+		<ul class='dropdown-menu'>
+			<li><a id='add-user'>Club User&hellip;</a></li>
+			<li><a id='add-secretary'>Club Secretary&hellip;</a></li>
+			<li><a id='add-umpire'>Umpire&hellip;</a></li>
+			<li class='divider'></li>
+			<li><a disabled id='add-all-club-users'>Add missing club users</a></li>
+		</ul>
+	</div>	<!-- .btn-group -->
 </div>
 
 <div id='users-select'>
@@ -81,6 +130,8 @@
 			<td>";
 		if ($user['role'] != 'secretary') {
 			echo "${user['password']} <a href='refresh'><i class='glyphicon glyphicon-refresh'></i>";
+		} else {
+			if ($user['password']) echo "*****";
 		}
 		echo "</td>
 			<td>${user['role']}</td>
@@ -95,25 +146,7 @@
 
 
 <!-- Create User Modal -->
-<script>
-$(document).ready(function() {
-	$("#add-user button[type='submit']").click(function() {
-		$.post('<?= Uri::create('user') ?>', $('#add-user form').serialize(), function(data) {
-			window.location.reload();
-			$.notify({message: 'User Created'}, {
-				placement: { from: 'top', align: 'right' },		
-				delay: 1000,
-				animate: {
-					enter: 'animated bounceInDown',
-					exit: 'animated bounceOutUp'
-				},
-				type: 'success'});
-			});
-	});
-});
-</script>
-
-<div class='modal' id='add-user'>
+<div class='modal' id='add-user-modal'>
 	<div class='modal-dialog'>
 		<div class='modal-content'>
 			<div class='modal-header'>
@@ -168,7 +201,7 @@ $(document).ready(function() {
 
 			<div class='modal-footer'>
 				<button type='button' class='btn btn-default' data-dismiss='modal'>Close</button>
-				<button type='submit' class='btn btn-danger'>Create User</button>
+				<button id='create-user' type='submit' class='btn btn-danger'>Create User</button>
 			</div>
 		</div>
 	</div>

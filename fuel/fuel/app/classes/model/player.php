@@ -3,6 +3,27 @@
 class Model_Player extends \Model
 {
 
+	public static function getHistory($club) {
+		$sql = "select i.player, x.code, x.name, m.date from incident i join matchcard m on i.matchcard_id = m.id
+					join competition x on m.competition_id = x.id
+						join club c on i.club_id = c.id
+				where resolved = 0
+				and i.type = 'Played'
+				and c.name = '$club'
+				and i.date > '".date("Y-m-d", currentSeasonStart()->get_timestamp())."'";
+
+				$result = array();
+
+				foreach (\DB::query($sql)->execute() as $row) {
+					$player = cleanName($row['player']);
+					if (!isset($result[$player])) $result[$player] = array();
+					$result[$player][] = $row;
+				}
+
+				return $result;
+		}
+
+
 		// ------------------------------------------------------------------------
 		public static function archive($dt, $clean = false) {
 				$date = $dt->format('%Y-%m-%d');

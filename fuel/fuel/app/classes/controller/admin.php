@@ -44,7 +44,7 @@ class Controller_Admin extends Controller_Hybrid
 	 *
 	 * @param d Date for which to get the log. Defaults to today.
 	 */
-	public function get_log() {
+	public function action_log() {
 		$date = \Input::param('d', Date::forge()->format("%Y%m%d"));
 
 		$filename = APPPATH."/logs/".substr($date, 0, 4)."/".substr($date,4,2)."/".substr($date,6,2).".php";
@@ -53,6 +53,7 @@ class Controller_Admin extends Controller_Hybrid
 		$src = fread($fp, 512000);
 
 		echo "<head><title>Log</title></head>";
+		echo "<a href='".Uri::create('Admin/Log?d='.Date::forge(strtotime("-1 day", strtotime($date)))->format("%Y%m%d"))."'>Previous</a><br>";
 
 		foreach (array_reverse(explode("\n", $src)) as $line) {
 			$match = array();
@@ -212,27 +213,43 @@ class Controller_Admin extends Controller_Hybrid
 
 	public function get_refresh() {
 
+		$flush = false;
+
+		if (Input::param('flush')) {
+			$flush = Input::param('flush');
+		}
+
+		$fixtures = Model_Fixture::getAll($flush);
+		$competitionTeams = array();
+		$clubTeams = array();
+		$teamLookup = array();
+
+		foreach ($fixtures as $fixture) {
+			
+			self::treeset($competitionTeams, $fixture['competition'], $fixture['home']);					 
+			self::treeset($competitionTeams, $fixture['competition'], $fixture['away']);					 
+			
+			self::treeset($clubTeams, $fixture['home_club'], $fixture['home']);					 
+			self::treeset($clubTeams, $fixture['away_club'], $fixture['away']);					 
+
+			$teamLookup[$fixture['home']] = array('club'=>$fixture['home_club'],'team'=>$fixture['home_team']);
+			$teamLookup[$fixture['away']] = array('club'=>$fixture['away_club'],'team'=>$fixture['away_team']);
+		}
+
+		Log::debug("Fixtures loaded and parsed: xt=".count($competitionTeams)." ct=".count($clubTeams)." tl=".count($teamLookup));
+
+		if ($flush=='2') {
+
+			$this->template->title = 'Refresh';
+			$this->template->content = "";
+			"<pre>".print_r($competitionTeams,true)."\n".print_r($clubTeams,true)."\n".print_r($teamLookup,true)."</pre>";
+			return;
+		}
+
 		try {
 				DB::start_transaction();
 				DB::delete('entry')->execute();		// Delete all entrys
 
-				$fixtures = Model_Fixture::getAll();
-				$competitionTeams = array();
-				$clubTeams = array();
-				$teamLookup = array();
-
-				foreach ($fixtures as $fixture) {
-					
-					Controller_Admin::treeset($competitionTeams, $fixture['competition'], $fixture['home']);					 
-					Controller_Admin::treeset($competitionTeams, $fixture['competition'], $fixture['away']);					 
-					
-					Controller_Admin::treeset($clubTeams, $fixture['home_club'], $fixture['home']);					 
-					Controller_Admin::treeset($clubTeams, $fixture['away_club'], $fixture['away']);					 
-
-					$teamLookup[$fixture['home']] = array('club'=>$fixture['home_club'],'team'=>$fixture['home_team']);
-					$teamLookup[$fixture['away']] = array('club'=>$fixture['away_club'],'team'=>$fixture['away_team']);
-				}
-				
 				foreach ($teamLookup as $team=>$detail) {
 					$t = Model_Team::find_by_name($team);
 					if ($t) continue;
@@ -240,7 +257,7 @@ class Controller_Admin extends Controller_Hybrid
 					$clubName = $detail['club'];
 					$club = Model_Club::find_by_name($clubName);
 					if (!$club) {
-						throw new Exception("Unknown club $clubName");
+						continue;
 					}
 					$t = new Model_Team();
 					$t->club = $club;
@@ -248,16 +265,25 @@ class Controller_Admin extends Controller_Hybrid
 					$t->save();
 				}
 
+				Log::debug("Teams updated");
+
 				foreach ($competitionTeams as $competition=>$teams) {
 					$comp = Model_Competition::find_by_name($competition);
 					if (!$comp) {
-						throw new Exception("Unknown competition $competition");
+						continue;
 					}
+
 					foreach ($teams as $team) {
-						$comp->team[] = Model_Team::find_by_name($team);
+						$findTeam = Model_Team::find_by_name($team);
+
+						if ($findTeam) {
+							$comp->team[] = $findTeam;
+						}
 					}
 					$comp->save();
 				}
+
+				Log::debug("Competitions updated");
 
 				foreach (Model_Card::query()
 					->where('home_id','=',null)
@@ -266,8 +292,14 @@ class Controller_Admin extends Controller_Hybrid
 					foreach ($fixtures as $fixture) {
 						if ($fixture['fixtureID'] != $card['fixture_id']) continue;
 
-						if (!$card['home_id']) $card['home_id'] = Model_Team::find_by_name($fixture['home'])->id;
-						if (!$card['away_id']) $card['away_id'] = Model_Team::find_by_name($fixture['away'])->id;
+						if (!$card['home_id']) {
+							$t = Model_Team::find_by_name($fixture['home']);
+							$card['home_id'] = $t['id'];
+						}
+						if (!$card['away_id']) {
+							$t = Model_Team::find_by_name($fixture['away']);
+							$card['away_id'] = $t['id'];
+						}
 						$card->save();
 					}
 				}
@@ -278,6 +310,8 @@ class Controller_Admin extends Controller_Hybrid
 
 				throw $e;
 			}
+
+			Log::debug("Refresh complete");
 
 			$this->template->title = 'Refresh';
 			$this->template->content = "";
@@ -381,6 +415,7 @@ class Controller_Admin extends Controller_Hybrid
 			Config::set("config.automation_password", $pw);
 		}
 		Config::set("config.automation_allowrequest", Input::post('allow_registration'));
+		Config::set("config.allowassignment", Input::post('allow_assignment') == 'on');
 		Config::set("config.pattern_competition", Input::post("fixescompetition"));
 		Config::set("config.pattern_team", Input::post("fixesteam"));
 		Config::save('custom.db', 'config');
@@ -406,6 +441,7 @@ class Controller_Admin extends Controller_Hybrid
 			"automation_email"=>Config::get("config.automation_email"),
 			"automation_password"=>Config::get("config.automation_password"),
 			"automation_allowrequest"=>Config::get("config.automation_allowrequest"),
+			"allowassignment"=>Config::get("config.allowassignment"),
 			"fixescompetition"=>Config::get("config.pattern_competition"),
 			"fixesteam"=>Config::get("config.pattern_team"),
 			"fixtures"=>Config::get("config.fixtures"),
@@ -416,12 +452,16 @@ class Controller_Admin extends Controller_Hybrid
 	private function convertConfig() {
 		$site = Session::get('site');
 		$path = APPPATH."../../../sites/$site";
-		mkdir($path);
+		if (!file_exists($path)) mkdir($path);
 		$configFile = "$path/config.ini";
+
+		Log::info("Updating cards config file: $configFile");
 
 		$file = fopen($configFile,'w');
 		fwrite($file, "[main]\ntitle=".safe(Config::get("config.title")).
 			"\nhashtemplate=".safe(Config::get("config.salt"))."\n");
+
+			fwrite($file, "allowassignment=".(Config::get("config.allowassignment")?"yes":"no")."\n");
 
 		foreach (explode(" ", Config::get("config.strict_comps")) as $strictcomp) {
 			fwrite($file, "strict[]=$strictcomp\n");

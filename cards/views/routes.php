@@ -36,6 +36,7 @@
 			debug("Execute:$controller/$action");
 			// call the action
 			$controllerObj->{ $action }();
+			return;
 		} catch (RedirectException $e) {
 			throw $e;
 		} catch (Exception $e) {
@@ -56,7 +57,7 @@
   // we consider those "allowed" values
   $controllers = array(
 		'card' => array('index', 'get', 'create', 'search', 'searchAJAX', 'player', 
-			'lock', 'commit', 'fine', 'sendResult', 'reset', 'unlock', 'close'),
+			'lock', 'commit', 'fine', 'sendResult', 'reset', 'unlock', 'close', 'view'),
 		'page' => array('home', 'error'),
 		'player' => array('profile', 'image', 'number', 'update', 'unplay'),
 		'club' => array('login', 'logout', 'loginUP','register','uploadregistration',

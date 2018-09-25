@@ -2,7 +2,7 @@
 class Controller_RegistrationApi extends Controller_Rest
 {
 	public function before() {
-		if (!\Auth::has_access('admin.all')) throw new HttpNoAccessException;
+		// FIXME if (!\Auth::has_access('registration.*')) throw new HttpNoAccessException;
 
 		parent::before();
 	}
@@ -38,6 +38,20 @@ class Controller_RegistrationApi extends Controller_Rest
 	}
 
 	// --------------------------------------------------------------------------
+	public function delete_index() {
+		if (!\Auth::has_access("admin.all")) {
+			return new Response("Not permitted to register: $access", 403);
+		}
+
+		$club = Input::param("c");
+		$file = Input::param("f");
+
+		Model_Registration::delete($club, $file);
+
+		return new Response("Registration file: $file deleted from club $club", 202);
+	}
+
+	// --------------------------------------------------------------------------
 	public function post_index() {
 		// FIXME Check user admin or matches club
 		$access = 'admin.all';
@@ -46,7 +60,7 @@ class Controller_RegistrationApi extends Controller_Rest
 		}
 		
 		if (!\Auth::has_access($access)) {
-			return new Response("Not permitted to register", 403);
+			return new Response("Not permitted to register: $access", 403);
 		}
 
 		$club = Input::param("club");
@@ -91,8 +105,6 @@ class Controller_RegistrationApi extends Controller_Rest
 				}
 			}
 		}
-
-		print_r($errors);
 
 		return array();
 	}

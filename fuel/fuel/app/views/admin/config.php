@@ -54,17 +54,17 @@ $(document).ready(function(event) {
 	<div class='tab-content'>
 		<div class='tab-pane active' id='home'>
 			<div class='row'>
-				<div class='form-group col-sm-6'>
+				<div class='form-group col-sm-12'>
 					<label>Title</label>
 					<input name='title' type='text' class='form-control' value='<?= $title ?>'/>
 				</div>
 
 				<div class='form-group col-sm-6'>
-					<label for='config-uploadformat'>Default Upload Format</label>
-					<select id='config-uploadformat' class='form-control'>
-						<option>Ordered List</option>
-						<option>Numbered List</option>
-					</select>
+						<!--label for='config-uploadformat'>Default Upload Format</label>
+						<select id='config-uploadformat' class='form-control'>
+							<option>Ordered List</option>
+							<option>Numbered List</option>
+						</select-->
 				</div>
 
 				<div class='form-group col-sm-6'>
@@ -100,6 +100,11 @@ $(document).ready(function(event) {
 				<div class='checkbox'>
 					<label> <input type='checkbox' name='allow_registration' <?php 
 						if ($automation_allowrequest) echo 'checked'; ?>></input> Allow Registration</label>
+				</div>
+
+				<div class='checkbox'>
+					<label> <input type='checkbox' name='allow_assignment' <?php 
+						if ($allowassignment) echo 'checked'; ?>></input> Allow Explicit Team Assignment</label>
 				</div>
 			</fieldset>
 

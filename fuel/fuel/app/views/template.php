@@ -16,6 +16,7 @@
 	'datatables.min.js',
 	'moment.min.js',
 	'bootstrap-datetimepicker.js',
+	'bootstrap-confirmation.min.js',
 	'notify.min.js',
 	'raven.min.js',
 	'jquery.validate.min.js',
@@ -65,12 +66,18 @@
 					location.reload();
 				});
 			});
+
+			$('[data-toggle=confirmation]').confirmation({
+				rootSelector: '[data-toggle=confirmation]',
+			});
+
 		});
 	</script>
 </head>
 
 <body>
 	<!-- Groups <?= print_r(Auth::get_groups(), true) ?> -->
+	<?php if (Session::get('site')) { ?>
 	<nav class='navbar navbar-inverse navbar-fixed-top'>
 		<div class='container-fluid'>
 			<div class='navbar-header'>
@@ -87,12 +94,14 @@
 				<ul class='nav navbar-nav'>
 					<?php if (\Auth::check()) { ?>
 					<li><a href='http://cards.leinsterhockey.ie/cards/index.php?site=<?= Session::get('site') ?>&controller=card&action=index'>Matches</a></li>
+					<?php if (\Auth::has_access('registration.view')) { ?>
 					<li><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Registration <span class="caret"></span></a>
 						<ul class='dropdown-menu'>
 							<li><a href='<?= Uri::create('Registration') ?>'>Registrations</a></li>
 							<li><a href='<?= Uri::create('Registration/Info') ?>'>Club Info</a></li>
 						</ul>
 					</li>
+					<?php } ?>
 					<?php } ?>
 					<li><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
 						<ul class='dropdown-menu'>
@@ -128,13 +137,13 @@
           <ul class="dropdown-menu">
             <li><a href="<?= Uri::create('competitions') ?>">Competitions</a></li>
             <li><a href="<?= Uri::create('clubs') ?>">Clubs</a></li>
-            <li><a href="<?= Uri::create('Admin/Registration') ?>">Registrations</a></li>
             <li role="separator" class="divider"></li>
             <li><a href="<?= Uri::create('fixtures') ?>">Fixtures</a></li>
             <li><a href="<?= Uri::create('fines') ?>">Fines</a></li>
             <li role="separator" class="divider"></li>
             <li><a href="<?= Uri::create('users') ?>">Users</a></li>
             <li><a href="<?= Uri::create('Admin/Config') ?>">Configuration</a></li>
+            <li><a href="<?= Uri::create('Admin/Log') ?>">System Log</a></li>
           </ul>
 					</li>
 					<?php } ?>
@@ -147,6 +156,7 @@
 			</div>
 		</div>
 	</nav>
+	<?php } /* $site */ ?>
 
 	<?php if (\Auth::check()) { ?>
 	<div id='user'><?= \Session::get('username') ?>

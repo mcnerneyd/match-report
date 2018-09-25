@@ -146,7 +146,7 @@
 		public static function getTeamSizes($club) {
 		  $db = Db::getInstance();
 
-		  $sql = "SELECT distinct teamsize, teamstars, sequence from competition x join entry e on e.competition_id = x.id
+		  $sql = "SELECT distinct teamsize, teamstars, sequence, t.team from competition x join entry e on e.competition_id = x.id
 	join team t on e.team_id = t.id
     join club c on t.club_id = c.id
 where c.name = '$club' and teamsize is not null

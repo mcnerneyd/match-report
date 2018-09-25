@@ -19,10 +19,77 @@ $baseUrl=substr(url(), 0, -11)."&cid=${card['id']}&x=".createsecurekey("card${ca
 
 <script>
 var baseUrl = '<?= $baseUrl ?>';
-var restUrl = '<?= Uri::create('Card') ?>';
+var restUrl = '<?= Uri::create('CardApi') ?>';
 var unlockUrl = '<?= url("cid=".$card['id'], 'unlock', 'card') ?>';
 var incidentUrl = '<?= url(null, 'player', 'card')."&x=".createsecurekey("card${card['id']}")."&cid=".$card['id'] ?>';
+var cardIsOpen = <?= $cardIsOpen ? 'true' : 'false' ?>;
+var messages = [
+	{
+		level: "info",
+		title: "Remember",
+		text: "When recording goals - include 1v1/Strokes",
+	},
+	{ 
+		level: "success",
+		text: "When you are finished, make sure click the 'Submit Card' button",
+	},
+	{ 
+		level: "danger",
+		text: "Players added or removed after the match start time are listed in red",
+	},
+];
+function triggerMessage() {
+	var msgBox = $('#messages');
+	var index = msgBox.data('index') || 0;
+	if (index >= messages.length) index = 0;
+	var msg = messages[index];
+	var msgText = msg['text'];
+	if (msg['title']) msgText = "<strong>" + msg['title'] + "</strong> " + msgText;
+	msgBox.html(msgText);
+	msgBox.attr("class", "alert alert-" + msg['level']);
+	msgBox.data('index', index+1);
+	setTimeout(triggerMessage, 8000);
+}
+function flashSubmit() {
+	var starttime = <?= $card['datetime'] ?>;
+	var now = new Date();
+	if (now.getTime() > starttime) {
+		var submitButton = $('#submit-button');
+		submitButton.toggleClass('flash');
+	}
+	setTimeout(flashSubmit, 1000);
+}
+
+$(document).ready(function() {
+	triggerMessage();
+	flashSubmit();
+	//$('#player-name').combobox();
+});
 </script>
+
+<style>
+.flash {
+	background-color: white !important;
+	color: green;
+}
+</style>
+
+<?php if ($card['official']) { ?>
+<div class='alert alert-warning alert-small'>
+	This matchcard has officially appointed umpires. Tap here for more details.
+	<div class='alert-detail'>
+		<ul>
+			<li>Only umpires can assign penalty cards (Red/Yellow)</li>
+			<li>Every player must have a shirt number</li>
+			<li>Players must be assigned to card before match</li>
+			<li>Matchcards will be closed once the umpire signs the card</li>
+		</ul>
+	</div>
+</div>
+<?php } ?>
+
+<div id='messages' class='alert hidden'></div>
+
 <div id='match-card' data-fixtureid='<?= $fixture['id'] ?>' data-cardid='<?= $card['id'] ?>'>
 
 	<h1 id='competition' data-code='<?= $card['competition-code'] ?>'><?= $card['competition'] ?></h1>
@@ -37,7 +104,7 @@ var incidentUrl = '<?= url(null, 'player', 'card')."&x=".createsecurekey("card${
 
 		<dl id='fixtureid'>
 			<dt>Fixture ID</dt>				
-			<dd><?= $fixture['id'] ?></dd>
+			<dd><a href='http://cards.leinsterhockey.ie/cards/fuel/public/Report/Card/<?= $fixture['id'] ?>'><?= $fixture['id'] ?></a></dd>
 		</dl>
 
 		<dl id='cardid'>
@@ -66,11 +133,12 @@ var incidentUrl = '<?= url(null, 'player', 'card')."&x=".createsecurekey("card${
 		</div>
 
 		<div style='clear:both'/>
+
 	</div>
 
 	<form id='submit-card'>
 	<?php if ($cardIsOpen) { ?>
-			<a class='btn btn-success' data-toggle='modal' data-target='#submit-matchcard'>Submit Card</a>
+			<a id='submit-button' class='btn btn-success' data-toggle='modal' data-target='#submit-matchcard'>Submit Card</a>
 			<a id='postpone' class='btn btn-warning' data-toggle='confirmation' 
 				data-title='Mark match as postponed' 
 				data-content='This only marks the match as postponed. All postponements must be prior approved by the relevant section committee. Penalties will be imposed for unapproved postponements.'
@@ -192,8 +260,9 @@ if ($cardIsOpen) {
 <div id='context-menu' class='dropdown clearfix'>
 	<ul class='dropdown-menu'>
 		<li class='dropdown-title'>Player Name<span id='context-close'>&times;</span></li>
+		<?php if (!user('umpire')) { ?>
 		<li>
-			<button id='photograph' class='btn btn-primary' disabled>Take Photo</button>
+			<!--button id='photograph' class='btn btn-primary' disabled>Take Photo</button-->
 			<div class='input-group'>
 				<input type='number' name='shirt-number' class='form-control'/>
 				<span class='input-group-btn'>
@@ -208,13 +277,15 @@ if ($cardIsOpen) {
 				<button id='clear-goal' class='btn btn-success'>Clear Goals</button>
 			</div>
 		</li>
-		<li class='divider'/>
+		<!--li class='divider'/>
 		<li disabled>Captain</li>
 		<li>Goalkeeper</li>
 		<li>Manager</li>
-		<li>Physiotherapist</li>
+		<li>Physiotherapist</li-->
 		<li class='divider'/>
+		<?php } ?>
 
+		<?php if (!$card['official'] || user('umpire')) { ?>
 		<li class='card-yellow'>Technical - Breakdown</li>
 		<li class='card-yellow'>Technical - Delay/Time Wasting</li>
 		<li class='card-yellow'>Technical - Dissent</li>
@@ -224,6 +295,12 @@ if ($cardIsOpen) {
 		<li class='card-yellow'>Physical - Dangerous/Reckless Play</li>
 		<li class='card-red'>Red Card</li>
 		<li class='card-clear'>No Cards</li>
+		<?php } ?>
+
+		<li>
+				<button id='remove-player' class='btn btn-warning'>Remove Player</button>
+		</li>
+
 	</ul>
 </div>
 <?php } ?>
@@ -239,8 +316,14 @@ if ($cardIsOpen) {
     <!-- Modal content-->
     <div class="modal-content">
       <div class="modal-body">
+				
         <label for='player-name'>Player Name</label>
 				<input class='form-control' type='text' id='player-name'/>
+
+				<!--label>Or select registered player</label>
+				<select id='player-name' class='form-control'>
+				<?php foreach ($players as $player) echo "<option>$player</option>\n"; ?>
+				</select-->
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-success" data-dismiss="modal">Add Player</button>
@@ -279,7 +362,7 @@ if ($cardIsOpen) {
 </div>
 
 <!--
-<?php print_r($card); ?>
+<?php print_r($card); echo "\n\n"; print_r($players); ?>
 -->
 <?php	//--------------------------------------------------------------
 function render_team($team) {
@@ -300,6 +383,8 @@ function render_team($team) {
 
 		$class = "player";
 		if (isset($detail['ineligible'])) $class.=" ineligible";
+		if (isset($detail['late'])) $class.=" late";
+		if (isset($detail['deleted'])) $class.=" deleted";
 
 		$imagekey = createsecurekey("image$player${team['club']}");
 		$url="image.php?site=".site()."&player=$player&w=200&club=${team['club']}&x=$imagekey";
@@ -316,6 +401,17 @@ function render_team($team) {
 				if ($rycard['type'] == 'Red Card') $type = "red";
 				echo "<span class='card card-$type'>${rycard['detail']}</span>";
 			}
+		}
+		if (isset($detail['detail'])) {
+			$d = $detail['detail'];
+				$roles = $d->roles;
+				if ($roles) {
+					if (in_array('G', $roles)) echo "<span class='role role-goalkeeper'>GK</span>";
+					if (in_array('C', $roles)) echo "<span class='role role-captain'>C</span>";
+					if (in_array('M', $roles)) echo "<span class='role role-manager'>M</span>";
+					if (in_array('P', $roles)) echo "<span class='role role-physio'>P</span>";
+				}
+
 		}
 		echo "</div>";
 

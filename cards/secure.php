@@ -9,42 +9,42 @@ if (isset($action) && $action == 'logout') {
 	throw new RedirectException("User logged out", url(null, 'login', 'club'));
 }
 
-// Single Sign-on Login
-if (isset($_REQUEST['ccode'])) {
-	$ccode = $_REQUEST['ccode'];
-
-	$key = base64_decode($ccode);
-	$keys = explode(';', $key);
-	$enckey = $keys[0]."$".$keys[1].$keys[2].HASH_TEMPLATE.$keys[3];
-	$site = $keys[0];
-	$username = $keys[1];
-	$adminUser = false;
-
-	if ($keys[3] == 'A') {
-		$adminUser = true;
-	}
-
-	if (md5($enckey) != $keys[4]) {
-		throw new LoginException("Unknown user or invalid password");
-	}
-
-	$db = Db::getInstance();
-
-	$req = $db->prepare("select u.*,c.name club from user u left join club c on u.club_id = c.id where username = :username");
-
-	$req->execute(array('username'=>$username));
-	$res = $req->fetch();
-
-	if (!$res) {
-		throw new LoginException("Unknown user or invalid password.");
-	}
-
-	$_SESSION['site'] = $site;
-	$_SESSION['user'] = $username;
-	$_SESSION['club'] = $res['club'];
-	$_SESSION['roles'] = $adminUser ? array('admin') : array($res['role']);
-	$_SESSION['breadcrumbs'] = array($username=>url('', null, null));
-}
+// // Single Sign-on Login
+// if (isset($_REQUEST['ccode'])) {
+// 	$ccode = $_REQUEST['ccode'];
+// 
+// 	$key = base64_decode($ccode);
+// 	$keys = explode(';', $key);
+// 	$enckey = $keys[0]."$".$keys[1].$keys[2].HASH_TEMPLATE.$keys[3];
+// 	$site = $keys[0];
+// 	$username = $keys[1];
+// 	$adminUser = false;
+// 
+// 	if ($keys[3] == 'A') {
+// 		$adminUser = true;
+// 	}
+// 
+// 	if (md5($enckey) != $keys[4]) {
+// 		throw new LoginException("Unknown user or invalid password");
+// 	}
+// 
+// 	$db = Db::getInstance();
+// 
+// 	$req = $db->prepare("select u.*,c.name club from user u left join club c on u.club_id = c.id where username = :username");
+// 
+// 	$req->execute(array('username'=>$username));
+// 	$res = $req->fetch();
+// 
+// 	if (!$res) {
+// 		throw new LoginException("Unknown user or invalid password.");
+// 	}
+// 
+// 	$_SESSION['site'] = $site;
+// 	$_SESSION['user'] = $username;
+// 	$_SESSION['club'] = $res['club'];
+// 	$_SESSION['roles'] = $adminUser ? array('admin') : array($res['role']);
+// 	$_SESSION['breadcrumbs'] = array($username=>url('', null, null));
+// }
 
 // ----------------------------------------------------------------------------
 if (isset($action) && $action == 'loginUC') {

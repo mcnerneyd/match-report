@@ -2,8 +2,8 @@
 /* Raven/Sentry */
 require_once 'Raven/Autoloader.php';
 Raven_Autoloader::register();
-$client = new Raven_Client('https://0e648f1a6af5407985c427afb086e5bb:37b68176201d451a849bbbb4c81ec6f6@sentry.io/1242091');
-$error_handler = new Raven_ErrorHandler($client);
+$sentry_client = new Raven_Client('https://0e648f1a6af5407985c427afb086e5bb:37b68176201d451a849bbbb4c81ec6f6@sentry.io/1242091');
+$error_handler = new Raven_ErrorHandler($sentry_client);
 $error_handler->registerExceptionHandler();
 $error_handler->registerErrorHandler();
 $error_handler->registerShutdownFunction();
@@ -166,10 +166,25 @@ $error_handler->registerShutdownFunction();
 			}
 		}
 
+		if ($_SESSION['site']) $site = $_SESSION['site'];
+
+		if (!$site) {
+			unset($_SESSION['site']);
+			unset($_SESSION['user']);
+			unset($_SESSION['club']);
+			unset($_SESSION['roles']);
+			throw new LoginException("User not logged in");
+		}
+
 		debug("Session:".print_r($_SESSION,true));
 
 		$layout = 'layout';
 		if (isset($_REQUEST['layout'])) $layout = $_REQUEST['layout'];
+
+		$sentry_client->user_context(array(
+			'site'=>isset($_SESSION['site']) ? $_SESSION['site'] : "Unknown",
+			'user'=>isset($_SESSION['user']) ? $_SESSION['user'] : "Unknown",
+		));
 
 		require_once("views/$layout.php");
 
@@ -214,5 +229,6 @@ $(document).ready(function() {
 </script>
 	<?php }
 
-	echo "<!-- Site=$site Controller=$controller Action=$action User=".user()." Club=".$_SESSION['club']."-->";
+	echo "<!-- Site=$site Controller=$controller Action=$action User=".user()." Club=".$_SESSION['club']." Roles=".join($_SESSION['roles'])."-->";
+
 ?>

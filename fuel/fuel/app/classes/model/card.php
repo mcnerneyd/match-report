@@ -9,6 +9,8 @@ class Model_Card extends \Orm\Model
 		'competition_id',
 		'home_id',
 		'away_id',		
+		'contact_id',
+		'open',
 	);
 
 	protected static $_table_name = 'matchcard';
@@ -27,6 +29,11 @@ class Model_Card extends \Orm\Model
 		'away' => array(
 			'model_to'=>'Model_Team',
 			'key_from'=>'away_id',
+			'key_to'=>'id',
+		),
+		'user' => array(
+			'model_to'=>'Model_User',
+			'key_from'=>'contact_id',
 			'key_to'=>'id',
 		),
 	);
@@ -175,12 +182,25 @@ class Model_Card extends \Orm\Model
 		return \DB::query("select * from incident i left join club c on i.club_id = c.id where matchcard_id = $cardId")->execute();
 	}
 
+	private static function &arr_get(&$arr, $subindex) {
+		if (!isset($arr[$subindex])) $arr[$subindex] = array();
+
+		return $arr[$subindex];
+	}
+
+	private static function arr_add(&$arr, $subindex, $val) {
+		if (!isset($arr[$subindex])) $arr[$subindex] = array();
+
+		$arr[$subindex][] = $val;
+	}
+
 	public static function card($id) {
 		$cards = \DB::query("select m.id, m.fixture_id, 
 				date_format(m.date, '%Y-%m-%d %H:%i:%S') date, 
 				x.name competition, 
 				ch.id home_id, ch.name home_name, th.team home_team, 
-				ca.id away_id, ca.name away_name, ta.team away_team
+				ca.id away_id, ca.name away_name, ta.team away_team,
+				m.open
 			from matchcard m
 				left join competition x on m.competition_id = x.id
 				left join team th on m.home_id = th.id
@@ -198,9 +218,9 @@ class Model_Card extends \Orm\Model
 			$card['date'] = \Date::create_from_string($card['date'], '%Y-%m-%d %H:%M:%S');
 		}
 
-		$card['home'] = array('club'=>null, 'team'=>null, 'players'=>array(), 
+		$card['home'] = array('club'=>null, 'team'=>null, 'players'=>array(), 'signed'=>false,
 			'goals'=>0, 'scorers'=>array(), 'fines'=>array());
-		$card['away'] = array('club'=>null, 'team'=>null, 'players'=>array(), 
+		$card['away'] = array('club'=>null, 'team'=>null, 'players'=>array(), 'signed'=>false, 
 			'goals'=>0, 'scorers'=>array(), 'fines'=>array());
 
 		if ($card['home_id'] != null) {
@@ -216,9 +236,11 @@ class Model_Card extends \Orm\Model
 			$numbers['away'] = Model_Card::numberTable($card['away_id']);
 		}
 		$card['goals'] = array();
+		$card['home']['incidents'] = array();
+		$card['away']['incidents'] = array();
 
 		$incidents = \DB::query("select i.id, player, club_id, type, detail, date, resolved
-			from incident i where matchcard_id = $id")->execute();
+			from incident i where matchcard_id = $id and resolved=0")->execute();
 
 		foreach ($incidents as $incident) {
 			if ($incident['club_id'] == $card['home_id']) $key = 'home';
@@ -244,10 +266,14 @@ class Model_Card extends \Orm\Model
 			switch ($incident['type']) {
 				case 'Played':
 					if ($incident['resolved'] == 1) continue;
+					if ($incident['detail']) {
+						$card[$key]['players'][$playerName]['detail'] = $incident['detail'];
+					}
 					break;
 				case 'Scored':
 					if ($incident['resolved'] == 1) continue;
 					$card[$key]['goals'] = $card[$key]['goals'] + $incident['detail'];
+					echo "<!-- Scored: $playerName ${incident['detail']} $key k=".$card[$key]['goals']." -->\n";
 					if (isset($card[$key]['scorers'][$playerName])) $score = $card[$key]['scorers'][$playerName];
 					else $score = 0;
 					$card[$key]['scorers'][$playerName] = $score + $incident['detail'];
@@ -256,13 +282,37 @@ class Model_Card extends \Orm\Model
 					$card[$key]['fines'][] = array('Missing'=>$incident['detail'], "resolved"=>$incident['resolved']);
 					break;
 				case 'Signed':
-					if (preg_match("/([0-9]+)\/(.*)/", $incident['detail'], $output_array)) {
-						$card[$key]['umpire'] = $output_array[2];
+					if (preg_match("/^([0-9]+)?(?:\/([a-z ]*))?(?:;(.*))?$/i", $incident['detail'], $output_array)) {
+						$card[$key]['signed'] = true;
+						$oppositionScore = $output_array[1];
+						if ($oppositionScore === "") $oppositionScore = 0;
+						$card[$key.'-opposition-score'] = $oppositionScore;
+						if (count($output_array) > 2) $card[$key]['umpire'] = $output_array[2];
 					}
 					break;
+				case 'Yellow Card':
+				case 'Red Card':
+					self::arr_add($card[$key],'penalties', array(
+						'player'=>$incident['player'], 
+						'penalty'=>$incident['type'],
+						'detail'=>$incident['detail']));
+					break;
 				default:
+					$card[$key]['incidents'][] = $incident;
 					continue;
 			}
+		}
+
+		if (!$card['home']['signed']) {
+			if (isset($card['away-opposition-score'])) $card['home']['goals'] = $card['away-opposition-score'];
+		}
+
+		if (!$card['away']['signed']) {
+			if (isset($card['home-opposition-score'])) $card['away']['goals'] = $card['home-opposition-score'];
+		}
+
+		if ($card['away']['signed'] && $card['home']['signed']) {
+			$card['signed'] = true;
 		}
 
 		if (!isset($card['home']['captain'])) {
@@ -278,14 +328,16 @@ class Model_Card extends \Orm\Model
 			}
 		}
 
-		unset($card['home_id']);
-		unset($card['home_name']);
-		unset($card['home_team']);
-		unset($card['away_id']);
-		unset($card['away_name']);
-		unset($card['away_team']);
+//		unset($card['home_id']);
+//		unset($card['home_name']);
+//		unset($card['home_team']);
+//		unset($card['away_id']);
+//		unset($card['away_name']);
+//		unset($card['away_team']);
+//		unset($card['home-opposition-score']);
+//		unset($card['away-opposition-score']);
 
-		//print_r($card);
+	//	print_r($card);
 
 		return $card;
 	}

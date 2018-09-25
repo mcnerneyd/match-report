@@ -14,6 +14,7 @@ $(document).ready(function() {
 			},
 			null,
 			null,
+			null,
 			{'orderable':false},
 			{'orderable':false},
 		]
@@ -72,6 +73,7 @@ $(document).ready(function() {
 		<tr>
 			<th width='1em'><input type='checkbox'/></th>
 			<th width='4em'>Date</th>
+			<th>Competition</th>
 			<th>Club</th>
 			<th>Reason</th>
 			<th>Fine</th></tr>
@@ -87,6 +89,7 @@ foreach ($fines as $fine) {
 	echo "<tr data-id='${fine['id']}' title='".$fine['competition']." - ".$fine['home_team']." v ".$fine['away_team']."'>
 		<td></td>
 		<td>".substr($fine['date'], 0,10)."</td>
+		<td>".$fine['competition']."</td>
 		<td>".$fine['club']['name']."</td>
 		<td>${matches['reason']}</td>
 		<td>&euro;${matches['amount']}</td></tr>";
