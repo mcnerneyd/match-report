@@ -10,6 +10,7 @@
 		<link rel="shortcut icon" href="img/favicon.png">
 		<link rel="stylesheet" href="http://cards.leinsterhockey.ie/cards/fuel/public/assets/css/bootstrap.min.css"/>
 		<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+		<link rel="stylesheet" href="http://cards.leinsterhockey.ie/cards/img/selectize.bootstrap3.css">
 		<link rel="stylesheet" href="style.css"/>
 
 		<script src="http://cards.leinsterhockey.ie/cards/fuel/public/assets/js/jquery-3.2.1.min.js"></script>
@@ -17,6 +18,7 @@
 		<script src="http://cards.leinsterhockey.ie/cards/fuel/public/assets/js/bootstrap.min.js"></script>
 		<script src="http://cards.leinsterhockey.ie/cards/fuel/public/assets/js/notify.min.js"></script>
 		<script src="http://cards.leinsterhockey.ie/cards/fuel/public/assets/js/raven.min.js"></script>
+		<script src="http://cards.leinsterhockey.ie/cards/img/selectize.min.js"></script>
 
 		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js" type="text/javascript"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
@@ -24,13 +26,17 @@
 
 		<script src="img/bootstrap-confirmation.min.js"></script>
 		<script src="img/validator.min.js"></script>
-		<script src="https://use.fontawesome.com/73c8798688.js"></script>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
 
 		<style>
 		<?php if (user('admin')) { ?>
 		#user { font-style: italic; }
 		<?php } ?>
 		.help { padding: 2px 5px; color: #9999dd; }
+		#alert-modal .modal-content {
+				border: 3px solid #d43f3a;
+				margin-top: 200px;
+			}
 		</style>
   </head>
 
@@ -107,6 +113,7 @@
 								<?php } ?>
 								<?php if (user('admin')) { ?>
 								<li role="separator" class="divider"></li>
+								<li><a href='<?= Uri::create('Report/RegSec') ?>'>Anomalies</a></li>
 								<li><a href='<?= Uri::create('Report/Parsing') ?>'>Parsing</a></li>
 								<?php } ?>
 							</ul>
@@ -143,9 +150,9 @@
 							<!-- /Fuel -->
 							<li>
 								<?php if (user()) { ?>
-								<a style='display:inline-block' href='<?= Uri::create('/Login') ?>'><i class="fa fa-sign-out" aria-hidden="true"></i> Logout</a>
+								<a style='display:inline-block' href='<?= Uri::create('/Login') ?>'><i class="fas fa-sign-out-alt" aria-hidden="true"></i> Logout</a>
 						<?php } else { ?>
-							<a class='navbar-brand' href='<?= Uri::create('/Login') ?>'><i class="fa fa-sign-in" aria-hidden="true"></i> Login</a>
+							<a class='navbar-brand' href='<?= Uri::create('/Login') ?>'><i class="fas fa-sign-in-alt" aria-hidden="true"></i> Login</a>
 						<?php } ?>
 							</li>
 						</ul>
@@ -191,7 +198,23 @@
 				</div>
 			</div>
 		</div>
+		<div class="modal" id='alert-modal' tabindex="-1" role="dialog">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-body row">
+						<p class='text-center col-xs-12'>Help Detail</p>
+						<button data-dismiss='modal' class='btn btn-danger col-xs-4 col-xs-offset-4'>OK</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<script>
+		function doAlert(msg) {
+			$('#alert-modal p').text(msg);
+			$('#alert-modal').modal('show');
+		}
+
 		$(document).ready(function() {
 					$('[data-help]').each(function () {
 						$(this).append("<span class='help glyphicon glyphicon-question-sign' data-helpid='"+$(this).data("help")+"'></span>");
@@ -205,6 +228,8 @@
 							$('#help-modal').modal('show');
 						});
 					});
+
+
 		});
 		</script>
   </body>

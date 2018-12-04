@@ -1,5 +1,5 @@
 <!--
-<?php print_r($history); ?>
+<?php print_r(Model_Club::find_by_name($club)->getTeamSizes(false)); ?>
 -->
 <script>
 $(document).ready(function() {
@@ -53,6 +53,7 @@ $(document).ready(function() {
 		<th>Player</th>
 		<th>Matches</th>
 		<th>Team</th>
+		<th></th>
 	</thead>
 	<tbody display='none'>
 <!-- <?php print_r($all); ?> -->
@@ -67,18 +68,22 @@ foreach ($registration as $player)
 		<td>$ct</td>
 		<td class='$class'>${player['name']}</td>
 		<td>";
-	if (isset($history[$player['name']])) {
-		$matches = $history[$player['name']];
-		foreach ($matches as $match) {
-			$date = date('d.n', strtotime($match['date']));
-			if ($match['code'][0] == 'D') $cls = 'match-pill-league';
-			else $cls = 'match-pill-cup';
-			echo "<a class='match-pill $cls' href='#'><span>${match['code']}</span><span>$date</span></a>";
-		}
+
+	foreach ($player['history'] as $match) {
+		$date = date('d.n', strtotime($match['date']));
+		if ($match['code'][0] == 'D') $cls = 'match-pill-league';
+		else $cls = 'match-pill-cup';
+		echo "<a class='match-pill $cls' href='#'><span>${match['code']}</span><span>$date</span></a>";
 	}
+
+	$score = $player['score'];
 	echo "</td>
-		<td>${player['team']}</td>
-		</tr>";
+		<td>${player['team']}</td>";
+	echo "<td>";
+	if (Session::get('site') === 'lhamen' && $score < 99) echo $score;
+	echo "</td>";
+	echo "</tr>";
+
 	$ct++;
 }
 ?>

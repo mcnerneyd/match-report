@@ -5,6 +5,7 @@
 * { font-family: monospace; }
 #header tr td:first-child { font-weight: bold; padding-right: 30px; }
 #teams th { background: #def; }
+#incidents td { white-space: nowrap; padding-right: 12px; }
 </style>
 
 <?php if ($card) { ?>
@@ -37,9 +38,11 @@
 ?>
 </table>
 
-<table>
+<hr>
+<h3>Incidents</h3>
+<table id='incidents'>
 <?php foreach ($incidents as $incident) {
-	echo "<tr>";
+	echo "<tr data-description='${incident['type']} ${incident['player']} ${incident['name']} ${incident['detail']}'>";
 	echo "<td>".$incident['date']."</td>";
 	echo "<td>".$incident['type']."</td>";
 	echo "<td>".$incident['player']."</td>";
@@ -50,12 +53,18 @@
 } ?>
 </table>
 
-<pre>
-<?php print_r($card); ?>
-</pre>
-<?php } /* if $card */ 
-else echo "No card on system"; ?>
-
+<hr>
+<h3>Raw Fixture Data</h3>
 <pre>
 <?php print_r($fixture); ?>
 </pre>
+
+<hr>
+
+<h3>Raw Card Data</h3>
+<pre>
+<?php print_r($card) ?>
+</pre>
+<?php } /* if $card */ 
+else echo "No card on system";
+

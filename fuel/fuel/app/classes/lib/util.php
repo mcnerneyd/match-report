@@ -1,10 +1,24 @@
 <?php
 //-----------------------------------------------------------------------------
+function &arr_get(&$arr, $subindex) {
+	if (!isset($arr[$subindex])) $arr[$subindex] = array();
+
+	return $arr[$subindex];
+}
+
+function arr_add(&$arr, $subindex, $val) {
+	if (!isset($arr[$subindex])) $arr[$subindex] = array();
+
+	$arr[$subindex][] = $val;
+}
+
+//-----------------------------------------------------------------------------
 function cleanName($player, $format = "Fn LN") {
 
 		if (!$player) return $player;
 
 		$zPlayer = $player;
+		$player = trim(preg_replace("/[^A-Za-z, ]/", "", $player));
 		$a = strpos($player, ",");
 		if ($a) {
 			$lastname = substr($player, 0, $a);
@@ -12,13 +26,13 @@ function cleanName($player, $format = "Fn LN") {
 			if (!$b) $b = strlen($player);
 			$firstname = substr($player, $a+1, $b);
 		} else {
-			$c = strrpos(unicode_trim($player), " ");
+			$c = strrpos($player, " ");
 			$lastname = substr($player, $c+1);
 			$firstname = substr($player, 0, $c);
 		}
 
 		$firstname = trim(preg_replace('/[^A-Za-z ]/', '', $firstname));
-		$lastname = trim(preg_replace('/[^A-Za-z ]/', '', $lastname));
+		$lastname = trim(preg_replace('/[^A-Za-z]/', '', $lastname));
 		if (!$firstname) return cleanName($lastname);
 
 		switch ($format) {
@@ -33,6 +47,7 @@ function cleanName($player, $format = "Fn LN") {
 		}
 
 		$player = trim($player);
+		if ($player == ',') $player = "";
 
 		//echo "Clean:$zPlayer->$player ($lastname,$firstname/$a$c)\n";
 
@@ -69,7 +84,7 @@ function currentSeasonStart() {
 
 //-----------------------------------------------------------------------------
 function generatePassword($length) {
-	return substr(str_pad(rand(0,pow(10,$length)-1),$length),'0',$length);
+	return substr(str_pad(rand(0,pow(10,$length)-1),$length,'0'), 0, $length);
 }
 
 //-----------------------------------------------------------------------------
@@ -275,7 +290,7 @@ function arrayToCSV($arr) {
 }
 
 //-----------------------------------------------------------------------------
-function scrape($src) {
+function scrape($src, $explain = false) {
 		libxml_use_internal_errors(true);
 		$xml = new DOMDocument();
 
@@ -332,21 +347,62 @@ function scrape($src) {
 
 		}
 
+		$fixtureId = 0;
+		foreach ($xml->getElementsByTagName('link') as $link) {
+			if (!$link->hasAttribute("rel") || $link->getAttribute("rel") != "canonical") continue;
+			$matches = array();
+			if (preg_match('/https?:\/\/[^\/]*\/[^\/]*\/([0-9]*)\/.*/', $link->getAttribute("href"), $matches)) {
+				$fixtureId = $matches[1] * 1000;
+				break;
+			}
+		}
+
+		foreach ($xml->getElementsByTagName('ul') as $elm) {
+			$classes = $elm->getAttribute("class");
+			$classes = explode(" ", $classes);
+			if (!in_array("fixtures", $classes) && !in_array("results", $classes)) continue;
+
+			$result = array();
+			$result['competition'] = $elm->getAttribute("data-compname");
+			$result['datetime'] = $elm->getAttribute("data-date")." ".$elm->getAttribute("data-time");
+			$result['home'] = $elm->getAttribute("data-hometeam");
+			$result['away'] = $elm->getAttribute("data-awayteam");
+			$result['home_score'] = $elm->getAttribute("data-homescore");
+			$result['away_score'] = $elm->getAttribute("data-awayscore");
+			$result['comment'] = $elm->getAttribute("data-comment");
+
+			$fixtures[] = $result;
+		}
+
+		usort($fixtures, function($a, $b) { 
+			$rdiff = strcasecmp($a['home'], $b['home']);
+			if ($rdiff) return $rdiff; 
+			return strcasecmp($a['away'], $b['away']); 
+		});
+
+		foreach ($fixtures as &$fixture) {
+			if (!isset($fixture['fixtureID'])) {
+				$fixture['fixtureID'] = ++$fixtureId;
+			}
+		}
+
 		return $fixtures;
 }
 
 //-----------------------------------------------------------------------------
-function enqueue($task) {
-	$cacheName = "queue-".Session::get('site');
-	$queue = null;
-	try {
-		$queue = Cache::get($cacheName);
-	} catch (\CacheNotFoundException $e) {
-		$queue = array();
+function enqueue($command, $timestamp=null) {
+	$fp = fopen("../../../queue", "a");
+
+	$resultTask = null;
+
+	if (flock($fp, LOCK_EX)) {
+		$task = array('command-endpoint'=>$command);
+		
+		if ($timestamp) $task['date'] = $timestamp;
+
+		fputs($fp, json_encode($task)."\n");			
 	}
 
-	$queue[] = $task;
-
-	Cache::set($cacheName, $queue);
+	fclose($fp);
 }
 

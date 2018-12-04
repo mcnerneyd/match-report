@@ -26,7 +26,7 @@
 
 <div class='form-group command-group hidden-sm hidden-xs'>
 	<a class='btn btn-primary' href='#add-competition' data-toggle='modal'><i class='glyphicon glyphicon-plus-sign'></i> Add Competition</a>
-	<a class='btn btn-success' href='<?= Uri::create('Admin/Refresh') ?>'><i class='glyphicon glyphicon-refresh'></i> Refresh</a>
+	<a class='btn btn-success' href='<?= Uri::create('competitions?rebuild=true') ?>'><i class='glyphicon glyphicon-refresh'></i> Rebuild</a>
 </div>
 
 <table id='competitions-table' class='table table-condensed table-striped'>

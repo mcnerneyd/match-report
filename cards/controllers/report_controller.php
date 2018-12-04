@@ -39,6 +39,8 @@
 			if (($fixture['home']['score'] == $fixture['card']['home']['score'])
 					and ($fixture['away']['score'] == $fixture['card']['away']['score'])) continue;
 
+			echo "<!-- ".print_r($fixture);." -->\n";
+
 			$mismatches[] = $fixture;
 		}
 

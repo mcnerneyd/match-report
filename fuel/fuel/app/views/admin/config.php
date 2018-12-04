@@ -32,6 +32,13 @@ $(document).ready(function(event) {
 		$('#security-salt input').val(salt);
 		$('#configform').submit();
 	});
+	$('.date-select').datepicker({
+		dateFormat: "yy-mm-dd",
+		showOtherMonths: true,
+		selectOtherMonths: true,
+		});
+
+	$('.radio [name=resultsubmit][value=<?= $resultsubmit ?>]').prop('checked', true);
 });
 </script>
 
@@ -54,18 +61,18 @@ $(document).ready(function(event) {
 	<div class='tab-content'>
 		<div class='tab-pane active' id='home'>
 			<div class='row'>
-				<div class='form-group col-sm-12'>
+				<div class='form-group col-sm-6'>
 					<label>Title</label>
 					<input name='title' type='text' class='form-control' value='<?= $title ?>'/>
 				</div>
 
-				<div class='form-group col-sm-6'>
-						<!--label for='config-uploadformat'>Default Upload Format</label>
+				<!--div class='form-group col-sm-6'>
+						<label for='config-uploadformat'>Default Upload Format</label>
 						<select id='config-uploadformat' class='form-control'>
 							<option>Ordered List</option>
 							<option>Numbered List</option>
-						</select-->
-				</div>
+						</select>
+				</div-->
 
 				<div class='form-group col-sm-6'>
 					<label>Administrator Email</label>
@@ -81,6 +88,40 @@ $(document).ready(function(event) {
 					<label>Standard Fine</label>
 					<input name='fine' type='text' class='form-control' value='<?= $fine ?>'></input>
 				</div>
+
+				<div class='form-group col-sm-6'>
+					<label>Result Submission</label>
+					<p>When a matchcard is complete, the result can be submitted to the LHA website.</p>
+					<div class='radio'>
+						<label>
+							<input name='resultsubmit' type='radio' value='no'></input>
+							Do not submit results
+						</label>
+					</div>
+					<div class='radio'>
+						<label>
+						<input name='resultsubmit' type='radio' value='new'></input>
+							Submit results, but do not overwrite an existing result
+						</label>
+					</div>
+					<div class='radio'>
+						<label>
+							<input name='resultsubmit' type='radio' value='yes'></input>
+							Submit results
+						</label>
+					</div>
+				</div>
+
+				<div class='form-group col-sm-6'>
+					<label>Season Start Date</label>
+					<input name='seasonstart' type='text' class='form-control date-select' value='<?= $seasonstart ?>'></input>
+				</div>
+
+				<div class='form-group col-sm-6'>
+					<label>Registration Restriction Date</label>
+					<input name='regrestdate' type='text' class='form-control date-select' value='<?= $regrestdate ?>'></input>
+				</div>
+
 			</div>
 
 			<fieldset>
@@ -105,6 +146,11 @@ $(document).ready(function(event) {
 				<div class='checkbox'>
 					<label> <input type='checkbox' name='allow_assignment' <?php 
 						if ($allowassignment) echo 'checked'; ?>></input> Allow Explicit Team Assignment</label>
+				</div>
+
+				<div class='checkbox'>
+					<label> <input type='checkbox' name='block_errors' <?php 
+						if (Config::get("hockey.block_errors", false)) echo 'checked'; ?>></input> Block Registration on Errors</label>
 				</div>
 			</fieldset>
 

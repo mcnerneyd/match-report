@@ -18,19 +18,22 @@
 	<tbody>
 <?php 
 foreach ($mismatches as $card) {
-	//$important = ($card['away']['goals'] == 0 && $card['card']['away']['score'] != 0) 
-	//		|| ($card['home']['score'] == 0 && $card['card']['home']['score'] != 0);
 	$date = date('Y-m-d', $card['date']->get_timestamp());
-	//echo "<tr ".($important?"class='important'":"")." title='".$card['id']."'><td>$date</td><td>${card['competition']}</td><td>".$card['home']['team']." v ".$card['away']['team']."</td>
+	$cardUrl = 'http://cards.leinsterhockey.ie/cards/index.php?site='.Session::get('site').'&controller=card&action=get&fid='.$card['fixture_id'];
+
+	$opscore = (isset($card['away-opposition-score']) ? $card['away-opposition-score'] : "?");
+	$opscore .= " v ";
+	$opscore .= (isset($card['home-opposition-score']) ? $card['home-opposition-score'] : "?");
+			
+	$url = "https://admin.sportsmanager.ie/fixtureFeed/push.php?fixtureId=${card['fixture_id']}&homeScore=".$card['home']['goals']."&awayScore=".$card['away']['goals'];
+
 	echo "<tr title='".$card['id']."'";
 	if ($card['outcome_affected']) echo " class='important'";
 	echo "><td>$date</td>
 		<td>${card['competition']}</td>
-		<td><a href='".Uri::create("Report/Card")."/".$card['fixture_id']."'>
-		".$card['home_team']." v ".$card['away_team']."
-		</a></td>
-		<td>".$card['home']['goals']." v ".$card['away']['goals']."</td>
-		<td>".$card['home_score']." v ".$card['away_score']."</td>
+		<td><a href='".$cardUrl."'>".$card['home_team']." v ".$card['away_team']."</a></td>
+		<td>".$card['home']['goals']." v ".$card['away']['goals']." <small>(".$opscore.")</small></td>
+		<td><a href='$url'>".$card['home_score']." v ".$card['away_score']."</a></td>
 		</tr>";
 } ?>
 	<tbody>

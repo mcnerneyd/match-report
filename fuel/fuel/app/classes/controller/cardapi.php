@@ -133,14 +133,20 @@ class Controller_CardApi extends Controller_Rest
 		$card = Model_Card::card($cardId);
 
 		// if the card is in post-processing state, this has been done already
-		if ($card['open'] > 50) return false;
+		if ($card['open'] > 50) {
+			Log::debug("Card already in post-processing");
+			return false;
+		}
 
 		$signatures = Model_Incident::query()->
 			where('matchcard_id','=',$cardId)->
 			where('type','=','Signed')->get();
 
 		// if the card is in pre-signature state, cannot do this
-		if (!$signatures) return false;
+		if (!$signatures) {
+			Log::debug("Card has no signatures");
+			return false;
+		}
 
 		$signatories = array();
 		foreach ($signatures as $signature) {
@@ -166,18 +172,33 @@ class Controller_CardApi extends Controller_Rest
 			$awayGoals = $card['away']['goals'];
 
 			$fixtureId = $card['fixture_id'];
-			$url = "https://admin.sportsmanager.ie/fixtureFeed/push.php?fixtureId=$fixtureId&homeScore=$homeGoals&awayScore=$awayGoals";
+			Config::load('custom.db', 'config');
+			$resultSubmit = Config::get("config.result_submit");
+			Log::debug("RRS:".$resultSubmit);
 
-			echo file_get_contents($url);
-				//$response = static::curl($url);
-				//echo $url."\n";
-				//print_r($fc);
+			if ($resultSubmit === 'new') {
+				$fixtures = Model_Fixture::getAll($fixtureId);
+				$fixture = $fixtures[$fixtureId];			
+				if ($homeScore === null && $awayScore === null) {
+					Log::debug("Fixture result not set");
+					$resultSubmit = 'yes';
+				}
+			}
+
+			if ($resultSubmit === 'yes') {
+				$url = "https://admin.sportsmanager.ie/fixtureFeed/push.php?fixtureId=$fixtureId&homeScore=$homeGoals&awayScore=$awayGoals";
+
+				echo file_get_contents($url);
+				Log::info("Result submitted: fixture=$fixtureId $homeGoals-$awayGoals ($url)");
+			} else {
+				Log::info("Result (not submitted): fixture=$fixtureId $homeGoals-$awayGoals");
+			}
 
 			$card = Model_Card::find($cardId);
 			$card->open = 51;
 			$card->save();
 
-			Log::info("Result submitted: fixture=$fixtureId $homeGoals-$awayGoals ($url)");
+			Log::debug("Card close: $cardId");
 
 			return true;
 		}
@@ -228,7 +249,12 @@ class Controller_CardApi extends Controller_Rest
 			try {
 				$sig = $incident['detail'];
 				$sig = explode(';',$sig);
+
+				if (count($sig) < 2) continue;
+
 				$sig = $sig[1];
+				if (!$sig) continue;
+
 				$sig = base64_decode($sig);
 				$sig = gzuncompress($sig);
 				$sig = base64_encode($sig);

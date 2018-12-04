@@ -10,6 +10,7 @@ class Model_Report
 				left join competition x on m.competition_id = x.id
 			where type = 'Scored' 
 				and detail > 0
+				and i.date > '".currentSeasonStart()."'
 			group by player, x.id")->execute();
 	}
 }

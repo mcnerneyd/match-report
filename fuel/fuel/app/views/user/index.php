@@ -25,7 +25,7 @@
 			table.columns(3).search(key, true).draw();
 		});
 		$('#users-table tbody').show();
-		$('#users-table a[href="refresh"]').click(function(e) {
+		$('#users-table').on('click', 'a[href="refresh"]', function(e) {
 			e.preventDefault();
 			var username = $(this).closest('tr').data('user');
 			$.ajax({method: 'PUT',
@@ -40,7 +40,6 @@
 			$.ajax({method: 'DELETE',
 				url: '<?= Uri::create("UserApi") ?>',
 				data: { 'username' : userrow.data('user') }}).done(function(data) {
-					//window.location.reload();
 					userrow.remove();
 			});
 		});

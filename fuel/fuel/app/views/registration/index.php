@@ -20,7 +20,7 @@ echo "<!-- Registration Allowed: $registrationAllowed -->";
 					{ "orderable": false },
 					{ },
 					{ "orderable": false },
-					{} 
+					{ "className": 'dt-right' },
 				]
 			});
 		$('#registration-table tbody').show();
@@ -53,16 +53,50 @@ echo "<!-- Registration Allowed: $registrationAllowed -->";
 			} ).done(function(data) { window.location.reload(); });
 		});
 
+		$("#rename-player").submit(function(e) {
+			e.preventDefault();
+			var oldName = $(this).find('[name=oldname]').val();
+			var newName = $(this).find('[name=newname]').val();
+			debugger;
+			$.post('<?= Uri::create('registrationapi/rename') ?>',
+				{'c':'<?= $club ?>', 'o':oldName, 'n':newName },
+				).done(function(data) { window.location.reload(); });
+		});
+
 		$('#registration-club select').change(function() {
-			window.location.href='<?php Uri::create('Registration') ?>?c=' + $(this).val();
+			window.location.href='<?= Uri::create('Registration') ?>?c=' + $(this).val();
 		});
 
 		$('#registration-club select').val('<?= $club ?>');
+		$.get('<?= Uri::create('registrationapi/errors.json') ?>?c=<?= $club ?>')
+			.done(function(data) {
+				for (var i=0;i<data.length;i++) {
+					var error = data[i];
+					$('#errors ul').append("<li class='"+error['class']+"'>"+error['msg']+"</li>");
+				}
+				if (data.length>0) $('#errors').show();
+			});
 
 		$('.form-confirmation input[type=checkbox]').on('change', function() {
 				$('#upload-registration button[type=submit]').prop('disabled', !this.checked);
 		});
+
+		$('#errors button').click(function() {
+			$.ajax('<?= Uri::create('registrationapi/errors') ?>',
+				{
+					method:'DELETE',
+					data:{'club':'<?= $club ?>'},
+				}).done(function(data) { window.location.reload(); });
+		});
 	});
+
+	var tutorial = [
+		{ target: "#registration-table", message: "This table shows all the registration files you have uploaded. The latest file is shown first.",dir:"top" },
+		{ target: "#registration-table .btn-download:first", message: "Click Download button to download the actual registration file", dir:"top" },
+		{ target: "#view-registration .btn", message: "Click the View button to see your registration", dir:"bottom" },
+		{ target: "#view-registration input", message: "Select a date to view the registration for - the default is tomorrow", dir:"bottom" },
+		{ target: "#upload-button", message: "Click Upload to upload a new registration file", dir:"left" },
+		];
 </script>
 <style>
 .form-confirmation {
@@ -79,6 +113,21 @@ echo "<!-- Registration Allowed: $registrationAllowed -->";
 .form-control label {
 	margin-bottom:0px;
 	font-size: 80%;
+}
+tr.error td {
+	color: red;
+}
+.dt-right {
+	text-align: right;
+}
+#errors {
+	display: none;
+}
+#errors .error {
+	color: red;
+}
+#errors .warn {
+	color: orange;
 }
 </style>
 
@@ -119,7 +168,11 @@ echo "<!-- Registration Allowed: $registrationAllowed -->";
 <?php
 foreach ($registrations as $registration) {
 	$date = Date::forge($registration['timestamp']);
-	echo "<tr data-filename='${registration['name']}' data-club='${registration['club']}'>
+	$class = "";
+	if (Config::get("hockey.block_errors", false) && isset($registration['errors'])) {
+		$class = "title='This registration has errors' class='error'";
+	}
+	echo "<tr $class data-filename='${registration['name']}' data-club='${registration['club']}'>
 		<td>${registration['club']}</td>
 		<td>${registration['name']}</td>
 		<td>".strtoupper($date->format("%Y-%m-%d %H:%M:%S"))."</td>
@@ -141,6 +194,33 @@ foreach ($registrations as $registration) {
 <?php echo "<!-- ".Config::get("config.allowassignment")." -->";
 if (!Config::get("config.allowassignment")) { ?>
 <p>Explicit team assignment is disabled.</p>
+<?php } ?>
+
+<div id='errors'>
+<hr>
+<?php if ($registrationAllowed === 'all') { ?>
+<button class='btn btn-danger btn-sm pull-right'>Clear Errors</button>
+<?php } ?>
+<h3>Errors/Warnings</h3>
+<p>Registration will not be valid if it has <span class='error'>errors</span>. <span class='warn'>Warnings</span> should be resolved but do not
+block registration.<p>
+<p>To remove errors, upload a new valid registration or get the Section registration secretary to clear the errors.</p>
+<ul></ul>
+</div>
+
+<?php if ($registrationAllowed === 'all') { ?>
+<h3>Rename Player</h3>
+<form id='rename-player' class='form-inline'>
+	<div class='form-group'>
+		<label>Original Name</label>
+		<input class='form-control' type='text' name='oldname'/>
+	</div>
+	<div class='form-group'>
+		<label>New Name</label>
+		<input class='form-control' type='text' name='newname'/>
+	</div>
+	<button type="submit" class="btn btn-danger">Rename</button>
+</form>
 <?php } ?>
 
 <div class="modal" id='upload-registration' tabindex="-1" role="dialog">

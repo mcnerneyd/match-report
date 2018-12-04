@@ -26,3 +26,10 @@ require COREPATH.'bootstrap.php';
 require APPPATH."../../../../lib/PHPExcel/PHPExcel/IOFactory.php";
 require APPPATH.'classes/lib/util.php';
 
+$site = Session::get('site',null);
+if ($site) {
+	$path = APPPATH."../../../sites/$site";
+	if (file_exists($path)) {
+		Config::load("$path/config.json", 'hockey');
+	}
+}

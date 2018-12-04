@@ -8,6 +8,7 @@
 	table tr.unprocessed { background: repeating-linear-gradient( 45deg, #ffbbbb, #ffbbbb 5px, white 5px, white 20px); }
 	table tr.incomplete-warned { background: #E42217 !important; color: white; }
 	table tr.incomplete { background: #ffa500; }
+	table tr.incomplete.partial { background: #ffa50050; }
 	table tr.incomplete td { border-top: 1px solid black; }
   .form-inline select { margin-left: 5px; }
   select[name=competition] { font-weight: normal; }
@@ -65,7 +66,14 @@ $(document).ready(function () {
     $(this).parent().addClass('active');
 
     filterCards();
-  });
+	});
+
+	$('#fixtures-table .fa-envelope').on('click', function(event) {
+		event.preventDefault();
+		var cardId = $(this).closest('tr').data('id');
+		location.href = 'http://cards.leinsterhockey.ie/cards/fuel/public/card/sendmail?id='+cardId;
+		return false;
+	});
 
   filterCards();
 });
@@ -88,13 +96,16 @@ $(document).ready(function () {
   <li><a href="#results">Results <span class='badge'><?= dd($counts, 'result', 0) ?></span></a></li>
 </ul>
 
-<table>
+<table id='fixtures-table'>
   <tbody>
 <?php $month = "";
   foreach ($cards as $card) { 
 		if (user('user') and isset($card['card'])) {
 			$mycard = $card['card'][$card[user()]];
 		} else $mycard = null;
+
+    if (!isset($card['home']['valid']) && !isset($card['away']['valid'])) continue;
+
     if ($month != date('F Y', $card['date'])) {
         $month = date('F Y', $card['date']); ?>
       <tr>
@@ -104,6 +115,7 @@ $(document).ready(function () {
 			
 			$rowClass = $card['status'];
 			if (isset($card['warned'])) $rowClass .= " incomplete-warned";
+			if ($rowClass == 'incomplete' and $card['submitted']) $rowClass .= " partial";
 
 			$cardKey = dd($card,'competition-code'); 
 			if (isset($card['home'])) $cardKey .= $card['home']['team']; else $cardKey .= "XH0";
@@ -161,7 +173,9 @@ $(document).ready(function () {
 						}
 					}
 					}
-				?></td>
+?>
+						<i class='fa fa-envelope'></i>
+					</td>
       </tr>
 <?php } ?>
   </tbody>

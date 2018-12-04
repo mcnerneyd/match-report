@@ -43,21 +43,23 @@ function cleanName($player, $format = "Fn LN") {
 
 		if (!$player) return $player;
 
+		$player = trim(preg_replace("/[^A-Za-z, ]/", "", $player));
 		$zPlayer = $player;
 		$a = strpos($player, ",");
+		$c=0;
 		if ($a) {
 			$lastname = substr($player, 0, $a);
 			$b = strpos($player, "," , $a+1);
 			if (!$b) $b = strlen($player);
 			$firstname = substr($player, $a+1, $b);
 		} else {
-			$c = strrpos(unicode_trim($player), " ");
+			$c = strrpos($player, " ");
 			$lastname = substr($player, $c+1);
 			$firstname = substr($player, 0, $c);
 		}
 
 		$firstname = trim(preg_replace('/[^A-Za-z ]/', '', $firstname));
-		$lastname = trim(preg_replace('/[^A-Za-z ]/', '', $lastname));
+		$lastname = trim(preg_replace('/[^A-Za-z]/', '', $lastname));
 		if (!$firstname) return cleanName($lastname);
 
 		switch ($format) {
@@ -72,8 +74,9 @@ function cleanName($player, $format = "Fn LN") {
 		}
 
 		$player = trim($player);
+		if ($player == ',') $player = "";
 
-		//echo "Clean:$zPlayer->$player ($lastname,$firstname/$a$c)\n";
+		//echo "Clean:$zPlayer->$player ($lastname/$firstname:$a+$c)\n";
 
 		return $player;
 }
@@ -99,6 +102,7 @@ function unicode_trim ($str) {
 //-----------------------------------------------------------------------------
 // Write a log entry to the fuelphp logs
 function log_write($level, $msg) {
+	try {
 	$filename = "fuel/fuel/app/logs/".date("Y/m/d").".php";
 	$dir = dirname($filename);
 
@@ -106,7 +110,7 @@ function log_write($level, $msg) {
 		mkdir($dir, 0777, true);
 	}
 
-	$msg = "{".user()."} ".$msg;
+	$msg = "{".$_SESSION['site'].".".user()."} ".$msg;
 
 	$msg = "$level - ".date("Y-m-d H:i:s")." --> # ".$msg."\n";
 
@@ -115,6 +119,9 @@ function log_write($level, $msg) {
 	}
 
 	file_put_contents($filename, $msg, FILE_APPEND);
+	} catch (Exception $e) {
+		echo "Log Failure: ".$e->getMessage();
+	}
 
 	return true;
 }
@@ -204,7 +211,7 @@ function parse($str) {
 
 	$result['name'] = $result['club'] .' '. $result['team'];
 
-	echo "<!-- to:".print_r($result, true)." -->";
+	//echo "<!-- to:".print_r($result, true)." -->";
 	return $result;
 }
 
@@ -387,6 +394,47 @@ function scrape($src, $explain = false) {
 				}
 
 		}
+
+		$fixtureId = 0;
+		foreach ($xml->getElementsByTagName('link') as $link) {
+			if (!$link->hasAttribute("rel") || $link->getAttribute("rel") != "canonical") continue;
+			$matches = array();
+			if (preg_match('/https?:\/\/[^\/]*\/[^\/]*\/([0-9]*)\/.*/', $link->getAttribute("href"), $matches)) {
+				$fixtureId = $matches[1] * 1000;
+				break;
+			}
+		}
+
+		foreach ($xml->getElementsByTagName('ul') as $elm) {
+			$classes = $elm->getAttribute("class");
+			$classes = explode(" ", $classes);
+			if (!in_array("fixtures", $classes) && !in_array("results", $classes)) continue;
+
+			$result = array();
+			$result['competition'] = $elm->getAttribute("data-compname");
+			$result['datetime'] = $elm->getAttribute("data-date")." ".$elm->getAttribute("data-time");
+			$result['home'] = $elm->getAttribute("data-hometeam");
+			$result['away'] = $elm->getAttribute("data-awayteam");
+			$result['home_score'] = $elm->getAttribute("data-homescore");
+			$result['away_score'] = $elm->getAttribute("data-awayscore");
+			$result['comment'] = $elm->getAttribute("data-comment");
+
+			$fixtures[] = $result;
+		}
+
+		usort($fixtures, function($a, $b) { 
+			$rdiff = strcasecmp($a['home'], $b['home']);
+			if ($rdiff) return $rdiff; 
+			return strcasecmp($a['away'], $b['away']); 
+		});
+
+		foreach ($fixtures as &$fixture) {
+			if (!isset($fixture['fixtureID'])) {
+				$fixture['fixtureID'] = ++$fixtureId;
+			}
+		}
+
+		if ($explain) echo "<pre>".print_r($fixtures,true)."</pre>\n";
 
 		return $fixtures;
 }

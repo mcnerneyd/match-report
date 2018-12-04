@@ -4,10 +4,14 @@ class Model_Player extends \Model
 {
 
 	public static function getHistory($club) {
-		$sql = "select i.player, x.code, x.name, m.date from incident i join matchcard m on i.matchcard_id = m.id
+		$sql = "select distinct i.player, x.code, x.name, m.date, t.team
+					from incident i join matchcard m on i.matchcard_id = m.id
 					join competition x on m.competition_id = x.id
 						join club c on i.club_id = c.id
+						left join entry e on e.competition_id = x.id
+						left join team t on e.team_id = t.id and c.id = t.club_id
 				where resolved = 0
+				and t.team is not null
 				and i.type = 'Played'
 				and c.name = '$club'
 				and i.date > '".date("Y-m-d", currentSeasonStart()->get_timestamp())."'";

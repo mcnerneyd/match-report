@@ -8,7 +8,10 @@ return array(
 					if (!$site) $site = Cookie::get('site');
 					if (!$site) $site = Session::get('site');
 
-					Log::info("method: ".Request::main()->get_method(). " content-type: ".\Input::headers('Content-Type')." site=$site");
+					$ua = null;
+					if (isset($_SERVER['HTTP_USER_AGENT'])) $ua = $_SERVER['HTTP_USER_AGENT'];
+
+					Log::info("method: ".Request::main()->get_method(). " content-type: ".\Input::headers('Content-Type')." site=$site ua=$ua"); 
 
 					if ($site and $site != 'none') {
 						DB::instance($site);

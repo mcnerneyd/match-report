@@ -8,11 +8,9 @@ class Queue
 		\Log::debug("Queue Execute");
 
 		try {
-		\Log::info("Queue Execute");
-			$t = static::getNextTask();
-			\Log::info("Pulled task:".print_r($t,true));
+			$command = static::getNextTask();
 
-
+			if (!$command) {
 				$task = \Model_Task::query()->order_by('datetime','asc')
 					->where('status', '=', 'Queued')
 					->where('datetime', '<', date("Y-m-d H:i:s"))
@@ -54,7 +52,10 @@ class Queue
 
 					$task->save();
 					$command = $task['command'];
+				}
+			}
 
+			if ($command) {
 				$command = \Model_Task::command($command);
 				\Log::info("Execute command: ".$command);
 
@@ -62,10 +63,7 @@ class Queue
 				$curl->execute();
 
 				\Log::info("Command execution complete");
-				return;
 			}
-
-			//Queue::processMail();
 		} catch (Throwable $e) {
 			\Log::error("Failed to execute command:".$e->getMessage());
 		}
@@ -81,6 +79,7 @@ class Queue
 			while(true) {
 				$line = fgets($fp);
 				if ($line === FALSE) break;
+				if (!$line) continue;
 				if ($resultTask == null) {
 					$task = json_decode($line);
 					if (!isset($task->date) || strtotime($task->date) < time()) {
@@ -105,7 +104,7 @@ class Queue
 					$copyOfResultTask = $resultTask;
 					$copyOfResultTask->date = static::recur($date, $resultTask->recur);
 					if ($copyOfResultTask->date != null) {
-						fputs($fp, json_encode($copyOfResultTask));
+						fputs($fp, json_encode($copyOfResultTask)."\n");
 					}
 				}
 			}
@@ -113,7 +112,9 @@ class Queue
 
 		fclose($fp);
 
-		return $resultTask;
+		$resultTask = (array)$resultTask;
+
+		return $resultTask['command-endpoint'];
 	}
 
 	public static function recur($date, $interval) {

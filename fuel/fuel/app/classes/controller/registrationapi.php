@@ -52,6 +52,36 @@ class Controller_RegistrationApi extends Controller_Rest
 	}
 
 	// --------------------------------------------------------------------------
+	public function post_rename() {
+		$clubname = Input::param("c");
+		$old = Input::param("o");
+		$new = Input::param("n");
+
+		Log::info("Rename player $old to $new (club=$clubname)");
+
+		$club = Model_Club::find_by_name($clubname);
+
+		if ($club == null) return new Response("Unknown club: $clubname", 404);
+
+		$new = cleanName($new, "LN, Fn");
+		$old = cleanName($old, "LN, Fn");
+
+		$newPlayer = "$new/$old";
+		
+		DB::query("UPDATE incident SET player='$new'
+			WHERE club_id = ".$club->id."
+				AND player like '%/$new'")->execute();
+
+		DB::query("UPDATE incident SET player='$newPlayer'
+			WHERE club_id = ".$club->id."
+				AND (player='$old' OR player like '$old/%')")->execute();
+
+
+		return new Response("Name changed: $old->$new", 200);
+	}
+
+	// --------------------------------------------------------------------------
+	// NOT USED
 	public function post_index() {
 		// FIXME Check user admin or matches club
 		$access = 'admin.all';
@@ -80,32 +110,86 @@ class Controller_RegistrationApi extends Controller_Rest
 	}
 
 	// --------------------------------------------------------------------------
-	private function validateRegistration($filename) {
+	// NOT USED
+	//
+
+	public function delete_errors() {
+		$club = Input::param("club", null);
+		if ($club == null) return;
+		$club = strtolower($club);
+
+		Model_Registration::clearErrors($club);
+	}
+public function get_errors() {
+		$club = Input::param("c", null);
+		if ($club == null) return;
+		$club = strtolower($club);
+
+		$errors = array();
+
+		foreach ($this->get_duplicates($club) as $name=>$players) {
+			foreach ($players as $player) {
+				$errors[] = array('class'=>'warn','msg'=>
+					"Player $name is similar to ${player['name']} playing for ${player['club']}");
+			}	
+		}
+
+		$registrations = Model_Registration::find_all($club);
+		$lastReg = end($registrations);
+
+		if (isset($lastReg['errors'])) {
+			Log::info("Registration has error");
+			$errorStatus = Config::get("hockey.block_errors", false) ? "error":"warn";
+			foreach ($lastReg['errors'] as $error) {
+				$errors[] = array('class'=>$errorStatus, 'msg'=>$error);
+			}
+		}
+
+		return $errors;
+	}
+
+	public function get_duplicates($club) {
+
+		Log::info("Request duplicates");
 		$errors = array();
 
 		$now = Date::forge()->get_timestamp();
-		$club = Session::get("username");
-		$reg = Model_Registration::readRegistrationFile($filename, $club);
-		usort($reg, function ($a, $b) { return strcmp($a['phone'], $b['phone']); });
 
 		$playersByName = Model_Registration::find_all_players($now);
 		usort($playersByName, function ($a, $b) { return strcmp($a['phone'], $b['phone']); });
 
-		$i=0;
+		Log::info("Players:".count($playersByName));
+
+		$lastPlayer = null;
 		foreach ($playersByName as $player) {
-			for (;$i < count($reg); $i++) {
-				$regPlayer = $reg[$i];
-				$cmp = strcmp($player['phone'], $regPlayer['phone']);
-				if ($cmp < 0) break;
-				if ($cmp == 0) {
-					if (strcasecmp($regPlayer['club'], $player['club']) != 0) {
-						$errors[] = "Player ${regPlayer['name']} ${regPlayer['club']} name is already registered to ${player['club']} as ${player['name']}";
-					}
+			if ($lastPlayer == null) {
+				$lastPlayer = $player;
+				continue;
+			}
+
+			if ($player['phone'] ==  $lastPlayer['phone']) {
+				$name = $player['phone'];
+				if (!isset($errors[$name])) $errors[$name] = array($lastPlayer);
+				$errors[$name][] = $player;
+				continue;
+			}
+
+			$lastPlayer = $player;
+		}
+
+		$clubErrors = array();
+		foreach ($errors as $name=>$players) {
+			foreach ($players as $player) {
+				if ($player['club'] === $club) {
+					// Remove this club from list
+					$key = array_search($player, $players);
+					unset($players[$key]);
+					$clubErrors[$player['name']] = $players;
 					break;
 				}
 			}
 		}
 
-		return array();
+		return $clubErrors;
 	}
 }

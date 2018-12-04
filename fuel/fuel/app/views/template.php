@@ -24,7 +24,7 @@
 	'code.js')) ?>
 
 <?= Asset::css(array(
-	'bootstrap-datetimepicker.less',
+	'bootstrap-datetimepicker.css',
 	'bootstrap.min.css',
 	'datatables.min.css',
 	'animate.css',
@@ -33,9 +33,28 @@
 
 	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.4/typeahead.bundle.min.js"></script>
 	<script  type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.min.js"></script>
-	<link href="https://use.fontawesome.com/73c8798688.css" media="all" rel="stylesheet">
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
 
 	<script>
+			function tutorialrun(config, index=0) {
+				if (index >= config.length) return;
+				var dirs = ["auto left","auto right","auto top","auto bottom"];
+				var step = config[index];
+				var dir = step['dir'] || dirs[index%4];
+				var p = $(step['target']).popover({
+						placement:dir,
+						trigger:'manual',
+						html:true,
+						content:step['message'],
+				})
+				p.popover("show");
+
+				window.setTimeout(function() {
+					p.popover("destroy");
+					tutorialrun(config, index+1);
+				}, step['message'].length * 50);
+			}
+
 		$(document).ready( function() {
 			$.notify.defaults({
 				className: 'info',
@@ -71,6 +90,11 @@
 				rootSelector: '[data-toggle=confirmation]',
 			});
 
+			if (typeof tutorial === "object") {
+				$('#help-me').show().click(function() {tutorialrun(tutorial);});
+			} else {
+				$('#help-me').hide();
+			}
 		});
 	</script>
 </head>
@@ -113,7 +137,7 @@
 							<?php } ?>
 							<?php if (\Auth::has_access('nav.[admin]')) { ?>
 							<li role="separator" class="divider"></li>
-							<li role="separator" class="divider"></li>
+							<li><a href='<?= Uri::create('Report/RegSec') ?>'>Anomalies</a></li>
 							<li><a href='<?= Uri::create('Report/Parsing') ?>'>Parsing</a></li>
 							<?php } ?>
 						</ul>
@@ -132,6 +156,11 @@
 
 				<!-- Admin Menu -->
 				<ul class='nav navbar-nav navbar-right'>
+					<li>
+						<a id='help-me' class='disabled'>
+							<i class="fas fa-chalkboard-teacher"></i> Help!
+						</a>
+					</li>
 					<?php if (\Auth::has_access('nav.[admin]')) { ?>
 					<li><a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Admin <span class="caret"></span></a>
           <ul class="dropdown-menu">
@@ -148,9 +177,9 @@
 					</li>
 					<?php } ?>
 					<?php if (\Auth::check()) { ?>
-					<li><a href='<?= Uri::create('/Login') ?>'><i class='fa fa-sign-out'></i> Logout</a></li>
+					<li><a href='<?= Uri::create('/Login') ?>'><i class="fas fa-sign-out-alt"></i> Logout</a></li>
 					<?php } else { ?>
-					<li><a href='<?= Uri::create('/Login') ?>'><i class='fa fa-sign-in'></i> Login</a></li>
+					<li><a href='<?= Uri::create('/Login') ?>'><i class='fas fa-sign-in-alt'></i> Login</a></li>
 					<?php } ?>
 				</ul>
 			</div>
@@ -203,6 +232,7 @@
 				$('#lock').remove();
 				$('#cookie-consent').remove();
 			});
+
 		});
 	</script>
 	<div id='lock'></div>

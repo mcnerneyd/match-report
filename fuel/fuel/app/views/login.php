@@ -52,6 +52,15 @@ div#site-select a {
 }
 </style>
 
+<script>
+	var tutorial = [
+		{ target: "#user-select", message: "Select a club or an umpire from the list",dir:"bottom" },
+		{ target: "#login input[name=pin]", message: "Enter your PIN number here", dir:"top" },
+		{ target: "#login button[type=submit]", message: "Then click the 'Sign in' button", dir:"top" },
+		{ target: "#login .switch-login", message: "If you are trying to login as a club/registration secretary, click here to switch to 'Secretary Login'", dir:"bottom" },
+		];
+</script>
+
 <?php 
 // --------------------------------------------------------
 //  Site Select

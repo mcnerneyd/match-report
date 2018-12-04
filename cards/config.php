@@ -69,3 +69,27 @@ if (site() and !defined('DB_DATABASE')) {
 } else {
 	define("TITLE", "");
 }
+
+class Config {
+	public static function get($path) {
+		$root = dirname(__FILE__);
+		$configFile = $root.'/sites/'.site().'/config.json';
+
+		$json = file_get_contents($configFile);
+		$config = json_decode($json, true);
+
+		$keys = explode('.', $path);
+		array_shift($keys);
+
+		$value = $config;
+		foreach ($keys as $key) {
+			if (!isset($value[$key])) {
+				Log::warn("No such key $key from $path");
+				return null;
+			}
+			$value = $value[$key];
+		}
+
+		return $value;
+	}
+}

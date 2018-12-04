@@ -1,6 +1,8 @@
-<?php /*
+<!-- <?php 
+print_r($fines);
+/*
 https://www.gyrocode.com/articles/jquery-datatables-how-to-add-a-checkbox-column/
-*/ ?>
+*/ ?> -->
 <script>
 $(document).ready(function() {
 	$('#fines-table').dataTable({
@@ -17,9 +19,11 @@ $(document).ready(function() {
 			null,
 			{'orderable':false},
 			{'orderable':false},
+			{'orderable':false},
 		]
 	});
 	$('#fines-table').show();
+
 	$('#fines-table thead input[type="checkbox"]').click(function() {
 		var rows = $('#fines-table').DataTable().rows({'search':'applied'}).nodes();
 		$('input[type="checkbox"]', rows).prop('checked',this.checked);
@@ -76,7 +80,8 @@ $(document).ready(function() {
 			<th>Competition</th>
 			<th>Club</th>
 			<th>Reason</th>
-			<th>Fine</th></tr>
+			<th>Fine</th>
+			<th/></tr>
 	</thead>
 	<tbody>
 <?php
@@ -86,13 +91,15 @@ foreach ($fines as $fine) {
 		$matches = array('reason'=>$fine['detail'], 'amount'=>0);
 	}
 
-	echo "<tr data-id='${fine['id']}' title='".$fine['competition']." - ".$fine['home_team']." v ".$fine['away_team']."'>
+	echo "<tr data-id='${fine['id']}' data-cardid='${fine['matchcard_id']}'
+			title='".$fine['competition']." - ".$fine['home_team']." v ".$fine['away_team']."'>
 		<td></td>
 		<td>".substr($fine['date'], 0,10)."</td>
 		<td>".$fine['competition']."</td>
 		<td>".$fine['club']['name']."</td>
 		<td>${matches['reason']}</td>
-		<td>&euro;${matches['amount']}</td></tr>";
+		<td>&euro;${matches['amount']}</td>
+		<td><a href='".Uri::create("Report/Card/n${fine['matchcard_id']}")."'>View</a></td></tr>\n\t";
 }
 ?>
 	</tbody>

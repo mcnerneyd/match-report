@@ -16,7 +16,7 @@ class Model_Club extends \Orm\Model
 		'order_by' => array('name'=>'asc'),
 	);
 
-	public function getTeamSizes() {
+	public function getTeamSizes($stars = true) {
 		$result = array();
 
 		$carry = 0;
@@ -24,9 +24,11 @@ class Model_Club extends \Orm\Model
 			foreach ($team->competition as $competition) {
 				$size = $competition['teamsize'];
 				if ($size) {
-					$size += $carry;
-					$carry = $competition['teamstars'];
-					$size -= $carry;
+					if ($stars) {
+						$size += $carry;
+						$carry = $competition['teamstars'];
+						$size -= $carry;
+					}
 					$result[] = $size;
 					break;
 				}

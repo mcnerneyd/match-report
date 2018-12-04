@@ -109,6 +109,7 @@ class Card {
 		$db->exec("insert into incident (matchcard_id, type) values ($id, 'Late')");
 	}
 
+	/*
 	private static function splitName($name) {
 		if (strpos($name, ',')) {
 			if (preg_match('/^(.*), (.*)$/', $name, $matches)) 
@@ -126,6 +127,7 @@ class Card {
 
 		return $names[1] . ', ' . $names[0];
 	}
+	*/
 
 	public static function addCardIncident($id, $type, $user) {
 		$db = Db::getInstance();
@@ -149,12 +151,16 @@ class Card {
 	}
 
 	public static function addIncident($id, $name, $club, $type, $user, $detail = null) {
-		$name = Card::clean($name);
+		$name = cleanName($name, 'LN, Fn');	// FIXME Changed to cleanName from Card::clean
 		$db = Db::getInstance();
 
-		$req = $db->query("select id from user where username = '$user'");
-		$row = $req->fetch();
-		$userId = $row['id'];
+		if ($user == 'admin') {
+			$userId = 0;
+		} else {
+			$req = $db->query("select id from user where username = '$user'");
+			$row = $req->fetch();
+			$userId = $row['id'];
+		}
 
 		$req = $db->query("select i.id, resolved, detail
 			from incident i join club c on i.club_id = c.id
@@ -180,31 +186,34 @@ class Card {
 				warn("Failed to set matchcard date: ".$e->getMessage());
 			}
 
-			$db->exec("insert into incident (player, club_id, matchcard_id, type, detail, user_id)
-				select '$name', id, $id, '$type', ".($detail==null?"null":"'$detail'").", $userId 
-					from club c where c.name = '$club'");
+			$sql = "insert into incident (player, club_id, matchcard_id, type, detail, user_id) select '$name', id, $id, '$type', ".($detail==null?"null":"'$detail'").", $userId from club c where c.name = '$club'";
+			$db->exec($sql);
+			Log::debug("Insert incident '$type'");
 		} else {
 			if ($row['resolved'] == 1) {
 				$db->exec("update incident set resolved = 0 where id = ".$row['id']);
 			}
-			if ($detail != null && $row['detail'] != $detail) {
+			if ($detail !== null && $row['detail'] != $detail) {
 				$db->exec("update incident set detail = '$detail' where id = ".$row['id']);
 			}
+			Log::debug("Update incident ".$row['id']);
 		}
 	}
 
 	public static function removePlayer($cardId, $playerName) {
 		$db = Db::getInstance();
 
+		info("Deleting: $playerName");
+
 		$playerName = cleanName($playerName, 'LN, Fn');
 
 		if (!$playerName) return;
-		echo "Remove $playerName from $cardId\n";
+		info("Remove $playerName from $cardId");
 
 		$db->exec("UPDATE incident SET resolved = 1, detail = '' WHERE matchcard_id = $cardId 
 				AND player = '$playerName' AND type = 'Played'");
 
-		$db->exec("DELETE FROM incident WHERE player = '$playerName' AND matchcard_id = $cardId AND type IN ('Scored','Red Card', 'Yellow Card')");
+		$db->exec("DELETE FROM incident WHERE player = '$playerName' AND matchcard_id = $cardId AND type IN ('Scored','Red Card', 'Yellow Card', 'Ineligible')");
 	}
 
 	public static function searchAndRemoveIncident($cardId, $name, $club, $type) {
@@ -601,6 +610,7 @@ class Card {
 			(SELECT m.id matchcard_id,c.id club_id FROM matchcard m join team t ON m.home_id = t.id or m.away_id = t.id
 				join club c on t.club_id = c.id
 			where t.team = :team and c.name = :club and m.date < subdate(current_date, 1)
+				and m.date > '".currentSeasonStart()."'
 			order by m.date desc
 			limit 1) t0 on t0.matchcard_id = i.matchcard_id and t0.club_id = i.club_id";
 
@@ -623,7 +633,7 @@ class Card {
     $sql = "select x.name competition, ch.id homeclubid, ch.name homeclub, 
 				ca.name awayclub, th.team hometeam, ta.team awayteam, m.date, m.id, m.fixture_id,
 				th.id hometeamid, ta.id awayteamid, ca.id awayclubid, x.teamsize,
-				ch.code homecode, ca.code awaycode, x.code competitioncode
+				ch.code homecode, ca.code awaycode, x.code competitioncode, m.open
       from matchcard m
         left join team th on th.id = m.home_id
         left join club ch on ch.id = th.club_id
@@ -646,8 +656,9 @@ class Card {
       'competition'=>$result['competition'],
       'competition-code'=>$result['competitioncode'],
 			'leaguematch'=>($result['teamsize'] == null ? false : true),
-      'date'=>date("F j, Y", time($result['date'])),
-      'datetime'=>	time($result['date']),
+      'date'=>date("F j, Y", strtotime($result['date'])),
+      'datetime'=>	strtotime($result['date']),
+			'open'=>$result['open'],
       'home'=>array(
         'club'=>$result['homeclub'],
         'teamx'=>$result['hometeam'],
@@ -680,7 +691,7 @@ class Card {
     $req->execute(array('id'=>$id));
 
 		$locked = null;
-		$card['open'] = false;
+		//$card['open'] = false;
 		$card['official'] = array();
 		$card['rycards'] = array();
 
@@ -688,7 +699,7 @@ class Card {
 
 			if ($row['type'] != 'Played' and $row['resolved'] == 1) continue;
 
-			$card['open'] = true;
+			//$card['open'] = true;
 
 			if ($row['type'] == 'Late') {
 				$card['late'] = true;

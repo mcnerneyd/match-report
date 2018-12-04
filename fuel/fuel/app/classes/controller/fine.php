@@ -12,12 +12,21 @@ class Controller_Fine extends Controller_Hybrid
 			),
 		));
 
+		$fines = array();
 		foreach ($data['fines'] as $fine) {
-			$card = Model_Card::card($fine['matchcard_id']);
+			try {
+				$card = Model_Card::card($fine['matchcard_id']);
+			} catch (Exception $e) {
+				Log::error("Problem with card ${fine['matchcard_id']}:".$e->getMessage());
+				continue;
+			}
 			$fine['competition'] = $card['competition'];
 			$fine['home_team'] = $card['home']['club']." ".$card['home']['team'];
 			$fine['away_team'] = $card['away']['club']." ".$card['away']['team'];
+			$fine['date'] = $card['date'];
+			$fines[] = $fine;
 		}
+		$data['fines'] = $fines;
 
 		$this->template->title = "Fines";
 		$this->template->content = View::forge('fixture/fines', $data);

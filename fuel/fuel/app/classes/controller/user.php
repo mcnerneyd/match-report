@@ -24,6 +24,7 @@ class Controller_User extends Controller_Template
 
 		$user = Model_User::find_by_email($username);
 		if (!$user) {
+			Log::warning("Unknown user:$username");
 			return new Response("User not found", 404);
 		}
 		if ($user['role'] == 'user' || $user['role'] == 'umpire') {
@@ -52,6 +53,8 @@ class Controller_User extends Controller_Template
 				"timestamp"=>$ts,
 				"hash"=>$hash)));
 			$email->send();
+
+			Log::info("Password reset email sent to:$username");
 
 			$this->template->title = "Email Sent";
 			$this->template->content = View::forge('user/forgottenpassword',

@@ -15,4 +15,5 @@ return array(
 	'users' => 'user',
 
 	'Report/Card/:id' => 'Report/Card',
+	'fixtures/:id' => 'Fixture/Index',
 );

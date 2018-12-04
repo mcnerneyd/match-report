@@ -218,6 +218,10 @@
 			font-style: italic;
 		}
 	}
+
+	button.add-player {
+		margin-top: 5px;
+	}
 }
 
 	#context-menu {
@@ -230,6 +234,7 @@
 		xbottom: 1em;
 		xleft: 1em;
 		z-index: 5000;
+		min-width: 15em;
 		xborder: 1px solid black;
 
 		li.card-yellow img, li.card-red img, li.card-clear img {
@@ -252,7 +257,8 @@
 		}
 
 		#context-close {
-			float: right;
+			display: inline;
+			margin-left: 20px;
 		}
 	}
 

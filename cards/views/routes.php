@@ -33,14 +33,16 @@
     }
 
 		try {
-			debug("Execute:$controller/$action");
+			Log::info("--- Execute: $controller/$action");
+			Log::debug("Session: ".json_encode($_SESSION));
+
 			// call the action
 			$controllerObj->{ $action }();
 			return;
 		} catch (RedirectException $e) {
 			throw $e;
 		} catch (Exception $e) {
-			debug("Routing exception:".$e->getMessage());
+			Log::warn("Routing exception:".$e->getMessage());
 			if (strstr($e->getMessage(), 'You are not logged in')) {
 				call('club','login');
 			} else if ($action != 'error') {

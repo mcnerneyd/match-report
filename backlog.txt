@@ -2,8 +2,14 @@ Hockey Matchcard System
 =======================
 
 * DEFECTS
-	! Enforce shirt numbers on strict cards	
-	! LastPlayers only up to season start
+	× Enforce shirt numbers on strict cards	
+	× LastPlayers only up to season start
+	× First registration is missing players in 'cards' project
+	× Double barrelled names
+	! Some cards not submitting
+	! Don't allow empty opposition goals
+	× Make shirt number button clear
+	! Alert if opposition goals doesn't match your goals
 
 * Security
 	× Cookie consent
@@ -29,7 +35,7 @@ Hockey Matchcard System
 	- Alternate squad selection
 		× File Based Player Selection
 	· Alternate card view
-		· Strict Processing
+		× Strict Processing
 		× Add name
 		x Sign card
 			× Store signatures
@@ -44,9 +50,12 @@ Hockey Matchcard System
 		· Add signature (specify name/role)
 		· Autosubmit
 	· Email summary (to fixtures secretary)
-	· Allow unlock until match time
-	· Remove player (strikethrough) after lock
+	× Allow add from registration at any time (Combobox?)
+	× Remove player (strikethrough) after lock
 
+* Configuration
+	· Allow test of fixture URLs
+	· Allow test correction regex
 
 * Umpires
 

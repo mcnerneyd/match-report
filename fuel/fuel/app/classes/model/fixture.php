@@ -4,9 +4,11 @@ class Model_Fixture extends \Model
 
 	// fixtures cache expires every hour
 	private static $cache;
+	private static $webcache;
 
 	static function init() {
-		Model_Fixture::$cache = Cache::forge("fixtures", array('driver'=>'file','expiration'=>60)); 
+		static::$cache = Cache::forge("fixtures", array('driver'=>'file','expiration'=>600)); 
+		static::$webcache = Cache::forge("webcache", array('driver'=>'file','expiration'=>3600)); 
 	}
 
 	public static function get($fixtureId) {
@@ -19,17 +21,58 @@ class Model_Fixture extends \Model
 			return null;
 	}
 
+	public static function match($competition, $homeTeam, $awayTeam) {
+		foreach (static::getAll() as $fixture) {
+			if ($fixture['competition'] != $competition) continue;
+			if ($fixture['home'] != $homeTeam) continue;
+			if ($fixture['away'] != $awayTeam) continue;
+
+			return $fixture;
+		}
+
+		return null;
+	}
+
 	public static function getAll($flush = false) {
 
-		Log::debug("Loading fixtures: flush=$flush");
-
 		// TODO Skip processing with cksums - only process if source has changed
-		if (!$flush) {
-			try {
-				return Model_Fixture::$cache->get();
-			} catch (\CacheNotFoundException $e) {
+		try {
+			$fixtures = self::$cache->get();
+		} catch (\CacheNotFoundException $e) {
+			Log::warning("Fixtures cache does not exist");
+			$fixtures = array();
+		}
+
+		if ($fixtures && $flush === false) return $fixtures;
+
+		Log::debug("Fixtures cache contains ".count($fixtures)." record(s)");
+
+		$flushFeed = false;
+		if ($flush === true) {
+			try {			// Flush all downloaded webpages
+				Model_Fixture::$webcache->delete();
+				Log::info("Webcache Flushed");
+			} catch (\CacheNotFoundException $e) { }
+		} else {		// If a specific fixture is specified for flush then find it
+			if (isset($fixtures[$flush])) {
+				$fixture = $fixtures[$flush];
+				$flushFeed = $fixture['feed'];
+				Log::debug("Flushing feed for fixture $flush: $flushFeed");
+			} else {
+				Log::warning("Fixture does not exist: $flush");
 			}
 		}
+
+		try {
+				$srcs = Model_Fixture::$webcache->get();
+				if ($flushFeed) {
+					unset($srcs[$flushFeed]);
+				} else {
+					array_shift($srcs);
+				}
+		} catch (\CacheNotFoundException $e) {
+				$srcs = array();
+	  }
 
 		Log::info('Fixtures full load');
 
@@ -40,6 +83,8 @@ class Model_Fixture extends \Model
 		$fixture_feed = Config::get("config.fixtures");
 
 		$ct=1;
+		$t = microtime(true);
+		$pt = $t;
 		foreach (explode("\n", $fixture_feed) as $feed) {
 
 			$feed = trim($feed);
@@ -53,9 +98,18 @@ class Model_Fixture extends \Model
 			try {
 				if (preg_match('/.*\.csv/', $feed)) {
 					$src = file_get_contents($feed);
+					$pt=microtime(true);
 					$fixtures = self::load_csv($src);
 				} else if (preg_match('/^!.*/', $feed)) {
-					$src = file_get_contents(substr($feed, 1));
+					if (isset($srcs[$feed])) {
+						$src = $srcs[$feed];
+					} else {
+						Log::info("Fetching feed: $feed");
+						$src = file_get_contents(substr($feed, 1));
+						$srcs[$feed] = $src;
+						static::$webcache->set($srcs);
+					}
+					$pt=microtime(true);
 					$fixtures = self::load_scrape($src);
 				} else if (preg_match('/^=.*/', $feed)) {
 					$values = str_getcsv(substr($feed, 1));
@@ -74,13 +128,20 @@ class Model_Fixture extends \Model
 					$fixtures = array($fixture);
 				} else {
 					$src = file_get_contents($feed);
+					$pt=microtime(true);
 
 					$fixtures = json_decode($src, true);
 				}
 
-				foreach ($fixtures as $fixture) $allfixtures[] = (array)$fixture;
+				foreach ($fixtures as $fixture) {
+					$aFixture = (array)$fixture;
+					$aFixture['feed'] = $feed;
+					//$allfixtures[$fixture['fixtureID']] = (array)$fixture;
+					$allfixtures[$aFixture['fixtureID']] = $aFixture;
+				}
 
-				Log::info("Loaded ".count($fixtures)." fixtures");
+				$et = microtime(true);
+				Log::info("Loaded ".count($fixtures)." fixtures: ".(($pt-$t)*1000)."/".(($et-$t)*1000));
 			} catch (Exception $e) {
 				Log::error("Failed to scan feed: $feed, ".($e->getTraceAsString()));
 			}
@@ -96,8 +157,7 @@ class Model_Fixture extends \Model
 			if (strpos($fixture['datetime'], '0000') === 0) {
 				continue;
 			}
-			//$allfixtures[$key]['datetime'] = Date::create_from_string($fixture['datetime']);	//, 'mysql');
-			$allfixtures[$key]['datetime'] = Date::forge(strtotime($fixture['datetime']));	//, 'mysql');
+			$allfixtures[$key]['datetime'] = Date::forge(strtotime($fixture['datetime']));
 			$allfixtures[$key]['competition'] = $k;
 			$k = self::parseClub($fixture['home']);
 			if ($k != null) {
@@ -114,9 +174,10 @@ class Model_Fixture extends \Model
 				$allfixtures[$key]['y'] = $k;
 			}
 			if (!isset($allfixtures[$key]['played'])) $allfixtures[$key]['played'] = 'no';
+			$allfixtures[$key]['lastupdated_t'] = time();
 		}
 
-		self::$cache->set($allfixtures, null);
+		self::$cache->set($allfixtures, 60);		// Refresh fixtures every 60 seconds
 		Log::debug('Loading fixtures complete');
 
 		return $allfixtures;

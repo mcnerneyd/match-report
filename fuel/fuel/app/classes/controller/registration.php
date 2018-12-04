@@ -34,8 +34,29 @@ class Controller_Registration extends Controller_Hybrid
 			'registrations'=>$registrations));
 	}
 
+	public function get_errors() {
+		$club = Input::param('c', null);
+		$file = Input::param('f', null);
+
+		if ($club == null) return;
+
+		if ($file == null) { 
+			$all = Model_Registration::find_all($club);
+			$file = array_shift($all);
+			$file = $file['name'];
+			echo "File: $file\n";
+		}
+
+		return $this->validateRegistration($club, $file);
+	}
+
 	public function get_info() {
 		$userObj = Model_User::find_by_username(Session::get('username'));
+		if ($userObj == null) {
+			Log::error("No such user: ".Session::get('username'));
+			return;
+		}
+
 		$club = $userObj->club['name'];
 
 		$clubUser = Model_User::find('first', array(
@@ -82,15 +103,15 @@ class Controller_Registration extends Controller_Hybrid
 		$club = Input::param("club");
 		$file = Input::file("file");
 
+		Log::info("Posting ${file['name']} for club: $club");
+
 		if (preg_match("/.*\.xlsx?/", $file['name'])) {
 			$file['tmp_name'] = convertXls($file['name'], $file['tmp_name']);
 		}
 
-		if ($this->validateRegistration($file['tmp_name'])) {
-			return new Response("Registration Failed", 400);
-		}
-
 		$filename = Model_Registration::addRegistration($file['tmp_name'], $club);
+
+		$this->validateRegistration($club, $filename);
 
 		if (\Auth::has_access('admin.all')) {
 			$date = Input::param('d', null);
@@ -105,35 +126,75 @@ class Controller_Registration extends Controller_Hybrid
 		Response::redirect("registration");
 	}
 
-	private function validateRegistration($filename) {
+	private function validateRegistration($club, $filename, $test=false) {
 		$errors = array();
 
-		$now = Date::forge()->get_timestamp();
-		$club = Session::get("username");
-		$reg = Model_Registration::readRegistrationFile($filename, $club);
-		usort($reg, function ($a, $b) { return strcmp($a['phone'], $b['phone']); });
+		$date = Date::time();
 
-		$playersByName = Model_Registration::find_all_players($now);
-		usort($playersByName, function ($a, $b) { return strcmp($a['phone'], $b['phone']); });
+		$thurs = strtotime("first thursday of " . $date->format("%B %Y"));
+		if ($thurs > $date->get_timestamp()) {
+			$thurs = Date::forge(strtotime("-1 month", $date->get_timestamp()));
+			$thurs = strtotime("first thursday of " . $thurs->format("%B %Y"));
+		}
+		$thurs = strtotime("+1 day", $thurs);
 
-		$i=0;
-		foreach ($playersByName as $player) {
-			for (;$i < count($reg); $i++) {
-				$regPlayer = $reg[$i];
-				$cmp = strcmp($player['phone'], $regPlayer['phone']);
-				if ($cmp < 0) break;
-				if ($cmp == 0) {
-					if (strcasecmp($regPlayer['club'], $player['club']) != 0) {
-						$errors[] = "Player ${regPlayer['name']} ${regPlayer['club']} name is already registered to ${player['club']} as ${player['name']}";
+		$registration = $this->stage($club, $thurs, $date->get_timestamp());
+
+		$scores = array_map(function($a) { return $a['score'];}, $registration);
+		sort($scores);
+
+		$start = 0;
+		$teamSizes = Model_Club::find_by_name($club)->getTeamSizes(false);
+		array_pop($teamSizes);
+		foreach ($teamSizes as $team=>$size) {
+			if ($size == 0) continue;
+
+			$finish = $start + $size;
+			$maxScore = $scores[$finish];
+
+			for ($i=$start;$i<$finish;$i++) {
+				$player = $registration[$i];
+				if ($player['score'] > $maxScore) {
+					if ($player['score'] == 99) {
+						$errors[] = "${player['name']} has no rating. Players for $club ".($team+1)." must have played at least one match";
+					} else {
+						$errors[] = "${player['name']} has a rating of ${player['score']}. The maximum allowed rating for $club ".($team+1)." is $maxScore";
 					}
-					break;
+				}
+			}
+
+			$start = $finish;
+
+		}
+
+		if (Config::get("config.allowassignment")) {
+			foreach ($registration as $player) {
+				$counts = array();
+				foreach ($player['history'] as $history) {
+					$team = $history['team'];
+					if (!isset($counts[$team])) $counts[$team] = 0;
+					$counts[$team] = $counts[$team] + 1;
+				}
+				if (!$counts) continue;
+				arsort($counts);
+				$max = array_keys($counts);
+				$max = $max[0];
+				$playerTeam = $player['team'];
+				if (isset($counts[$playerTeam])) {
+					if ($counts[$max] == $counts[$playerTeam]) continue;
+				}
+
+				if ($counts[$max] > 8) {
+					$errors[] = "${player['name']} has played more than 8 times and more often for a team other than $club $playerTeam";
 				}
 			}
 		}
 
-		print_r($errors);
+		if (!$test && $errors) {
+			Model_Registration::writeErrors($club, $errors);
+		}
 
-		return array();
+		return $errors;
 	}
 
 	public function get_registration() {
@@ -172,18 +233,18 @@ class Controller_Registration extends Controller_Hybrid
 			$thurs = Date::forge(strtotime("-1 month", $date->get_timestamp()));
 			$thurs = strtotime("first thursday of " . $thurs->format("%B %Y"));
 		}
+		$thurs = strtotime("+1 day", $thurs);
 
 		$registration = $this->stage($club, $thurs, $date->get_timestamp());
-
-		$history = Model_Player::getHistory($club);
 
 		$this->template->title = "Registrations";
 		$this->template->content = View::forge('registration/list', array(
 			'registration'=>$registration,
-			'history'=>$history,
+			//'history'=>$history,
 			'club'=>$club,
 			'all'=>Model_Registration::find_before_date($club, Date::forge()->get_timestamp()),
-			'ts'=>$date, 'base'=>Date::forge($thurs)));
+			'ts'=>$date, 
+			'base'=>Date::forge($thurs)));
 	}
 
 	// combine multiple files based on date range
@@ -197,19 +258,24 @@ class Controller_Registration extends Controller_Hybrid
 			$currentNames[] = $player['name'];
 			$currentLookup[$player['name']] = $player;
 		}
-		$initial = Model_Registration::find_before_date($club, $initialDate);
-		echo "<!-- Initial:$club\n".print_r($initial,true)."-->";
-		$order = 0;
-		foreach ($initial as $player) {
-			if (($key = array_search($player['name'], $currentNames)) !== false) {
-				unset($currentNames[$key]);
-			} else {
-				$player['status'] = "deleted";
-			}
 
-			$player['order'] = $order++;
-			$result[] = $player;
+		$restrictionDate = strtotime(Config::get('config.date.restrict'));
+
+		$order = 0;
+		if ($currentDate > $restrictionDate) {
+			$initial = Model_Registration::find_before_date($club, $initialDate);
+			foreach ($initial as $player) {
+				if (($key = array_search($player['name'], $currentNames)) !== false) {
+					unset($currentNames[$key]);
+				} else {
+					$player['status'] = "deleted";
+				}
+
+				$player['order'] = $order++;
+				$result[] = $player;
+			}
 		}
+
 		foreach ($currentNames as $name) {
 			$player = $currentLookup[$name];
 			$player['status'] = "added";
@@ -237,7 +303,7 @@ class Controller_Registration extends Controller_Hybrid
 				if ($key !== FALSE) {
 					unset($teamsAllocation[$key]);
 				}
-				echo "<!-- Removed $key ct=".count($teamsAllocation)." -->";
+				//echo "<!-- Removed $key ct=".count($teamsAllocation)." -->";
 			} else {
 				$player['team'] = $teamsAllocation ? array_shift($teamsAllocation) : $lastTeam;
 			}
@@ -249,6 +315,24 @@ class Controller_Registration extends Controller_Hybrid
 			}
 			return $a['team'] - $b['team'];
 		});
+
+		$history = Model_Player::getHistory($club);
+
+		foreach ($result as &$player) {
+			$player['score'] = 99;
+			if (!isset($history[$player['name']])) {
+				$player['history'] = array();	
+				continue;
+			}
+			$player['history'] = $history[$player['name']];
+			$teams = array_map(function($a) { return $a['team']; }, $player['history']);
+			if ($teams) {
+				$first = min($teams);
+				$firstCount = array_count_values($teams);
+				$firstCount = $firstCount[$first];
+				$player['score'] = round($first + (1 - ($firstCount/count($teams))), 2);
+			}
+		}
 
 		return $result;
 	}

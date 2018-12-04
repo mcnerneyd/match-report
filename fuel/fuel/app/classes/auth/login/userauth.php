@@ -14,7 +14,7 @@ class Auth_Login_Userauth extends Auth_Login_Simpleauth {
 		$elevationPassword = \Config::get("config.elevation_password", "");
 		if (trim($elevationPassword) == "") $elevationPassword = '1234';
 
-		if ($username === 'admin') {
+		if (strtolower($username) === 'admin') {
 			if ($password !== $elevationPassword) {
 				return false;
 			}

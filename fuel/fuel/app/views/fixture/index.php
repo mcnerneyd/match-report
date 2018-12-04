@@ -5,13 +5,21 @@
 				],
 		});
 		$('#fixtures-table').show();
-		$('#fixtures-table tbody tr').click(function(e) {
+		$('#fixtures-table').on('change', 'input[type=checkbox]', function() {
+			tr = $(this).closest('tr');
+			fixtureId = tr.data('fixtureid');
+			$.ajax('<?= Uri::create("fixtures/") ?>' + fixtureId + "?show=" + ($(this).checked?"true":"false"),
+				{
+					method:'PUT',
+				});
+		});
+		$('#fixtures-table tbody').on('click', 'tr', function(e) {
 			$("#issue-fine select[name='reason']").val('None');
-			$('#issue-fine .radio:nth-of-type(1) .team-name').text($('td:nth-child(3)', this).text());
-			$('#issue-fine .radio:nth-of-type(2) .team-name').text($('td:nth-child(5)', this).text());
+			$('#issue-fine .radio:nth-of-type(1) .team-name').text($('td:nth-child(4)', this).text());
+			$('#issue-fine .radio:nth-of-type(2) .team-name').text($('td:nth-child(6)', this).text());
 			$('#issue-fine .form-group:nth-of-type(1) p').text('#' + $(this).data('fixtureid'));
-			$('#issue-fine .form-group:nth-of-type(2) p').text($('td:nth-child(2)', this).text());
-			$('#issue-fine .form-group:nth-of-type(3) p').text($('td:nth-child(1)', this).text());
+			$('#issue-fine .form-group:nth-of-type(2) p').text($('td:nth-child(3)', this).text());
+			$('#issue-fine .form-group:nth-of-type(3) p').text($('td:nth-child(2)', this).text());
 			$('#issue-fine input[name="fixtureid"]').val($(this).data('fixtureid'));
 			setFine();
 			$('#issue-fine').modal('show');
@@ -42,7 +50,8 @@
 </style>
 
 <div class='form-group command-group hidden-sm hidden-xs'>
-	<a class='btn btn-success' href='<?= Uri::create('Admin/Refresh?flush=2') ?>'><i class='glyphicon glyphicon-refresh'></i> Refresh Fixtures</a>
+	<a class='btn btn-success' href='<?= Uri::create('fixtures?flush=true') ?>'><i class="fas fa-sync"></i> Refresh Fixtures</a>
+	<a class='btn btn-warning' href='<?= Uri::create('fixtures/repair') ?>'><i class="fas fa-briefcase-medical"></i> Repair Fixtures</a>
 </div>
 
 <table id='fixtures-table' class='table table-condensed table-striped' style='display:none'>
@@ -54,6 +63,7 @@
 		<th>Home</th>
 		<th style='width:4em'>Score</th>
 		<th>Away</th>
+		<th>Show</th>
 	</tr>
 	</thead>
 
@@ -61,16 +71,24 @@
 	<?php foreach ($cards as $card) {
 		$fixture = json_decode(json_encode($card), True);
 		$score = "";
-		if ($fixture['played'] == 'yes') $score = "${fixture['home_score']} - ${fixture['away_score']}";
+
+		if (!isset($card['fixtureID'])) {
+			Log::error("Invalid card - no fixture\n".print_r($card, true));
+			continue;
+		}
+
+		if (!isset($fixture['played'])) Log::info("No play: ".print_r($fixture, true));
+		else if ($fixture['played'] == 'yes') $score = "${fixture['home_score']} - ${fixture['away_score']}";
 		echo "<tr data-fixtureid='".$card['fixtureID']."'>
 			<td>
 				<a href='".Uri::create("cards/${card['fixtureID']}")."'>#${fixture['fixtureID']}</a>
 			</td>
-			<td>".$card['datetime']->format()."</td>
+			<td>".($card['datetime']?$card['datetime']->format():"")."</td>
 			<td>${fixture['competition']}</td>
 			<td>${fixture['home']}</td>
 			<td>$score</td>
 			<td>${fixture['away']}</td>
+			<td><input type='checkbox' ".($fixture['show']?'checked':'')."/></td>
 		</tr>";
 	} ?>
 	</tbody>
@@ -131,6 +149,7 @@
 						<div class='col-sm-8'>
 							<select class='form-control' name='reason'>
 								<option value='None'>--- Select Reason ---</option>
+								<option data-value='50'>Late Postponement Request</option>
 								<option data-value='10'>Failed to update website</option>
 								<option data-value='20'>Matchcard Incomplete</option>
 								<option data-value='25'>Matchcard Late</option>

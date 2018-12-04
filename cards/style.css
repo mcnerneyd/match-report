@@ -8,6 +8,10 @@ body {
   padding-bottom: 70px;
 }
 
+.waiting {
+  cursor: progress !important;
+}
+
 .login {
   color: white;
 }
@@ -272,6 +276,9 @@ header {
   font-size: 60%;
   font-style: italic;
 }
+#match-card button.add-player {
+  margin-top: 5px;
+}
 
 #context-menu {
   xbackground: white;
@@ -283,6 +290,7 @@ header {
   xbottom: 1em;
   xleft: 1em;
   z-index: 5000;
+  min-width: 15em;
   xborder: 1px solid black;
 }
 #context-menu li.card-yellow img, #context-menu li.card-red img, #context-menu li.card-clear img {
@@ -302,7 +310,8 @@ header {
   padding: 0;
 }
 #context-menu #context-close {
-  float: right;
+  display: inline;
+  margin-left: 20px;
 }
 
 #signatures div {

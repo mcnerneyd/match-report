@@ -1,5 +1,5 @@
 <?php
-class Controller_Report extends Controller_Hybrid
+class Controller_Report extends Controller_Template
 {
 
 	// --------------------------------------------------------------------------
@@ -33,7 +33,7 @@ class Controller_Report extends Controller_Hybrid
 		));
 	}
 
-	// --------------------------------------------------------------------------
+	// -------------------------------------------------------
 	public function action_summary() {
 		$club = \Input::get('c');
 		$club = Model_Club::find_by_name($club);
@@ -82,17 +82,45 @@ class Controller_Report extends Controller_Hybrid
 	}
 
 	public function action_email() {
+		$club = Input::param("c");
 
-		$html = "<style>td { border-bottom: 1px solid black; }</style>
-		<table>
-			<tr><td>A</td><td>D</td>
-		</table>";
+		if (!$club) {
+			Log::warning("No club specified");
+			foreach (Model_Club::find('all') as $club) {
+				enqueue("fuel/public/report/email?site=".Session::get('site')."&c=".urlencode($club['name']));
+			}
+			return;
+		}
 
-		$cssToInlineStyles = new voku\CssToInlineStyles\CssToInlineStyles($html);
-		$cssToInlineStyles->setUseInlineStylesBlock(true);
-		$html = $cssToInlineStyles->convert();
+		$date = date('d/m/Y');
 
-		return new Response($html);
+		$emailAddresses = array();
+
+		foreach (DB::query("select email from user u join club c on u.club_id = c.id 
+				where role='secretary' and c.name='$club'")->execute() as $row) {
+			$emailAddresses[] = $row['email'];
+		}
+
+		Config::load('custom.db', 'config');
+		//$card = Model_Card::card($cardId);
+		$autoEmail = Config::get("config.automation_email");
+		$title = Config::get("config.title");
+		$email = Email::forge();
+		$email->from($autoEmail, "$title (No Reply)");
+		$email->to($emailAddresses);
+		$body = View::forge("report/weeklyemail", array( 
+			"club"=>$club,
+			"date"=>$date));
+		$matches = array();
+		if (preg_match('/title>(.*)<\/title/', $body, $matches)) {
+			$email->subject($matches[1]);
+		}
+		$email->html_body($body);
+		$email->send();
+		Log::info("Receipt email sent to ".implode(',',$emailAddresses)." =".print_r($email, true));
+		//print_r($email);
+
+		return new Response($body);
 	}
 
 	public function action_index() {
@@ -122,7 +150,7 @@ class Controller_Report extends Controller_Hybrid
 		return new Response($html);
 	}
 
-	public function get_scorers() {
+	public function action_scorers() {
 
 		$data['scorers'] = Model_Report::scorers();
 
@@ -130,16 +158,17 @@ class Controller_Report extends Controller_Hybrid
 		$this->template->content = View::forge('report/scorers', $data);
 	}
 
-	public function get_diagnostics() {
+	public function action_diagnostics() {
 
 		$this->template->title = "Diagnostics";
 		$this->template->content = "<pre>Fuel Base: ".Uri::base(false)."\n"
 			.\Model_Task::command(array('command'=>"abc"))."\n"
+			."php version:".phpversion()."\n"
 			."SERVER:".print_r($_SERVER,true)."\n\n"
 			."REQUEST:".print_r($_REQUEST,true)."</pre>";
 	}
 
-	public function get_parsing() {
+	public function action_parsing() {
 		$dbComps = array();
 		foreach (Model_Competition::find('all') as $comp) $dbComps[] = $comp['name'];
 		$dbClubs = array();
@@ -173,15 +202,18 @@ class Controller_Report extends Controller_Hybrid
 		$this->template->content = View::forge('report/parsing', $data);
 	}
 
-	public function get_mismatch() {
+	public function action_mismatch() {
 		$mismatches = array();
 
 		foreach (Model_Fixture::getAll() as $fixture) {
 			$card = Model_Card::find_by_fixture($fixture['fixtureID']);
-			if (!$card) continue;
+			if (!$card) continue;		// If the fixture has no card, there's no mismatch
+			if (!$card['away_id'] || !$card['home_id']) continue;		// Don't card about EHYL etc
 
 			if (($card['home']['goals'] == $fixture['home_score'])
 					and ($card['away']['goals'] == $fixture['away_score'])) continue;
+
+			echo "<!-- ".print_r($card,true)." -->\n";
 
 			$card['home_score'] = $fixture['home_score'];
 			$card['home_team'] = $card['home']['club'].' '.$card['home']['team'];
@@ -211,7 +243,7 @@ class Controller_Report extends Controller_Hybrid
 		$this->template->content = View::forge('report/mismatch', array('mismatches'=>$mismatches));
 	}
 
-	// --------------------------------------------------------------------------
+	// ----------------------------------------------------
 	public function action_latecards() {
 		//if (!\Auth::has_access('admin.all')) throw new HttpNoAccessException;
 
@@ -241,7 +273,12 @@ class Controller_Report extends Controller_Hybrid
 			$cards = \Model_Card::incompleteCards(0, 7);
 
 			foreach ($cards as $cardId) {
-				$card = \Model_Card::card($cardId['id']);
+				try {
+					$card = \Model_Card::card($cardId['id']);
+				} catch (Exception $e) {
+					Log::error("Failed to process incomplete card: ${cardId['id']}:".$e->getMessage());
+					continue;
+				}
 
 				$fixture = Model_Fixture::get($card['fixture_id']);
 
@@ -252,7 +289,7 @@ class Controller_Report extends Controller_Hybrid
 				}
 
 				if (!isset($fixture['datetime']) || !is_object($fixture['datetime'])) {
-					echo "Non-object error, cardid=".$cardId['id']."\n";
+					Log::error("Non-object error, cardid=${cardId['id']}");
 					continue;
 				}
 
@@ -271,12 +308,22 @@ class Controller_Report extends Controller_Hybrid
 				if (!$card['home']['players'] && !$card['away']['players']) continue;
 
 				$fine = $this->fine($card, $card['away'], $fixture['datetime']->get_timestamp());
-				if ($fine) $fines[] = $fine;
+				if ($fine) {
+					$fines[] = $fine;
+					$card = Model_Card::find($card['id']);
+					$card->open = 60;
+					$card->save();
+				}
 			}
 
 			// ---- Unclosed Cards --------------------------
 			foreach (\Model_Card::unclosedCards() as $cardId) {
-				$card = \Model_Card::card($cardId['id']);
+				try {
+					$card = \Model_Card::card($cardId['id']);
+				} catch (Exception $e) {
+					Log::error("Failed to process unclosed card: ${cardId['id']}:".$e->getMessage());
+					continue;
+				}
 
 				$fixture = Model_Fixture::get($card['fixture_id']);
 
@@ -303,7 +350,12 @@ class Controller_Report extends Controller_Hybrid
 				if ($fine) $fines[] = $fine;
 
 				$fine = $this->fineIncomplete($card, $card['away'], $fixture['datetime']->get_timestamp());
-				if ($fine) $fines[] = $fine;
+				if ($fine) {
+					$fines[] = $fine;
+					$card = Model_Card::find($card['id']);
+					$card->open = 60;
+					$card->save();
+				}
 			}
 
 			$cards = array();		// FIXME where card doesn't exist but fixture is expired

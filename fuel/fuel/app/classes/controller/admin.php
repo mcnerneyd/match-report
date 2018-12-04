@@ -52,7 +52,7 @@ class Controller_Admin extends Controller_Hybrid
 		fseek($fp, -512000, SEEK_END);
 		$src = fread($fp, 512000);
 
-		echo "<head><title>Log</title></head>";
+		echo "<head><title>Log</title><style>code { white-space: nowrap; }</style></head>";
 		echo "<a href='".Uri::create('Admin/Log?d='.Date::forge(strtotime("-1 day", strtotime($date)))->format("%Y%m%d"))."'>Previous</a><br>";
 
 		foreach (array_reverse(explode("\n", $src)) as $line) {
@@ -71,6 +71,11 @@ class Controller_Admin extends Controller_Hybrid
 					break;
 				default:
 					$match2 = array();
+					if (preg_match("/--- Execute: (.*)/", $match[3], $match2)) {
+						$squeak = substr("----- ".$match2[1]." ".str_repeat("-", 120),0,120);
+						echo "<code style='color:#88bb99'>".$match[2]." $squeak </code><br>";
+						break;
+					}
 					if (preg_match("/Fuel.Core.Request::__construct - Creating a new main Request with URI = \"(.*)\"/", $match[3], $match2)) {
 						$squeak = substr("----- ".$match2[1]." ".str_repeat("-", 120),0,120);
 						echo "<code style='color:green'>".$match[2]." $squeak </code><br>";
@@ -211,40 +216,31 @@ class Controller_Admin extends Controller_Hybrid
 		return $response;
 	}
 
-	public function get_refresh() {
+	private function get_refresh() {
 
-		$flush = false;
-
-		if (Input::param('flush')) {
-			$flush = Input::param('flush');
-		}
-
-		$fixtures = Model_Fixture::getAll($flush);
+		$fixtures = Model_Fixture::getAll();
 		$competitionTeams = array();
 		$clubTeams = array();
 		$teamLookup = array();
+		$errors = 0;
 
 		foreach ($fixtures as $fixture) {
-			
-			self::treeset($competitionTeams, $fixture['competition'], $fixture['home']);					 
-			self::treeset($competitionTeams, $fixture['competition'], $fixture['away']);					 
-			
-			self::treeset($clubTeams, $fixture['home_club'], $fixture['home']);					 
-			self::treeset($clubTeams, $fixture['away_club'], $fixture['away']);					 
+			try {
+				self::treeset($competitionTeams, $fixture['competition'], $fixture['home']);					 
+				self::treeset($competitionTeams, $fixture['competition'], $fixture['away']);					 
+				
+				self::treeset($clubTeams, $fixture['home_club'], $fixture['home']);					 
+				self::treeset($clubTeams, $fixture['away_club'], $fixture['away']);					 
 
-			$teamLookup[$fixture['home']] = array('club'=>$fixture['home_club'],'team'=>$fixture['home_team']);
-			$teamLookup[$fixture['away']] = array('club'=>$fixture['away_club'],'team'=>$fixture['away_team']);
+				$teamLookup[$fixture['home']] = array('club'=>$fixture['home_club'],'team'=>$fixture['home_team']);
+				$teamLookup[$fixture['away']] = array('club'=>$fixture['away_club'],'team'=>$fixture['away_team']);
+			} catch (Exception $e) {
+				Log::error("Cannot process fixture: ".$e->getMessage()."\n".print_r($fixture, true));
+				$errors++;
+			}
 		}
 
 		Log::debug("Fixtures loaded and parsed: xt=".count($competitionTeams)." ct=".count($clubTeams)." tl=".count($teamLookup));
-
-		if ($flush=='2') {
-
-			$this->template->title = 'Refresh';
-			$this->template->content = "";
-			"<pre>".print_r($competitionTeams,true)."\n".print_r($clubTeams,true)."\n".print_r($teamLookup,true)."</pre>";
-			return;
-		}
 
 		try {
 				DB::start_transaction();
@@ -362,6 +358,10 @@ class Controller_Admin extends Controller_Hybrid
 	public function get_competitions() {
 		$data['competitions'] = Model_Competition::find('all');
 
+		if (Input::param("rebuild", false) === 'true') {
+			$this->get_refresh();
+		}
+
 		$this->template->title = "Competitions";
 		$this->template->content = View::forge('admin/competitions', $data);
 	}
@@ -418,6 +418,19 @@ class Controller_Admin extends Controller_Hybrid
 		Config::set("config.allowassignment", Input::post('allow_assignment') == 'on');
 		Config::set("config.pattern_competition", Input::post("fixescompetition"));
 		Config::set("config.pattern_team", Input::post("fixesteam"));
+		Config::set("config.result_submit", Input::post("resultsubmit"));
+		Config::set("hockey.result_submit", Input::post("resultsubmit"));
+		Config::set("hockey.block_errors", Input::post("block_errors"));
+		Config::set("hockey.title", Input::post("title"));
+		Config::set("hockey.salt", Input::post("salt"));
+		Config::set("hockey.fine", Input::post("fine"));
+		Config::set("config.date.start", Input::post("seasonstart"));
+		Config::set("hockey.date.start", Input::post("seasonstart"));
+		Config::set("config.date.restrict", Input::post("regrestdate"));
+		Config::set("hockey.date.restrict", Input::post("regrestdate"));
+		Config::set("hockey.fixtures", explode("\r\n", trim(Input::post("fixtures"))));
+		Config::set("hockey.pattern_competition", explode("\r\n", trim(Input::post("fixescompetition"))));
+		Config::set("hockey.pattern_team", explode("\r\n", trim(Input::post("fixesteam"))));
 		Config::save('custom.db', 'config');
 		Cache::delete_all();
 		$this->convertConfig();
@@ -432,6 +445,7 @@ class Controller_Admin extends Controller_Hybrid
 
 		$this->template->title = "Configuration";
 		$this->template->content = View::forge('admin/config', array(
+			"config"=>Config::get("hockey"),
 			"title"=>Config::get("config.title"),
 			"salt"=>Config::get("config.salt"),
 			"fine"=>Config::get("config.fine", 25),
@@ -445,6 +459,9 @@ class Controller_Admin extends Controller_Hybrid
 			"fixescompetition"=>Config::get("config.pattern_competition"),
 			"fixesteam"=>Config::get("config.pattern_team"),
 			"fixtures"=>Config::get("config.fixtures"),
+			"resultsubmit"=>Config::get("config.result_submit"),
+			"seasonstart"=>Config::get("config.date.start"),
+			"regrestdate"=>Config::get("config.date.restrict"),
 			"tasks"=>$tasks,
 		));
 	}
@@ -454,6 +471,8 @@ class Controller_Admin extends Controller_Hybrid
 		$path = APPPATH."../../../sites/$site";
 		if (!file_exists($path)) mkdir($path);
 		$configFile = "$path/config.ini";
+		Log::debug("Saving config to: $path/config.json");
+		Config::save("$path/config.json", 'hockey');
 
 		Log::info("Updating cards config file: $configFile");
 
