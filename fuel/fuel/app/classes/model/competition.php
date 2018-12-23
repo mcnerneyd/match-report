@@ -8,6 +8,8 @@ class Model_Competition extends \Orm\Model
 		'code',
 		'teamsize',
 		'teamstars',
+		'format',
+		'groups',
 		'sequence',
 	);
 

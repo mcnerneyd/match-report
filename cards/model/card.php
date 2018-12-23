@@ -680,15 +680,17 @@ class Card {
         'players'=>array()
 				));
 
+		// Blend all incidents from all matchcards referencing this fixture
     $sql = "select i.id, i.player, i.club_id, i.type, i.detail, i.date, u.username, u.role, i.resolved
         from incident i
 					left join user u on i.user_id = u.id
+					left join matchcard m on i.matchcard_id = m.id
         where i.type in ('Played', 'Scored', 'Ineligible', 'Yellow Card', 'Red Card', 'Locked', 'Signed', 'Missing', 'Late', 'Other') 
-					and i.matchcard_id = :id
+					and m.fixture_id = :id
         order by i.id";
 
     $req = $db->prepare($sql);
-    $req->execute(array('id'=>$id));
+    $req->execute(array('id'=>$result['fixture_id']));
 
 		$locked = null;
 		//$card['open'] = false;

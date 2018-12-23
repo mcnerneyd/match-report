@@ -223,7 +223,7 @@ ob_end_flush();
 if (count($warnings)) { ?>
 
 <div class="alert alert-warning" role="alert" id='warning-box'>
-  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span> Warnings
+  <i class="fas fa-exclamation-circle"></i> Warnings
 	<ul>
   <?php
 		foreach (array_unique($warnings) as $warning) {

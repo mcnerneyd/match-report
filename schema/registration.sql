@@ -199,6 +199,8 @@ ALTER TABLE task CHANGE recur recur ENUM('Quarter','Hour','Day','Week','Month','
 
 ALTER TABLE registration ADD `batch_date` datetime DEFAULT NULL;
 ALTER TABLE matchcard ADD `open` tinyint(1) DEFAULT 1;
+ALTER TABLE competition ADD format ENUM('cup','league') NOT NULL DEFAULT 'league';
+ALTER TABLE competition ADD groups VARCHAR(128) NULL;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

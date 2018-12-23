@@ -18,6 +18,7 @@
 		<script src="http://cards.leinsterhockey.ie/cards/fuel/public/assets/js/bootstrap.min.js"></script>
 		<script src="http://cards.leinsterhockey.ie/cards/fuel/public/assets/js/notify.min.js"></script>
 		<script src="http://cards.leinsterhockey.ie/cards/fuel/public/assets/js/raven.min.js"></script>
+		<script src="http://cards.leinsterhockey.ie/cards/fuel/public/assets/js/moment.min.js"></script>
 		<script src="http://cards.leinsterhockey.ie/cards/img/selectize.min.js"></script>
 
 		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js" type="text/javascript"></script>
@@ -124,7 +125,7 @@
 							<div id='search' class="input-group">
 								<input type="text" class="form-control" placeholder="Search">
 								<div class='input-group-btn'>
-									<button class='btn btn-default' type='submit'><i class='glyphicon glyphicon-search'></i></button>
+									<button class='btn btn-default' type='submit'><i class="fas fa-search"></i></button>
 								</div>
 							</div>
 						</form>

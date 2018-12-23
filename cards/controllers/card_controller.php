@@ -114,6 +114,12 @@ class CardController {
 		require_once('views/card/index.php');
 	}
 
+	public function index2() {
+		checkuser();
+
+		require_once('views/card/index2.php');
+	}
+
 	public function view() {
 		if (!user('admin')) return;
 		// public static function getPlayers($rclub, $date, $teamNo) {

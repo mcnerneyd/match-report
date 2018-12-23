@@ -18,6 +18,8 @@
 <table>
 	<tr><th>Time</th><th>Name</th></tr>
 <?php foreach ($detail['players'] as $player=>$playerDetail) { 
+	if (isset($playerDetail['deleted'])) continue;
+
 	echo "<tr><td>${playerDetail['date']}</td><td>$player</td></tr>\n";
 } ?>
 </table>

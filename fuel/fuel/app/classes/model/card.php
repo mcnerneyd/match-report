@@ -284,7 +284,9 @@ class Model_Card extends \Orm\Model
 
 			switch ($incident['type']) {
 				case 'Played':
-					if ($incident['resolved'] == 1) continue;
+					if ($incident['resolved'] == 1) {
+						$card[$key]['players'][$playerName]['deleted'] = true;
+					}
 					if ($incident['detail']) {
 						$card[$key]['players'][$playerName]['detail'] = $incident['detail'];
 					}

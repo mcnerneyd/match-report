@@ -367,13 +367,26 @@ class Controller_Admin extends Controller_Hybrid
 	}
 
 	public function post_competition() {
-		$competition = new Model_Competition();
-		$competition->name = Input::post('competitionname');
+		$id = Input::post('id', -1);
+
+		if ($id == -1) {
+			$competition = new Model_Competition();
+			$competition->name = Input::post('competitionname');
+		} else {
+			$competition = Model_Competition::find($id);
+		}
+
 		$competition->code = Input::post('competitioncode');
+		$competition->format = Input::post('option_type');
+		$competition->teamsize = Input::post('competition-teamsize', '');
+		if ($competition->teamsize == '') $competition->teamsize = null;
+		$competition->teamstars = Input::post('competition-teamstars', '');
+		if ($competition->teamstars == '') $competition->teamstars = null;
+		$competition->groups = Input::post('age-group');
 		$competition->sequence = 0;
 		$competition->save();
 
-		return new Response("Competition created", 201);
+		Response::redirect('admin/competitions');
 	}
 
 	public function delete_competition() {

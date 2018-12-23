@@ -1,3 +1,9 @@
+<?php
+if (isset($_GET['alternate'])) {
+	require_once("index2.php");
+	return;
+}
+?>
 <style>
   table { width: 100%; }
   table th:first-child, table td:first-child { width: 3em; padding-left: 6px; }

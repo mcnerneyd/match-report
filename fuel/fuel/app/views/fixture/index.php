@@ -51,7 +51,7 @@
 
 <div class='form-group command-group hidden-sm hidden-xs'>
 	<a class='btn btn-success' href='<?= Uri::create('fixtures?flush=true') ?>'><i class="fas fa-sync"></i> Refresh Fixtures</a>
-	<a class='btn btn-warning' href='<?= Uri::create('fixtures/repair') ?>'><i class="fas fa-briefcase-medical"></i> Repair Fixtures</a>
+	<a class='btn btn-warning' href='<?= Uri::create('fixture/repair') ?>'><i class="fas fa-briefcase-medical"></i> Repair Fixtures</a>
 </div>
 
 <table id='fixtures-table' class='table table-condensed table-striped' style='display:none'>

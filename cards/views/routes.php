@@ -58,7 +58,7 @@
   // just a list of the controllers we have and their actions
   // we consider those "allowed" values
   $controllers = array(
-		'card' => array('index', 'get', 'create', 'search', 'searchAJAX', 'player', 
+		'card' => array('index', 'index2', 'get', 'create', 'search', 'searchAJAX', 'player', 
 			'lock', 'commit', 'fine', 'sendResult', 'reset', 'unlock', 'close', 'view'),
 		'page' => array('home', 'error'),
 		'player' => array('profile', 'image', 'number', 'update', 'unplay'),

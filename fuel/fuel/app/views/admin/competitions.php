@@ -11,6 +11,22 @@
 			]
 		});
 		$('#competitions-table tbody').show();
+		$('#competitions-table').on('click','a[rel=edit]',function(e) {
+			var code = $(this).closest('tr').data('code');
+			var data = competitions[code];
+			$('#add-competition [name=id]').val(data['id']);
+			$('#add-competition [name=competitionname]').val(data['name']).attr('readonly', true);
+			$('#add-competition [name=competitioncode]').val(data['code']);
+			$('#add-competition [name=age-group]').val(data['groups']);
+			$('#add-competition [name=competition-teamsize]').val(data['teamsize']);
+			$('#add-competition [name=competition-teamstars]').val(data['teamstars']);
+			$('#add-competition .btn-success').text('Save');
+			$('#add-competition .modal-title').text('Edit Competition');
+
+			$('#add-competition [value='+data['format']+']').prop('checked',true);
+
+			$('#add-competition').modal();
+		});
 		$('a[rel=delete]').click(function(e) {
 			e.preventDefault();
 			var code = $(this).closest('tr').data('code');
@@ -22,11 +38,18 @@
 				).done(function(data) { window.location.reload(); });
 		});
 	});
+
+	<?php $lightCompetitions = array();
+	foreach ($competitions as $competition) {
+		$arr = $competition->to_array();
+		$lightCompetitions[$arr['code']] = $arr;
+	} ?>
+	var competitions = <?= json_encode($lightCompetitions) ?>;
 </script>
 
 <div class='form-group command-group hidden-sm hidden-xs'>
-	<a class='btn btn-primary' href='#add-competition' data-toggle='modal'><i class='glyphicon glyphicon-plus-sign'></i> Add Competition</a>
-	<a class='btn btn-success' href='<?= Uri::create('competitions?rebuild=true') ?>'><i class='glyphicon glyphicon-refresh'></i> Rebuild</a>
+	<a class='btn btn-primary' href='#add-competition' data-toggle='modal'><i class="fas fa-plus-circle"></i> Add Competition</a>
+	<a class='btn btn-success' href='<?= Uri::create('competitions?rebuild=true') ?>'><i class="fas fa-sync-alt"></i> Rebuild</a>
 </div>
 
 <table id='competitions-table' class='table table-condensed table-striped'>
@@ -54,7 +77,8 @@
 		}
 		echo "</td>
 				<td class='command-group'>
-					<a class='btn btn-xs btn-danger' rel='delete'><i class='glyphicon glyphicon-trash'></i></a>
+					<a class='btn btn-xs btn-warning' rel='edit'><i class='fas fa-edit'></i></a>
+					<a class='btn btn-xs btn-danger' rel='delete'><i class='fas fa-trash-alt'></i></a>
 				</td>
 		</tr>";
 	} ?>
@@ -70,6 +94,7 @@
       </div>
       <div class="modal-body">
         <form action='<?= Uri::create('/Admin/Competition') ?>' method='POST'>
+					<input type='hidden' name='id'/>
 					<div class='row'>
 						<div class='form-group col-xs-12'>
 							<label for='competitionname'>Competition Name</label>
@@ -94,8 +119,8 @@
 							<input type='text' class='form-control' id='competitioncode' name='competitioncode'/>
 						</div>
 						<div class='form-group col-xs-6'>
-							<label for='competitiondate'>Cutoff Date</label>
-							<input type='text' class='form-control' id='competitiondate' name='competitiondate'/>
+							<label>Age Group(s)</label>
+							<input type='text' class='form-control' name='age-group'/>
 						</div>
 					</div>
 					<div class='row'>
