@@ -21,6 +21,12 @@ class CardController {
 		checkuser();
 		$club = $_SESSION['club'];
 
+
+		if (!$club) {
+			redirect('card', 'index2');
+			return;
+		}
+
 		$cards = array();
 		$deadline = strtotime(date('Y-m-d').' 00:00');
 
@@ -180,7 +186,7 @@ class CardController {
 
 		Log::info("Get card for fixture:$id");
 
-		securekey("card$id");
+		//securekey("card$id");
 
 		$fixture = Card::getFixture($id);
 

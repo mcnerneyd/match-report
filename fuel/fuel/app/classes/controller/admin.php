@@ -339,12 +339,19 @@ class Controller_Admin extends Controller_Hybrid
 	}
 
 	public function post_club() {
-		$club = new Model_Club();
+		$id = Input::post('id', -1);
+
+		if ($id == -1) {
+			$club = new Model_Club();
+		} else {
+			$club = Model_Club::find($id);
+		}
+
 		$club->name = Input::post('clubname');
 		$club->code = Input::post('clubcode');
 		$club->save();
 
-		return new Response("Club created", 201);
+		Response::redirect('admin/clubs');
 	}
 
 	public function delete_club() {

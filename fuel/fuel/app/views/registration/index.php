@@ -59,7 +59,7 @@ echo "<!-- Registration Allowed: $registrationAllowed -->";
 			var newName = $(this).find('[name=newname]').val();
 			debugger;
 			$.post('<?= Uri::create('registrationapi/rename') ?>',
-				{'c':'<?= $club ?>', 'o':oldName, 'n':newName },
+				{'c':'<?= $club ?>', 'o':oldName, 'n':newName }
 				).done(function(data) { window.location.reload(); });
 		});
 

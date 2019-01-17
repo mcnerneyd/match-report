@@ -419,6 +419,8 @@ function scrape($src, $explain = false) {
 			$result['away_score'] = $elm->getAttribute("data-awayscore");
 			$result['comment'] = $elm->getAttribute("data-comment");
 
+			$result['played'] = ($result['home_score'] != '' && $result['away_score'] != '' ? "yes" : "no");
+
 			$fixtures[] = $result;
 		}
 

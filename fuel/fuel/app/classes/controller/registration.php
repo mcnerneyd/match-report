@@ -111,8 +111,6 @@ class Controller_Registration extends Controller_Hybrid
 
 		$filename = Model_Registration::addRegistration($file['tmp_name'], $club);
 
-		$this->validateRegistration($club, $filename);
-
 		if (\Auth::has_access('admin.all')) {
 			$date = Input::param('d', null);
 			if ($date) {
@@ -121,6 +119,8 @@ class Controller_Registration extends Controller_Hybrid
 				echo "Setting timestamp on $filename: $date";
 			}
 		}
+
+		$this->validateRegistration($club, $filename);
 
 		//return new Response("Registration Uploaded", 201);
 		Response::redirect("registration");

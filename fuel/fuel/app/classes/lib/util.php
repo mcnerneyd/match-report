@@ -325,6 +325,9 @@ function scrape($src, $explain = false) {
 					if (stripos($child->getAttribute('class'), 'item') !== false) {
 						foreach ($child->childNodes as $item) {
 							$key = $item->getAttribute('class');
+
+							if ($explain) echo "$key = ".$item->nodeValue."\n";
+
 							if ($key == 'time') $result['datetime'] = "$date ".$item->nodeValue;
 							if ($key == 'homeClub') $result['home'] = $item->nodeValue;
 							if ($key == 'awayClub') $result['away'] = $item->nodeValue;
@@ -340,7 +343,10 @@ function scrape($src, $explain = false) {
 					}
 
 					if (isset($result['fixtureID'])) {
-						if (isset($result['home_score']) && isset($result['away_score'])) $result['played'] = 'yes';
+						if (isset($result['home_score']) && isset($result['away_score'])) {
+							$result['played'] = 'yes';
+							if ($explain) echo "Played\n";
+						}
 						$fixtures[] = $result;
 					}
 				}
@@ -371,6 +377,8 @@ function scrape($src, $explain = false) {
 			$result['away_score'] = $elm->getAttribute("data-awayscore");
 			$result['comment'] = $elm->getAttribute("data-comment");
 
+			$result['played'] = ($result['home_score'] != '' && $result['away_score'] != '' ? "yes" : "no");
+
 			$fixtures[] = $result;
 		}
 
@@ -385,6 +393,8 @@ function scrape($src, $explain = false) {
 				$fixture['fixtureID'] = ++$fixtureId;
 			}
 		}
+
+		if ($explain) echo "<pre>".print_r($fixtures,true)."</pre>\n";
 
 		return $fixtures;
 }

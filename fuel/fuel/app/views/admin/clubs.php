@@ -13,6 +13,16 @@
 			});
 		$('#clubs-table tbody').show();
 		// $('a[rel=delete]').click(function(e) {
+		$('#clubs-table').on('click','a[rel=edit]',function(e) {
+			var id = $(this).closest('tr').data('id');
+			var data = clubs[id];
+			$('#add-club [name=id]').val(data['id']);
+			$('#add-club .btn-success').text('Save');
+			$('#add-club .modal-title').text('Edit Club');
+			$('#add-club [name=clubname]').val(data['name']);
+			$('#add-club [name=clubcode]').val(data['code']);
+			$('#add-club').modal();
+		});
 		$('#clubs-table').on('click', 'a[rel=delete]', function(e) {
 			e.preventDefault();
 			var code = $(this).closest('tr').data('code');
@@ -24,6 +34,12 @@
 				).done(function(data) { window.location.reload(); });
 		});
 	});
+	<?php $lightClubs = array();
+	foreach ($clubs as $club) {
+		$arr = $club->to_array();
+		$lightClubs[$arr['id']] = $arr;
+	} ?>
+	var clubs = <?= json_encode($lightClubs) ?>;
 </script>
 
 <div class='form-group command-group'>
@@ -43,7 +59,7 @@
 	<tbody style='display:none'>
 <?php foreach ($clubs as $club) {
 		$club->getTeamSizes();
-		echo "\t\t<tr data-code='${club['code']}'>
+		echo "\t\t<tr data-id='${club['id']}' data-code='${club['code']}'>
 			<td>${club['code']}</td>
 			<td>${club['name']}</td>
 			<td>";
@@ -64,7 +80,8 @@
 		}
 		echo "</td>
 			<td class='command-group'>
-				<a class='btn btn-xs btn-danger' rel='delete'><i class='glyphicon glyphicon-trash'></i></a>
+					<a class='btn btn-xs btn-warning' rel='edit'><i class='fas fa-edit'></i></a>
+					<a class='btn btn-xs btn-danger' rel='delete'><i class='fas fa-trash-alt'></i></a>
 			</td>
 		</tr>\n";
 	} ?>
@@ -80,6 +97,7 @@
       </div>
       <div class="modal-body">
         <form action='<?= Uri::create('/Admin/Club') ?>' method='POST'>
+					<input type='hidden' name='id'/>
 					<div class='form-group'>
 						<label for='clubname'>Club Name</label>
 						<input type='text' class='form-control' id='clubname' name='clubname'/>

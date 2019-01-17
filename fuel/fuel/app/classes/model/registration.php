@@ -133,12 +133,43 @@ class Model_Registration
 	 */
 	public static function readRegistrationFile($file, $rclub = null) {
 		Config::load('custom.db', 'config');
+
+		$groups = array();
+		if (Config::get("config.allowassignment")) {
+			foreach (Model_Competition::find('all') as $comp) {
+				if ($comp['groups']) {
+					foreach (explode(',', $comp['groups']) as $group) {
+						$groups[trim(strtolower($group))] = $group;
+					}
+				}
+			}
+		}
+
 		$result = array();
 		Log::debug("readRegistrationFile: club=$rclub file=$file");
 		$pastHeaders = false;
 		$team = null;
+		$lastline = null;
 		foreach (file($file) as $player) {
+			$player = trim($player);
+
+			// Join broken lines
+			if ($player[0] == '"' and substr($player, -1) != '"') {
+				$lastline = $player;
+				continue;
+			}
+			if ($lastline and substr($player, -1) != '"') {
+				$lastline .= $player;
+				continue;
+			}
+			if ($lastline) {
+				$player = $lastline.$player;
+				$lastline = null;
+			}
+
+			// Remove comments
 			if ($player[0] == '#') continue;
+
 			$matches = array();
 			if (preg_match('/^\s*"([^"]+)"\s*$/', $player, $matches)) {
 				$player = $matches[1];
@@ -185,11 +216,18 @@ class Model_Registration
 			if (Config::get("config.allowassignment")) {
 				for ($i=count($arr)-1;$i>0;$i--) {
 					if ($arr[$i]) {
+						$group = trim(strtolower($arr[$i]));
+						if (isset($groups[$group])) {
+							$playerTeam = $groups[$group];
+							$pt = $groups[$group];
+						} else {
 							$matches = array();
 							if (preg_match('/^([0-9]+)(st|nd|rd|th)?$/', $arr[$i], $matches)) {
 								$playerTeam = $matches[1];
 								$pt = $arr[$i];
 							}
+						}
+						// even if no team is matched scan is finished
 						break;
 					}
 				}

@@ -132,6 +132,37 @@ class Controller_Report extends Controller_Template
 		$dates = Db::query('select distinct date from incident order by date');
 	}
 
+	public function action_played() {
+		$result = Db::query("select i.player, c.name club, count(1) count, coalesce(ta.team, th.team) team from incident i
+							join club c on i.club_id = c.id 
+							join matchcard m on m.id = i.matchcard_id
+							left join team ta on m.away_id = ta.id and ta.club_id = c.id
+							left join team th on m.home_id = th.id and th.club_id = c.id
+					where i.type = 'Played' and i.date > '2018-06-01'
+						and i.resolved = 0
+					group by i.player, c.name, coalesce(ta.team, th.team)
+					order by i.player, coalesce(ta.team, th.team) desc");
+
+		$summary = array();
+		foreach ($result->execute() as $row) {
+			echo "<!-- ".print_r($row,true)." -->\n";
+			$playerName = $row['player']."/".$row['club'];
+			if (!isset($summary[$playerName])) {
+				$summary[$playerName] = array('name'=>$row['player'],
+					'club'=>$row['club'],
+					'total'=>0,
+					'lowestTeam'=>$row['team'],
+					'highestTeam'=>$row['team'],
+					'lowestTeamCount'=>$row['count']);
+			}
+			$summary[$playerName]['total'] = $summary[$playerName]['total'] + $row['count'];
+			$summary[$playerName]['highestTeam'] = $row['team'];
+		}
+
+		$this->template->title = "Played Games";
+		$this->template->content = View::forge('report/played', array('data'=>$summary));
+	}
+
 	public function action_card() {
 		$cardId = $this->param('id');
 
