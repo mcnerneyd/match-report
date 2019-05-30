@@ -1,6 +1,12 @@
 <?php
 class Controller_Fixture extends Controller_Hybrid
 {
+	public function before() {
+		if (!\Auth::has_access('fixture.*')) throw new HttpNoAccessException;
+
+		parent::before();
+	}
+
 	public function get_index() {
 
 		$flush = Input::param("flush", false);
@@ -9,6 +15,7 @@ class Controller_Fixture extends Controller_Hybrid
 		$fixtures = Model_Fixture::getAll($flush);
 		
 		foreach ($fixtures as &$fixture) {
+			echo "<!-- ".print_r($fixture, true)." -->";
 			$fixture['show'] = true;
 		}
 

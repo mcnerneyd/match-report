@@ -110,7 +110,10 @@ $(document).ready(function () {
 			$mycard = $card['card'][$card[user()]];
 		} else $mycard = null;
 
-    if (!isset($card['home']['valid']) && !isset($card['away']['valid'])) continue;
+    if (!isset($card['home']['valid']) && !isset($card['away']['valid'])) {
+			echo "<!-- ".print_r($card, true)." is not valid -->\n";
+			continue;
+		}
 
     if ($month != date('F Y', $card['date'])) {
         $month = date('F Y', $card['date']); ?>

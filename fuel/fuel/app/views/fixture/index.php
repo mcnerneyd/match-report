@@ -54,6 +54,8 @@
 	<a class='btn btn-warning' href='<?= Uri::create('fixture/repair') ?>'><i class="fas fa-briefcase-medical"></i> Repair Fixtures</a>
 </div>
 
+<!-- <?= print_r($cards, true) ?> -->
+
 <table id='fixtures-table' class='table table-condensed table-striped' style='display:none'>
 	<thead>
 	<tr>

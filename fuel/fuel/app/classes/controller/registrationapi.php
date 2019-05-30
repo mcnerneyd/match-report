@@ -2,7 +2,7 @@
 class Controller_RegistrationApi extends Controller_Rest
 {
 	public function before() {
-		// FIXME if (!\Auth::has_access('registration.*')) throw new HttpNoAccessException;
+		if (!\Auth::has_access('registrationapi.*')) throw new HttpNoAccessException;
 
 		parent::before();
 	}

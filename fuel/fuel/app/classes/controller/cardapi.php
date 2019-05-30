@@ -2,7 +2,7 @@
 class Controller_CardApi extends Controller_Rest
 {
 	public function before() {
-		//if (!\Auth::has_access('admin.all')) throw new HttpNoAccessException;
+		if (!\Auth::has_access('cardapi.*')) throw new HttpNoAccessException;
 
 		parent::before();
 	}

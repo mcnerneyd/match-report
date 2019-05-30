@@ -64,6 +64,12 @@
 			$('#add-user-modal [name=role]').val('secretary');
 			$('#add-user-modal').modal('show');
 		});
+		$('#add-admin').click(function() {
+			$('#add-user-modal .form-group').hide();
+			$('#add-user-modal [name=email]').closest('.form-group').show();
+			$('#add-user-modal [name=role]').val('admin');
+			$('#add-user-modal').modal('show');
+		});
 
 		$("#add-user-modal button[type='submit']").click(function() {
 			$.post('<?= Uri::create('userapi') ?>', $('#add-user-modal form').serialize(), function(data) {
@@ -92,6 +98,7 @@
 			<li><a id='add-user'>Club User&hellip;</a></li>
 			<li><a id='add-secretary'>Club Secretary&hellip;</a></li>
 			<li><a id='add-umpire'>Umpire&hellip;</a></li>
+			<li><a id='add-admin'>Admin User&hellip;</a></li>
 			<li class='divider'></li>
 			<li><a disabled id='add-all-club-users'>Add missing club users</a></li>
 		</ul>

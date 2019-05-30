@@ -2,7 +2,7 @@
 class Controller_FixtureApi extends Controller_Rest
 {
 	public function before() {
-		// FIXME if (!\Auth::has_access('registration.*')) throw new HttpNoAccessException;
+//		if (!\Auth::has_access('fixtureapi.*')) throw new HttpNoAccessException;
 
 		parent::before();
 	}
@@ -23,11 +23,21 @@ class Controller_FixtureApi extends Controller_Rest
 		if ($club != null) {
 			$clubFixtures = array();
 			foreach ($fixtures as $fixture) {
+				if (!isset($fixture['home_club'])) { Log::error("Bad fixture: ".print_r($fixture, true)); continue; }
+				if (!isset($fixture['away_club'])) { Log::error("Bad fixture: ".print_r($fixture, true)); continue; }
 				if ($fixture['home_club'] != $club && $fixture['away_club'] != $club) continue;
 				$clubFixtures[] = $fixture;
 			}
 			$fixtures = $clubFixtures;
 		}
+
+		/*
+		foreach ($fixtures as &$fixture) {
+			if (!is_object($fixture['datetime'])) {
+				$fixture['datetime'] = Date::time();
+			}
+		}
+		*/
 
 		usort($fixtures, function($a, $b) {
 			return $a['datetime']->get_timestamp() - $b['datetime']->get_timestamp();
@@ -55,6 +65,11 @@ class Controller_FixtureApi extends Controller_Rest
 			$fixtures = array_slice($fixtures, $startToReturn, $ctToReturn);
 
 			foreach ($fixtures as &$fixture) {
+				$card = Model_Card::find_by_fixture($fixture['fixtureID']);
+				if ($card && $card['open'] < 0) {
+					$fixture['state'] = 'invalid';
+					continue;
+				}
 				$fixture['datetimeZ'] = $fixture['datetime']->format('%Y-%m-%dT%H:%M:%S');
 				if ($fixture['datetime']->get_timestamp() < $ts) $fixture['state'] = 'late';
 				if ($fixture['played'] === 'yes') $fixture['state'] = 'result';

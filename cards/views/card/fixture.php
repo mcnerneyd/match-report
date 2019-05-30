@@ -1,3 +1,6 @@
+<!--
+<?= print_r($fixture) ?>
+-->
 <?php
 		if ($fixture['home']['club'] == $_SESSION['club']) {
 			$whoami = 'home';
@@ -191,9 +194,14 @@ $(document).ready(function () {
 		data-content='Postponements must be prior approved by the relevant section committee to avoid a penalty'
 		data-btn-ok-label='Postponed' data-btn-cancel-label='Cancel'>Postponed</button>
 
+	<style>h2 { margin-top: 0; font-style: italic; }</style>
+
 	<h1><?php
 		echo $team['team'];
 	?></h1>
+	<?php if ($fixture['groups']) { ?>
+		<h2><?php echo join(',', $fixture['groups']) ?></h2>
+	<?php } ?>
 
 	<span id='count'></span>
 

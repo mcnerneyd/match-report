@@ -1,4 +1,8 @@
 <?php
+require_once 'model/connection.php';
+
+header('Content-Type: text/plain');
+
 // POST uses data, GET uses query string, other methods fail
 switch ($_SERVER['REQUEST_METHOD']) {
 	case 'POST':
@@ -15,39 +19,51 @@ switch ($_SERVER['REQUEST_METHOD']) {
 $data = json_decode($src, true);
 #print_r($data);
 $site = $data['site'];
+$username = $data['u'];
+echo "Request received ($username@$site)\n";
 $root = dirname(__FILE__);
 $configFile = $root.'/sites/'.$site.'/config.ini';
 #print_r(file_get_contents($configFile));
-$config = parse_ini_file($configFile, true);
-$salt = $config['main']['hashtemplate'];
-echo "C:$configFile";print_r($config);
+//$config = parse_ini_file($configFile, true);
+$user = Db::getInstance()->query("SELECT * FROM user WHERE username = '$username'")->fetch();
+if (!$user) {
+	echo "403 Unknown user";
+	header($_SERVER['SERVER_PROTOCOL']." 403 Unknown user");
+	return;
+}
+//echo "C:$configFile";print_r($config);
+echo "Initialized\n";
 
 $key = $data['signature'];
 unset($data['signature']);
 
-$raw = json_encode($data).$salt;
-echo $salt." ".md5($raw);
+$raw = json_encode($data).$user['login_hash'];
 if (md5($raw) != $key) {
+	echo "403 Forbidden";
 	header($_SERVER['SERVER_PROTOCOL']." 403 Forbidden");
 	return;
 }
 
 if (isset($data['session'])) {
 	$session = $data['session'];
-	echo "(Session:".print_r($session,true).")\n";
+	//echo "(Session:".print_r($session,true).")\n";
 	session_start();
 	$_SESSION['site'] = $site;
 	$_SESSION['user'] = $session['user'];
 	$_SESSION['club'] = $session['club'];
 	$_SESSION['roles'] = $session['roles'];
+	echo "Session data valid\n";
 } else {
 	session_unset();
+	echo "Session data not valid\n";	
 }
 
 if (isset($data['redirect'])) {
 	header($_SERVER['SERVER_PROTOCOL']." 303 Redirecting");
 	header("Location: ".$data['redirect']);
+	echo "303 Redirecting\n";
 	exit();
 } 
 
 header($_SERVER['SERVER_PROTOCOL']." 202 Accepted");
+echo "202 Accepted\n";

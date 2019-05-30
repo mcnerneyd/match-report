@@ -1,6 +1,12 @@
 <?php
 class Controller_Check extends Controller_Rest
 {
+	public function before() {
+		if (!\Auth::has_access('check.*')) throw new HttpNoAccessException;
+
+		parent::before();
+	}
+
 	// --------------------------------------------------------------------------
 	public function action_createcards() {
 		//if (!\Auth::has_access('admin.all')) throw new HttpNoAccessException;

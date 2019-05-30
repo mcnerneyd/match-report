@@ -3,6 +3,12 @@ require APPPATH.'classes/fines/ifine.php';
 
 class Controller_Fine extends Controller_Hybrid
 {
+	public function before() {
+		if (!\Auth::has_access('fine.*')) throw new HttpNoAccessException;
+
+		parent::before();
+	}
+
 	// --------------------------------------------------------------------------
 	// index get gets a list of fines
 	public function get_index() {
@@ -23,7 +29,17 @@ class Controller_Fine extends Controller_Hybrid
 			$fine['competition'] = $card['competition'];
 			$fine['home_team'] = $card['home']['club']." ".$card['home']['team'];
 			$fine['away_team'] = $card['away']['club']." ".$card['away']['team'];
+			$applies_to = $card['home']['club'] == $fine['club']['name'] ? "home" : "away";
+			$fine['applies_to'] = $applies_to;
+
 			$fine['date'] = $card['date'];
+			$fine['has_notes'] = false;
+			
+			if ($card[$applies_to]['notes']) $fine['has_notes'] = true;
+			if ($card['comment']) $fine['has_notes'] = true;
+
+			echo "<!-- ".print_r($fine, true)." -->\n";
+
 			$fines[] = $fine;
 		}
 		$data['fines'] = $fines;

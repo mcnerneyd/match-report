@@ -1,6 +1,11 @@
 <?php
 class Controller_Report extends Controller_Template
 {
+	public function before() {
+		if (!\Auth::has_access('report.*')) throw new HttpNoAccessException;
+
+		parent::before();
+	}
 
 	// --------------------------------------------------------------------------
 	public function action_cards() {
@@ -11,6 +16,13 @@ class Controller_Report extends Controller_Template
 			),
 			'order_by'=>array('date'=>'desc'),
 		));
+
+		$club = \Session::get('club', null);
+		if ($club) {
+			$cards = array_filter($cards, function($a) use ($club) {
+				return ($a['club']['name'] == $club);
+			});
+		}
 
 		$this->template->title = "Red/Yellow Cards";
 		$this->template->content = View::forge('report/cards', array(
@@ -213,6 +225,8 @@ class Controller_Report extends Controller_Template
 			$teams[$fixture['home']] = "xx";
 			$teams[$fixture['away']] = "xx";
 		}
+
+		echo "<!-- ".print_r($competitions, true)." -->";
 
 		foreach ($competitions as $competition=>$x) {
 			$comp = Model_Fixture::parseCompetition($competition);

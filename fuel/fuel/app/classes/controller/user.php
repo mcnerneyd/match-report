@@ -1,9 +1,15 @@
 <?php
 class Controller_User extends Controller_Template
 {
+//	public function before() {
+//		if (!\Auth::has_access('user.*')) throw new HttpNoAccessException;
+//
+//		parent::before();
+//	}
+
 	// --------------------------------------------------------------------------
 	public function action_index() {
-		if (!\Auth::has_access('admin.all')) throw new HttpNoAccessException;
+		//if (!\Auth::has_access('admin.all')) throw new HttpNoAccessException;
 		$data = array();
 		$data['users'] = $this->userlist();
 		$data['clubs'] = Model_Club::find('all');
@@ -103,6 +109,10 @@ class Controller_User extends Controller_Template
 	public function action_login() {
 		Log::info("Login ".Request::main()->get_method().":".print_r(Input::all(),true));
 
+		if (\Input::param('consent')) {
+			Cookie::set('CONSENT', 'YES');
+		}
+
 		if (\Auth::check()) \Auth::logout();
 
 		if (Input::param('site', null) === 'none') {
@@ -113,10 +123,18 @@ class Controller_User extends Controller_Template
 
 		$data = array();
 
+		$data['selectedUser'] = Input::param('user', null);
+
 		if (Input::post()) {
 			if (Auth::login()) {
+				Input::param("remember-me", false) ? \Auth::remember_me() : \Auth::dont_remember_me();
 				Log::info("Logged in user: ".Session::get('username'));
-				Response::redirect(Uri::create('../../sso.php?'.base64_encode($this->encode("/cards/index.php"))));
+
+				if (Session::get('username') === 'admin') {
+					Response::redirect(Uri::create('Admin'));
+				} else {
+					Response::redirect(Uri::create('../../sso.php?'.base64_encode($this->encode("/cards/index.php"))));
+				}
 			} else {
 				$data['username'] = Input::post('user');
 				$data['login_error'] = 'Invalid credentials. Try again';
@@ -134,6 +152,8 @@ class Controller_User extends Controller_Template
 			}
 		}
 
+		Session::delete('club');
+
 		$this->template->content = View::forge('login', $data);
 	}
 
@@ -141,6 +161,7 @@ class Controller_User extends Controller_Template
 	private function encode($redirect = null) {
 		$data = array('timestamp'=>time(), 'session'=>array());
 		$data['site'] = Session::get('site');
+		$data['u'] = Session::get('username');
 		$username = Session::get('username');
 		$user = Model_User::find_by_username($username);
 		$data['session']['user'] = $username;
@@ -156,7 +177,7 @@ class Controller_User extends Controller_Template
 
 		$data['session']['roles'] = $roles;
 		if ($redirect != null) $data['redirect'] = $redirect;
-		$data['signature'] = md5(json_encode($data).\Config::get('config.salt'));
+		$data['signature'] = md5(json_encode($data).Session::get('login_hash'));
 
 		return json_encode($data);
 	}

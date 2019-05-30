@@ -2,9 +2,17 @@
 class Controller_UserApi extends Controller_RestApi
 {
 	public function before() {
-		if (!\Auth::has_access('admin.all')) throw new HttpNoAccessException;
+		//if (!\Auth::has_access('user.*')) throw new HttpNoAccessException;
 
 		parent::before();
+	}
+
+	public function get_index() {
+		if (Session::get('username', null) != null) {
+			return new Response("User session valid", 200);
+		} else {
+			return new Response("User session expired", 401);
+		}
 	}
 
 	// --------------------------------------------------------------------------
@@ -97,6 +105,10 @@ class Controller_UserApi extends Controller_RestApi
 			$newUser->username = $username;
 			$newUser->email = $email;
 			$newUser->password = generatePassword(4);
+		} else if ($role == 'admin') {
+			$newUser->username = $email;
+			$newUser->password = "";
+			$newUser->email = $email;
 		} else {
 			$newUser->username = $username;
 			$newUser->password = generatePassword(4);

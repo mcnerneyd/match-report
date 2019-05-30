@@ -25,12 +25,12 @@ return array(
 
 	'db_connection' => null,
 	'db_write_connection' => null,
-	'table_name' => 'users',
+	'table_name' => 'user',
 	'table_columns' => null,
 	'guest_login' => true,
 	'multiple_logins' => false,
 	'remember_me' => array(
-		'enabled' => false,
+		'enabled' => true,
 		'cookie_name' => 'rmcookie',
 		'expiration' => 86400 * 31,
 	),
@@ -42,7 +42,8 @@ return array(
 		 2    => array('name' => 'Umpires', 'roles' => array('umpire')),
 		 25   => array('name' => 'Secretaries', 'roles' => array('user', 'secretary')),
 		 50   => array('name' => 'Moderators', 'roles' => array('user', 'moderator')),
-		 100  => array('name' => 'Administrators', 'roles' => array('user', 'moderator', 'admin', 'secretary', 'registration')),
+		 99  => array('name' => 'Administrators', 'roles' => array('user', 'moderator', 'admin', 'secretary', 'registration')),
+		 100  => array('name' => 'Superusers', 'roles' => array('admin')),
 	),
 
 	'roles' => array(

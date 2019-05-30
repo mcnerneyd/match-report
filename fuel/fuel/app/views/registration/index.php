@@ -172,7 +172,7 @@ foreach ($registrations as $registration) {
 	if (Config::get("hockey.block_errors", false) && isset($registration['errors'])) {
 		$class = "title='This registration has errors' class='error'";
 	}
-	echo "<tr $class data-filename='${registration['name']}' data-club='${registration['club']}'>
+	echo "<tr $class data-filename='${registration['name']}' data-club='${registration['club']}' data-type='${registration['type']}'>
 		<td>${registration['club']}</td>
 		<td>${registration['name']}</td>
 		<td>".strtoupper($date->format("%Y-%m-%d %H:%M:%S"))."</td>

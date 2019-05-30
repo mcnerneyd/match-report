@@ -87,9 +87,16 @@ class Model_Registration
 					if (!is_file($name)) continue;
 					$ts=filemtime($name);
 					if ($ts < $seasonStart) continue;
+					$finfo=finfo_open(FILEINFO_MIME);
+					$ftype = "";
+					if ($finfo) {
+						$ftype = finfo_file($finfo, $name);
+						finfo_close($finfo);
+					}
 					$fileData = array("club"=>$club,
 						"name"=>basename($name),
 						"timestamp"=>$ts,
+						"type"=>$ftype,
 						"cksum"=>md5_file($name));
 					if (file_exists($name.".err")) {
 						$fileData['errors'] = file($name.".err");
@@ -153,6 +160,8 @@ class Model_Registration
 		foreach (file($file) as $player) {
 			$player = trim($player);
 
+			if (!$player) continue;		// ignore empty lines
+
 			// Join broken lines
 			if ($player[0] == '"' and substr($player, -1) != '"') {
 				$lastline = $player;
@@ -177,6 +186,7 @@ class Model_Registration
 			$arr = str_getcsv($player);
 			while ($arr && !$arr[0]) array_shift($arr);
 			if (!$arr) continue;
+
 			if (!$pastHeaders) {
 
 				if (stripos($arr[0], '------') === 0) {

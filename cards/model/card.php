@@ -274,6 +274,8 @@ class Card {
 
 	public static function getFixtures() {
 
+		Log::debug("Getting fixtures");
+
 		$allfixtures = array();
 		$ctr = 1;
 
@@ -502,6 +504,11 @@ class Card {
 
 		if (isset($recomps[$competition])) {
 			$result['competition-code'] = $recomps[$competition]['code'];
+			$result['groups'] = array();
+			
+			if ($recomps[$competition]['groups']) {
+				foreach (explode(',', $recomps[$competition]['groups']) as $group) $result['groups'][] = trim($group);
+			}
 		} else {
 			throw new Exception("Unknown competition: $competition");
 		}

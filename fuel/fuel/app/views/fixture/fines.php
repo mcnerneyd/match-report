@@ -65,6 +65,9 @@ $(document).ready(function() {
 	margin-top: -40px;
 	float:right;
 }
+.note {
+	color: red;
+}
 </style>
 
 <div class='form-group command-group'>
@@ -97,7 +100,11 @@ foreach ($fines as $fine) {
 		<td>".substr($fine['date'], 0,10)."</td>
 		<td>".$fine['competition']."</td>
 		<td>".$fine['club']['name']."</td>
-		<td>${matches['reason']}</td>
+		<td>${matches['reason']}";
+
+	if ($fine['has_notes']) echo ' <i class="note fas fa-sticky-note"></i>';	
+
+	echo "</td>
 		<td>&euro;${matches['amount']}</td>
 		<td><a href='".Uri::create("Report/Card/n${fine['matchcard_id']}")."'>View</a></td></tr>\n\t";
 }

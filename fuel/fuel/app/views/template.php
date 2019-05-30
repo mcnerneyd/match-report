@@ -62,6 +62,12 @@
 				showAnimation: 'fadeIn', hideAnimation: 'fadeOut'
 			});
 
+			setInterval(function() {
+				$.get('<?= Uri::create('UserAPI') ?>').fail(function() {
+					window.location = '<?= Uri::create('User/Login') ?>';
+				});
+			}, 30000);
+
 			<?php $flash = Session::get_flash("notify");
 				if ($flash) { echo "var info_msg='${flash['msg']}';" ?>
 					$('nav').notify(info_msg,

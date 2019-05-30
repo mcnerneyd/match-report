@@ -38,6 +38,12 @@ class Model_Card extends \Orm\Model
 		),
 	);
 
+	protected static $_has_many = array(
+		'incidents' => array(
+			'key_to' => 'matchcard_id',
+		),
+	);
+
 	public static function createCard($fixtureId) {
 		try {
 			$fixture = Model_Fixture::get($fixtureId);
@@ -229,17 +235,23 @@ class Model_Card extends \Orm\Model
 		// Verify that the fixture is still valid
 		$fixture = Model_Fixture::get($card['fixture_id']);
 		if ($fixture == null) {
-			throw new Exception("Card $id is associated with non-existant fixture");
+			throw new Exception("Card $id is associated with non-existant fixture (id=".$card['fixture_id'].")");
 		}
 
+		$card['comment'] = isset($fixture['comment']) ? $fixture['comment'] : "";
+
 		if ($card['date']) {
+
+			// Bad date goes to end of season
+			if ($card['date'] == '0000-00-00 00:00:00') $card['date'] = '2019-07-31 07:00:00';
+
 			$card['date'] = \Date::create_from_string($card['date'], '%Y-%m-%d %H:%M:%S');
 		}
 
 		$card['home'] = array('club'=>null, 'team'=>null, 'players'=>array(), 'signed'=>false,
-			'goals'=>0, 'scorers'=>array(), 'fines'=>array());
+			'goals'=>0, 'scorers'=>array(), 'fines'=>array(), 'notes'=>array());
 		$card['away'] = array('club'=>null, 'team'=>null, 'players'=>array(), 'signed'=>false, 
-			'goals'=>0, 'scorers'=>array(), 'fines'=>array());
+			'goals'=>0, 'scorers'=>array(), 'fines'=>array(), 'notes'=>array());
 
 		if ($card['home_id'] != null) {
 			$card['home']['club'] = $card['home_name'];
@@ -318,6 +330,13 @@ class Model_Card extends \Orm\Model
 						'player'=>$incident['player'], 
 						'penalty'=>$incident['type'],
 						'detail'=>$incident['detail']));
+					break;
+				case 'Other':
+					$detail = $incident['detail'];
+					$matches = array();
+					if (preg_match('/^"(.*)"$/', $detail, $matches)) {
+						$card[$key]['notes'][] = $matches[1];
+					}
 					break;
 				default:
 					$card[$key]['incidents'][] = $incident;

@@ -164,7 +164,7 @@
 			<?php if (user()) { ?>
 			<div id='user'><?php 
 				echo user();
-				if ($_SESSION['club'] != user()) echo "(".$_SESSION['club'].")"; ?></div>
+				if ($_SESSION['club'] and $_SESSION['club'] != user()) echo "(".$_SESSION['club'].")"; ?></div>
 			<?php } ?>
 
 		<div class='container' data-controller='<?= $controller ?>' data-action='<?= $action ?>'>
@@ -217,20 +217,24 @@
 		}
 
 		$(document).ready(function() {
-					$('[data-help]').each(function () {
-						$(this).append("<span class='help glyphicon glyphicon-question-sign' data-helpid='"+$(this).data("help")+"'></span>");
-					});
+			setInterval(function() {
+				$.get('<?= Uri::create('UserAPI') ?>').fail(function() {
+					window.location = '<?= Uri::create('User/Login') ?>';
+				});
+			}, 30000);
 
-					$('[data-helpid]').click(function() {
-						$.get('/cards/fuel/public/help?id='+$(this).data('helpid'), function(data) {
-							$('#help-modal .modal-body').html(data);
-							var title = $('#help-modal .modal-body :first').detach();
-							$('#help-modal .modal-title').text(title.text());
-							$('#help-modal').modal('show');
-						});
-					});
+			$('[data-help]').each(function () {
+				$(this).append("<span class='help glyphicon glyphicon-question-sign' data-helpid='"+$(this).data("help")+"'></span>");
+			});
 
-
+			$('[data-helpid]').click(function() {
+				$.get('/cards/fuel/public/help?id='+$(this).data('helpid'), function(data) {
+					$('#help-modal .modal-body').html(data);
+					var title = $('#help-modal .modal-body :first').detach();
+					$('#help-modal .modal-title').text(title.text());
+					$('#help-modal').modal('show');
+				});
+			});
 		});
 		</script>
   </body>

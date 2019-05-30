@@ -241,5 +241,5 @@ $(document).ready(function() {
 	<?php }
 
 	echo "<!-- Site=$site Controller=$controller Action=$action User=".user()." Club=".$_SESSION['club']." Roles=".join($_SESSION['roles'])."-->";
-
+	echo "<!-- ".print_r($_SESSION, true)." -->";
 ?>

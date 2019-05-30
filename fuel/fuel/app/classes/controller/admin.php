@@ -2,9 +2,14 @@
 class Controller_Admin extends Controller_Hybrid
 {
 	public function before() {
-		if (!\Auth::has_access('admin.all')) throw new HttpNoAccessException;
+		//if (!\Auth::has_access('admin.*')) throw new HttpNoAccessException;
 
 		parent::before();
+	}
+
+	public function action_index() {
+		$this->template->title = "SuperUser Administration";
+		$this->template->content = View::forge('admin/index', array());
 	}
 
 	/**
@@ -45,6 +50,17 @@ class Controller_Admin extends Controller_Hybrid
 	 * @param d Date for which to get the log. Defaults to today.
 	 */
 	public function action_log() {
+
+		echo "<!--";
+		foreach( DB::query('select * from `user`')->execute() as $user) {
+			if ($user['password']) {
+				echo "UPDATE `user` SET `password`='".\Auth::hash_password($user['old_password'])."' WHERE id = ${user['id']};\n";
+			}
+		}
+		echo "-->";
+
+
+
 		$date = \Input::param('d', Date::forge()->format("%Y%m%d"));
 
 		$filename = APPPATH."/logs/".substr($date, 0, 4)."/".substr($date,4,2)."/".substr($date,6,2).".php";
@@ -374,12 +390,14 @@ class Controller_Admin extends Controller_Hybrid
 	}
 
 	public function post_competition() {
-		$id = Input::post('id', -1);
+		$id = Input::post('id', null);
 
-		if ($id == -1) {
+		if (!$id) {
+			Log::debug("New competition: ".Input::post('competitionname'));
 			$competition = new Model_Competition();
 			$competition->name = Input::post('competitionname');
 		} else {
+			Log::debug("Updating competition: $id");
 			$competition = Model_Competition::find($id);
 		}
 

@@ -177,8 +177,21 @@ class Model_Fixture extends \Model
 			$allfixtures[$key]['lastupdated_t'] = time();
 		}
 
+		foreach ($allfixtures as &$fixture) {
+			if (!is_object($fixture['datetime'])) {
+				$fixture['datetime'] = Date::time();
+			}
+		}
+
 		self::$cache->set($allfixtures, 60);		// Refresh fixtures every 60 seconds
 		Log::debug('Loading fixtures complete');
+
+		/*foreach ($allfixtures as $key => $fixture) {
+			if (!is_object($fixture['datetime'])) {
+				LOG::error("Bad fixture: $key");
+				unset($allfixtures[$key]);
+			}
+		}*/
 
 		return $allfixtures;
 	}

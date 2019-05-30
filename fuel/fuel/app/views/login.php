@@ -106,7 +106,7 @@ if (!Session::get('site', false)) { ?>
 	<div class="checkbox row">
 		<div class='col-xs-6'>
 			<label>
-				<input type="checkbox" name="remember-me" <?= /*$_COOKIE['noremember']*/false ? '' : 'checked' ?>> Keep me logged in
+				<input type="checkbox" name="remember-me"> Keep me logged in
 			</label>
 		</div>
 		<?php if (isset($_REQUEST['role'])) { ?>
@@ -140,5 +140,10 @@ $(document).ready(function() {
 
 	if (site != null) $('#site-select').val(site);
 	else $('#site-select').val('');
+
+	<?php if ($selectedUser) { ?>
+	$('input#user-select').val('<?= $selectedUser ?>');
+	$("input[name='pin']").prop('disabled', false).focus();
+	<?php } ?>
 });
 </script>

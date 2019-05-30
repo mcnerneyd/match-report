@@ -5,12 +5,17 @@ class Queue
 {
 	public static function run() {
 
+		set_error_handler(function($errno, $errstr, $errfile, $errline ) {
+			\Log::error("Exception:$errno $errstr $errfile $errline");
+		});
+
 		\Log::debug("Queue Execute");
 
 		try {
 			$command = static::getNextTask();
 
 			if (!$command) {
+				\Log::debug("Checking database tasks");
 				$task = \Model_Task::query()->order_by('datetime','asc')
 					->where('status', '=', 'Queued')
 					->where('datetime', '<', date("Y-m-d H:i:s"))
@@ -111,6 +116,8 @@ class Queue
 		}
 
 		fclose($fp);
+
+		if (!$resultTask) return $resultTask;
 
 		$resultTask = (array)$resultTask;
 

@@ -2,6 +2,12 @@
 class Controller_Card extends Controller_Template
 {
 
+	public function before() {
+		if (!\Auth::has_access('card.*')) throw new HttpNoAccessException;
+
+		parent::before();
+	}
+
 	// --------------------------------------------------------------------------
 	public function action_index() {
 		$cardId = $this->param('id');
@@ -92,9 +98,14 @@ class Controller_Card extends Controller_Template
 			$title = Config::get("config.title");
 			$email = Email::forge();
 			$email->from($autoEmail, "$title (No Reply)");
+			$email->reply_to(array_merge($data['to'], $data['cc']));
 			$email->to($data['to']);
 			$email->cc($data['cc']);
-			$email->subject($data['description']." #".$data['id']);
+			$subject = $data['description']." #".$data['id'];
+			if (Input::param('postponement_request', false)) {
+				$subject = "POSTPONEMENT REQUEST ".$subject;
+			}
+			$email->subject($subject);
 			$email->body($msg);
 			$email->send();
 			Log::info("Email sent for ${data['description']}");

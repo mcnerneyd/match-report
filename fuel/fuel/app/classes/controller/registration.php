@@ -1,11 +1,11 @@
 <?php
 class Controller_Registration extends Controller_Hybrid
 {
-/*	public function before() {
-		if (!\Auth::has_access('admin.all')) throw new HttpNoAccessException;
+	public function before() {
+		if (!\Auth::has_access('registration.*')) throw new HttpNoAccessException;
 
 		parent::before();
-	}*/
+	}
 
 	public function get_list() {
 		$date = \Input::param('d', Date::forge()->format("%Y%m%d"));
@@ -102,10 +102,11 @@ class Controller_Registration extends Controller_Hybrid
 
 		$club = Input::param("club");
 		$file = Input::file("file");
+		$type = mime_content_type($file['tmp_name']);
 
-		Log::info("Posting ${file['name']} for club: $club");
+		Log::info("Posting ${file['name']} for club: $club (type=$type)");
 
-		if (preg_match("/.*\.xlsx?/", $file['name'])) {
+		if (preg_match("/.*\.xlsx?/", $file['name']) || !preg_match("/text\/.*/", $type)) {
 			$file['tmp_name'] = convertXls($file['name'], $file['tmp_name']);
 		}
 

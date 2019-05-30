@@ -19,7 +19,7 @@ class Db {
 				$pdo_options[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
 				self::$instance = new PDO('mysql:host=localhost;dbname='.DB_DATABASE,
 				 DB_USERNAME, DB_PASSWORD, $pdo_options);
-				debug("Connected to:".DB_DATABASE);
+				//debug("Connected to:".DB_DATABASE);
 			} catch (Exception $e) {
 				throw new Exception("Failed to connected to database");
 			}

@@ -25,6 +25,9 @@ function loadPage(row) {
 			if (page < 0) data = data.reverse();
 			for (var i=0;i<data.length;i++) {
 				var item = data[i];
+
+				if (item['state'] == 'invalid') continue;
+
 				var dt = moment(item['datetimeZ']);
 				var fixtureID = item['fixtureID'];
 
