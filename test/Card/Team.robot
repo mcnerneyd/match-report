@@ -30,5 +30,14 @@ User Can Create A Card
 	Select Player			Hellen MANRIQUEZ
 	Submit Team
 
+Add Player To Fixture
+
+Remove Player From Fixture
+
+Add Last Players To Fixture
+
+Clear Players On Fixture
+
+Mark Match As Postponed
 
 

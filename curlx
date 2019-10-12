@@ -1,1 +1,0 @@
-curl -v -X POST -u admin:nnn -F 'file=@bray.csv' 'http://cards.leinsterhockey.ie/cards/fuel/public/Registration?club=Bray&site=lhamen&d=2019-01-01'

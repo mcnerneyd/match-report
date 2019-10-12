@@ -202,8 +202,24 @@ ALTER TABLE matchcard ADD `open` tinyint(1) DEFAULT 1;
 ALTER TABLE competition ADD format ENUM('cup','league') NOT NULL DEFAULT 'league';
 ALTER TABLE competition ADD groups VARCHAR(128) NULL;
 
+ALTER TABLE `user` ADD `old_password` VARCHAR(50);
 ALTER TABLE `user` ADD `last_login` VARCHAR(25);
 ALTER TABLE `user` ADD `login_hash` VARCHAR(255);
+ALTER TABLE `user` ADD `group` INT(11);
+ALTER TABLE `user` MODIFY `password` VARCHAR(255);
+
+UPDATE `user` SET `group` = CASE
+		WHEN role = 'umpire' THEN 2
+		WHEN role = 'admin' THEN 99
+		WHEN role = 'secretary' THEN 25
+		WHEN role IS NULL THEN 25
+		ELSE 1
+	END,
+	old_password = password
+WHERE old_password IS NULL;
+
+ALTER TABLE `user` ADD `pin` VARCHAR(4) NULL AFTER `password`;
+UPDATE `user` SET pin = old_password WHERE role IN ('umpire', 'user') AND pin IS NULL;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

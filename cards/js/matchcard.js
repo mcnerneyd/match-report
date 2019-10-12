@@ -1,19 +1,18 @@
-// vim: et:ts=4:sw=4:
+// vim: et:ts=2:sw=2:et:
 $(document).ready(function() {
 
     // initializations
-    $('span.card-red').html("<img class='card card-red' src='img/red-card.png'/>");
-    $('span.card-yellow').html("<img class='card card-yellow' src='img/yellow-card.png'/>");
-    $('#context-menu li.card-red').prepend("<img src='img/red-card.png'/>");
-    $('#context-menu li.card-yellow').prepend("<img src='img/yellow-card.png'/>");
-    $('#context-menu li.card-clear').prepend("<img src='img/no-card.png'/>");
+    $('span.card-red').html("<img class='card-penalty card-red' src='img/red-card.png'/>");
+    $('span.card-yellow').html("<img class='card-penalty card-yellow' src='img/yellow-card.png'/>");
+    $('span.card-green').html("<img class='card-penalty card-green' src='img/green-card.png'/>");
+    $('#context-menu .card-red').prepend("<img src='img/red-card.png'/>");
+    $('#context-menu .card-yellow').prepend("<img src='img/yellow-card.png'/>");
+    $('#context-menu .card-green').prepend("<img src='img/green-card.png'/>");
+    $('#context-menu .card-clear').prepend("<img src='img/no-card.png'/>");
 
     if ($('#match-card').hasClass('open')) {
-        $('.ours caption:first-child').append(
-        "<a class='add-player' data-toggle='modal' data-target='#add-player-modal'>Add Player</a>");
-        $('.ours table').append(
-        "<button class='add-player btn btn-danger' data-toggle='modal' data-target='#add-player-modal'>Add Player</button>");
-        $('a.add-player').html("<img src='img/add-user.png' title='Add Player...'/>");
+        $('.ours thead th').append(
+        "<a class='add-player' data-toggle='modal' data-target='#add-player-modal'><i class='fas fa-user-plus'></i></a>");
     }
 
     $('.alert-detail').hide();
@@ -22,9 +21,9 @@ $(document).ready(function() {
     });
 
     // add headshots
-    $('#match-card').prepend("<div id='headshot' class='btn-group btn-group-toggle'>"+
-        "<button class='btn btn-sm btn-primary active' value='list'><i class='glyphicon glyphicon-th-list'></i></button>"+
-        "<button class='btn btn-sm btn-primary' value='headshot'><i class='glyphicon glyphicon-th-large'></i></button>"+
+    $('#match-card').prepend("<div id='headshot' class='btn-group'>"+
+        "<button class='btn btn-sm btn-primary active' value='list'><i class='fas fa-list'></i></button>"+
+        "<button class='btn btn-sm btn-primary' value='headshot'><i class='fas fa-user'></i></button>"+
 "</div>");
 
     $('#headshot button').click(function() { setHeadshot($(this).attr('value')=='list'); });
@@ -87,9 +86,26 @@ $(document).ready(function() {
     // Click the Sign button 
     $('#submit-matchcard a.btn-success').click(function(e) {
         var score = $('#submit-matchcard input[name=opposition-score]').val();
-        if (score == "") {
-            doAlert("Opposition score is a required field");
-            return;
+
+        $('#submit-matchcard input[name=opposition-score]')[0].setCustomValidity('');
+        $('#submit-matchcard input[name=opposition-score]+.invalid-feedback').text('You must provide the opposition score');
+
+        if ($('#competition').data('format') == 'cup') {
+          var myscore = $('#teams .ours table').data('score');
+          if (myscore == score) {
+            console.log("Tied: "+ myscore + "=" + score);
+            $('#submit-matchcard input[name=opposition-score]')[0].setCustomValidity('Cup matches cannot be tied');
+            $('#submit-matchcard input[name=opposition-score]+.invalid-feedback').text('Cup matches cannot be tied (make sure to include tie-break score)');
+          }
+        }
+
+        var form = $('#submit-matchcard form')[0];
+
+        if (form.checkValidity() === false) {
+          event.preventDefault();
+          event.stopPropagation();
+          form.classList.add('was-validated');
+          return;
         }
 
         $('#submit-form-detail').hide();
@@ -150,7 +166,7 @@ $(document).ready(function() {
         var playerName = $('#player-name').val();
         console.log("Adding player: "+ playerName);
 
-        $.post(baseUrl + "&action=player&ineligible="+playerName)
+        $.post('/public/CardApi/Player', {'card_id':cardId, 'player':playerName})
             .done( function() { location.reload(); });
     });
 
@@ -168,7 +184,7 @@ $(document).ready(function() {
         var cardId = $('#match-card').data('cardid');
         var playerName = $('#signature').data('name');
         var club = $('#teams .ours>table').data('club');
-        $.post('http://cards.leinsterhockey.ie/cards/fuel/public/CardApi/Signature',
+        $.post(restUrl + '/Signature',
             {'player':playerName, 'signature':dataUrl, 'card_id':cardId, 'c':club})
             .done(function() { location.reload(); });
         signaturePad.clear();
@@ -183,7 +199,7 @@ $(document).ready(function() {
 
     function addNote(msg) {
         var cardId = $('#match-card').data('cardid');
-        $.post('http://cards.leinsterhockey.ie/cards/fuel/public/CardApi/Note',
+        $.post(restUrl + '/Note',
             {'card_id':cardId, 'msg':msg})
             .done(function() { location.reload(); });
     }
@@ -196,20 +212,22 @@ $(document).ready(function() {
         addNote('Match Postponed');
     });
 
-    $('#set-number').click(function() {
+    $('#set-number button').click(function() {
         var playerRow = getPlayerRow();
         var playerName = playerRow.data('name');
         var club = playerRow.closest('table').data('club');
         var number = $(this).closest('.input-group').find('[name=shirt-number]').val();
         if (number) {
-            $.post('http://cards.leinsterhockey.ie/cards/fuel/public/Registration/Number',
-            {'c':club,'p':playerName,'n':number})
-            .done(function() { location.reload(); });
+            $.ajax('http://cards.leinsterhockey.ie/public/RegistrationApi/Number',
+            { 
+                'method':'PUT',
+                'data':{'c':club,'p':playerName,'n':number}
+            }).done(function() { location.reload(); });
         }
     });
 
     var cardId = $('#match-card').data('cardid');
-    $.get('http://cards.leinsterhockey.ie/cards/fuel/public/CardApi/Signatures.json?card_id=' + cardId,
+    $.get(restUrl + '/Signatures.json?card_id=' + cardId,
         function(data) {
             if (data !== undefined) {
                 for (var i=0;i<data.length;i++) {
@@ -239,29 +257,29 @@ $(document).ready(function() {
         var playerName = $(this).data('name');
 
         contextMenu.css("top", "1em");
-        contextMenu.css("left", "1em");
+        contextMenu.css("left", "5px");
 
         contextMenu.find('.dropdown-menu').show();
         contextMenu.find('input[name=shirt-number]').val($(this).find('th').text());
-        setText(contextMenu.find('.dropdown-title').get(0), playerName);
+        setText(contextMenu.find('.modal-title').get(0), playerName);
         contextMenu.data('player', playerName);
         contextMenu.data('club', $(this).closest('table').data('club'));
         contextMenu.data('tr', $(this));
         contextMenu.show();
     });
 
-    $('li.card-yellow').click(function() {
+    $('#context-menu .card-yellow').click(function() {
         incident('yellow',$(this).text(), function() {
             getPlayerRow().find('.player-annotations')
-                .append("<span class='card card-yellow'><img class='card card-yellow' src='img/yellow-card.png'/></span>");
+                .append("<span class='card-penalty card-yellow'><img src='img/yellow-card.png'/></span>");
             $('#context-menu').hide();
         });
     });
 
-    $('li.card-red').click(function() {
+    $('#context-menu .card-red').click(function() {
         incident('red',$(this).text(), function() {
             getPlayerRow().find('.player-annotations')
-                .append("<span class='card card-red'><img class='card card-red' src='img/red-card.png'/></span>");
+                .append("<span class='card-penalty card-red'><img src='img/red-card.png'/></span>");
             $('#context-menu').hide();
         });
     });
@@ -307,10 +325,14 @@ $(document).ready(function() {
         $('#context-menu').hide();
     });
 
-    $('li.card-clear').click(function() {
+    $('#context-menu .card-clear').click(function() {
         incident('clearcards','', function() {
-            getPlayerRow().find('.player-annotations .card').remove();
+            getPlayerRow().find('.player-annotations .card-penalty').remove();
         });
+        $('#context-menu').hide();
+    });
+
+    $('#context-menu .close').click(function() {
         $('#context-menu').hide();
     });
     
@@ -325,7 +347,8 @@ function updateGoals(holder) {
     holder.closest('table')
         .find('.player-annotations .score')
         .each(function() { totalGoals += parseInt($(this).text()); });
-    setText(holder.closest('table').find('caption>.score').get(0), totalGoals);
+    setText(holder.closest('table').find('thead th>.score').get(0), totalGoals);
+    holder.closest('table').data('score', totalGoals);
 }
 
 function getPlayerRow(name) {
@@ -333,13 +356,17 @@ function getPlayerRow(name) {
 }
 
 function incident(type, value, onSuccess) {
-    var url = baseUrl + "&action=player&player=" + $('#context-menu').data('player')
-        +"&club=" + $('#context-menu').data('club')
-        +"&" + type;
+    var cardId = $('#match-card').data('cardid');
+    var url = restUrl + "/Player?card_id=" + cardId + "&player=" + $('#context-menu').data('player')
+        +"&key=" + type + "&club=" + $('#context-menu').data('club');
         
-    if (value) url += "=" + value;
+    if (value) url += "&value=" + value;
 
-    $.post(url).done(onSuccess);
+    if (type == 'remove') {
+      $.ajax({url: url, type:'DELETE', success: onSuccess});
+    } else {
+      $.post(url).done(onSuccess);
+    }
 }
 
 function resize() {

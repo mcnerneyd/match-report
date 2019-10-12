@@ -11,7 +11,7 @@
 			$list = array();
 			$db = Db::getInstance();
 
-			$req = $db->query("select distinct c.name, c.teamsize, c.teamstars, c.code, c.groups
+			$req = $db->query("select distinct c.name, c.teamsize, c.teamstars, c.code, c.groups, c.format
 				from competition c join entry e on c.id = e.competition_id
 				order by sequence");
 

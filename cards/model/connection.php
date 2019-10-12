@@ -1,9 +1,11 @@
 <?php
-require_once('config.php');
 require_once('../lib/phpfastcache/phpfastcache.php');
 
+$cachePath = SITEPATH."/tmp/cache";
+if (!file_exists($cachePath)) mkdir($cachePath, 0755, true);
+
 phpFastCache::setup("storage","auto");
-phpFastCache::setup("path","../tmp");
+phpFastCache::setup("path", SITEPATH."/tmp/cache");
 phpFastCache::setup("securityKey", "cache.folder");
 
 class Db {
@@ -17,10 +19,14 @@ class Db {
 		if (!isset(self::$instance)) {
 			try {
 				$pdo_options[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
-				self::$instance = new PDO('mysql:host=localhost;dbname='.DB_DATABASE,
-				 DB_USERNAME, DB_PASSWORD, $pdo_options);
+				self::$instance = new PDO('mysql:host=localhost;dbname='.
+					Config::get("config.database.name"),
+					Config::get("config.database.username"),
+					Config::get("config.database.password"),
+				  $pdo_options);
 				//debug("Connected to:".DB_DATABASE);
 			} catch (Exception $e) {
+				echo $e->message;
 				throw new Exception("Failed to connected to database");
 			}
 		}

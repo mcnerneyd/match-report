@@ -2,15 +2,26 @@
 // vim: et:ts=2:sw=2
 if (!isset($fixture['card'])) throw new Exception("Card does not exist");
 
+global $strictProcessing;
+$strictProcessing = false;
+if (isset($fixture['competition-strict']) && $fixture['competition-strict'] == 'yes') {
+	$strictProcessing = true;
+}
+if (isset($_REQUEST['strict'])) $strictProcessing = true;
+
 $club = $_SESSION['club'];
+$card = $fixture['card'];
+
+$cardIsOpen = false; 
 
 $whoami = "";
+$mycard = null;
 if ($club and isset($fixture[$club])) {
   $whoami = $fixture[$club];
+  $mycard = $card[$whoami];
+  if (!isset($mycard['closed'])) $cardIsOpen = true;
 }
 
-$card = $fixture['card'];
-$cardIsOpen=!isset($card[$whoami]['closed']) || user('admin');
 list($date,$time) = explode(" ", $fixture['datetime']);
 $time = substr($time, 0, 5);
 $card['away']['suggested-score'] = emptyValue($card['home']['oscore'], 0);
@@ -21,6 +32,9 @@ $baseUrl=substr(url(), 0, -11)."&cid=${card['id']}&x=".createsecurekey("card${ca
 <script>
 var baseUrl = '<?= $baseUrl ?>';
 var restUrl = '<?= Uri::create('CardApi') ?>';
+</script>
+<script src='js/matchcard.js' type='text/javascript'></script>
+<script>
 var messages = [
   {
     level: "info",
@@ -61,13 +75,22 @@ function flashSubmit() {
 $(document).ready(function() {
   triggerMessage();
   flashSubmit();
-  $('#player-name').selectize({
-    create: true,
-    sortField: 'text',
-    persist: false,
-    createOnBlur: true,
-  });
-  //$('#player-name').combobox();
+
+  <?php if ($mycard) { ?>
+  $.getJSON('/public/registrationapi/list.json?t=<?= $mycard['teamx'] ?>',
+    function(json) {
+      for (var i=0;i<json.length;i++) {
+        var p = json[i];
+        $('#player-name').append("<option>" + p['name'] + "</option>");
+      }
+      $('#player-name').selectize({
+        create: true,
+        sortField: 'text',
+        persist: false,
+        createOnBlur: true,
+      });
+    });
+  <?php } ?>
 });
 </script>
 
@@ -86,9 +109,25 @@ $(document).ready(function() {
   padding: 2px 5px !important;
   margin-bottom: 10px !important;
 }
+
+#context-menu {
+  padding-top: 0px;
+}
+
+#context-menu form {
+  padding: 0 1.5em;
+}
+
+#context-menu .modal-header {
+  margin-bottom: 7px;
+}
+
+#submit-card a.float-right {
+    margin-left: 10px;
+  }
 </style>
 
-<?php if ($card['official']) { ?>
+<?php if ($card['official'] || $strictProcessing) { ?>
 <div class='alert alert-warning alert-small'>
   This matchcard has officially appointed umpires. Tap here for more details.
   <div class='alert-detail'>
@@ -100,6 +139,14 @@ $(document).ready(function() {
     </ul>
   </div>
 </div>
+<script>
+$(document).ready(function() {
+  if ($('#matchcard-<?= $whoami ?> .numberless').length > 0) {
+    $('#submit-button').attr('disabled','disabled').addClass('disabled');
+    $('#match-card').before("<div class='alert alert-danger' data-help='adding-shirt-numbers'>Submit Card button is disabled</strong> because there are players without assigned shirt numbers</div>");
+  }
+});
+</script>
 <?php } ?>
 
 <div id='messages' class='alert alert-small hidden'></div>
@@ -111,7 +158,7 @@ $(document).ready(function() {
   if ($class) echo "class='".trim($class)."' ";
 ?>data-fixtureid='<?= $fixture['id'] ?>' data-cardid='<?= $card['id'] ?>' data-starttime='<?= $card['datetime']*1000 ?>'>
 
-  <h1 id='competition' data-code='<?= $card['competition-code'] ?>'><?= $card['competition'] ?></h1>
+  <h1 id='competition' data-code='<?= $card['competition-code'] ?>' data-format='<?= $card['format'] ?>'><?= $card['competition'] ?></h1>
 
   <detail data-timestamp='<?= $fixture['date'] ?>'>
     <?php if (isset($card['away']['locked'])) { ?>
@@ -123,7 +170,7 @@ $(document).ready(function() {
 
     <dl id='fixtureid'>
       <dt>Fixture ID</dt>        
-      <dd><a href='http://cards.leinsterhockey.ie/cards/fuel/public/Report/Card/<?= $fixture['id'] ?>'><?= $fixture['id'] ?></a></dd>
+      <dd><a href='http://cards.leinsterhockey.ie/public/Report/Card/<?= $fixture['id'] ?>'><?= $fixture['id'] ?></a></dd>
     </dl>
 
     <dl id='cardid'>
@@ -157,16 +204,19 @@ $(document).ready(function() {
 
   <form id='submit-card'>
   <?php if ($cardIsOpen) { ?>
-      <a id='submit-button' class='btn btn-success'>Submit Card</a>
-      <a id='postpone' class='btn btn-warning' data-toggle='confirmation' 
+      <a id='submit-button' class='btn btn-success' tabindex='10'><i class="fas fa-check"></i> Submit<span class='d-none d-md-inline'> Card</span></a>
+      <!--a id='postpone' class='btn btn-warning' data-toggle='confirmation' 
         data-title='Mark match as postponed' 
         data-content='This only marks the match as postponed. All postponements must be prior approved by the relevant section committee. Penalties will be imposed for unapproved postponements.'
-        data-btn-ok-label='Postponed' data-btn-cancel-label='Cancel'>Postponed</a>
+        data-btn-ok-label='Postponed' data-btn-cancel-label='Cancel'>Postponed</a-->
   <?php } ?>
-      <a class='btn btn-default' data-toggle='modal' data-target='#add-note'><i class='glyphicon glyphicon-comment'></i> Add Note</a>
+      <a class='btn btn-info float-right' data-toggle='modal' data-target='#add-note' tabindex='21'>
+        <i class="far fa-sticky-note"></i><span class='d-none d-md-inline'> Add Note</span>
+      </a>
+      <a class='add-player btn btn-danger float-right' data-toggle='modal' data-target='#add-player-modal' tabindex='20'><i class="fas fa-user-plus"></i> Add Player</a>
   <?php if (!$cardIsOpen) { ?>
-      <a class='btn btn-success sign-card' data-toggle='modal' data-target='#submit-matchcard'>
-        <i class='glyphicon glyphicon-pencil'></i> Add Signature</a>
+      <a class='btn btn-success sign-card' data-toggle='modal' data-target='#submit-matchcard' tabindex='2'>
+        <i class="fas fa-signature"></i> Add Signature</a>
   <?php } ?>
     </div>
   </form>
@@ -183,35 +233,38 @@ $(document).ready(function() {
     <!-- Modal content-->
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
         <h4 class="modal-title">Submit Card</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
 
       <div class="modal-body" id='submit-form-detail'>
 
         <?php if ($cardIsOpen) { ?>
-        <!--div class='alert alert-danger alert-small'>
-          <strong>Don't forget</strong> Make sure you have added goals, red/yellow cards to
-          your players <u>before</u> submitting the matchcard.
-        </div-->
 
-        <div class='form-group'>
-          <label for='player-name'>Opposition Score</label>
-          <input class='form-control' type='number' name='opposition-score' value='99'/>
-          <small>In cases where the opposition do not submit their matchcard this value will be submitted
-          as the score for the opposition.</small>
-        </div>
+        <form class='needs-validation' novalidation>
+          <!--div class='alert alert-danger alert-small'>
+            <strong>Don't forget</strong> Make sure you have added goals, red/yellow cards to
+            your players <u>before</u> submitting the matchcard.
+          </div-->
 
-        <div class='form-group'>
-          <label for='player-name'>Umpire</label>
-          <input class='form-control' type='text' name='umpire' required="true"/>
-        </div>
+          <div class='form-group'>
+            <label for='opposition-score'>Opposition Score</label>
+            <input class='form-control' type='number' name='opposition-score' required/>
+            <div class='invalid-feedback'>You must provide the opposition score</div>
+          </div>
 
-        <div class='form-group'>
-          <label for='player-name'>Email for receipt (Optional)</label>
-          <input class='form-control' type='email' name='receipt-email'/>
-          <small>If you wish to receive an acknowledgement of submission of this card provide an email address here.</small>
-        </div>
+          <div class='form-group'>
+            <label for='umpire'>Umpire</label>
+            <input class='form-control' type='text' name='umpire' required/>
+            <div class='invalid-feedback'>You must provide your umpire&apos;s name</div>
+          </div>
+
+          <div class='form-group'>
+            <label for='receipt-email'>Email for receipt (Optional)</label>
+            <input class='form-control' type='email' name='receipt-email' title="If you wish to receive an acknowledgement of submission of this card provide an email address here"/>
+          </div>
+
+        </form>
         <?php } ?>
       </div>
 
@@ -224,8 +277,8 @@ $(document).ready(function() {
       </div>
 
       <div class="modal-footer">
-        <?php if ($cardIsOpen) { ?>
-        <div class='alert alert-danger alert-small'>
+        <?php if (false and $cardIsOpen) { ?>
+        <div class='alert alert-danger alert-small md-col-12'>
           <strong>Don't forget</strong> Make sure you have added goals, red/yellow cards to
           your players <u>before</u> submitting the matchcard
         </div>
@@ -233,18 +286,16 @@ $(document).ready(function() {
         <button type="submit" class="btn btn-success" data-dismiss="modal">
           Submit Matchcard
         </button>
-        <a class="btn btn-success">
-          <i class='glyphicon glyphicon-pencil'></i> Sign
-          <i class='glyphicon glyphicon-chevron-right'></i>
+        <a class="btn btn-success" tabindex='1'>
+          <i class="fas fa-signature"></i> Sign <i class="fas fa-chevron-right"></i>
         </a>
-        <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" tabindex="2" data-dismiss="modal">Cancel</button>
       </div>
     </div>
 
   </div>
 </div>
 
-<script src='js/matchcard.js' type='text/javascript'></script>
 <script src='js/signature_pad.min.js' type='text/javascript'></script>
 
 <?php if (isset($card['notes'])) { ?>
@@ -287,19 +338,61 @@ $(document).ready(function() {
 // ------------------------------------------------------------------------
 //     Context Menu
 // ------------------------------------------------------------------------
-if ($cardIsOpen) {
+if ($cardIsOpen || user('admin') || \Auth::has_access('card.superedit')) {
 ?>
-<div id='context-menu' class='dropdown clearfix'>
-  <ul class='dropdown-menu'>
-    <li class='dropdown-title'>Player Name<span id='context-close'>&times;</span></li>
+<div id='context-menu' class='dropdown-menu'>
+    <div class="modal-header">
+      <h4 class="modal-title">Player Name</h4>
+      <button type="button" class="close" data-dismiss="modal">&times;</button>
+    </div>
+
+    <?php if (!user('umpire')) { ?>
+    <div class='dropdown-item'>
+      <button id='remove-player' class='btn btn-block btn-sm btn-danger'>Remove Player</button>
+    </div>
+    <div id='set-number' class='row'>
+      <label>Shirt Number</label>
+      <div class='input-group'>
+        <input type='number' name='shirt-number' class='form-control'/>
+        <button class='btn btn-success'>
+          <i class="fas fa-check"></i>
+        </button>
+      </div>
+    </div>
+    <div class='dropdown-divider'></div>
+    <?php } ?>
+
+    <?php if (!$card['official'] || user('umpire')) { ?>
+    <a class='dropdown-item card-green'>Green Card</a>
+    <a class='dropdown-item card-yellow'>Technical - Breakdown</a>
+    <a class='dropdown-item card-yellow'>Technical - Delay/Time Wasting</a>
+    <a class='dropdown-item card-yellow'>Technical - Dissent</a>
+    <a class='dropdown-item card-yellow'>Technical - Foul/Abusive Language</a>
+    <a class='dropdown-item card-yellow'>Technical - Bench/Coach/Team Foul</a>
+    <a class='dropdown-item card-yellow'>Physical - Tackle</a>
+    <a class='dropdown-item card-yellow'>Physical - Dangerous/Reckless Play</a>
+    <a class='dropdown-item card-red'>Red Card</a>
+    <a class='dropdown-item card-clear'>No Cards</a>
+    <div class='dropdown-divider'></div>
+    <?php } ?>
+
+    <?php if (!user('umpire')) { ?>
+    <div class='dropdown-item btn-group'>
+      <button id='add-goal' class='btn btn-block btn-success'><i class="fas fa-plus"></i> Add Goal</button>
+      <button id='clear-goal' style='margin-top:0' class='btn btn-block btn-warn'><i class="fas fa-ban"></i> Clear Goals</button>
+    </div>
+
+    <?php } ?>
+
+    <?php if (false) { ?>
     <?php if (!user('umpire')) { ?>
     <li>
       <!--button id='photograph' class='btn btn-primary' disabled>Take Photo</button-->
       <h4>Shirt Number</h4>
-      <div class='input-group'>
+      <div class='input-group' id='shirt-number'>
         <input type='number' name='shirt-number' class='form-control'/>
         <span class='input-group-btn'>
-          <button id='set-number' class='btn btn-default'>Set</button>
+          <button class='btn btn-default'>Set</button>
         </span>
       </div>
     </li>
@@ -318,24 +411,9 @@ if ($cardIsOpen) {
     <li class='divider'/>
     <?php } ?>
 
-    <?php if (!$card['official'] || user('umpire')) { ?>
-    <li class='card-yellow'>Technical - Breakdown</li>
-    <li class='card-yellow'>Technical - Delay/Time Wasting</li>
-    <li class='card-yellow'>Technical - Dissent</li>
-    <li class='card-yellow'>Technical - Foul/Abusive Language</li>
-    <li class='card-yellow'>Technical - Bench/Coach/Team Foul</li>
-    <li class='card-yellow'>Physical - Tackle</li>
-    <li class='card-yellow'>Physical - Dangerous/Reckless Play</li>
-    <li class='card-red'>Red Card</li>
-    <li class='card-clear'>No Cards</li>
+
     <?php } ?>
 
-    <li class='divider'/>
-    <li>
-        <button id='remove-player' class='btn btn-warning'>Remove Player</button>
-    </li>
-
-  </ul>
 </div>
 <?php } ?>
 
@@ -354,7 +432,6 @@ if ($cardIsOpen) {
         <label for='player-name'>Player Name</label>
         <select id='player-name'>
           <option></option>
-          <?php foreach ($players as $player) echo "<option>$player</option>\n"; ?>
         </select>
 
       </div>
@@ -378,8 +455,8 @@ if ($cardIsOpen) {
     <!-- Modal content-->
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
         <h4 class="modal-title">Add Note</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
       </div>
       <div class="modal-body">
         <label>Note</label>
@@ -395,35 +472,45 @@ if ($cardIsOpen) {
 </div>
 
 <!--
-<?php print_r($card); echo "\n\n"; print_r($players); ?>
+<?php print_r($card); ?>
 -->
 <?php  //--------------------------------------------------------------
 function render_team($team) {
-  echo "<table data-club='${team['club']}' data-team='${team['teamx']}'>
-  <caption>".$team['team']." <span class='score'>${team['score']}";
+  global $strictProcessing;
+
+  echo "<table class='team-table' data-club='${team['club']}' data-team='${team['teamx']}' data-score='${team['score']}'>
+  <thead><tr><th colspan='100'>".$team['team']." <span class='score'>${team['score']}";
   if ($team['suggested-score'] != $team['score']) echo "<span class='score'>".$team['suggested-score']."</span>";
   echo "</span>";
   if (user('admin')) echo "<a class='unlock'>Unlock</a>";
-  echo "</caption>
+  echo "</th></tr></thead>
 
   <tbody>\n";
 
   $ct = 0;
   foreach ($team['players'] as $player=>$detail) {
-    list($lastName, $firstName) = cleanSplit($player);
-    $firstName = trim($firstName);
+
+
+    $names = cleanName($player, "[Fn][LN]");
 
     $class = "player";
-    if (isset($detail['ineligible'])) $class.=" ineligible";
-    if (isset($detail['late'])) $class.=" late";
     if (isset($detail['deleted'])) $class.=" deleted";
+    else {
+      if (isset($detail['ineligible'])) $class.=" ineligible";
+      if (isset($detail['late'])) $class.=" late";
+      if ($strictProcessing) {
+        if (!isset($detail['number']) or !$detail['number']) {
+          $class .= " numberless";
+        }
+      }
+    }
 
     $imagekey = createsecurekey("image$player${team['club']}");
     $url="image.php?site=".site()."&player=$player&w=200&club=${team['club']}&x=$imagekey";
     echo "    <tr class='$class' data-timestamp='${detail['datetime']}' data-imageurl='$url' data-name='$player'>
       <th>".(isset($detail['number'])?$detail['number']:"")."</th>
-      <td data-firstname='$firstName'>$firstName</td>
-      <td data-surname='$lastName'>$lastName ";
+      <td>${names['Fn']}</td>
+      <td>${names['LN']} ";
 
     echo "<div class='player-annotations'>";
     if ($detail['score'] != 0) echo "<span class='score'>${detail['score']}</span>";
@@ -431,7 +518,7 @@ function render_team($team) {
       foreach ($detail['cards'] as $rycard) {
         $type = "yellow";
         if ($rycard['type'] == 'Red Card') $type = "red";
-        echo "<span class='card card-$type'>${rycard['detail']}</span>";
+        echo "<span class='card-penalty card-$type'>${rycard['detail']}</span>";
       }
     }
     if (isset($detail['detail'])) {

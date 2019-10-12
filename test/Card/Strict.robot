@@ -1,6 +1,8 @@
 *** Settings ***
 Resource				../Common.robot
-Suite Setup			Login	Aardvarks	1111
+Suite Setup			Run Keywords	Set Strict
+...														Login	Aardvarks	1111
+										
 Test Setup			Create Card With Player
 Suite Teardown	Close Browser
 
@@ -48,6 +50,12 @@ Create Card With Player
 	Select Player			Jackeline GOSHA
 	Submit Team
 	Page Should Contain		matchcard has officially appointed umpires
+
+Set Strict
+	Login					'administrator@nomail.com'		password
+	Go To					http://cards.leinsterhockey.ie/public/Admin/Config
+	Input Text		name:strict_comps						d3
+	Click Button	Save
 
 Player Menu
 	[Arguments]			${player}

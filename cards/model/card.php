@@ -272,14 +272,14 @@ class Card {
 			"validate"=>date('Y-m-d', $validate));
 	}
 
-	public static function getFixtures() {
+	private static function getFixtures() {
 
 		Log::debug("Getting fixtures");
 
 		$allfixtures = array();
 		$ctr = 1;
 
-		foreach (explode("\n", FIXTURE_FEED) as $feed) {
+		foreach (Config::get("config.fixtures") as $feed) {
 
 			if (!$feed) continue;
 
@@ -348,6 +348,8 @@ class Card {
 				$object->away = $line[3];
 
 				$fixtures[] = $object;
+			} else if ($feed[0] == '^') {
+				continue;
 			} else {
 				$src = Cache::getInstance()->get($feed);
 
@@ -514,7 +516,7 @@ class Card {
 		}
 
 
-		if (in_array(strtolower($result['competition-code']),explode("\n", STRICT))) {
+		if (in_array(strtolower($result['competition-code']),explode(",", Config::get("config.strict_comps")))) {
 			$result['competition-strict'] = 'yes';
 		} else {
 			$result['competition-strict'] = 'no';
@@ -640,7 +642,7 @@ class Card {
     $sql = "select x.name competition, ch.id homeclubid, ch.name homeclub, 
 				ca.name awayclub, th.team hometeam, ta.team awayteam, m.date, m.id, m.fixture_id,
 				th.id hometeamid, ta.id awayteamid, ca.id awayclubid, x.teamsize,
-				ch.code homecode, ca.code awaycode, x.code competitioncode, m.open
+				ch.code homecode, ca.code awaycode, x.code competitioncode, m.open, x.format
       from matchcard m
         left join team th on th.id = m.home_id
         left join club ch on ch.id = th.club_id
@@ -663,6 +665,7 @@ class Card {
       'competition'=>$result['competition'],
       'competition-code'=>$result['competitioncode'],
 			'leaguematch'=>($result['teamsize'] == null ? false : true),
+			'format'=>$result['format'],
       'date'=>date("F j, Y", strtotime($result['date'])),
       'datetime'=>	strtotime($result['date']),
 			'open'=>$result['open'],
@@ -842,7 +845,7 @@ class Card {
       }
 
 			//$cName = Player::cleanName($row['player']);
-			$cName = cleanName($row['player'], "LN, Fn");
+			$cName = cleanName($row['player'], "Fn LN");
 
       if (array_key_exists($cName, $card[$side]['players'])) {
         $card[$side]['players'][$cName]['number'] = $row['detail'];

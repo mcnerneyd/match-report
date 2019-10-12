@@ -67,6 +67,10 @@ function cleanName($player, $format = "Fn LN") {
 				$player = strtoupper($lastname).", ".ucwords(strtolower($firstname));
 				break;
 					
+			case "[Fn][LN]":
+				return array("Fn"=>ucwords(strtolower($firstname)),
+						"LN"=>strtoupper($lastname));
+
 			case "Fn LN":
 			default:
 				$player = ucwords(strtolower($firstname))." ".strtoupper($lastname);
@@ -103,19 +107,19 @@ function unicode_trim ($str) {
 // Write a log entry to the fuelphp logs
 function log_write($level, $msg) {
 	try {
-	$filename = "fuel/fuel/app/logs/".date("Y/m/d").".php";
+	$filename = DATAPATH."/logs/".date("Y/m/d").".php";
 	$dir = dirname($filename);
 
 	if (!file_exists($dir)) {
 		mkdir($dir, 0777, true);
 	}
 
-	$msg = "{".$_SESSION['site'].".".user()."} ".$msg;
+	//$msg = "{".$_SESSION['site'].".".user()."} ".$msg;
 
-	$msg = "$level - ".date("Y-m-d H:i:s")." --> # ".$msg."\n";
+	$msg = "$level - ".date("Y-m-d H:i:s")." --> # $msg\n";
 
 	if (!file_exists($filename)) {
-		$msg = "<?php defined('COREPATH') or exit('No direct script access allowed'); ?>\n\n".$msg; 
+		$msg = "<?php defined('COREPATH') or exit('No direct script access allowed'); ?".">\n\n$msg"; 
 	}
 
 	file_put_contents($filename, $msg, FILE_APPEND);
@@ -173,28 +177,19 @@ function rangeEnd($now = null) {
 
 //-----------------------------------------------------------------------------
 function parse($str) {
-	$configFile ='sites/'.site().'/patterns.ini';
-	//echo "<!-- match:$str -->";
-	if (file_exists($configFile)) {
-		$config = file($configFile);
-
-
-		$patterns = array();
-		$replacements = array();
-		while (trim(array_shift($config)) != '');
-		array_shift($config);
-		foreach ($config as $pattern) {
-			if (trim($pattern) == '') break;
-			$parts = explode($pattern[0], $pattern);
-			if (count($parts) < 3) continue;
-			$patterns[] = "/${parts[1]}/i";
-			$replacements[] = $parts[2];
-		}
-
-		$str = preg_replace($patterns, $replacements, trim($str));
-
-		if ($str == '!') return null;
+	$config = Config::get("config.pattern.team");
+	$patterns = array();
+	$replacements = array();
+	foreach ($config as $pattern) {
+		$parts = explode($pattern[0], $pattern);
+		if (count($parts) < 3) continue;
+		$patterns[] = "/${parts[1]}/i";
+		$replacements[] = $parts[2];
 	}
+
+	$str = preg_replace($patterns, $replacements, trim($str));
+
+	if ($str == '!') return null;
 
 	$matches = array();
 	if (!preg_match('/^([a-z ]*[a-z])(?:\s+([0-9]+))?$/i', trim($str), $matches)) {
@@ -217,25 +212,24 @@ function parse($str) {
 
 //-----------------------------------------------------------------------------
 function parseCompetition($str, $competitions) {
-	$configFile ='sites/'.site().'/patterns.ini';
-	if (file_exists($configFile)) {
-		$config = file($configFile);
-
-		$patterns = array();
-		$replacements = array();
-		array_shift($config);
-		foreach ($config as $pattern) {
-			if (trim($pattern) == '') break;
-			$parts = explode($pattern[0], $pattern);
-			if (count($parts) < 3) continue;
-			$patterns[] = "/${parts[1]}/i";
-			$replacements[] = $parts[2];
-		}
-
-		$newstr = trim(preg_replace($patterns, $replacements, trim($str)));
-
-		if ($newstr == '!') return null;
+	$config = Config::get("config.pattern.competition");
+	if (!$config) {
+		Log::warn("No competition patterns specified");
 	}
+
+	$patterns = array();
+	$replacements = array();
+	foreach ($config as $pattern) {
+		if (trim($pattern) == '') break;
+		$parts = explode($pattern[0], $pattern);
+		if (count($parts) < 3) continue;
+		$patterns[] = "/${parts[1]}/i";
+		$replacements[] = $parts[2];
+	}
+
+	$newstr = trim(preg_replace($patterns, $replacements, trim($str)));
+
+	if ($newstr == '!') return null;
 
 	if ($competitions != null && !in_array($newstr, $competitions)) {
 		throw new Exception("Cannot resolve competition '$newstr' ('$str')");

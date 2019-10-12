@@ -5,7 +5,7 @@ ini_set('max_execution_time', 300);
 error_reporting(E_ALL);
 
 require_once('util.php');
-require_once('config.php');
+require_once('fuel.php');
 require_once('model/connection.php');
 
 function debug($msg) { }
@@ -37,5 +37,10 @@ if (isset($_GET['c'])) {
 
 	return;
 }
+
+echo "<pre>";
+$configFile = DATAPATH.'/sites/'.site().'/config.json';
+print_r(json_decode(file_get_contents($configFile), true));
+echo "</pre>";
 
 phpinfo();

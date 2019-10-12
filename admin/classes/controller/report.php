@@ -1,0 +1,515 @@
+<?php
+class Controller_Report extends Controller_Template
+{
+	// --------------------------------------------------------------------------
+	public function action_cards() {
+		$cards = Model_Incident::find('all', array(
+			'where'=> array(
+				array('type','Red Card'),
+				'or'=>array('type','Yellow Card'),
+			),
+			'order_by'=>array('date'=>'desc'),
+		));
+
+		$club = \Session::get('club', null);
+		if ($club) {
+			$cards = array_filter($cards, function($a) use ($club) {
+				return ($a['club']['name'] == $club);
+			});
+		}
+
+		$this->template->title = "Red/Yellow Cards";
+		$this->template->content = View::forge('report/cards', array(
+			'cards'=>$cards
+		));
+	}
+
+
+	// --------------------------------------------------------------------------
+	public function action_regsec() {
+		if (!\Auth::has_access("registration.status")) {
+			return new Response("Not permitted: administrator only", 403);
+		}
+
+		$reportDate = time();
+
+		$this->template->title = "Registration Secretary Report";
+		$this->template->content = View::forge('report/registration', array(
+			'reportDate'=>$reportDate
+		));
+	}
+
+	// -------------------------------------------------------
+	public function action_summary() {
+		$club = \Input::get('c');
+		$club = Model_Club::find_by_name($club);
+
+		if (\Input::get('d')) {
+			$dateTo = strtotime(\Input::get('d'));
+		} else {
+			$dateTo = strtotime(date("Y-m-d")." 00:00");
+		}
+
+		$dateFrom = strtotime("-7 days", $dateTo);
+
+		$incidents = Model_Incident::find('all', array(
+			'where'=> array(
+				array('date','<',date('Y-m-d', $dateTo)),
+				array('date','>',date('Y-m-d', $dateFrom)),
+				array('club_id','=', $club['id'])
+				)
+			)
+		);
+
+		$cards = array();
+		foreach (Model_Card::find('all', array(
+			'where'=> array(
+				array('date','<',date('Y-m-d', $dateTo)),
+				array('date','>',date('Y-m-d', $dateFrom)),
+				),
+			'order_by' => array('date'=>'asc'),
+			)
+		) as $card) {
+			if ($card['home']['club_id'] == $club['id'] || $card['away']['club_id'] == $club['id']) {
+				$cards[] = Model_Card::card($card['id']);
+			}
+		}
+
+		$fines = array_filter($incidents, function($a) { return $a['type'] == 'Missing'; });
+		$scores = array_filter($incidents, function($a) { return $a['type'] == 'Scored'; });
+
+		echo \View::forge("report/summary", array('club'=>$club,
+			'date'=>array('from'=>date('Y-m-d', $dateFrom),'to'=>date('Y-m-d', $dateTo)),
+			'cards'=>$cards,
+			'fines'=>$fines,
+			'scores'=>$scores));
+
+		return new Response("Report sent", 200);
+	}
+
+	public function action_email() {
+		$club = Input::param("c");
+
+		if (!$club) {
+			Log::warning("No club specified");
+			foreach (Model_Club::find('all') as $club) {
+				enqueue("fuel/public/report/email?site=".Session::get('site')."&c=".urlencode($club['name']));
+			}
+			return;
+		}
+
+		$date = date('d/m/Y');
+
+		$emailAddresses = array();
+
+		foreach (DB::query("select email from user u join club c on u.club_id = c.id 
+				where role='secretary' and c.name='$club'")->execute() as $row) {
+			$emailAddresses[] = $row['email'];
+		}
+
+		//$card = Model_Card::card($cardId);
+		$autoEmail = Config::get("config.automation_email");
+		$title = Config::get("config.title");
+		$email = Email::forge();
+		$email->from($autoEmail, "$title (No Reply)");
+		$email->to($emailAddresses);
+		$body = View::forge("report/weeklyemail", array( 
+			"club"=>$club,
+			"date"=>$date));
+		$matches = array();
+		if (preg_match('/title>(.*)<\/title/', $body, $matches)) {
+			$email->subject($matches[1]);
+		}
+		$email->html_body($body);
+		$email->send();
+		Log::info("Receipt email sent to ".implode(',',$emailAddresses)." =".print_r($email, true));
+		//print_r($email);
+
+		return new Response($body);
+	}
+
+	public function action_index() {
+		$this->template->title = "Reports";
+		$this->template->content = View::forge('report/index');
+	}
+
+	public function action_games() {
+		$dates = Db::query('select distinct date from incident order by date');
+	}
+
+	public function action_played() {
+		$result = Db::query("select i.player, c.name club, count(1) count, coalesce(ta.team, th.team) team from incident i
+							join club c on i.club_id = c.id 
+							join matchcard m on m.id = i.matchcard_id
+							left join team ta on m.away_id = ta.id and ta.club_id = c.id
+							left join team th on m.home_id = th.id and th.club_id = c.id
+					where i.type = 'Played' and i.date > '2018-06-01'
+						and i.resolved = 0
+					group by i.player, c.name, coalesce(ta.team, th.team)
+					order by i.player, coalesce(ta.team, th.team) desc");
+
+		$summary = array();
+		foreach ($result->execute() as $row) {
+			echo "<!-- ".print_r($row,true)." -->\n";
+			$playerName = $row['player']."/".$row['club'];
+			if (!isset($summary[$playerName])) {
+				$summary[$playerName] = array('name'=>$row['player'],
+					'club'=>$row['club'],
+					'total'=>0,
+					'lowestTeam'=>$row['team'],
+					'highestTeam'=>$row['team'],
+					'lowestTeamCount'=>$row['count']);
+			}
+			$summary[$playerName]['total'] = $summary[$playerName]['total'] + $row['count'];
+			$summary[$playerName]['highestTeam'] = $row['team'];
+		}
+
+		$this->template->title = "Played Games";
+		$this->template->content = View::forge('report/played', array('data'=>$summary));
+	}
+
+	public function action_card() {
+		$cardId = $this->param('id');
+
+		if (substr($cardId,0,1) == "n") {
+			$card = Model_Card::card(substr($cardId, 1));
+			$fixture = Model_Fixture::get($card['fixture_id']);
+		} else {
+			$card = Model_Card::find_by_fixture($cardId);
+			$fixture = Model_Fixture::get($cardId);
+		}
+
+		$incidents = Model_Card::incidents($card['id']);
+
+		$html = View::forge('report/card', array('card'=>$card, 'fixture'=>$fixture, 
+				'incidents'=>$incidents))->render();
+		return new Response($html);
+	}
+
+	public function action_scorers() {
+
+		$data['scorers'] = Model_Report::scorers();
+
+		$this->template->title = "Scorers";
+		$this->template->content = View::forge('report/scorers', $data);
+	}
+
+	public function action_diagnostics() {
+
+		$this->template->title = "Diagnostics";
+		$this->template->content = "<pre>Fuel Base: ".Uri::base(false)."\n"
+			.\Model_Task::command(array('command'=>"abc"))."\n"
+			."php version:".phpversion()."\n"
+			."SERVER:".print_r($_SERVER,true)."\n\n"
+			."REQUEST:".print_r($_REQUEST,true)."</pre>";
+	}
+
+	private static function strToHex($string){
+    $hex = '';
+    for ($i=0; $i<strlen($string); $i++){
+        $ord = ord($string[$i]);
+        $hexCode = dechex($ord);
+        $hex .= substr('0'.$hexCode, -2);
+    }
+    return strToUpper($hex);
+	}
+
+	public function action_parsing() {
+		$dbComps = array();
+		foreach (Model_Competition::find('all') as $comp) $dbComps[] = $comp['name'];
+		$dbClubs = array();
+		foreach (Model_Club::find('all') as $comp) {
+			echo "${comp['name']} ".self::strToHex($comp['name'])."\n";
+			$dbClubs[] = $comp['name'];
+			}
+
+		$teams = array();
+		$competitions = array();
+
+		foreach (Model_Fixture::getAll() as $fixture) {
+			$competitions[$fixture['competition']] = "xx";
+			$teams[$fixture['home']] = "xx";
+			$teams[$fixture['away']] = "xx";
+		}
+
+		/*
+		print_r($dbComps);
+		print_r($dbClubs);
+
+		print_r($competitions);
+		print_r($teams);
+		*/
+
+		foreach ($competitions as $competition=>$x) {
+			$comp = Model_Competition::parse($competition);
+			echo "$competition -> $comp\n";
+			$competitions[$competition] = array('valid'=>in_array($comp, $dbComps), 'name'=>$comp);
+		}
+
+		foreach ($teams as $team=>$x) {
+			$tm = Model_Club::parse($team);
+			$tm['valid'] = in_array($tm['club'], $dbClubs);
+			echo "$team -> ${tm['club']} =${tm['valid']}".self::strToHex($tm['club'])."\n";
+			$teams[$team] = $tm;
+		}
+
+		ksort($competitions);
+		ksort($teams);
+		$data = array('competitions'=>$competitions,'teams'=>$teams);
+
+		$this->template->title = "Parsing";
+		$this->template->content = View::forge('report/parsing', $data);
+	}
+
+	public function action_mismatch() {
+		$mismatches = array();
+
+		foreach (Model_Fixture::getAll() as $fixture) {
+			$card = Model_Card::find_by_fixture($fixture['fixtureID']);
+			if (!$card) continue;		// If the fixture has no card, there's no mismatch
+			if (!$card['away_id'] || !$card['home_id']) continue;		// Don't card about EHYL etc
+
+			if (($card['home']['goals'] == $fixture['home_score'])
+					and ($card['away']['goals'] == $fixture['away_score'])) continue;
+
+			echo "<!-- ".print_r($card,true)." -->\n";
+
+			$card['home_score'] = $fixture['home_score'];
+			$card['home_team'] = $card['home']['club'].' '.$card['home']['team'];
+			$card['away_score'] = $fixture['away_score'];
+			$card['away_team'] = $card['away']['club'].' '.$card['away']['team'];
+
+			$outcomeAffected = false;
+
+			if ($card['home_score'] == $card['away_score']) {
+				if ($card['home']['goals'] != $card['away']['goals']) $outcomeAffected = true;
+			}
+
+			if ($card['home']['goals'] == $card['away']['goals']) {
+				if ($card['home_score'] != $card['away_score']) $outcomeAffected = true;
+			}
+
+			if ((($card['home']['goals'] - $card['away']['goals']) * ($card['home_score'] - $card['away_score'])) < 0) {
+				$outcomeAffected = true;
+			}
+
+			$card['outcome_affected'] = $outcomeAffected;
+
+			$mismatches[] = $card;
+		}
+
+		$this->template->title = "Mismatch Results";
+		$this->template->content = View::forge('report/mismatch', array('mismatches'=>$mismatches));
+	}
+
+	// ----------------------------------------------------
+	public function action_latecards() {
+		//if (!\Auth::has_access('admin.all')) throw new HttpNoAccessException;
+
+		$fines = array();
+
+		try {
+			// ---- Unstarted Cards -------------------------
+			$fixtureIds = array();
+			$nowDate = Date::forge();
+			foreach (Model_Fixture::getAll() as $fixture) {
+				if ($fixture['datetime'] > $nowDate) continue;
+				$fixtureIds[] = $fixture['fixtureID'];
+			}
+			Log::info("Verify ".count($fixtureIds)." fixtures");
+			$missing = Model_Card::fixturesWithoutMatchcards($fixtureIds);
+			$newCards = false;
+			foreach ($missing as $missingCard) {
+				if (Model_Card::createCard($missingCard)) $newCards = true;
+			}
+			if ($newCards) {
+				$this->template->title = "Late/Missing Cards Report";
+				$this->template->content = "Processing...";
+				return;
+			}
+
+			// ---- Incomplete Cards ------------------------
+			$cards = \Model_Card::incompleteCards(0, 7);
+
+			foreach ($cards as $cardId) {
+				try {
+					$card = \Model_Card::card($cardId['id']);
+				} catch (Exception $e) {
+					Log::error("Failed to process incomplete card: ${cardId['id']}:".$e->getMessage());
+					continue;
+				}
+
+				$fixture = Model_Fixture::get($card['fixture_id']);
+
+				if (!$fixture) continue;
+
+				if (isset($fixture['comment'])) {
+						if (preg_match("/\bPP\b|\bpostpone|not played/i", $fixture['comment'])) continue;
+				}
+
+				if (!isset($fixture['datetime']) || !is_object($fixture['datetime'])) {
+					Log::error("Non-object error, cardid=${cardId['id']}");
+					continue;
+				}
+
+				// Match time is in the future
+				if ($fixture['datetime'] > Date::forge()) continue;
+
+				// If the time hasn't been updated they've been fined already...
+				$time = (int)$fixture['datetime']->format('%H');
+				if ($time < 9) continue;
+				// FIXME but if the home team has players and the opposition has none at midnight - fine them
+				// FIXME if by midnights, no players are on the card, it's probably postponed
+
+				$fine = $this->fine($card, $card['home'], $fixture['datetime']->get_timestamp());
+				if ($fine) $fines[] = $fine;
+
+				if (!$card['home']['players'] && !$card['away']['players']) continue;
+
+				$fine = $this->fine($card, $card['away'], $fixture['datetime']->get_timestamp());
+				if ($fine) {
+					$fines[] = $fine;
+					$card = Model_Card::find($card['id']);
+					$card->open = 60;
+					$card->save();
+				}
+			}
+
+			// ---- Unclosed Cards --------------------------
+			foreach (\Model_Card::unclosedCards() as $cardId) {
+				try {
+					$card = \Model_Card::card($cardId['id']);
+				} catch (Exception $e) {
+					Log::error("Failed to process unclosed card: ${cardId['id']}:".$e->getMessage());
+					continue;
+				}
+
+				$fixture = Model_Fixture::get($card['fixture_id']);
+
+				if (!$fixture) continue;
+
+				if (isset($fixture['comment'])) {
+						if (preg_match("/\bPP\b|\bpostpone|not played/i", $fixture['comment'])) continue;
+				}
+
+				if (!isset($fixture['datetime']) || !is_object($fixture['datetime'])) {
+					echo "Non-object error, cardid=".$cardId['id']."\n";
+					print_r($fixture);
+					continue;
+				}
+
+				// Match time is in the future
+				if ($fixture['datetime'] > Date::forge()) continue;
+
+				// If the time hasn't been updated they've been fined already...
+				$time = (int)$fixture['datetime']->format('%H');
+				if ($time < 9) continue;
+
+				$fine = $this->fineIncomplete($card, $card['home'], $fixture['datetime']->get_timestamp());
+				if ($fine) $fines[] = $fine;
+
+				$fine = $this->fineIncomplete($card, $card['away'], $fixture['datetime']->get_timestamp());
+				if ($fine) {
+					$fines[] = $fine;
+					$card = Model_Card::find($card['id']);
+					$card->open = 60;
+					$card->save();
+				}
+			}
+
+			$cards = array();		// FIXME where card doesn't exist but fixture is expired
+				// Ignore fixtures that appear in incompleteCards
+
+			// Remove where club is fined twice
+			$finedAlready = array();
+
+			foreach ($fines as $fine) {
+				$key = $fine['matchcard_id']."/".$fine['team'];
+				if (isset($finedAlready[$key])) {
+					continue;
+				}
+				$finedAlready[$key] = $fine;
+			}
+			$fines = array_values($finedAlready);
+
+			if (\Input::param("execute")) {
+				foreach ($fines as $fine) {
+					try {
+						echo "Executing fine: ".print_r($fine, true)."<br>";
+						$fine->save();
+					} catch (Exception $e1) {
+						Log::error("Failed to issue fine: ${fine['matchcard_id']}/${fine['team']} ".$e1->getMessage());
+					}
+				}
+			}
+		} catch (Exception $e) {
+			echo "<pre>".$e->getMessage()."\n".$e->getTraceAsString()."</pre>";
+		}
+
+		$this->template->title = "Late/Missing Cards Report";
+		$this->template->content = View::forge('report/latecards', array('faults'=>$fines));
+	}
+
+	private function fineIncomplete($card, $clubcard, $cardTime) {
+			if (!$clubcard['club']) return false;
+			if (count($clubcard['fines']) > 0) return false;
+			if (isset($clubcard['umpire'])) return false;
+			if (!$clubcard['players']) return false;
+
+			$value = \Config::get('config.fine', 10);
+
+			$newfine = new Model_Fine();
+			$newfine->competition = $card['competition'];
+			$newfine->cardtime = $cardTime;
+			$newfine->team = "${clubcard['club']} ${clubcard['team']}";
+			$newfine->fixture_id = $card['fixture_id'];
+			$newfine->matchcard_id = $card['id'];
+			$newfine->detail = $value.':Card not submitted';
+			$newfine->club_id = $clubcard['club_id'];
+			$newfine->type = 'Missing';
+			$newfine->message = "Card must be submitted by midnight";
+			$newfine->resolved = 0;
+
+			return $newfine;
+	}
+
+	private function fine($card, $clubcard, $cardTime) {
+			if (!$clubcard['club']) return false;
+			if (count($clubcard['fines']) > 0) return false;
+
+			// If club has already been fined for this - then skip it
+			foreach ($clubcard['fines'] as $fine) {
+				if (isset($fine['Missing'])) {
+					if (stripos($fine['Missing'], 'Card Incomplete at Match Time')) {
+						return false;
+					}
+				}
+			}
+
+			$onTimePlayerCount = 0;
+			foreach ($clubcard['players'] as $player) {
+				if ($player['date']->get_timestamp() < $cardTime) {
+					$onTimePlayerCount++;
+				}
+			}
+
+			if ($onTimePlayerCount >= 7) return false;
+			$fCardTime = date("Y.m.d G:i", $cardTime);
+
+			$value = \Config::get('config.fine', 10);
+
+			$newfine = new Model_Fine();
+			$newfine->competition = $card['competition'];
+			$newfine->cardtime = $cardTime;
+			$newfine->team = "${clubcard['club']} ${clubcard['team']}";
+			$newfine->fixture_id = $card['fixture_id'];
+			$newfine->matchcard_id = $card['id'];
+			$newfine->club_id = $clubcard['club_id'];
+			$newfine->detail = $value.':Card Incomplete at Match Time';
+			$newfine->type = 'Missing';
+			$newfine->message = "$onTimePlayerCount players on card";
+			$newfine->resolved = 0;
+
+			return $newfine;
+	}
+}

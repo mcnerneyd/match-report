@@ -17,42 +17,27 @@
 	along with this program.  If not, see http://www.gnu.org/licenses/.
 --------------------------------------------------------------------- */
 
-function site() {
-	$site = null;
 
-	if ($site == null && isset($_REQUEST['site'])) {
-		$site = $_REQUEST['site'];
-	}
-
-	if ($site == null && isset($_COOKIE['site'])) {
-		$site = $_COOKIE['site'];
-	}
-
-	if ($site == "") $site = null;
-	
-	if (!$site) {
-		return false;
-	}
-
-	return $site;
-}
-
-function getConfig($config, $section, $setting, $default = null) {
+/*
+function getConfig($config, $section, $setting = null, $default = null) {
+	if (!$config) return $default;
 	if (!isset($config[$section])) return $default;
+	if ($setting == null) {
+		return $config[$section];
+	}
+
 	if (!isset($config[$section][$setting])) return $default;
 
 	return $config[$section][$setting];
 }
+*/
 
-if (site() and !defined('DB_DATABASE')) {
-	$root = dirname(__FILE__);
-	$configFile = $root.'/sites/'.site().'/config.ini';
-	$config = parse_ini_file($configFile, true);
+/*if (site() and !defined('DB_DATABASE')) {
+	$configFile = DATAPATH.'/sites/'.site().'/config.json';
+	$config = json_decode(file($configFile));
 
-	//echo "<!-- Config: $configFile\n".print_r($config, true)." -->";
-
-	define("TITLE", getConfig($config,'main','title'));
-	define("HASH_TEMPLATE", getConfig($config,'main','hashtemplate'));
+	define("TITLE", getConfig($config,'title'));
+	define("HASH_TEMPLATE", getConfig($config,'hashtemplate'));
 	define("ADMIN_CODE", getConfig($config,'users','admin.code'));
 	define("ADMIN_EMAIL", getConfig($config,'users','admin.email'));
 	define("REPORT_CC", getConfig($config,'main','report.admin'));
@@ -61,35 +46,12 @@ if (site() and !defined('DB_DATABASE')) {
 	define("DB_DATABASE", getConfig($config,'database','database'));
 	define("DB_USERNAME", getConfig($config,'database','username'));
 	define("DB_PASSWORD", getConfig($config,'database','password'));
-	define("SITE_NAME", getConfig($config,'main','title'));
+	define("SITE_NAME", getConfig($config,'title'));
 	define("FIXTURE_FEED", implode("\n", getConfig($config,'main','fixturefeed', array())));
 	define("STRICT", implode("\n", getConfig($config,'main','strict', array())));
 	define("EXPLICIT_TEAMS", getConfig($config,'main','allowassignment', true));
 	define("UPLOAD_FORMAT", getConfig($config,'main','uploadformat'));
 } else {
 	define("TITLE", "");
-}
+}*/
 
-class Config {
-	public static function get($path) {
-		$root = dirname(__FILE__);
-		$configFile = $root.'/sites/'.site().'/config.json';
-
-		$json = file_get_contents($configFile);
-		$config = json_decode($json, true);
-
-		$keys = explode('.', $path);
-		array_shift($keys);
-
-		$value = $config;
-		foreach ($keys as $key) {
-			if (!isset($value[$key])) {
-				Log::warn("No such key $key from $path");
-				return null;
-			}
-			$value = $value[$key];
-		}
-
-		return $value;
-	}
-}

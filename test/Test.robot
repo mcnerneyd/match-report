@@ -1,11 +1,8 @@
-*** Settings ***
-Resource	Common.robot
-
 *** Test Cases ***
-Create A Card
-	Login						test	Aardvarks		1234
-	Reset Card			D1Aardvarks1Bears2
+Player Can Be In A Group
 
-	# Build team
-	Open Card				D1Aardvarks1Bears2
-	Select Player		AIGNER
+Validate Membership Players
+
+Ineligible Players Marked As Ineligible
+
+

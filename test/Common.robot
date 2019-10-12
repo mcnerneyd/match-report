@@ -5,15 +5,16 @@ Library						RequestsLibrary
 Library						String
 
 *** Variables ***
-${HOST}           cards.leinsterhockey.ie/cards/fuel/public
+${HOST}           cards.leinsterhockey.ie/public
 ${LOGIN URL}      http://${HOST}/Login
 ${WELCOME URL}    http://${HOST}/welcome.html
-${BROWSER}        Chrome
+${BROWSER}        headlesschrome
 
 *** Keywords ***
 Login
 	[Arguments]    ${username} 	${pin}
-	Open Browser    					${LOGIN URL}    ${BROWSER}
+	Open Chrome    					
+	Go To 										${LOGIN URL}
 	Click Element							xpath=//div[@id='cookie-consent']/button		
 	Click Element							xpath=//a[@data-site='test']
 	Select From List By Label	user-select		${username}
@@ -22,7 +23,8 @@ Login
 
 Secretary Login
 	[Arguments]    ${username} 	${pin}
-	Open Browser    					${LOGIN URL}    ${BROWSER}
+	Open Chrome    					
+	Go To											${LOGIN URL}
 	Click Element							xpath=//div[@id='cookie-consent']/button		
 	Click Element							xpath=//a[@data-site='test']
 	Click Link								Secretary Login
@@ -48,8 +50,12 @@ Check Player
 	Should Be Equal	${attr}		${class}		Player ${player} not ${class}
 
 Go To Matches
-	Go To						http://${HOST}
+	Go To						http://${HOST}/../card/
+	Run Keyword And Ignore Error			Toggle Menu
 	Click Element		link=Matches
+
+Toggle Menu
+	Click Element		css:.navbar-toggler
 
 Submit Team
 	Sleep														2 seconds
@@ -68,12 +74,23 @@ Submit Card
 
 Reset Card	
 	[Arguments]			${fixtureid}
-	${auth}=				Create List		Aardvarks		1234
+	${auth}=				Create List		admin		1234
 	Create Session	cards		http://${HOST}	auth=${auth}
 	Delete Request	cards		/cardapi?site=test&id=${fixtureid}
 
 Open Card
 	[Arguments]			${cardkey}
 	Go To Matches
-	Click Element		xpath=//tr[@data-id='${cardkey}']
+	Sleep						2s
+	Click Element		xpath=//tr[@id='${cardkey}']
+	Sleep						2s
+
+Open Chrome
+		Register Keyword To Run On Failure		NOTHING
+    ${chrome_options}=    Evaluate    sys.modules['selenium.webdriver'].ChromeOptions()    sys, selenium.webdriver
+    #Call Method    ${chrome_options}    add_argument    --disable-extensions
+    #Call Method    ${chrome_options}    add_argument    --headless
+    #Call Method    ${chrome_options}    add_argument    --disable-gpu
+    #Call Method    ${chrome_options}    add_argument    --no-sandbox
+    Create Webdriver    Chrome    chrome_options=${chrome_options}
 
