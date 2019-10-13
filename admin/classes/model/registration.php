@@ -369,7 +369,7 @@ class Model_Registration
 							$pt = $groups[$group];
 						} else {
 							$matches = array();
-							if (preg_match('/^([0-9]+)(st|nd|rd|th)?$/', $arr[$i], $matches)) {
+							if (preg_match('/^([0-9]+)(?:(st|nd|rd|th)(s)?)?$/', $arr[$i], $matches)) {
 								$playerTeam = $matches[1];
 								$pt = $arr[$i];
 							}
