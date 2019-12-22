@@ -50,9 +50,9 @@ class Model_Incident extends \Orm\Model
 			$q->execute();
 	}
 
-	public static function addIncident($cardId, $player, $type, $detail = null) {
-			$clubId = Auth::get('club_id');
-
+	public static function addIncident($cardId, $club, $player, $type, $detail = null) {
+			$userId = \Auth::get('id');
+			$clubId = $club['id'];
 			$incident = null;
 
 			Log::debug("Adding incident: $cardId, $player, $type=$detail club=$clubId");
@@ -73,6 +73,7 @@ class Model_Incident extends \Orm\Model
 					$incident['type'] = $type;
 					$incident['club_id'] = $clubId;
 					$incident['matchcard_id'] = $cardId;
+					$incident['user_id'] = $userId;
 			}
 
 			$incident['resolved'] = 0;

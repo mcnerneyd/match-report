@@ -1,12 +1,7 @@
 <?php
 class Controller_UserApi extends Controller_RestApi
 {
-	public function before() {
-		//if (!\Auth::has_access('user.*')) throw new HttpNoAccessException;
-
-		parent::before();
-	}
-
+	// --------------------------------------------------------------------------
 	public function get_index() {
 			return new Response("User session valid", 200);
 		if (Session::get('username', null) != null) {
@@ -104,7 +99,10 @@ class Controller_UserApi extends Controller_RestApi
 	public function post_missingusers() {
 		if (!\Auth::has_access('users.create')) return new Response("Forbidden", 401);
 
-		$missingClubs = Db::query("SELECT c.name, c.id FROM club c LEFT JOIN user u ON c.id = u.club_id AND u.group = 1 WHERE u.id IS NULL");
+		$missingClubs = Db::query("SELECT c.name, c.id 
+			FROM club c 
+				LEFT JOIN user u ON c.id = u.club_id AND u.group = 1 
+			WHERE u.id IS NULL");
 		
 		foreach ($missingClubs->execute() as $missingClub) {
 			$user = new Model_User();

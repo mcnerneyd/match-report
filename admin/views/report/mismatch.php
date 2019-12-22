@@ -28,10 +28,15 @@ foreach ($mismatches as $card) {
 	$url = "https://admin.sportsmanager.ie/fixtureFeed/push.php?fixtureId=${card['fixture_id']}&homeScore=".$card['home']['goals']."&awayScore=".$card['away']['goals'];
 
 	echo "<tr title='".$card['id']."'";
-	if ($card['outcome_affected']) echo " class='important'";
+	$class = '';
+	if ($card['outcome_affected']) $class .= 'important ';
+	if ($class) echo " class='".trim($class)."'";
 	echo "><td>$date</td>
 		<td>${card['competition']}</td>
-		<td><a href='".$cardUrl."'>".$card['home_team']." v ".$card['away_team']."</a></td>
+		<td><a href='".$cardUrl."'>".$card['home_team']." v ".$card['away_team']."</a>";
+	if ($card['home']['notes'] || $card['away']['notes']) echo ' <i class="far fa-sticky-note"></i>';
+
+    echo "</td>
 		<td>".$card['home']['goals']." v ".$card['away']['goals']." <small>(".$opscore.")</small></td>
 		<td><a href='$url'>".$card['home_score']." v ".$card['away_score']."</a></td>
 		</tr>";

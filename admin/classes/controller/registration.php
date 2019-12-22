@@ -67,7 +67,6 @@ class Controller_Registration extends Controller_Template
 
 		Model_Registration::flush($club);
 		$registration = Model_Registration::find_between_dates($club, $thurs, $date->get_timestamp());
-
 		$this->template->title = "Registrations";
 		$this->template->content = View::forge('registration/list', array(
 			'registration'=>$registration,

@@ -56,7 +56,7 @@ return array(
 		 'secretary' => array('registration' => array('view', 'post'),
 									'user'=> array('refreshpin'), 
 									'registrationapi'=>array('view', 'edit')),
-		 'umpire'  => array('umpire_reports' => array('view')),
+		 'umpire'  => array('umpire_reports' => array('view'), 'card'=>array('addcards')),
 		 'signer' => array('card_signature' => array('create')),
 		 'user'  => array('comments' => array('create', 'read')), 
 		 'manager'  => array('system_reports' => array('view'), 'incident'=>array('delete')),

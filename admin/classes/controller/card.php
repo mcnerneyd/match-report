@@ -28,10 +28,15 @@ class Controller_Card extends Controller_Template
 				$card['away']['umpire'] = self::cleanUmpire($card['away']);
 			}
 
-			$data['card'] = $card;
-			$data['searchUrl'] = Uri::create('Card/Index', array(), array('q'=>$query));
+			if (\Auth::check()) {
+				$base = Uri::base()."/../../..";
+				Response::redirect($base.'/card/index.php?site='.Session::get('site').'&controller=card&action=get&fid='.$card['fixture_id']);
+			} else {
+				$data['card'] = $card;
+				$data['searchUrl'] = Uri::create('Card/Index', array(), array('q'=>$query));
 
-			$this->template->content = View::forge('card/card', $data);
+				$this->template->content = View::forge('card/card', $data);
+			}
 		} else if ($query) {
 			$data['query'] = $query;
 			$data['results'] = \Model_Card::search($query);
@@ -60,9 +65,10 @@ class Controller_Card extends Controller_Template
 		$data['description'] = "${fixture['competition']}: ${fixture['home']} v ${fixture['away']}";
 
 		$emails = array();
+		$ccList = Config::get("config.cc.email");
+		if ($ccList) $emails = array_merge($emails, array_map('trim', explode(",", $ccList)));
+
 		if (Session::get('site') == 'lhamen') {
-			$emails[] = "lhuasecretary@gmail.com";
-			
 			if (preg_match("/^Division [0-9]/", $fixture['competition'])) {
 				$emails[] = "md".substr($fixture['competition'], 9)."@leinsterhockey.ie";
 			}
@@ -85,6 +91,25 @@ class Controller_Card extends Controller_Template
 
 		$data['to'] = $emails;
 
+		switch (Auth::group()->get_name()) {
+			case "Secretaries":
+				$user = Model_User::find_by_username(\Session::get('username'));
+				$data['sender'] = $user['club']['name']." (Secretary)";
+				break;
+
+			case "Users":
+				$user = Model_User::find_by_username(\Session::get('username'));
+				$data['sender'] = $user['club']['name'];
+				break;
+
+			case "Administrators":
+				$data['sender'] = "Administrator";
+				break;
+
+			default:
+				$data['sender'] = null;
+		}
+
 		$msg = Input::post('message', null);
 
 		if ($msg != null) {
@@ -102,6 +127,11 @@ class Controller_Card extends Controller_Template
 					$subject = "POSTPONEMENT REQUEST ".$subject;
 					$matchDate = $fixture['datetime']->get_timestamp();
 					switch ($reason) {
+						case 'earlier':
+							$reasonMsg = "Request to play match earlier than currently scheduled date";
+							$refix = null;
+							$notice = null;
+							break;
 						case 'lenservpost':
 							$reasonMsg = "Leinster Service Postponement Request";
 							$refix = strtotime("+22 days", $matchDate);
@@ -137,11 +167,17 @@ class Controller_Card extends Controller_Template
 
 				}
 			}
+			if ($data['sender']) {
+				$msg .= "\n\nRegards,\n${data['sender']}";
+			}
 			$email->subject($subject);
 			$email->body($msg);
-			if (strpos($msg, 'SPINDLE') !== false) {
+			if (strpos($msg, 'SPINDLE') !== false) {	// Include the word SPINDLE to make this a test
+				echo "<pre>";
 				echo "Subject: $subject\n";
 				echo "Message: $msg\n";
+				print_r($data);
+				echo "</pre>";
 				return new Response( "Received", 200);
 			}
 

@@ -69,18 +69,20 @@ echo "<!-- Registration Allowed: $registrationAllowed -->";
 		<?php } ?>
 		$.get('<?= Uri::create('registrationapi/errors.json') ?>?c=<?= $club ?>')
 			.done(function(data) {
-				for (var i=0;i<data.length;i++) {
-					var error = data[i];
-					$('#errors ul').append("<li class='"+error['class']+"'>"+error['msg']+"</li>");
+				if (typeof data !== 'undefined') {
+					for (var i=0;i<data.length;i++) {
+						var error = data[i];
+						$('#errors ul').append("<li class='"+error['class']+"'>"+error['msg']+"</li>");
+					}
+					if (data.length>0) $('#errors').show();
 				}
-				if (data.length>0) $('#errors').show();
 			});
 
 		$('.form-confirmation input[type=checkbox]').on('change', function() {
 				$('#upload-registration button[type=submit]').prop('disabled', !this.checked);
 		});
 
-		$('#errors button').click(function() {
+		$('#validate').click(function() {
 			$.ajax('<?= Uri::create('registrationapi/errors') ?>',
 				{
 					method:'DELETE',
@@ -210,11 +212,11 @@ if (!Config::get("config.allowassignment")) { ?>
 <p>Explicit team assignment is disabled.</p>
 <?php } ?>
 
+<?php if ($registrationAllowed === 'all') { ?>
+<button id='validate' class='btn btn-success btn-sm pull-right'>Revalidate</button>
+<?php } ?>
 <div id='errors'>
 <hr>
-<?php if ($registrationAllowed === 'all') { ?>
-<button class='btn btn-danger btn-sm pull-right'>Clear Errors</button>
-<?php } ?>
 <h3>Errors/Warnings</h3>
 <p>Registration will not be valid if it has <span class='error'>errors</span>. <span class='warn'>Warnings</span> should be resolved but do not
 block registration.<p>

@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS `image_player` (
 CREATE TABLE IF NOT EXISTS `incident` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `player` varchar(80) NOT NULL,
-  `club_id` int(11) NOT NULL,
+  `club_id` int(11) DEFAULT NULL,
   `matchcard_id` int(11) DEFAULT NULL,
   `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `type` enum('Played','Red Card','Yellow Card','Ineligible','Scored','Missing','Postponed','Other','Locked','Reversed','Signed','Number','Late') NOT NULL,

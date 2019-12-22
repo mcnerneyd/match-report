@@ -131,26 +131,32 @@ class Controller_CardApi extends Controller_Rest {
      * Add a player or update player information on the match card.
      */
     public function post_player() {
-				if (!\Auth::check()) return new Response("Forbidden", 401);
+		if (!\Auth::check()) return new Response("Forbidden", 401);
 
         try {
             $cid = \Input::param('card_id');
             $card = Model_Card::card($cid);
-						$clubId = \Auth::get('club_id');
-						$club = Model_Club::find_by_id($clubId);
 
-						$whoami = null;
-						if ($card['home_name'] === $club['name']) {
-							$whoami = 'home';
-						} 
-						
-						if ($card['away_name'] === $club['name']) {
-							$whoami = 'away';
-						}
+			if (\Auth::has_access("card.superedit") || \Auth::has_access("card.addcards")) {
+				$clubName = \Input::param('club');
+				$club = Model_Club::find_by_name($clubName);
+			} else {
+			$clubId = \Auth::get('club_id');
+				$club = Model_Club::find_by_id($clubId);
+				}
 
-						if ($whoami === null) {
-							return new Response("Forbidden: ${club['name']} not playing club", 401);
-						}
+				$whoami = null;
+				if ($card['home_name'] === $club['name']) {
+					$whoami = 'home';
+				} 
+				
+				if ($card['away_name'] === $club['name']) {
+					$whoami = 'away';
+				}
+
+				if ($whoami === null) {
+					return new Response("Forbidden: ${club['name']} not playing club", 401);
+				}
 
             //$fixture = $this->getFixtureByCardId($cid);
 
@@ -181,7 +187,7 @@ class Controller_CardApi extends Controller_Rest {
 
             Log::debug("Adding player $name to card $cid ($value)");
 
-            Model_Incident::addIncident($cid, $name, 'Played');
+            Model_Incident::addIncident($cid, $club, $name, 'Played');
 
 						$dateS = Date::forge()->format("%Y%m%d");
             $teamNo = $card[$whoami]['team'];
@@ -191,22 +197,22 @@ class Controller_CardApi extends Controller_Rest {
 						$players = array_values($players);
             if (!in_array($name, $players)) {
                 Log::warning("Player is ineligible for club ${club['name']}, team $teamNo: $name");
-                Model_Incident::addIncident($cid, $name, 'Ineligible');
+                Model_Incident::addIncident($cid, $club, $name, 'Ineligible');
             }
 
             switch ($key) {
                 case 'goal':
 										if (!$value) $value = 0;
 
-                    Model_Incident::addIncident($cid, $name, 'Scored', $value);
+                    Model_Incident::addIncident($cid, $club, $name, 'Scored', $value);
                     break;
 
                 case 'red':
-                    Model_Incident::addIncident($cid, $name, 'Red Card', $value);
+                    Model_Incident::addIncident($cid, $club, $name, 'Red Card', $value);
                     break;
 
                 case 'yellow':
-                    Model_Incident::addIncident($cid, $name, 'Yellow Card', $value);
+                    Model_Incident::addIncident($cid, $club, $name, 'Yellow Card', $value);
                     break;
             }
         } catch (Throwable $e) {

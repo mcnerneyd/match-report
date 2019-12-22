@@ -90,7 +90,7 @@ $(document).ready(function(event) {
 			</div>
 
 			<div class='form-row'>
-				<div class='form-group col'>
+				<div class='form-group col-md-6'>
 					<label>Result Submission</label>
 					<p>When a matchcard is complete, the result can be submitted to the LHA website.</p>
 					<div class='radio'>
@@ -113,11 +113,17 @@ $(document).ready(function(event) {
 					</div>
 				</div>
 
-				<div class='form-group col'>
+				<div class='form-group col-md-6'>
 					<label>Season Start Date</label>
 					<input name='seasonstart' type='text' class='form-control' value='<?= currentSeasonStart() ?>' readonly></input>
 				</div>
 
+				<div class='form-group col-md-6'>
+					<label>CC Emails</label>
+					<input name='cc_email' type='text' autocomplete='off' class='form-control' value='<?= $cc_email ?>'></input>
+					<small>When a user creates a fixture email, these email address will be automatically included in the cc list.
+					(Separate with commas)</small>
+				</div>
 			</div>
 
 			<fieldset>

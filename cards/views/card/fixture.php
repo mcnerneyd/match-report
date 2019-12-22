@@ -127,7 +127,17 @@ $(document).ready(function () {
 				var cls = "";
 				if (p['membershipid']) cls = "<span class='member'></span>";
 
-				var html = "<tr data-name='" + p['name'] + "'><td>" + p['name'];
+				var html = "<tr class='player' data-name='" + p['name'] + "'";
+				
+				if (p['history'].length > 0) {
+					html += " data-played='yes'";
+
+					if (p['history'][0].hasOwnProperty('last')) {
+						html += " data-last='yes'";
+					}
+				}
+
+				html += "><td>" + p['name'];
 
 				if (p['membershipid']) html += "<img class='membership' src='http://cards.leinsterhockey.ie/public/assets/img/hockeyireland-icon.png'/>";
 				
@@ -154,6 +164,33 @@ $(document).ready(function () {
 
 	$('#postpone').click(function() {
 		addNote('Match Postponed');
+	});
+
+	$('#select-all').click(function() {
+		$('.player').show();
+		$('.buttons a').removeClass('active');
+		$('#select-all').addClass('active');
+	});
+
+	$('#select-played').click(function() {
+		$('.player').hide();
+		$('.player[data-played=yes]').show();
+		$('.buttons a').removeClass('active');
+		$('#select-played').addClass('active');
+	});
+
+	$('#select-last').click(function() {
+		$('.player').hide();
+		$('.player[data-last=yes]').show();
+		$('.buttons a').removeClass('active');
+		$('#select-last').addClass('active');
+	});
+
+	$('#select-unplayed').click(function() {
+		$('.player').show();
+		$('.player[data-played=yes]').hide();
+		$('.buttons a').removeClass('active');
+		$('#select-unplayed').addClass('active');
 	});
 
 
@@ -302,10 +339,10 @@ $(document).ready(function () {
 			<tr>
 				<td>
 					<div class='btn-group'>
-						<a class='btn btn-info active'>All</a>
-						<a class='btn btn-info'>Played</a>
-						<a class='btn btn-info'>Last</a>
-						<a class='btn btn-info'>Unplayed</a>
+						<a id='select-all' class='btn btn-info active'>All</a>
+						<a id='select-played' class='btn btn-info'>Played</a>
+						<a id='select-last' class='btn btn-info'>Last</a>
+						<a id='select-unplayed' class='btn btn-info'>Unplayed</a>
 					</div>
 					<a class='btn btn-danger float-right'>Clear</a>
 				</td>

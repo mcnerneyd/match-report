@@ -22,6 +22,12 @@ if ($club and isset($fixture[$club])) {
   if (!isset($mycard['closed'])) $cardIsOpen = true;
 }
 
+// Card is open for umpires if either side has not closed
+if (user('umpire')) {
+  if (!isset($card['home']['closed'])) $cardIsOpen = true;
+  if (!isset($card['away']['closed'])) $cardIsOpen = true;
+}
+
 list($date,$time) = explode(" ", $fixture['datetime']);
 $time = substr($time, 0, 5);
 $card['away']['suggested-score'] = emptyValue($card['home']['oscore'], 0);
@@ -35,6 +41,7 @@ var restUrl = '<?= Uri::create('CardApi') ?>';
 </script>
 <script src='js/matchcard.js' type='text/javascript'></script>
 <script>
+var card = <?= json_encode($card) ?>;
 var messages = [
   {
     level: "info",
@@ -77,11 +84,18 @@ $(document).ready(function() {
   flashSubmit();
 
   <?php if ($mycard) { ?>
-  $.getJSON('/public/registrationapi/list.json?t=<?= $mycard['teamx'] ?>',
+  $.getJSON('/public/registrationapi/list.json?t=<?= $mycard['teamx'] ?>&g=<?= join(",", $fixture['groups']) ?>',
     function(json) {
+	  var ct = 0;
+      if (typeof json !== 'undefined') {
       for (var i=0;i<json.length;i++) {
         var p = json[i];
         $('#player-name').append("<option>" + p['name'] + "</option>");
+		++ct;
+      }
+	  console.log('Add player list:' + ct + ' player(s)');
+      } else {
+        console.log('No player list for team');
       }
       $('#player-name').selectize({
         create: true,
@@ -125,6 +139,7 @@ $(document).ready(function() {
 #submit-card a.float-right {
     margin-left: 10px;
   }
+h2 { margin-top: 0.5rem; font-size: 0.75em !important; font-style: italic; }
 </style>
 
 <?php if ($card['official'] || $strictProcessing) { ?>
@@ -159,6 +174,10 @@ $(document).ready(function() {
 ?>data-fixtureid='<?= $fixture['id'] ?>' data-cardid='<?= $card['id'] ?>' data-starttime='<?= $card['datetime']*1000 ?>'>
 
   <h1 id='competition' data-code='<?= $card['competition-code'] ?>' data-format='<?= $card['format'] ?>'><?= $card['competition'] ?></h1>
+		<?php if ($fixture['groups']) { ?>
+		<h2><?php echo join(', ', $fixture['groups']) ?></h2>
+		<?php } ?>
+
 
   <detail data-timestamp='<?= $fixture['date'] ?>'>
     <?php if (isset($card['away']['locked'])) { ?>
@@ -304,7 +323,7 @@ $(document).ready(function() {
   <table id='notes'>
     <?php foreach ($card['notes'] as $note) { ?>
     <tr>
-      <th><i class='glyphicon glyphicon-comment'></i>&nbsp;<?= $note['user'] ?></th>
+      <th><i class="far fa-sticky-note"></i>&nbsp;<?= $note['user'] ?></th>
       <td><?= $note['note'] ?></td>
     </tr>
     <?php } ?>
@@ -338,7 +357,7 @@ $(document).ready(function() {
 // ------------------------------------------------------------------------
 //     Context Menu
 // ------------------------------------------------------------------------
-if ($cardIsOpen || user('admin') || \Auth::has_access('card.superedit')) {
+if ($cardIsOpen || user('admin') || user('umpire') || \Auth::has_access('card.superedit')) {
 ?>
 <div id='context-menu' class='dropdown-menu'>
     <div class="modal-header">
@@ -362,7 +381,7 @@ if ($cardIsOpen || user('admin') || \Auth::has_access('card.superedit')) {
     <div class='dropdown-divider'></div>
     <?php } ?>
 
-    <?php if (!$card['official'] || user('umpire')) { ?>
+    <?php if (!$card['official'] || user('umpire') || \Auth::has_access('card.superedit')) { ?>
     <a class='dropdown-item card-green'>Green Card</a>
     <a class='dropdown-item card-yellow'>Technical - Breakdown</a>
     <a class='dropdown-item card-yellow'>Technical - Delay/Time Wasting</a>

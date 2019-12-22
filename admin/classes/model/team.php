@@ -34,4 +34,20 @@ class Model_Team extends \Orm\Model
 
 		return null;
 	}
+
+	public static function lastGame($teamName) {
+		$team = self::find_by_name($teamName);
+		$teamId = $team->id;
+		$rows = DB::query("SELECT x.id, x.date FROM (SELECT m.id, m.date FROM matchcard m WHERE home_id = $teamId
+			UNION SELECT m.id, m.date FROM matchcard m WHERE away_id = $teamId) x
+			INNER JOIN incident i ON i.type = 'Played' AND x.id = i.matchcard_id
+			ORDER BY x.date DESC
+			LIMIT 1")->execute();
+
+		foreach ($rows as $row) {
+			return Model_Card::find($row['id']);
+		}
+
+		return null;
+	}
 }

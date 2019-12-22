@@ -357,8 +357,10 @@ function getPlayerRow(name) {
 
 function incident(type, value, onSuccess) {
     var cardId = $('#match-card').data('cardid');
-    var url = restUrl + "/Player?card_id=" + cardId + "&player=" + $('#context-menu').data('player')
-        +"&key=" + type + "&club=" + $('#context-menu').data('club');
+    var url = restUrl + "/Player?card_id=" + cardId 
+		+ "&player=" + $('#context-menu').data('player')
+        + "&key=" + type 
+		+ "&club=" + $('#context-menu').data('club');
         
     if (value) url += "&value=" + value;
 

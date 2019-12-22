@@ -173,6 +173,11 @@ class Controller_Admin extends Controller_Hybrid {
         echo "<a href='" . Uri::create('Admin/Log?d=' . Date::forge(strtotime("-1 day", strtotime($date)))->format("%Y%m%d")) . "'>Previous</a><br>";
 
         foreach (array_reverse(explode("\n", $src)) as $line) {
+			if (\Input::param('raw', null) !== null) {
+				echo "<pre>$line</pre>";
+				continue;
+			}
+
             $match = array();
             if (!preg_match("/(.*) - (.*) --> (.*)/", $line, $match))
                 continue;
@@ -513,6 +518,7 @@ class Controller_Admin extends Controller_Hybrid {
         Config::set("config.fine", Input::post("fine"));
         Config::set("config.elevation.password", Input::post("elevation_password"));
         Config::set("config.admin.email", Input::post("admin_email"));
+        Config::set("config.cc.email", Input::post("cc_email"));
         Config::set("config.strict_comps", Input::post("strict_comps"));
         Config::set("config.automation.allowrequest", Input::post('allow_registration'));
         Config::set("config.allowassignment", Input::post('allow_assignment') == 'on');
@@ -546,6 +552,7 @@ class Controller_Admin extends Controller_Hybrid {
                     "fine" => Config::get("config.fine", 25),
                     "elevation_password" => Config::get("config.elevation.password"),
                     "admin_email" => Config::get("config.admin.email"),
+                    "cc_email" => Config::get("config.cc.email"),
                     "strict_comps" => Config::get("config.strict_comps"),
                     "automation_email" => Config::get("config.automation.email"),
                     "automation_password" => Config::get("config.automation.password"),

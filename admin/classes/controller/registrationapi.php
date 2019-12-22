@@ -11,9 +11,21 @@ class Controller_RegistrationApi extends Controller_Rest
 		$groups = \Input::param('g', null);
 
 		$players = self::getPlayers($club, $dateS, $team, $groups);
+		$lastGameDate = Model_Team::lastGame("$club $team");
+		$lastGameDate = substr($lastGameDate['date'], 0, 10)." 00:00:00";
+		Log::debug("LGD:" . $lastGameDate);
 
 		$players = array_values($players);
 		usort($players, function($a, $b) { return strcmp($a['name'], $b['name']); });
+
+		foreach ($players as &$player) {
+			foreach ($player['history'] as &$history) {
+				if ($history['date'] >= $lastGameDate) {
+					$history['last'] = 'yes';
+			    }
+				break;
+			}
+		}
 
 		Log::debug(count($players)." player(s) valid for team $team/$groups ($club/$clubId) date=$dateS");
 
@@ -23,6 +35,10 @@ class Controller_RegistrationApi extends Controller_Rest
 	public static function getPlayers($club, $dateS, $team, $groups) { 
 		if ($groups) {
 			$groups = explode(",", strtolower($groups));
+		}
+
+		if ($groups) {
+			Log::debug("Groups is active");
 		}
 
 		$date = Date::create_from_string($dateS, '%Y%m%d');
@@ -37,11 +53,12 @@ class Controller_RegistrationApi extends Controller_Rest
 		$players = Model_Registration::find_between_dates($club, $startDate, $date);
 
 		$players = array_filter($players, function($v) use ($team, $groups) {
-			if ($v['team'] < $team) return false;
 			if ($groups) {
 				if (!in_array(strtolower($v['team']), $groups)) {
 					return false;
 				}
+			} else {
+				if ($v['team'] < $team) return false;
 			}
 
 			return true;
@@ -152,7 +169,7 @@ class Controller_RegistrationApi extends Controller_Rest
 
 		$filename = Model_Registration::addRegistration($file['tmp_name'], $club);
 
-		$this->validateRegistration($club, $filename);
+		$this->validateRegistration($club);
 
 		//return new Response("Registration Uploaded", 201);
 		Response::redirect("registration");
@@ -172,7 +189,7 @@ class Controller_RegistrationApi extends Controller_Rest
 			echo "File: $file\n";
 		}
 
-		return $this->validateRegistration($club, $file);
+		return $this->validateRegistration($club);
 	}
 
 
@@ -180,13 +197,17 @@ class Controller_RegistrationApi extends Controller_Rest
 		$club = Input::param("club", null);
 		if ($club == null) return;
 		$club = strtolower($club);
+		
+		Log::info("Flushing $club");
 
 		Model_Registration::clearErrors($club);
+		Model_Registration::flush($club);
+		$this->validateRegistration($club);
 	}
 
 	public function get_errors() {
 		$club = Input::param("c", null);
-		if ($club == null) return;
+		if ($club == null) return array();
 		$club = strtolower($club);
 
 		$errors = array();
@@ -257,10 +278,18 @@ class Controller_RegistrationApi extends Controller_Rest
 		return $clubErrors;
 	}
 
-	private function validateRegistration($club, $filename, $test=false) {
+	private function validateRegistration($club, $test=false) {
 		$errors = array();
 
+		Log::info("Revalidating registration for $club");
+
 		$date = Date::time();
+
+		foreach (Model_Registration::find_all($club) as $regFile) {
+			$date = Date::forge($regFile["timestamp"]);
+		}
+
+		Log::info("Revalidating registration for $club to $date");
 
 		$thurs = strtotime("first thursday of " . $date->format("%B %Y"));
 		if ($thurs > $date->get_timestamp()) {
@@ -270,7 +299,7 @@ class Controller_RegistrationApi extends Controller_Rest
 		$thurs = strtotime("+1 day", $thurs);
 
 		$registration = Model_Registration::find_between_dates($club, $thurs, $date->get_timestamp());
-
+		
 		$scores = array_map(function($a) { return $a['score'];}, $registration);
 		sort($scores);
 

@@ -6,42 +6,48 @@ class Controller_Fine extends Controller_Hybrid
 	// --------------------------------------------------------------------------
 	// index get gets a list of fines
 	public function get_index() {
-		$data['fines'] = Model_Fine::find('all', array(
-			'where' => array(
-				array('resolved','=','0'),
-			),
-		));
+		echo "<pre>";
+		Model_Fine::generate();
+		echo "</pre>";
 
-		$fines = array();
-		foreach ($data['fines'] as $fine) {
-			try {
-				$card = Model_Card::card($fine['matchcard_id']);
-			} catch (Exception $e) {
-				Log::error("Problem with card ${fine['matchcard_id']}:".$e->getMessage());
-				continue;
-			}
-			$fine['competition'] = $card['competition'];
-			$fine['home_team'] = $card['home']['club']." ".$card['home']['team'];
-			$fine['away_team'] = $card['away']['club']." ".$card['away']['team'];
-			$applies_to = $card['home']['club'] == $fine['club']['name'] ? "home" : "away";
-			$fine['applies_to'] = $applies_to;
-
-			$fine['date'] = $card['date'];
-			$fine['has_notes'] = false;
-			
-			if ($card[$applies_to]['notes']) $fine['has_notes'] = true;
-			if ($card['comment']) $fine['has_notes'] = true;
-
-			echo "<!-- ".print_r($fine, true)." -->\n";
-
-			$fines[] = $fine;
-		}
-		$data['fines'] = $fines;
-
-		$this->template->title = "Fines";
-		$this->template->content = View::forge('fixture/fines', $data);
+		return new Response("Fines", 200);
+//		$data['fines'] = Model_Fine::find('all', array(
+//			'where' => array(
+//				array('resolved','=','0'),
+//			),
+//		));
+//
+//		$fines = array();
+//		foreach ($data['fines'] as $fine) {
+//			try {
+//				$card = Model_Card::card($fine['matchcard_id']);
+//			} catch (Exception $e) {
+//				Log::error("Problem with card ${fine['matchcard_id']}:".$e->getMessage());
+//				continue;
+//			}
+//			$fine['competition'] = $card['competition'];
+//			$fine['home_team'] = $card['home']['club']." ".$card['home']['team'];
+//			$fine['away_team'] = $card['away']['club']." ".$card['away']['team'];
+//			$applies_to = $card['home']['club'] == $fine['club']['name'] ? "home" : "away";
+//			$fine['applies_to'] = $applies_to;
+//
+//			$fine['date'] = $card['date'];
+//			$fine['has_notes'] = false;
+//			
+//			if ($card[$applies_to]['notes']) $fine['has_notes'] = true;
+//			if ($card['comment']) $fine['has_notes'] = true;
+//
+//			echo "<!-- ".print_r($fine, true)." -->\n";
+//
+//			$fines[] = $fine;
+//		}
+//		$data['fines'] = $fines;
+//
+//		$this->template->title = "Fines";
+//		$this->template->content = View::forge('fixture/fines', $data);
 	}
 
+	// --------------------------------------------------------------------------
 	// index post create a new fine
 	public function post_index() {
 		$fixtureid = $_POST['fixtureid'];
@@ -72,6 +78,7 @@ class Controller_Fine extends Controller_Hybrid
 		$f->find();
 	}
 
+	// --------------------------------------------------------------------------
 	// index delete deletes a fine or a list of fines
 	public function delete_index() {
 		$count = 0;

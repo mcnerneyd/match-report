@@ -2,6 +2,56 @@
 class Controller_Report extends Controller_Template
 {
 	// --------------------------------------------------------------------------
+	public function action_notes() {
+		if (!\Auth::has_access("registration.status")) {
+			return new Response("Not permitted: administrator only", 403);
+		}
+
+		$rows = DB::query("select t0.id, t0.date, t0.fixture_id, x.name comp_name, 
+			c.name club_name, t.team, home, i.type, i.detail from (
+					select date, id, fixture_id, competition_id, home_id team_id, 'home' home from matchcard
+					union
+					select date, id, fixture_id, competition_id, away_id, 'away' home from matchcard
+					) t0
+					left join team t on t0.team_id = t.id
+					left join incident i on t0.id = i.matchcard_id and t.club_id = i.club_id
+						and (i.type = 'Scored' or (i.type = 'Other' and i.detail like '\"%\"'))
+					left join club c on t.club_id = c.id
+					left join competition x on t0.competition_id = x.id
+				ORDER BY t0.date, t0.fixture_id, `t0`.`home`  ASC")->execute();
+
+		$result = array();
+		foreach ($rows as $row) {
+			$fixtureId = $row['fixture_id'];
+			if (!isset($result[$fixtureId])) {
+				$result[$fixtureId] = array('id'=>$row['id'],
+					'date'=>$row['date'],
+					'competition'=>$row['comp_name'],
+					'home'=>array('score'=>0, 'notes'=>array()),
+					'away'=>array('score'=>0, 'notes'=>array()));
+			}
+			$record = &$result[$fixtureId];
+
+			$recordTeam = &$record[$row['home']];
+			$recordTeam['name'] = $row['club_name']." ".$row['team'];
+
+			switch ($row['type']) {
+			case 'Scored':
+				$recordTeam['score'] += $row['detail'];
+				break;
+			case 'Other':
+				$recordTeam['notes'][] = $row['detail'];
+				break;
+			}
+		}
+
+		$this->template->title = "Simple Match/Notes report";
+		$this->template->content = View::forge('report/notes', array(
+			'data'=>$result
+		));
+	}
+
+	// --------------------------------------------------------------------------
 	public function action_cards() {
 		$cards = Model_Incident::find('all', array(
 			'where'=> array(

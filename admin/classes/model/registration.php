@@ -28,10 +28,16 @@ class Model_Registration
 	}
 
 	public static function flush($club) {
-		foreach (glob(self::getRoot($club)."/*.json") as $file) {
-			Log::debug("Flush $file");
-			unlink($file);
-		}	
+		$root = self::getRoot($club);
+		Log::debug("Flushing root: $root");
+		$files = glob("$root/*.json");
+		
+		if ($files) {
+			foreach ($files as $file) {
+				Log::debug("Flush $file");
+				unlink($file);
+			}	
+		}
 	}
 
 	public static function writeErrors($club, $errors) {
@@ -194,14 +200,16 @@ class Model_Registration
 		});
 
 		$history = Model_Player::getHistory($clubName);
-
+		
 		foreach ($result as &$player) {
 			$player['score'] = 99;
 			if (!isset($history[$player['name']])) {
 				$player['history'] = array();	
 				continue;
 			}
-			$player['history'] = $history[$player['name']];
+			$player['history'] = array_filter($history[$player['name']], function($a) use ($currentDate) {
+				return Date::create_from_string($a['date'], 'mysql')->get_timestamp() < $currentDate;
+			});
 			$teams = array_map(function($a) { return $a['team']; }, $player['history']);
 			if ($teams) {
 				$first = min($teams);

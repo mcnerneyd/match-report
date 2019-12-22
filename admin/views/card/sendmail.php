@@ -11,9 +11,20 @@ $(document).ready(function() {
 	});
 });
 </script>
+<style>
+#postponement label {
+	font-weight: bold;
+	color: #f90;
+}
+</style>
 <form method='post'>
 	
 	<input type='hidden' name='id' value='<?= $id ?>'/>
+
+	<div class='form-group'>
+		<label>From</label>
+		<div><?= $sender ?></div>
+	</div>
 
 	<div class='form-group'>
 		<label>To</label>
@@ -43,6 +54,17 @@ $(document).ready(function() {
 			mark the card as postponed in order to avoid being fined.</p>
 
 			<h4>Reason for Postponement</h4>
+
+			<div class='form-check' data-notice='10'>
+				<input class='form-check-input' type='radio' name='postponement-reason' value='earlier'/>
+				<label>Bringing Game Forward</label>
+				<p>The match is being played earlier than scheduled.</p>
+				<p>Approval from the opposition and the umpires required.</p>
+				<p>If at least 5 days notice is provided then no response can be considered as approval 
+						from the Section Committee.</p>
+				<p>Please provide the proposed new date in the Message box below and do not forget to 
+						update the Leinster Hockey website.</p>
+			</div>
 
 			<div class='form-check' data-notice='10'>
 				<input class='form-check-input' type='radio' name='postponement-reason' value='lenservpost'/>

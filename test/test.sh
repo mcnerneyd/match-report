@@ -5,4 +5,4 @@ if [ ! -d tmp ]
 		mkdir tmp
 	fi
 
-robot -d tmp Admin Card Registration Test.robot
+robot -d tmp Card Registration Admin Test.robot
