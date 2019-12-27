@@ -1,5 +1,5 @@
 <?php
-
+//----------------------------------------------------------------------
 class Model_Fine extends \Orm\Model
 {
 	protected static $_properties = array(
@@ -41,8 +41,35 @@ class Model_Fine extends \Orm\Model
 				$fines = array_merge($fines, $result);
 			}
 
+			$results = \DB::query("select club_id, matchcard_id, detail from incident i
+				left join matchcard m on i.matchcard_id = m.id
+				where i.resolved = 0 
+					and club_id is not null and club_id > 0
+					and i.type = 'Missing'
+					and (m.id is null or m.open < 60) order by club_id, matchcard_id, detail")->execute();
+
+			
+			$openFines = array();
+			foreach ($results as $result) {
+				if ($result['matchcard_id']) {
+					$openFines[] = $result['club_id']." ".$result['matchcard_id'];
+				} else {
+					$json = json_decode($result['detail']);
+					$openFines[] = $result['club_id']."  ".$json->fixtureId;
+				}
+			}
+
 			foreach ($fines as $fine) {
 				if (!$fine) continue;
+
+				if ($fine['matchcard_id'] !== null) {
+					$key = $fine['club']['id']." ".$fine['matchcard_id'];
+				} else {
+					$json = json_decode($fine['detail']);
+					$key = $fine['club']['id']."  ".$json->fixtureId;
+				}
+
+				if (in_array($key, $openFines)) continue;
 
 				try {
 					$fine->save();
@@ -50,7 +77,7 @@ class Model_Fine extends \Orm\Model
 					echo "Exception saving fine: ".$e->getMessage()."\n";
 				}
 
-				echo " * ".$fine->detail."\n"; 
+				echo " * ".$fine->detail."\n";
 			}
 		} catch (Exception $e) {
 			echo "Exception: ".$e->getMessage()."\n";
@@ -79,7 +106,8 @@ class Model_Fine extends \Orm\Model
 			$fixture = Model_Fixture::get($card['fixture_id']);
 			if ($fixture['cover'] !== 'CHA') continue;
 			$fixtureName = $fixture['competition'].":".$fixture['home']." v ${fixture['away']} (${fixture['fixtureID']})";
-			$fines[] = self::createFine($card['club'], 0, null, "For fixture $fixtureName, {club} had no players at the start of the match (7 required)");
+			$fines[] = self::createFine($card['club'], $card['id'], null, null, 
+				"No players listed at start of the match (7 required)");
 		}
 
 		return $fines;
@@ -107,7 +135,8 @@ class Model_Fine extends \Orm\Model
 			$fixture = Model_Fixture::get($card['fixture_id']);
 			if ($fixture['cover'] !== 'CHA') continue;
 			$fixtureName = $fixture['competition'].":".$fixture['home']." v ".$fixture['away'];
-			$fines[] = self::createFine($card['club'], 0, null, "For fixture $fixtureName, {club} had only ${card['playerCount']} players at the start of the match ($playerCount required)");
+			$fines[] = self::createFine($card['club'], $card['id'], null, null, 
+				"Only ${card['playerCount']} players listed at the start of the match ($playerCount required)");
 		}
 
 		return $fines;
@@ -134,29 +163,32 @@ class Model_Fine extends \Orm\Model
 
 			$fixtureName = $fixture['competition'].":".$fixture['home']." v ".$fixture['away'];
 
-			$fines[] = self::createFine($fixture['home_club'], 0, null, "For fixture $fixtureName, {club} has not submitted a matchcard by midnight");
-			$fines[] = self::createFine($fixture['away_club'], 0, null, "For fixture $fixtureName, {club} has not submitted a matchcard by midnight");
+			$fines[] = self::createFine($fixture['home_club'], null, null, $fixtureId, 
+				"Matchcard not submitted by midnight");
+			$fines[] = self::createFine($fixture['away_club'], null, null, $fixtureId, 
+				"Matchcard not submitted by midnight");
 		}
 
 		return $fines;
 	}
 
-	public function __construct($club, $matchcardId, $value, $detail) {
-		if ($value === null) $value = 20;
-
-		$this->type = 'Missing';
-		$this->club = $club['name'];
-		$this->matchcard_id = $matchcardId;
-		$this->detail = "Fine &euro;$value: $detail";
-	}
-
-	protected static function createFine($club, $matchcardId, $value, $detail) {	// FIXME probs should be constructor
+	protected static function createFine($club, $matchcardId, $value, $fixtureId, $detail) {
 		$club = Model_Club::find_by_name($club);
 		if ($club == null) return null;
 
-		$detail = str_replace("{club}", $club['name'], $detail);
-		$detail = str_replace("{fixture}", $matchcardId, $detail);
+		if ($value === null) $value = 20;
 
-		return new Model_Fine($club, $matchcardId, $value, $detail);
+		$f = new Model_Fine();
+		$f->type = 'Missing';
+		$f->club = $club;
+		$f->matchcard_id = $matchcardId;
+		$f->resolved = false;
+		$detail = '"fine":'.$value.',"msg":"'.$detail.'"';
+
+		if ($fixtureId) $detail .= ',"fixtureId":'.$fixtureId;
+
+		$f->detail = '{'.$detail.'}';
+
+		return $f;
 	}
 }

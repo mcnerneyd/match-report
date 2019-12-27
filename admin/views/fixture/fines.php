@@ -89,23 +89,18 @@ $(document).ready(function() {
 	<tbody>
 <?php
 foreach ($fines as $fine) {
-	$matches = array();
-	if (!preg_match('/(?<amount>[0-9]*):(?<reason>.*)/', $fine['detail'], $matches)) {
-		$matches = array('reason'=>$fine['detail'], 'amount'=>0);
-	}
-
 	echo "<tr data-id='${fine['id']}' data-cardid='${fine['matchcard_id']}'
 			title='".$fine['competition']." - ".$fine['home_team']." v ".$fine['away_team']."'>
 		<td></td>
 		<td>".substr($fine['date'], 0,10)."</td>
 		<td>".$fine['competition']."</td>
 		<td>".$fine['club']['name']."</td>
-		<td>${matches['reason']}";
+		<td>${fine['reason']}";
 
 	if ($fine['has_notes']) echo ' <i class="note fas fa-sticky-note"></i>';	
 
 	echo "</td>
-		<td>&euro;${matches['amount']}</td>
+		<td>&euro;${fine['amount']}</td>
 		<td><a href='".Uri::create("Report/Card/n${fine['matchcard_id']}")."'>View</a></td></tr>\n\t";
 }
 ?>

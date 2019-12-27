@@ -6,45 +6,50 @@ class Controller_Fine extends Controller_Hybrid
 	// --------------------------------------------------------------------------
 	// index get gets a list of fines
 	public function get_index() {
-		echo "<pre>";
-		Model_Fine::generate();
-		echo "</pre>";
+		$data['fines'] = Model_Fine::find('all', array(
+			'where' => array(
+				array('resolved','=','0'),
+			),
+		));
 
-		return new Response("Fines", 200);
-//		$data['fines'] = Model_Fine::find('all', array(
-//			'where' => array(
-//				array('resolved','=','0'),
-//			),
-//		));
-//
-//		$fines = array();
-//		foreach ($data['fines'] as $fine) {
-//			try {
-//				$card = Model_Card::card($fine['matchcard_id']);
-//			} catch (Exception $e) {
-//				Log::error("Problem with card ${fine['matchcard_id']}:".$e->getMessage());
-//				continue;
-//			}
-//			$fine['competition'] = $card['competition'];
-//			$fine['home_team'] = $card['home']['club']." ".$card['home']['team'];
-//			$fine['away_team'] = $card['away']['club']." ".$card['away']['team'];
-//			$applies_to = $card['home']['club'] == $fine['club']['name'] ? "home" : "away";
-//			$fine['applies_to'] = $applies_to;
-//
-//			$fine['date'] = $card['date'];
-//			$fine['has_notes'] = false;
-//			
-//			if ($card[$applies_to]['notes']) $fine['has_notes'] = true;
-//			if ($card['comment']) $fine['has_notes'] = true;
-//
-//			echo "<!-- ".print_r($fine, true)." -->\n";
-//
-//			$fines[] = $fine;
-//		}
-//		$data['fines'] = $fines;
-//
-//		$this->template->title = "Fines";
-//		$this->template->content = View::forge('fixture/fines', $data);
+		$fines = array();
+		foreach ($data['fines'] as $fine) {
+
+			$json = json_decode($fine['detail']);
+			$fine['reason'] = $json->msg;
+			$fine['amount'] = $json->fine;
+
+			if ($fine['matchcard_id']) {
+				try {
+					$card = Model_Card::card($fine['matchcard_id']);
+				} catch (Exception $e) {
+					Log::error("Problem with card ${fine['matchcard_id']}:".$e->getMessage());
+					continue;
+				}
+				$fine['competition'] = $card['competition'];
+				$fine['home_team'] = $card['home']['club']." ".$card['home']['team'];
+				$fine['away_team'] = $card['away']['club']." ".$card['away']['team'];
+				$applies_to = $card['home']['club'] == $fine['club']['name'] ? "home" : "away";
+				$fine['applies_to'] = $applies_to;
+
+				$fine['date'] = $card['date'];
+				$fine['has_notes'] = false;
+				
+				if ($card[$applies_to]['notes']) $fine['has_notes'] = true;
+				if ($card['comment']) $fine['has_notes'] = true;
+			} else {
+				$fixture = Model_Fixture::get($json->fixtureId);
+				$applies_to = $fixture['home'] == $fine['club']['name'] ? "home" : "away";
+				$fine['date'] = $fixture['datetime'];
+				$fine['competition'] = $fixture['competition'];
+			}
+
+			$fines[] = $fine;
+		}
+		$data['fines'] = $fines;
+
+		$this->template->title = "Fines";
+		$this->template->content = View::forge('fixture/fines', $data);
 	}
 
 	// --------------------------------------------------------------------------
