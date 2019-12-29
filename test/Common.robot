@@ -14,35 +14,35 @@ ${BROWSER}        headlesschrome
 Login
     [Arguments]    ${username}     ${pin}
     Open Chrome                        
-    Go To                                         ${LOGIN URL}
-    Click Element                            xpath=//div[@id='cookie-consent']/button        
-    Click Element                            xpath=//a[@data-site='test']
+    Go To                 ${LOGIN URL}
+    Click Element         xpath=//div[@id='cookie-consent']/button        
+    Click Element         xpath=//a[@data-site='test']
     Select From List By Label    user-select        ${username}
-    Input Text                            name=pin    ${pin}
-    Click Element                            xpath=//form[@id='login']/button
+    Input Text            name=pin    ${pin}
+    Click Element         xpath=//form[@id='login']/button
 
 Secretary Login
-    [Arguments]    ${username}     ${pin}
+    [Arguments]    				${username}     ${pin}
     Open Chrome                        
-    Go To                                            ${LOGIN URL}
-    Click Element                            xpath=//div[@id='cookie-consent']/button        
-    Click Element                            xpath=//a[@data-site='test']
-    Click Link                                Secretary Login
-    Input Text                                name=user        ${username}
-    Input Text                            name=pin    ${pin}
-    Click Element                            xpath=//form[@id='login']/button
+    Go To                 ${LOGIN URL}
+    Click Element         xpath=//div[@id='cookie-consent']/button        
+    Click Element         xpath=//a[@data-site='test']
+    Click Link            Secretary Login
+    Input Text            name=user       ${username}
+    Input Text            name=pin    		${pin}
+    Click Element         xpath=//form[@id='login']/button
 
 User is logged in        
-    [Arguments]                                ${username}
+    [Arguments]           ${username}
     Element Should Contain        id:user        ${username}
 
 Select Player
-    [Arguments]            ${player}
-    ${name}=                Get Element Attribute        xpath=//tr[contains(@data-name,'${player}')]    data-name
-    Execute Javascript        window.jQuery("[data-name='${name}']")[0].scrollIntoView(true);
-    Execute Javascript        window.scrollBy(0, -150);
-    Sleep                        2s
-    Click Element        jquery=[data-name='${name}']
+    [Arguments]           ${player}
+    ${name}=              Get Element Attribute        xpath=//tr[contains(@data-name,'${player}')]    data-name
+    Execute Javascript    window.jQuery("[data-name='${name}']")[0].scrollIntoView(true);
+    Execute Javascript    window.scrollBy(0, -150);
+    Sleep                 2s
+    Click Element         jquery=[data-name='${name}']
 
 Check Player
     [Arguments]            ${player}        ${class}

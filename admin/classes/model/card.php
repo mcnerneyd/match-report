@@ -194,7 +194,7 @@ class Model_Card extends \Orm\Model
 		return null;
 	}
 
-	public static function incidents($cardId) {
+	public static function incidents($cardId) {		// FIXME: SQL Injection
 		return \DB::query("select i.*, c.name from incident i left join club c on i.club_id = c.id where matchcard_id = $cardId")->execute();
 	}
 
@@ -210,9 +210,47 @@ class Model_Card extends \Orm\Model
 		$arr[$subindex][] = $val;
 	}
 
+	public static function card2($id) {
+		$card = Model_Card::find_by_id($id);
+		
+		$result = $card->to_array();
+
+		$result['home'] = $card->home->to_array();
+		$result['away'] = $card->away->to_array();
+		$result['competition'] = $card->competition->to_array();
+
+		$result['incidents'] = array();
+		foreach ($card->incidents as $incident) {
+			$incident = $incident->to_array();
+			$result['incidents'][] = $incident;
+			continue;
+
+			$side = null;
+			if ($incident->club->id === $card->home->club_id) $side = &$result['home'];
+			else if ($incident->club->id === $card->away->club_id) $side = &$result['away'];
+
+			if (!$side) {
+				$incident = $incident->to_array();
+				$result['incidents'][] = $incident;
+				continue;
+			} else {
+				$incident = $incident->to_array();
+				$player = cleanName($incident['player'], "LN, Fn");
+				if ($player) {
+					$side['players'][$player][$incident['type']][] = $incident;
+				}
+				unset($side);
+			}
+		}
+
+		return $result;
+	}
+
 	public static function card($id) {
 
 		if (!$id) return null;
+
+		Log::debug("Requesting card $id");
 
 		$cards = \DB::query("select m.id, m.fixture_id, 
 				date_format(m.date, '%Y-%m-%d %H:%i:%S') date, 
@@ -269,8 +307,8 @@ class Model_Card extends \Orm\Model
 		$card['home']['incidents'] = array();
 		$card['away']['incidents'] = array();
 
-		$incidents = \DB::query("select i.id, player, club_id, type, detail, date, resolved
-			from incident i where matchcard_id = $id")->execute();
+		$incidents = \DB::query("select id, player, club_id, type, detail, date, resolved
+			from incident where matchcard_id = $id")->execute();
 
 		foreach ($incidents as $incident) {
 			if ($incident['club_id'] == $card['home_id']) $key = 'home';
@@ -369,17 +407,6 @@ class Model_Card extends \Orm\Model
 			}
 		}
 
-//		unset($card['home_id']);
-//		unset($card['home_name']);
-//		unset($card['home_team']);
-//		unset($card['away_id']);
-//		unset($card['away_name']);
-//		unset($card['away_team']);
-//		unset($card['home-opposition-score']);
-//		unset($card['away-opposition-score']);
-
-	//	print_r($card);
-
 		$card['description'] = $card['competition'].":".
 			$card['home']['club']." ".$card['home']['team']." v ".
 			$card['away']['club']." ".$card['away']['team'];
@@ -388,31 +415,29 @@ class Model_Card extends \Orm\Model
 		return $card;
 	}
 
-	private static function cleanName($name) {
-		$a = strpos($name, ',');	
-
-		if (!$a) return $name;
-
-		return trim(substr($name, $a+1))." ".ucwords(strtolower(substr($name, 0, $a)));
-	}
+//	private static function cleanName($name) {
+//		$a = strpos($name, ',');	
+//
+//		if (!$a) return $name;
+//
+//		return trim(substr($name, $a+1))." ".ucwords(strtolower(substr($name, 0, $a)));
+//	}
 
 	private static function numberTable($clubId) {
-		$list = \DB::query("select player, detail
-				from incident i
-			where type = 'Number'
-				and detail is not null
-				and trim(detail) <> ''
-					and club_id = $clubId
-			order by i.id desc")->execute();
+		$numbers = \DB::query("SELECT player, detail FROM incident i JOIN
+			(SELECT max(id) id
+			FROM incident
+			WHERE type = 'Number' AND club_id = :club_id
+			GROUP BY player) n ON n.id = i.id")
+			->bind('club_id', $clubId)
+			->execute();
 
-		$table = array();
-		foreach ($list as $item) {
-			if (!isset($item['player'])) continue;
-
-			$table[$item['player']] = $item['detail'];
+		$result = array();
+		foreach ($numbers as $number) {
+			$result[$number['player']] = $number['detail'];
 		}
 
-		return $table;
+		return $result;
 	}
 
 	public static function incompleteCards($delay, $playerCount) {

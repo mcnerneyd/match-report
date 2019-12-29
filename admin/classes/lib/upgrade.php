@@ -14,7 +14,7 @@ if (!defined("JSON_UNESCAPED_SLASHES")) {
    define("JSON_PRETTY_PRINT", 128);      // 5.4.0
    define("JSON_UNESCAPED_UNICODE", 256); // 5.4.0
  }
-   function xjson_encode($var, $options=0, $_indent="") {
+   function xjson_encode($var, $options=0, $_indent="", $key="") {
       global ${'.json_last_error'};
       ${'.json_last_error'} = JSON_ERROR_NONE;
 
@@ -40,8 +40,8 @@ if (!defined("JSON_UNESCAPED_SLASHES")) {
          $empty = 0; $json = "";
          foreach ((array)$var as $i=>$v) {
             $json .= ($empty++ ? ",$_nl" : "")    // comma separators
-                   . $_tab . ($obj ? (xjson_encode($i, $options & ~JSON_NUMERIC_CHECK, $_tab) . ":$_space") : "")   // assoc prefix
-                   . (xjson_encode($v, $options, $_tab));    // value
+                   . $_tab . ($obj ? (xjson_encode($i, $options & ~JSON_NUMERIC_CHECK, $_tab, $i) . ":$_space") : "")   // assoc prefix
+                   . (xjson_encode($v, $options, $_tab, $i));    // value
          }
 
          #-- enclose into braces or brackets
@@ -51,10 +51,10 @@ if (!defined("JSON_UNESCAPED_SLASHES")) {
       #-- strings need some care
       elseif (is_string($var)) {
 
-         if (!utf8_decode($var)) {
-            trigger_error("json_encode: invalid UTF-8 encoding in string, cannot proceed.", E_USER_WARNING);
-            $var = NULL;
-         }
+         //if (!utf8_decode($var)) {
+         //   trigger_error("json_encode: invalid UTF-8 encoding in string ($key=$var), cannot proceed.", E_USER_WARNING);
+         //   $var = NULL;
+         //}
          $rewrite = array(
              "\\" => "\\\\",
              "\"" => "\\\"",

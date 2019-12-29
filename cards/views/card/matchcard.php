@@ -1,38 +1,43 @@
 <?php
 // vim: et:ts=2:sw=2
-if (!isset($fixture['card'])) throw new Exception("Card does not exist");
+if (!isset($fixture['card']))
+    throw new Exception("Card does not exist");
 
 global $strictProcessing;
 $strictProcessing = false;
 if (isset($fixture['competition-strict']) && $fixture['competition-strict'] == 'yes') {
-	$strictProcessing = true;
+    $strictProcessing = true;
 }
-if (isset($_REQUEST['strict'])) $strictProcessing = true;
+if (isset($_REQUEST['strict']))
+    $strictProcessing = true;
 
 $club = $_SESSION['club'];
 $card = $fixture['card'];
 
-$cardIsOpen = false; 
+$cardIsOpen = false;
 
 $whoami = "";
 $mycard = null;
 if ($club and isset($fixture[$club])) {
-  $whoami = $fixture[$club];
-  $mycard = $card[$whoami];
-  if (!isset($mycard['closed'])) $cardIsOpen = true;
+    $whoami = $fixture[$club];
+    $mycard = $card[$whoami];
+    if (!isset($mycard['closed']))
+        $cardIsOpen = true;
 }
 
 // Card is open for umpires if either side has not closed
 if (user('umpire')) {
-  if (!isset($card['home']['closed'])) $cardIsOpen = true;
-  if (!isset($card['away']['closed'])) $cardIsOpen = true;
+    if (!isset($card['home']['closed']))
+        $cardIsOpen = true;
+    if (!isset($card['away']['closed']))
+        $cardIsOpen = true;
 }
 
-list($date,$time) = explode(" ", $fixture['datetime']);
-$time = substr($time, 0, 5);
+list($date, $time) = explode(" ", $fixture['datetime']);
+$time                            = substr($time, 0, 5);
 $card['away']['suggested-score'] = emptyValue($card['home']['oscore'], 0);
 $card['home']['suggested-score'] = emptyValue($card['away']['oscore'], 0);
-$baseUrl=substr(url(), 0, -11)."&cid=${card['id']}&x=".createsecurekey("card${card['id']}");
+$baseUrl                         = substr(url(), 0, -11) . "&cid=${card['id']}&x=" . createsecurekey("card${card['id']}");
 ?>
 <!-- <?= "WhoAmI:$whoami Open?:$cardIsOpen" ?> -->
 <script>
@@ -57,46 +62,28 @@ var messages = [
     text: "Players added or removed after the match start time are listed in red",
   },
 ];
-function triggerMessage() {
-  var msgBox = $('#messages');
-  var index = msgBox.data('index') || 0;
-  if (index >= messages.length) index = 0;
-  var msg = messages[index];
-  var msgText = msg['text'];
-  if (msg['title']) msgText = "<strong>" + msg['title'] + "</strong> " + msgText;
-  msgBox.html(msgText);
-  msgBox.attr("class", "alert alert-small alert-" + msg['level']);
-  msgBox.data('index', index+1);
-  setTimeout(triggerMessage, 8000);
-}
-function flashSubmit() {
-  var starttime = $('#match-card').data('starttime');
-  var now = new Date();
-  if (now.getTime() > starttime) {
-    var submitButton = $('#submit-button');
-    submitButton.toggleClass('flash');
-  }
-  setTimeout(flashSubmit, 1000);
-}
 
 $(document).ready(function() {
   triggerMessage();
   flashSubmit();
 
-  <?php if ($mycard) { ?>
+  <?php
+if ($mycard) {
+?>
   $.getJSON('/public/registrationapi/list.json?t=<?= $mycard['teamx'] ?>&g=<?= join(",", $fixture['groups']) ?>',
     function(json) {
-	  var ct = 0;
+      var ct = 0;
       if (typeof json !== 'undefined') {
-      for (var i=0;i<json.length;i++) {
-        var p = json[i];
-        $('#player-name').append("<option>" + p['name'] + "</option>");
-		++ct;
-      }
-	  console.log('Add player list:' + ct + ' player(s)');
+        for (var i=0;i<json.length;i++) {
+          var p = json[i];
+          $('#player-name').append("<option>" + p['name'] + "</option>");
+          ++ct;
+        }
+        console.log('Add player list:' + ct + ' player(s)');
       } else {
         console.log('No player list for team');
       }
+
       $('#player-name').selectize({
         create: true,
         sortField: 'text',
@@ -104,7 +91,9 @@ $(document).ready(function() {
         createOnBlur: true,
       });
     });
-  <?php } ?>
+  <?php
+}
+?>
 });
 </script>
 
@@ -140,9 +129,40 @@ $(document).ready(function() {
     margin-left: 10px;
   }
 h2 { margin-top: 0.5rem; font-size: 0.75em !important; font-style: italic; }
+.role {
+  font-size: 0.7em;
+  font-weight: bold;
+  padding: 0 4px;
+  width:30px;
+  text-align:center;
+  color:white;
+  border-radius: 2px;
+  margin-left: 3px;
+  margin-top: 3px;
+}
+#select-role label {
+  color:white;
+}
+.role-goalkeeper {
+  background: green;
+}
+.role-captain {
+  background:black;
+}
+div.role-captain {
+  border-radius: 0;
+}
+.role-manager {
+  background: blue;
+}
+.role-physio {
+  background: red;
+}
 </style>
 
-<?php if ($card['official'] || $strictProcessing) { ?>
+<?php
+if ($card['official'] || $strictProcessing) {
+?>
 <div class='alert alert-warning alert-small'>
   This matchcard has officially appointed umpires. Tap here for more details.
   <div class='alert-detail'>
@@ -162,30 +182,45 @@ $(document).ready(function() {
   }
 });
 </script>
-<?php } ?>
+<?php
+}
+?>
 
 <div id='messages' class='alert alert-small hidden'></div>
 
 <div id='match-card' <?php
-  $class = "";
-  if ($cardIsOpen) $class.="open ";
-  if ($card['official']) $class.="official ";
-  if ($class) echo "class='".trim($class)."' ";
-?>data-fixtureid='<?= $fixture['id'] ?>' data-cardid='<?= $card['id'] ?>' data-starttime='<?= $card['datetime']*1000 ?>'>
+$class = "";
+if ($cardIsOpen)
+    $class .= "open ";
+if ($card['official'])
+    $class .= "official ";
+if ($class)
+    echo "class='" . trim($class) . "' ";
+?>data-fixtureid='<?= $fixture['id'] ?>' data-cardid='<?= $card['id'] ?>' data-starttime='<?= $card['datetime'] * 1000 ?>'>
 
   <h1 id='competition' data-code='<?= $card['competition-code'] ?>' data-format='<?= $card['format'] ?>'><?= $card['competition'] ?></h1>
-		<?php if ($fixture['groups']) { ?>
-		<h2><?php echo join(', ', $fixture['groups']) ?></h2>
-		<?php } ?>
+		<?php
+if ($fixture['groups']) {
+?>
+		<h2><?php
+    echo join(', ', $fixture['groups']);
+?></h2>
+		<?php
+}
+?>
 
 
   <detail data-timestamp='<?= $fixture['date'] ?>'>
-    <?php if (isset($card['away']['locked'])) { ?>
+    <?php
+if (isset($card['away']['locked'])) {
+?>
     <dl id='lock-code'>
       <dt>Lock Code</dt>        
-      <dd><?= count($card['away']['players'])."/".$card['away']['locked'] ?></dd>
+      <dd><?= count($card['away']['players']) . "/" . $card['away']['locked'] ?></dd>
     </dl>
-    <?php } ?>
+    <?php
+}
+?>
 
     <dl id='fixtureid'>
       <dt>Fixture ID</dt>        
@@ -209,12 +244,16 @@ $(document).ready(function() {
   </detail>
 
   <div id='teams'>
-    <div id='matchcard-home' class='team <?= $whoami=='home'?'ours':'theirs' ?>' data-side='home'>
-      <?php render_team($card['home']); ?>
+    <div id='matchcard-home' class='team <?= $whoami == 'home' ? 'ours' : 'theirs' ?>' data-side='home'>
+      <?php
+render_team($card['home']);
+?>
     </div>
 
-    <div id='matchcard-away' class='team <?= $whoami=='away'?'ours':'theirs' ?>' data-side='away'>
-      <?php render_team($card['away']); ?>
+    <div id='matchcard-away' class='team <?= $whoami == 'away' ? 'ours' : 'theirs' ?>' data-side='away'>
+      <?php
+render_team($card['away']);
+?>
     </div>
 
     <div style='clear:both'/>
@@ -222,21 +261,25 @@ $(document).ready(function() {
   </div>
 
   <form id='submit-card'>
-  <?php if ($cardIsOpen) { ?>
+  <?php
+if ($cardIsOpen) {
+?>
       <a id='submit-button' class='btn btn-success' tabindex='10'><i class="fas fa-check"></i> Submit<span class='d-none d-md-inline'> Card</span></a>
-      <!--a id='postpone' class='btn btn-warning' data-toggle='confirmation' 
-        data-title='Mark match as postponed' 
-        data-content='This only marks the match as postponed. All postponements must be prior approved by the relevant section committee. Penalties will be imposed for unapproved postponements.'
-        data-btn-ok-label='Postponed' data-btn-cancel-label='Cancel'>Postponed</a-->
-  <?php } ?>
+  <?php
+}
+?>
       <a class='btn btn-info float-right' data-toggle='modal' data-target='#add-note' tabindex='21'>
         <i class="far fa-sticky-note"></i><span class='d-none d-md-inline'> Add Note</span>
       </a>
       <a class='add-player btn btn-danger float-right' data-toggle='modal' data-target='#add-player-modal' tabindex='20'><i class="fas fa-user-plus"></i> Add Player</a>
-  <?php if (!$cardIsOpen) { ?>
+  <?php
+if (!$cardIsOpen) {
+?>
       <a class='btn btn-success sign-card' data-toggle='modal' data-target='#submit-matchcard' tabindex='2'>
         <i class="fas fa-signature"></i> Add Signature</a>
-  <?php } ?>
+  <?php
+}
+?>
     </div>
   </form>
 </div>
@@ -258,14 +301,11 @@ $(document).ready(function() {
 
       <div class="modal-body" id='submit-form-detail'>
 
-        <?php if ($cardIsOpen) { ?>
+        <?php
+if ($cardIsOpen) {
+?>
 
         <form class='needs-validation' novalidation>
-          <!--div class='alert alert-danger alert-small'>
-            <strong>Don't forget</strong> Make sure you have added goals, red/yellow cards to
-            your players <u>before</u> submitting the matchcard.
-          </div-->
-
           <div class='form-group'>
             <label for='opposition-score'>Opposition Score</label>
             <input class='form-control' type='number' name='opposition-score' required/>
@@ -284,7 +324,9 @@ $(document).ready(function() {
           </div>
 
         </form>
-        <?php } ?>
+        <?php
+}
+?>
       </div>
 
       <div class="modal-body" id='submit-form-signature'>
@@ -296,12 +338,16 @@ $(document).ready(function() {
       </div>
 
       <div class="modal-footer">
-        <?php if (false and $cardIsOpen) { ?>
+        <?php
+if (false and $cardIsOpen) {
+?>
         <div class='alert alert-danger alert-small md-col-12'>
           <strong>Don't forget</strong> Make sure you have added goals, red/yellow cards to
           your players <u>before</u> submitting the matchcard
         </div>
-        <?php } ?>
+        <?php
+}
+?>
         <button type="submit" class="btn btn-success" data-dismiss="modal">
           Submit Matchcard
         </button>
@@ -317,19 +363,27 @@ $(document).ready(function() {
 
 <script src='js/signature_pad.min.js' type='text/javascript'></script>
 
-<?php if (isset($card['notes'])) { ?>
+<?php
+if (isset($card['notes'])) {
+?>
 <div id='Notes'>
 <h4>Notes</h4>
   <table id='notes'>
-    <?php foreach ($card['notes'] as $note) { ?>
+    <?php
+    foreach ($card['notes'] as $note) {
+?>
     <tr>
       <th><i class="far fa-sticky-note"></i>&nbsp;<?= $note['user'] ?></th>
       <td><?= $note['note'] ?></td>
     </tr>
-    <?php } ?>
+    <?php
+    }
+?>
   </table>
 </div>
-<?php } ?>
+<?php
+}
+?>
 
 <div id='signatures'>
   <h4>Signatures</h4>
@@ -365,7 +419,9 @@ if ($cardIsOpen || user('admin') || user('umpire') || \Auth::has_access('card.su
       <button type="button" class="close" data-dismiss="modal">&times;</button>
     </div>
 
-    <?php if (!user('umpire')) { ?>
+    <?php
+    if (!user('umpire')) {
+?>
     <div class='dropdown-item'>
       <button id='remove-player' class='btn btn-block btn-sm btn-danger'>Remove Player</button>
     </div>
@@ -379,9 +435,28 @@ if ($cardIsOpen || user('admin') || user('umpire') || \Auth::has_access('card.su
       </div>
     </div>
     <div class='dropdown-divider'></div>
-    <?php } ?>
+    <div id='select-role' class='dropdown-item'>
+      <label class='btn role-captain'>
+        <input type='checkbox' data-role='C'> Captain
+      </label>
+      <label class='btn role-goalkeeper'>
+        <input type='checkbox' data-role='G'> GK
+      </label>
+      <label class='btn role-manager'>
+        <input type='checkbox' data-role='M'> Manager
+      </label>
+      <label class='btn role-physio'>
+        <input type='checkbox' data-role='P'> Physio
+      </label>
+    </div>
+    <div class='dropdown-divider'></div>
+    <?php
+    }
+?>
 
-    <?php if (!$card['official'] || user('umpire') || \Auth::has_access('card.superedit')) { ?>
+    <?php
+    if (!$card['official'] || user('umpire') || \Auth::has_access('card.superedit')) {
+?>
     <a class='dropdown-item card-green'>Green Card</a>
     <a class='dropdown-item card-yellow'>Technical - Breakdown</a>
     <a class='dropdown-item card-yellow'>Technical - Delay/Time Wasting</a>
@@ -393,18 +468,23 @@ if ($cardIsOpen || user('admin') || user('umpire') || \Auth::has_access('card.su
     <a class='dropdown-item card-red'>Red Card</a>
     <a class='dropdown-item card-clear'>No Cards</a>
     <div class='dropdown-divider'></div>
-    <?php } ?>
+    <?php
+    }
+?>
 
-    <?php if (!user('umpire')) { ?>
+    <?php
+    if (!user('umpire')) {
+?>
     <div class='dropdown-item btn-group'>
       <button id='add-goal' class='btn btn-block btn-success'><i class="fas fa-plus"></i> Add Goal</button>
       <button id='clear-goal' style='margin-top:0' class='btn btn-block btn-warn'><i class="fas fa-ban"></i> Clear Goals</button>
     </div>
 
-    <?php } ?>
-
-    <?php if (false) { ?>
-    <?php if (!user('umpire')) { ?>
+    <?php
+    }
+    if (false) {
+        if (!user('umpire')) {
+?>
     <li>
       <!--button id='photograph' class='btn btn-primary' disabled>Take Photo</button-->
       <h4>Shirt Number</h4>
@@ -416,25 +496,26 @@ if ($cardIsOpen || user('admin') || user('umpire') || \Auth::has_access('card.su
       </div>
     </li>
     <li class='divider'/>
+    <button class='role-captain'>Capt</button>
+    <button class='role-goalkeeper'>GK</button>
+    <button class='role-manager'>Mgr</button>
+    <button class='role-physiotherapist'>Phys</button>
+    <li class='divider'/>
     <li>
       <div class='btn-group'>
         <button id='add-goal' class='btn btn-success'>Add Goal</button>
         <button id='clear-goal' class='btn btn-success'>Clear Goals</button>
       </div>
     </li>
-    <!--li class='divider'/>
-    <li disabled>Captain</li>
-    <li>Goalkeeper</li>
-    <li>Manager</li>
-    <li>Physiotherapist</li-->
-    <li class='divider'/>
-    <?php } ?>
-
-
-    <?php } ?>
+    <?php
+        }
+    }
+?>
 
 </div>
-<?php } ?>
+<?php
+}
+?>
 
 <?php
 // ------------------------------------------------------------------------
@@ -447,19 +528,16 @@ if ($cardIsOpen || user('admin') || user('umpire') || \Auth::has_access('card.su
     <!-- Modal content-->
     <div class="modal-content">
       <div class="modal-body">
-        
         <label for='player-name'>Player Name</label>
         <select id='player-name'>
           <option></option>
         </select>
-
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-success" data-dismiss="modal">Add Player</button>
         <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -491,88 +569,104 @@ if ($cardIsOpen || user('admin') || user('umpire') || \Auth::has_access('card.su
 </div>
 
 <!--
-<?php print_r($card); ?>
+<?php
+print_r($card);
+?>
 -->
-<?php  //--------------------------------------------------------------
-function render_team($team) {
-  global $strictProcessing;
-
-  echo "<table class='team-table' data-club='${team['club']}' data-team='${team['teamx']}' data-score='${team['score']}'>
-  <thead><tr><th colspan='100'>".$team['team']." <span class='score'>${team['score']}";
-  if ($team['suggested-score'] != $team['score']) echo "<span class='score'>".$team['suggested-score']."</span>";
-  echo "</span>";
-  if (user('admin')) echo "<a class='unlock'>Unlock</a>";
-  echo "</th></tr></thead>
+<?php //--------------------------------------------------------------
+function render_team($team)
+{
+    global $strictProcessing;
+    
+    echo "<table class='team-table' data-club='${team['club']}' data-team='${team['teamx']}' data-score='${team['score']}'>
+  <thead><tr><th colspan='100'>" . $team['team'] . " <span class='score'>${team['score']}";
+    if ($team['suggested-score'] != $team['score'])
+        echo "<span class='score'>" . $team['suggested-score'] . "</span>";
+    echo "</span>";
+    if (user('admin'))
+        echo "<a class='unlock'>Unlock</a>";
+    echo "</th></tr></thead>
 
   <tbody>\n";
-
-  $ct = 0;
-  foreach ($team['players'] as $player=>$detail) {
-
-
-    $names = cleanName($player, "[Fn][LN]");
-
-    $class = "player";
-    if (isset($detail['deleted'])) $class.=" deleted";
-    else {
-      if (isset($detail['ineligible'])) $class.=" ineligible";
-      if (isset($detail['late'])) $class.=" late";
-      if ($strictProcessing) {
-        if (!isset($detail['number']) or !$detail['number']) {
-          $class .= " numberless";
+    
+    $ct = 0;
+    foreach ($team['players'] as $player => $detail) {
+        
+        
+        $names = cleanName($player, "[Fn][LN]");
+        
+        $class = "player";
+        if (isset($detail['deleted']))
+            $class .= " deleted";
+        else {
+            if (isset($detail['ineligible']))
+                $class .= " ineligible";
+            if (isset($detail['late']))
+                $class .= " late";
+            if ($strictProcessing) {
+                if (!isset($detail['number']) or !$detail['number']) {
+                    $class .= " numberless";
+                }
+            }
         }
-      }
-    }
-
-    $imagekey = createsecurekey("image$player${team['club']}");
-    $url="image.php?site=".site()."&player=$player&w=200&club=${team['club']}&x=$imagekey";
-    echo "    <tr class='$class' data-timestamp='${detail['datetime']}' data-imageurl='$url' data-name='$player'>
-      <th>".(isset($detail['number'])?$detail['number']:"")."</th>
+        
+        $imagekey = createsecurekey("image$player${team['club']}");
+        $url      = "image.php?site=" . site() . "&player=$player&w=200&club=${team['club']}&x=$imagekey";
+        echo "    <tr class='$class' data-timestamp='${detail['datetime']}' data-imageurl='$url' data-name='$player'>
+      <th>" . (isset($detail['number']) ? $detail['number'] : "") . "</th>
       <td>${names['Fn']}</td>
       <td>${names['LN']} ";
-
-    echo "<div class='player-annotations'>";
-    if ($detail['score'] != 0) echo "<span class='score'>${detail['score']}</span>";
-    if (isset($detail['cards'])) {
-      foreach ($detail['cards'] as $rycard) {
-        $type = "yellow";
-        if ($rycard['type'] == 'Red Card') $type = "red";
-        echo "<span class='card-penalty card-$type'>${rycard['detail']}</span>";
-      }
-    }
-    if (isset($detail['detail'])) {
-      $d = $detail['detail'];
-        $roles = $d->roles;
-        if ($roles) {
-          if (in_array('G', $roles)) echo "<span class='role role-goalkeeper'>GK</span>";
-          if (in_array('C', $roles)) echo "<span class='role role-captain'>C</span>";
-          if (in_array('M', $roles)) echo "<span class='role role-manager'>M</span>";
-          if (in_array('P', $roles)) echo "<span class='role role-physio'>P</span>";
+        
+        echo "<div class='player-annotations'";
+        if (isset($detail['detail'])) {
+            $d = $detail['detail'];
+            echo " data-player='" . htmlspecialchars(json_encode($d), ENT_QUOTES, 'UTF-8') . "'";
         }
-
-    }
-    echo "</div>";
-
-    echo "</td>
+        echo ">";
+        
+        if ($detail['score'] != 0)
+            echo "<span class='score'>${detail['score']}</span>";
+        if (isset($detail['cards'])) {
+            foreach ($detail['cards'] as $rycard) {
+                $type = "yellow";
+                if ($rycard['type'] == 'Red Card')
+                    $type = "red";
+                echo "<span class='card-penalty card-$type'>${rycard['detail']}</span>";
+            }
+        }
+        if (isset($detail['detail'])) {
+            $d = $detail['detail'];
+            if ($d) {
+                $roles = $d->roles;
+                if ($roles) {
+                    if (in_array('G', $roles))
+                        echo "<span class='role role-goalkeeper'>GK</span>";
+                    if (in_array('C', $roles))
+                        echo "<span class='role role-captain'>C</span>";
+                    if (in_array('M', $roles))
+                        echo "<span class='role role-manager'>M</span>";
+                    if (in_array('P', $roles))
+                        echo "<span class='role role-physio'>P</span>";
+                }
+            }
+        }
+        echo "</div>";
+        
+        echo "</td>
     </tr>\n";
-    $ct++;
-  }
-
-  for (;$ct<16;$ct++) { echo "    <tr class='filler hidden-xs'><td colspan='4'>&nbsp;</td></tr>\n"; }
-
-  echo "  </tbody>
+        $ct++;
+    }
+    
+    for (; $ct < 16; $ct++) {
+        echo "    <tr class='filler hidden-xs'><td colspan='4'>&nbsp;</td></tr>\n";
+    }
+    
+    echo "  </tbody>
 
     </table>\n";
-
-  if (isset($team['umpire'])) {
-    echo "<dl><dt>Umpire</dt><dd>".$team['umpire']."</dd></dl>";
-  }
+    
+    if (isset($team['umpire'])) {
+        echo "<dl><dt>Umpire</dt><dd>" . $team['umpire'] . "</dd></dl>";
+    }
 }
 
-function cleanSplit($name) {
-  $names = explode(",", $name, 2);
-
-  if (count($names) == 1) return array($names[0], "");
-
-  return $names;
-}

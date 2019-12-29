@@ -4,7 +4,7 @@ class Model_Incident extends \Orm\Model
 	protected static $_properties = array(
 		'id',
 		'date',
-		'type',
+		'type',	// 	enum('Played', 'Red Card', 'Yellow Card', 'Ineligible', 'Scored', 'Missing', 'Postponed', 'Other', 'Locked', 'Reversed', 'Signed', 'Number', 'Late', 'Registered')
 		'player',
 		'club_id',
 		'matchcard_id',
@@ -38,13 +38,13 @@ class Model_Incident extends \Orm\Model
 
 	protected static $_table_name = 'incident';
 
-	public static function clearCards($cardId, $player) {
+	public static function clearCards($cardId, $player, $clubId) {
 			Log::debug("Deleting cards from $player on card $cardId");
 
 			$q = \DB::delete('incident')
 				->where('matchcard_id', '=', $cardId)
 				->where('player', '=', $player)
-				->where('club_id', '=', Auth::get('club_id'))
+				->where('club_id', '=', $clubId)
 				->where('type', 'in', array('Red Card', 'Yellow Card'));
 			Log::debug("db:".$q->compile());
 			$q->execute();

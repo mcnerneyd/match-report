@@ -86,6 +86,8 @@ $(document).ready(function() {
 <h3>Raw Card Data</h3>
 <pre>
 <?php print_r($card) ?>
+
+<?php /*echo xjson_encode($card2, JSON_PRETTY_PRINT);*/ ?>
 </pre>
 <?php } /* if $card */ 
 else echo "No card on system";

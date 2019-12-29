@@ -26,7 +26,6 @@ function cleanName($player, $format = "Fn LN") {
 
 		if (!$player) return $player;
 
-		$zPlayer = $player;
 		$player = trim(preg_replace("/[^A-Za-z, ]/", "", $player));
 		$a = strpos($player, ",");
 		if ($a) {
@@ -57,13 +56,11 @@ function cleanName($player, $format = "Fn LN") {
 			default:
 				$player = ucwords(strtolower($firstname))." ".strtoupper($lastname);
 				break;
-
 		}
 
 		$player = trim($player);
 		if ($player == ',') $player = "";
 
-		//echo "Clean:$zPlayer->$player ($lastname,$firstname/$a$c)\n";
 
 		return $player;
 }
@@ -136,6 +133,7 @@ function rangeEnd($now = null) {
 	return array($firstThursdayForRange, $nextThursdayForRange);
 }
 
+/*
 //-----------------------------------------------------------------------------
 function parse($str) {
 	$config = file('../../../cards/sites/'.site().'/patterns.ini');
@@ -199,6 +197,7 @@ function parseCompetition($str, $competitions) {
 
 	return $str;
 }
+*/
 
 //-----------------------------------------------------------------------------
 function loadFile($file) {

@@ -18,6 +18,11 @@ function arr_add(&$arr, $subindex, $val) {
 	$arr[$subindex][] = $val;
 }
 
+# Provide 5.5 functionality
+function array_column($input, $column_key) {
+	return array_map(function($v) use ($column_key) { return $v[$column_key]; }, $input);
+}
+
 //-----------------------------------------------------------------------------
 // Returns a default value for empty value
 function emptyValue(&$var, $def) {
@@ -44,9 +49,7 @@ function cleanName($player, $format = "Fn LN") {
 		if (!$player) return $player;
 
 		$player = trim(preg_replace("/[^A-Za-z, ]/", "", $player));
-		$zPlayer = $player;
 		$a = strpos($player, ",");
-		$c=0;
 		if ($a) {
 			$lastname = substr($player, 0, $a);
 			$b = strpos($player, "," , $a+1);
@@ -80,9 +83,13 @@ function cleanName($player, $format = "Fn LN") {
 		$player = trim($player);
 		if ($player == ',') $player = "";
 
-		//echo "Clean:$zPlayer->$player ($lastname/$firstname:$a+$c)\n";
 
 		return $player;
+}
+
+//-----------------------------------------------------------------------------
+function unicode_trim ($str) {
+    return preg_replace('/^[\pZ\pC]+|[\pZ\pC]+$/u','',$str);
 }
 
 //-----------------------------------------------------------------------------
@@ -99,45 +106,13 @@ function phone($player) {
 }
 
 //-----------------------------------------------------------------------------
-function unicode_trim ($str) {
-    return preg_replace('/^[\pZ\pC]+|[\pZ\pC]+$/u','',$str);
-}
-
-//-----------------------------------------------------------------------------
-// Write a log entry to the fuelphp logs
-function log_write($level, $msg) {
-	try {
-	$filename = DATAPATH."/logs/".date("Y/m/d").".php";
-	$dir = dirname($filename);
-
-	if (!file_exists($dir)) {
-		mkdir($dir, 0777, true);
-	}
-
-	//$msg = "{".$_SESSION['site'].".".user()."} ".$msg;
-
-	$msg = "$level - ".date("Y-m-d H:i:s")." --> # $msg\n";
-
-	if (!file_exists($filename)) {
-		$msg = "<?php defined('COREPATH') or exit('No direct script access allowed'); ?".">\n\n$msg"; 
-	}
-
-	file_put_contents($filename, $msg, FILE_APPEND);
-	} catch (Exception $e) {
-		echo "Log Failure: ".$e->getMessage();
-	}
-
-	return true;
-}
-
-//-----------------------------------------------------------------------------
 function currentSeasonStart() {
 	$year = date('Y');
 	$month = date('n');
 
-	if ($month < 6) $year = $year - 1;
+	if ($month < 8) $year = $year - 1;
 
-	return strtotime($year."-06-01 00:00");
+	return strtotime($year."-08-01 00:00");
 }
 
 //-----------------------------------------------------------------------------
@@ -206,7 +181,6 @@ function parse($str) {
 
 	$result['name'] = $result['club'] .' '. $result['team'];
 
-	//echo "<!-- to:".print_r($result, true)." -->";
 	return $result;
 }
 

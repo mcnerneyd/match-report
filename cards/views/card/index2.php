@@ -21,6 +21,7 @@ tr td:nth-child(4) .label { width: 0; padding: 2px 5px; display: inline !importa
 	position:fixed;
 	overflow-y: auto;
 	bottom: 10px;
+	top: 130px !important;
 }
 #fixtures tr:first-child {
 	margin-top: 0;
@@ -59,7 +60,7 @@ function loadPage(row) {
 			if (typeof ofs != 'undefined') {
 				anchorTop = ofs.top;
 			}
-			console.log("Loaded page: " + page + " " + data.length + " entry/s.");
+			console.log(`Loaded page: ${page} ${data.length} entry/s.`);
 			for (var i=0;i<data.length;i++) {
 				var item = data[i];
 
@@ -70,32 +71,37 @@ function loadPage(row) {
 
 				var dt = moment(item['datetimeZ']);
 				var dtFormat = dt.format('MMMM YYYY');
-				var title = "#" + fixtureID;
+				var title = `#${fixtureID}:${item['competition']} - ${item['home']} v ${item['away']}`;
 				
 				 //+ "/" + item['cardId'] 
-				 title += ":" + item['competition'] + " - " + item['home'] + " v " + item['away'];
 
 				if (page < 0) {
-					row.after('<tr id="' + fixtureID + '" title="'+title+'"></tr>');
+					row.after(`<tr id="${fixtureID}" title="${title}"></tr>`);
 				} else {
-					row.before('<tr id="' + fixtureID + '" title="'+title+'"></tr>');
+					row.before(`<tr id="${fixtureID}" title="${title}"></tr>`);
 				}
 
 				var current = $('#' + fixtureID);
-
+				current.addClass('fixture');
 				if (item['state']) {
 					current.addClass(item['state']);
 				}
-				current.addClass('fixture');
 
-				var tds = '<td data-value="'+dt.format()+'" class="date">' + dt.format('D') + '</td>' +
-					'<td class="d-none d-md-table-cell time">' + dt.format('h:mm') + '</td>';
-				tds += '<td class="d-none d-md-table-cell"><span class="badge label-league">' + item['competition'] + '</span></td>';
-				tds += '<td class="d-table-cell d-md-none"><span class="badge label-league">' + item['competition-code'] + '</span></td>';
+				current.data('competition', item['competition']);
+				current.data('home', item['home_club']);
+				current.data('away', item['away_club']);
 
-				tds += '<td class="d-none d-md-table-cell">' + item['home'];
+				filter(current);
+
+				var tds = `<td data-value="${dt.format()}" class="date">${dt.format('D')}</td>
+					<td class="d-none d-md-table-cell time">${dt.format('h:mm')}</td>
+					<td class="d-none d-md-table-cell"><span class="badge label-league">${item['competition']}</span></td>
+					<td class="d-table-cell d-md-none"><span class="badge label-league">${item['competition-code']}</span></td>
+					<td class="d-none d-md-table-cell">${item['home']}`;
+
 				if (item['home_info']['signed']) tds += ' <i class="fas fa-check-square"></i>';
 				else if (item['home_info']['locked']) tds += ' <i class="fas fa-lock"></i>';
+
 				tds += '</td>';
 
 				tds += "<td class='d-none d-md-table-cell'>";
@@ -105,13 +111,13 @@ function loadPage(row) {
 				tds += '<td class="d-none d-md-table-cell">' + item['away'];
 				if (item['away_info']['signed']) tds += ' <i class="fas fa-check-square"></i>';
 				else if (item['away_info']['locked']) tds += ' <i class="fas fa-lock"></i>';
-				tds += '</td>';
-				tds += "<td class='d-none d-md-table-cell mail-btn'><i class='fa fa-envelope'></i></td>";
-				tds += '<td class="d-md-none">' + item['home'] + " ";
+				tds += `</td>
+				<td class='d-none d-md-table-cell mail-btn'><i class='fa fa-envelope'></i></td>
+				<td class="d-md-none">${item['home']} `;
+
 				if (item['played'] === 'yes') tds += "<span class='score'>" + item['home_score'] + "-" + item['away_score'] + "</span> ";
 				else tds += "v ";
 				tds += item['away'] + '</td>';
-				tds += "\n<!-- " + JSON.stringify(item) + "-->";
 
 				current.append(tds);
 				current.data('time', dt);
@@ -154,12 +160,11 @@ function loadPage(row) {
 				row.remove();
 			}
 		} else {
-			console.log("Loaded page: " + page + " empty");
+			console.log(`Loaded page: ${page} empty`);
 			row.remove();
 			if (page < 0) {
 				addMonthYear($('#fixtures tr.fixture:first'));
 			}
-
 		}
 
 		if (typeof anchorRow !== 'undefined') {
@@ -171,9 +176,23 @@ function loadPage(row) {
 			$('#fixtures-container').scrollTop(anchorTop);
 		}
 
-		$('#fixtures tr').show();
+		//$('#fixtures tr').show();
 		triggerLoad();
 	});
+}
+
+function filter(fixtureRow) {
+	var competition = $('#pills-competition').val();
+	var club = $('#pills-club').val();
+	var show = true;
+	if (competition !== "" && competition !== fixtureRow.data('competition')) {
+		show = false;
+	}
+	if (club !== "" && club !== fixtureRow.data('home') && club !== fixtureRow.data('away')) {
+		show = false;
+	}
+	if (show) fixtureRow.show();
+	else fixtureRow.hide();
 }
 
 function addMonthYear(firstRow) {
@@ -211,6 +230,12 @@ $(document).ready(function() {
 	sizeFixtures();
 	$('#fixtures-container').focus();
 
+	$('.filter').change(function(evt) {
+		$('.fixture').each(function(index) {
+			filter($(this));
+		});
+	});
+
   $("#fixtures").on("click", ".mail-btn", function(evt) {
 		var tr = $(this).closest("tr.fixture");
     window.document.location = "<?= Uri::create("/Card/Sendmail") ?>?id="+tr.attr("id");
@@ -224,18 +249,31 @@ $(document).ready(function() {
 </script>
 
 <nav>
-	<div class='nav nav-pills' id='fixtures-tab'>
-		<div id='pills-matchtype' class='btn-group'></div>
-		<div id='pills-competition' class='btn-group'></div>
-		<div id='pills-club' class='btn-group'></div>
-	</div>
+	<form class=form-inline' id='fixtures-tab'>
+		<label class='col-sm-auto'>Filters:</label>
+		<select id='pills-club' class='filter custom-select custom-select-sm col-sm-4'>
+			<option selected value="">All Clubs</option>
+			<?php foreach ($clubs as $club) echo "<option>$club</option>\n" ?>
+		</select>
+		<!--select id='pills-team' class='filter custom-select custom-select-sm col-sm-3'>
+			<option selected value="">All Teams</option>
+		</select-->
+		<select id='pills-competition' class='filter custom-select custom-select-sm col-sm-4'>
+			<option selected value="">All Competitions</option>
+			<?php foreach ($competitions as $competition) echo "<option>$competition</option>\n" ?>
+		</select>
+	</form>
 </nav>
 
 <div id='fixtures-container'>
-<table id='fixtures'>
-	<tbody>
-		<tr class='scrollrow'><td colspan='100'><i class="fas fa-chevron-up"></i><i class='fas fa-sync-alt fa-spin'></i></td></tr>
-		<tr class='scrollrow'><td colspan='100'><i class="fas fa-chevron-down"></i><i class='fas fa-sync-alt fa-spin'></i></td></tr>
-  </tbody>
-</table>
+	<table id='fixtures'>
+		<tbody>
+			<tr class='scrollrow'>
+				<td colspan='100'><i class="fas fa-chevron-up"></i><i class='fas fa-sync-alt fa-spin'></i></td>
+			</tr>
+			<tr class='scrollrow'>
+				<td colspan='100'><i class="fas fa-chevron-down"></i><i class='fas fa-sync-alt fa-spin'></i></td>
+			</tr>
+		</tbody>
+	</table>
 </div>

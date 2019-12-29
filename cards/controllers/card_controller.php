@@ -9,6 +9,9 @@ class CardController {
     public function index() {
         checkuser();
 
+				$competitions = array_column(Competition::all(), "name");
+				$clubs = array_column(Club::all(), "name");
+
         require_once('views/card/index2.php');
 
 				return;

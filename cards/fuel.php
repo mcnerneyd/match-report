@@ -7,6 +7,31 @@ define("DATAPATH", "$root/data");
 
 require_once "util.php";
 
+//-----------------------------------------------------------------------------
+// Write a log entry to the fuelphp logs
+function log_write($level, $msg) {
+	try {
+		$filename = DATAPATH."/logs/".date("Y/m/d").".php";
+		$dir = dirname($filename);
+
+		if (!file_exists($dir)) {
+			mkdir($dir, 0777, true);
+		}
+
+		$msg = "$level - ".date("Y-m-d H:i:s")." --> # $msg\n";
+
+		if (!file_exists($filename)) {
+			$msg = "<?php defined('COREPATH') or exit('No direct script access allowed'); ?".">\n\n$msg"; 
+		}
+
+		file_put_contents($filename, $msg, FILE_APPEND);
+	} catch (Exception $e) {
+		echo "Log Failure: ".$e->getMessage();
+	}
+
+	return true;
+}
+
 class Log {
 	static function debug($msg) {
 		log_write("DEBUG", $msg);

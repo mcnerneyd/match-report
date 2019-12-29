@@ -21,10 +21,10 @@ $(document).ready(function() {
     });
 
     // add headshots
-    $('#match-card').prepend("<div id='headshot' class='btn-group'>"+
-        "<button class='btn btn-sm btn-primary active' value='list'><i class='fas fa-list'></i></button>"+
-        "<button class='btn btn-sm btn-primary' value='headshot'><i class='fas fa-user'></i></button>"+
-"</div>");
+    $('#match-card').prepend('<div id='headshot' class='btn-group'>
+        <button class='btn btn-sm btn-primary active' value='list'><i class='fas fa-list'></i></button>
+        <button class='btn btn-sm btn-primary' value='headshot'><i class='fas fa-user'></i></button>
+      </div>`);
 
     $('#headshot button').click(function() { setHeadshot($(this).attr('value')=='list'); });
 
@@ -53,16 +53,16 @@ $(document).ready(function() {
             }
         }
         
-        $myScore = getText($('#match-card .ours caption>.score'));
-        $theirGuess = getText($('#match-card .ours caption>.score>.score'));
+        var myScore = getText($('#match-card .ours caption>.score'));
+        var theirGuess = getText($('#match-card .ours caption>.score>.score'));
 
         $('#submit-matchcard').modal('show');
     
-        if ($myScore < $theirGuess) {
-            if ($myScore == 0) {
-                doAlert("Your opposition thinks you scored " + $theirGuess + ". Have you forgotten to add goal scorers?");
+        if (myScore < theirGuess) {
+            if (myScore == 0) {
+                doAlert(`Your opposition thinks you scored ${theirGuess}. Have you forgotten to add goal scorers?`);
             } else {
-                doAlert("Your opposition thinks you scored " + $theirGuess + ". Do you need to add more goals?");
+                doAlert(`Your opposition thinks you scored ${theirGuess}. Do you need to add more goals?`);
             }
         }
     });
@@ -234,7 +234,7 @@ $(document).ready(function() {
                     var sig = data[i];
                     var name = sig['player'];
                     if (sig['club']) name += "<br>" + sig['club'];
-                    $('#signatures').append("<div><span>" + name + "</span><img src='data:"+ sig['signature'] + "'/></div>");
+                    $('#signatures').append(`<div><span>${name}</span><img src='data:${sig['signature']}'/></div>`);
                 }
                 if (!data) $('#signatures').hide();
             } else {
@@ -265,7 +265,48 @@ $(document).ready(function() {
         contextMenu.data('player', playerName);
         contextMenu.data('club', $(this).closest('table').data('club'));
         contextMenu.data('tr', $(this));
+
+        var playerData = $(this).find(".player-annotations").data('player');
+        if (typeof playerData !== 'undefined') {
+          contextMenu.data('playerData', playerData);
+          if ("roles" in playerData) {
+            var roles = playerData['roles'];
+
+            contextMenu.find('.role-goalkeeper input').prop('checked',roles.indexOf("G") > -1);
+            contextMenu.find('.role-captain input').prop('checked',roles.indexOf("C") > -1);
+            contextMenu.find('.role-manager input').prop('checked',roles.indexOf("M") > -1);
+            contextMenu.find('.role-physio input').prop('checked',roles.indexOf("P") > -1);
+          }
+        }
+
         contextMenu.show();
+    });
+
+    $('#context-menu #select-role input').click(function() {
+      var role = $(this).data('role');
+
+      var cardId = $('#match-card').data('cardid');
+      var playerData = $('#context-menu').data('playerData');
+      if (typeof playerData === 'undefined') playerData = {roles:[]};
+      var url = restUrl + "/Player?m=" + cardId 
+      + "&p=" + $('#context-menu').data('player')
+      + "&club=" + $('#context-menu').data('club');
+
+      if (!('roles' in playerData)) playerData['roles'] = [];
+
+      if (playerData['roles'].indexOf(role) >= 0) {
+        playerData['roles'] = $.grep(playerData['roles'], function(e) {
+          return e != role;
+        });
+      } else {
+        playerData['roles'].push(role);
+      }
+
+      $.ajax({url: url, 
+        method:'PUT', 
+        contentType:'application/json',
+        data:JSON.stringify(playerData)})
+      .done(function(d) { location.reload(); });
     });
 
     $('#context-menu .card-yellow').click(function() {
@@ -340,6 +381,28 @@ $(document).ready(function() {
 
     $(window).resize(resize);
 });
+
+function triggerMessage() {
+  var msgBox = $('#messages');
+  var index = msgBox.data('index') || 0;
+  if (index >= messages.length) index = 0;
+  var msg = messages[index];
+  var msgText = msg['text'];
+  if (msg['title']) msgText = "<strong>" + msg['title'] + "</strong> " + msgText;
+  msgBox.html(msgText);
+  msgBox.attr("class", `alert alert-small alert-${msg['level']}`);
+  msgBox.data('index', index+1);
+  setTimeout(triggerMessage, 8000);
+}
+function flashSubmit() {
+  var starttime = $('#match-card').data('starttime');
+  var now = new Date();
+  if (now.getTime() > starttime) {
+    var submitButton = $('#submit-button');
+    submitButton.toggleClass('flash');
+  }
+  setTimeout(flashSubmit, 1000);
+}
 
 // Helper functions
 function updateGoals(holder) {

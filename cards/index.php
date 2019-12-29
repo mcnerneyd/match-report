@@ -41,15 +41,15 @@ function dd($arr, $key, $def = null) {
 
 function debug($msg) {
 	if (!isset($_SESSION['debug']) and !isset($_REQUEST['debug'])) return false;
-	log_write("DEBUG", $msg);
+	Log::debug($msg);
 }
 
 function info($msg) {
-	log_write("INFO", $msg);
+	Log::info($msg);
 }
 
 function warn($msg) {
-	log_write("WARNING", $msg);
+	Log::warn($msg);
 
 	global $warnings;
 

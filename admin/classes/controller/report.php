@@ -229,10 +229,16 @@ class Controller_Report extends Controller_Template
 			$fixture = Model_Fixture::get($cardId);
 		}
 
-		$incidents = Model_Card::incidents($card['id']);
+		$incidents = array();
+		$card2 = array();
+
+		if ($card['id']) {
+			$incidents = Model_Card::incidents($card['id']);
+			$card2 = Model_Card::card2($card['id']);
+		}
 
 		$html = View::forge('report/card', array('card'=>$card, 'fixture'=>$fixture, 
-				'incidents'=>$incidents))->render();
+				'incidents'=>$incidents, 'card2'=>$card2))->render();
 		return new Response($html);
 	}
 
@@ -281,14 +287,6 @@ class Controller_Report extends Controller_Template
 			$teams[$fixture['home']] = "xx";
 			$teams[$fixture['away']] = "xx";
 		}
-
-		/*
-		print_r($dbComps);
-		print_r($dbClubs);
-
-		print_r($competitions);
-		print_r($teams);
-		*/
 
 		foreach ($competitions as $competition=>$x) {
 			$comp = Model_Competition::parse($competition);
