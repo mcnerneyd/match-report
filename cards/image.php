@@ -6,7 +6,6 @@
 
 function debug($msg) { }
 
-require_once('config.php');
 require_once('model/connection.php');
 require_once('secure.php');
 

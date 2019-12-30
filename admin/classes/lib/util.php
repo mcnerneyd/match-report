@@ -22,6 +22,14 @@ function array_column($input, $column_key) {
 }
 
 //-----------------------------------------------------------------------------
+// Returns a default value for empty value
+function emptyValue(&$var, $def) {
+	if (empty($var)) return $def;
+
+	return $var;
+}
+
+//-----------------------------------------------------------------------------
 function cleanName($player, $format = "Fn LN") {
 
 		if (!$player) return $player;
@@ -133,17 +141,12 @@ function rangeEnd($now = null) {
 	return array($firstThursdayForRange, $nextThursdayForRange);
 }
 
-/*
 //-----------------------------------------------------------------------------
 function parse($str) {
-	$config = file('../../../cards/sites/'.site().'/patterns.ini');
-
+	$config = Config::get("config.pattern.team");
 	$patterns = array();
 	$replacements = array();
-	while (trim(array_shift($config)) != '');
-	array_shift($config);
 	foreach ($config as $pattern) {
-		if (trim($pattern) == '') break;
 		$parts = explode($pattern[0], $pattern);
 		if (count($parts) < 3) continue;
 		$patterns[] = "/${parts[1]}/i";
@@ -156,7 +159,7 @@ function parse($str) {
 
 	$matches = array();
 	if (!preg_match('/^([a-z ]*[a-z])(?:\s+([0-9]+))?$/i', trim($str), $matches)) {
-		throw new Exception("Cannot match '$str'");
+		throw new Exception("Cannot match team '$str'");
 	}
 
 	$result = array('club'=>$matches[1]);
@@ -174,11 +177,13 @@ function parse($str) {
 
 //-----------------------------------------------------------------------------
 function parseCompetition($str, $competitions) {
-	$config = file('../../../cards/sites/'.site().'/patterns.ini');
+	$config = Config::get("config.pattern.competition");
+	if (!$config) {
+		Log::warn("No competition patterns specified");
+	}
 
 	$patterns = array();
 	$replacements = array();
-	array_shift($config);
 	foreach ($config as $pattern) {
 		if (trim($pattern) == '') break;
 		$parts = explode($pattern[0], $pattern);
@@ -187,88 +192,15 @@ function parseCompetition($str, $competitions) {
 		$replacements[] = $parts[2];
 	}
 
-	$str = trim(preg_replace($patterns, $replacements, trim($str)));
+	$newstr = trim(preg_replace($patterns, $replacements, trim($str)));
 
-	if ($str == '!') return null;
+	if ($newstr == '!') return null;
 
-	if ($competitions != null && !in_array($str, $competitions)) {
-		throw new Exception("Cannot resolve competitionx '$str'");
+	if ($competitions != null && !in_array($newstr, $competitions)) {
+		throw new Exception("Cannot resolve competition '$newstr' ('$str')");
 	}
 
-	return $str;
-}
-*/
-
-//-----------------------------------------------------------------------------
-function loadFile($file) {
-	$ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-
-	switch ($ext) {
-		case 'xls':
-		case 'xlsx':
-			$cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
-			$cacheSettings = array( 'memoryCacheSize' => '2GB');
-			PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
-
-			$inputFileType = PHPExcel_IOFactory::identify($file['tmp_name']);
-			$reader = PHPExcel_IOFactory::createReader($inputFileType);
-			$reader->setReadDataOnly(true);
-
-			$excel = $reader->load($file['tmp_name']);
-
-			$writer = PHPExcel_IOFactory::createWriter($excel, 'CSV');
-			$tmpfname = tempnam("../tmp", "xlsx");
-			$writer->save($tmpfname);
-
-			$filename = $tmpfname;
-			break;
-
-		case 'csv':
-		default:
-			$filename = $file['tmp_name'];
-			break;
-	}
-
-	$result = array();
-
-	if (copy($filename, $filename.".xxx")) {
-		//echo "Copy success\n";
-	} else {
-		echo "Copy failed\n";
-	}
-
-	//echo "Filename:$filename~$ext\n";
-	$data = file_get_contents($filename);
-	//echo bin2hex($data);
-
-	$data = str_replace("\r", "\n", $data);
-	$data = str_replace(";", ",", $data);
-
-	foreach (explode("\n", $data) as $line) {
-		if (trim($line) == "") continue;
-		$result[] = preg_replace('/[^A-Za-z0-9,+_@. \/-]/', '', trim($line));
-	}
-
-	return $result;
-}
-
-//-----------------------------------------------------------------------------
-function convertXls($name, $tmpfile) {
-		$cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
-		$cacheSettings = array( 'memoryCacheSize' => '2GB');
-		PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
-
-		$inputFileType = PHPExcel_IOFactory::identify($tmpfile);
-		$reader = PHPExcel_IOFactory::createReader($inputFileType);
-		$reader->setReadDataOnly(true);
-
-		$excel = $reader->load($tmpfile);
-
-		$writer = PHPExcel_IOFactory::createWriter($excel, 'CSV');
-		$tmpfname = tempnam("../tmp", "xlsx");
-		$writer->save($tmpfname);
-
-		return $tmpfname;
+	return $newstr;
 }
 
 //-----------------------------------------------------------------------------

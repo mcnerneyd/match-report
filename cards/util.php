@@ -1,11 +1,9 @@
 <?php
-	ini_set('display_errors',1);
-	ini_set('display_startup_errors',1);
-	ini_set('max_execution_time', 300); 
-	error_reporting(E_ALL);
+function rootUrl() {
+	return (!empty($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/';
+}
 
-use \SimpleXMLElement;
-
+//-----------------------------------------------------------------------------
 function &arr_get(&$arr, $subindex) {
 	if (!isset($arr[$subindex])) $arr[$subindex] = array();
 
@@ -29,18 +27,6 @@ function emptyValue(&$var, $def) {
 	if (empty($var)) return $def;
 
 	return $var;
-}
-
-//-----------------------------------------------------------------------------
-// Apply style to matching Xpaths
-function style($xml, $xpath, $style) {
-	$xml = new \SimpleXMLElement($xml);
-
-	foreach (xpath($xpath) as $elm) {
-		$elm->attributes['style'] .= ";$style";
-	}
-
-	return $xml;
 }
 
 //-----------------------------------------------------------------------------
@@ -112,7 +98,12 @@ function currentSeasonStart() {
 
 	if ($month < 8) $year = $year - 1;
 
-	return strtotime($year."-08-01 00:00");
+	return Date::create_from_string($year.".08.01 00:00");
+}
+
+//-----------------------------------------------------------------------------
+function generatePassword($length) {
+	return substr(str_pad(rand(0,pow(10,$length)-1),$length,'0'), 0, $length);
 }
 
 //-----------------------------------------------------------------------------
@@ -212,62 +203,6 @@ function parseCompetition($str, $competitions) {
 	return $newstr;
 }
 
-$root = dirname(__FILE__);
-require_once($root.'/../lib/PHPExcel/PHPExcel/IOFactory.php');
-
-//-----------------------------------------------------------------------------
-function loadFile($file) {
-	$ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-
-	switch ($ext) {
-		case 'xls':
-		case 'xlsx':
-			$cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
-			$cacheSettings = array( 'memoryCacheSize' => '2GB');
-			PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
-
-			$inputFileType = PHPExcel_IOFactory::identify($file['tmp_name']);
-			$reader = PHPExcel_IOFactory::createReader($inputFileType);
-			$reader->setReadDataOnly(true);
-
-			$excel = $reader->load($file['tmp_name']);
-
-			$writer = PHPExcel_IOFactory::createWriter($excel, 'CSV');
-			$tmpfname = tempnam("../tmp", "xlsx");
-			$writer->save($tmpfname);
-
-			$filename = $tmpfname;
-			break;
-
-		case 'csv':
-		default:
-			$filename = $file['tmp_name'];
-			break;
-	}
-
-	$result = array();
-
-	if (copy($filename, $filename.".xxx")) {
-		//echo "Copy success\n";
-	} else {
-		echo "Copy failed\n";
-	}
-
-	//echo "Filename:$filename~$ext\n";
-	$data = file_get_contents($filename);
-	//echo bin2hex($data);
-
-	$data = str_replace("\r", "\n", $data);
-	$data = str_replace(";", ",", $data);
-
-	foreach (explode("\n", $data) as $line) {
-		if (trim($line) == "") continue;
-		$result[] = preg_replace('/[^A-Za-z0-9,+_@. \/-]/', '', trim($line));
-	}
-
-	return $result;
-}
-
 //-----------------------------------------------------------------------------
 function strToHex($string){
 	$hex='';
@@ -353,7 +288,7 @@ function scrape($src, $explain = false) {
 					}
 
 					if (isset($result['fixtureID'])) {
-						if ($result['home_score'] && $result['away_score']) {
+						if (isset($result['home_score']) && isset($result['away_score'])) {
 							$result['played'] = 'yes';
 							if ($explain) echo "Played\n";
 						}
@@ -408,3 +343,21 @@ function scrape($src, $explain = false) {
 
 		return $fixtures;
 }
+
+//-----------------------------------------------------------------------------
+function enqueue($command, $timestamp=null) {
+	$fp = fopen("../../../queue", "a");
+
+	$resultTask = null;
+
+	if (flock($fp, LOCK_EX)) {
+		$task = array('command-endpoint'=>$command);
+		
+		if ($timestamp) $task['date'] = $timestamp;
+
+		fputs($fp, json_encode($task)."\n");			
+	}
+
+	fclose($fp);
+}
+

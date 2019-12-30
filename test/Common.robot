@@ -42,7 +42,9 @@ Select Player
     Execute Javascript    window.jQuery("[data-name='${name}']")[0].scrollIntoView(true);
     Execute Javascript    window.scrollBy(0, -150);
     Sleep                 2s
+		#Wait Until Element Is Visible		jquery=[data-name='${name}']
     Click Element         jquery=[data-name='${name}']
+		Execute Javascript    window.scrollTo(0, 0);
 
 Check Player
     [Arguments]            ${player}        ${class}
@@ -67,7 +69,8 @@ Submit Team
 Submit Card
     [Arguments]            ${umpire}        ${score}
     Execute Javascript                            scrollTo(0,0)
-    Sleep                        6 seconds
+    #Sleep                        6 seconds
+		Wait Until Element Is Visible			css:#submit-matchcard .btn-success
     Input Text            umpire-box        ${umpire}
     Input Text            score-box            ${score}
     Click Element        jquery=#submit-form .btn-success

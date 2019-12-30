@@ -21,7 +21,7 @@ $(document).ready(function() {
     });
 
     // add headshots
-    $('#match-card').prepend('<div id='headshot' class='btn-group'>
+    $('#match-card').prepend(`<div id='headshot' class='btn-group'>
         <button class='btn btn-sm btn-primary active' value='list'><i class='fas fa-list'></i></button>
         <button class='btn btn-sm btn-primary' value='headshot'><i class='fas fa-user'></i></button>
       </div>`);
@@ -338,8 +338,8 @@ $(document).ready(function() {
             }
             holder.text(goals);
             updateGoals(holder);
+            $('#context-menu').hide();
         });
-        $('#context-menu').hide();
     });
     
     $('#clear-goal').click(function() {
@@ -347,8 +347,8 @@ $(document).ready(function() {
             var holder=getPlayerRow();
             holder.find('.score').remove();
             updateGoals(holder);
+            $('#context-menu').hide();
         });
-        $('#context-menu').hide();
     });
 
     $('#remove-player').click(function() {
@@ -362,8 +362,8 @@ $(document).ready(function() {
             } else {
                 holder.remove();
             }
+            $('#context-menu').hide();
         });
-        $('#context-menu').hide();
     });
 
     $('#context-menu .card-clear').click(function() {

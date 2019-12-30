@@ -5,8 +5,6 @@ define("ADMIN_ROOT", "http://cards.leinsterhockey.ie/public");
 $root=realpath(dirname(__FILE__)."/..");
 define("DATAPATH", "$root/data");
 
-require_once "util.php";
-
 //-----------------------------------------------------------------------------
 // Write a log entry to the fuelphp logs
 function log_write($level, $msg) {
@@ -103,3 +101,9 @@ class Auth {
 	static function check() { return user(); }
 	static function has_access($perm) { return in_array($perm, $_SESSION['perms'] ?: array()); }
 }
+class Date {
+	static function create_from_string($str) {
+		return strtotime($str);
+	}
+}
+

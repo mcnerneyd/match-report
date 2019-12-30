@@ -63,20 +63,6 @@ class Controller_RegistrationApi extends Controller_Rest
 
 			return true;
 		});
-		/*foreach ($players as &$player) {
-			if ($player['team'] < $teamNo) continue;
-			if ($groups) {
-				if (!in_array($player['team'], $groups)) {
-					continue;
-				}
-			}
-
-			$history = Club::getPlayerHistorySummary($club);
-			if (isset($history[$player['name']])) $teams = $history[$player['name']]['teams'];
-			else $teams = array();
-
-			$result[] = $player; //array('teams'=>$teams);
-		}*/
 
 		return $players;
 	}
@@ -91,7 +77,6 @@ class Controller_RegistrationApi extends Controller_Rest
 
 		$incident = new Model_Incident();
 		$incident->player = $player;
-		//$incident->matchcard_id = Input::post('card_id');
 		$incident->detail = $number;
 		$incident->type = 'Number';
 		$incident->club = $club;
@@ -164,7 +149,7 @@ class Controller_RegistrationApi extends Controller_Rest
 		Log::info("Posting ${file['name']} for club: $club (type=$type)");
 
 		if (preg_match("/.*\.xlsx?/", $file['name']) || !preg_match("/text\/.*/", $type)) {
-			$file['tmp_name'] = convertXls($file['name'], $file['tmp_name']);
+			$file['tmp_name'] = self::convertXls($file['name'], $file['tmp_name']);
 		}
 
 		$filename = Model_Registration::addRegistration($file['tmp_name'], $club);
@@ -357,4 +342,21 @@ class Controller_RegistrationApi extends Controller_Rest
 		return $errors;
 	}
 
+	private function convertXls($name, $tmpfile) {
+			$cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
+			$cacheSettings = array( 'memoryCacheSize' => '2GB');
+			PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
+
+			$inputFileType = PHPExcel_IOFactory::identify($tmpfile);
+			$reader = PHPExcel_IOFactory::createReader($inputFileType);
+			$reader->setReadDataOnly(true);
+
+			$excel = $reader->load($tmpfile);
+
+			$writer = PHPExcel_IOFactory::createWriter($excel, 'CSV');
+			$tmpfname = tempnam("../tmp", "xlsx");
+			$writer->save($tmpfname);
+
+			return $tmpfname;
+	}
 }

@@ -13,7 +13,6 @@ try {
 
 trace("Test log:".print_r($_REQUEST,true)." ".print_r($_FILES,true));
 
-require_once('config.php');
 require_once('model/connection.php');
 
 trace(print_r($_POST, true));

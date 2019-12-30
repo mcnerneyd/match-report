@@ -12,14 +12,8 @@
 
     // create a new instance of the needed controller
     switch($controller) {
-			case 'admin':
-				$controllerObj = new AdminController();
-				break;
       case 'card':
         $controllerObj = new CardController();
-				break;
-      case 'club':
-        $controllerObj = new ClubController();
 				break;
       case 'player':
         $controllerObj = new PlayerController();

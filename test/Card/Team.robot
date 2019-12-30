@@ -1,7 +1,7 @@
 *** Settings ***
 Resource				../Common.robot
 Suite Setup			Login	Aardvarks	1111
-Suite Teardown	Close Browser
+#Suite Teardown	Close Browser
 
 *** Test Cases ***
 User Can Create A Card
@@ -37,6 +37,12 @@ Remove Player From Fixture
 Add Last Players To Fixture
 
 Clear Players On Fixture
+	Reset Card		6
+	Open Card			6
+	Select Player			Jackeline GOSHA
+	Select Player			Alia LINDAHL
+	Select Player			Kenyatta SHORE
+	Click Link				Clear
 
 Mark Match As Postponed
 

@@ -5,7 +5,6 @@ th { background: #def; }
 <?php
 function debug($x) { }
 
-require_once('config.php');
 require_once('util.php');
 require_once('model/connection.php');
 require_once('model/card.php');
