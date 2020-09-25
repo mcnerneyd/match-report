@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS `image_player` (
 CREATE TABLE IF NOT EXISTS `incident` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `player` varchar(80) NOT NULL,
-  `club_id` int(11) NOT NULL,
+  `club_id` int(11) DEFAULT NULL,
   `matchcard_id` int(11) DEFAULT NULL,
   `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `type` enum('Played','Red Card','Yellow Card','Ineligible','Scored','Missing','Postponed','Other','Locked','Reversed','Signed','Number','Late') NOT NULL,
@@ -201,6 +201,25 @@ ALTER TABLE registration ADD `batch_date` datetime DEFAULT NULL;
 ALTER TABLE matchcard ADD `open` tinyint(1) DEFAULT 1;
 ALTER TABLE competition ADD format ENUM('cup','league') NOT NULL DEFAULT 'league';
 ALTER TABLE competition ADD groups VARCHAR(128) NULL;
+
+ALTER TABLE `user` ADD `old_password` VARCHAR(50);
+ALTER TABLE `user` ADD `last_login` VARCHAR(25);
+ALTER TABLE `user` ADD `login_hash` VARCHAR(255);
+ALTER TABLE `user` ADD `group` INT(11);
+ALTER TABLE `user` MODIFY `password` VARCHAR(255);
+
+UPDATE `user` SET `group` = CASE
+		WHEN role = 'umpire' THEN 2
+		WHEN role = 'admin' THEN 99
+		WHEN role = 'secretary' THEN 25
+		WHEN role IS NULL THEN 25
+		ELSE 1
+	END,
+	old_password = password
+WHERE old_password IS NULL;
+
+ALTER TABLE `user` ADD `pin` VARCHAR(4) NULL AFTER `password`;
+UPDATE `user` SET pin = old_password WHERE role IN ('umpire', 'user') AND pin IS NULL;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

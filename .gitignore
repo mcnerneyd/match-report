@@ -3,3 +3,4 @@ test/**/selenium*
 test/**/output.xml
 test/**/log.html
 test/**/report.html
+/nbproject/private/

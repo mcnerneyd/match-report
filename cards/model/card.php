@@ -11,49 +11,6 @@ class Card {
     $away = array('players'=>array());
   }
 
-	public static function getUnsubmitted($date) {
-		$db = Db::getInstance();
-
-		$res = $db->query("
-			SELECT t1.matchcard_id, m.fixture_id
-			FROM
-			(SELECT matchcard_id, count(1) ct from (
-			SELECT DISTINCT matchcard_id, club_id FROM incident WHERE type = 'Signed'
-			) t0 GROUP BY matchcard_id
-			HAVING ct = 1) t1
-			 JOIN incident i ON t1.matchcard_id = i.matchcard_id
-			 JOIN matchcard m on i.matchcard_id = m.id
-			 WHERE i.type = 'Signed'
-			 	 AND m.fixture_id IS NOT NULL
-				 AND i.date < '$date'"); 
-
-		return $res->fetchAll();
-	}
-
-	public static function getSubmitted($start, $finish, $club) {
-		$db = Db::getInstance();
-
-		$res = $db->query("
-		SELECT m.id
-			FROM matchcard m
-			LEFT JOIN incident i ON m.id = i.matchcard_id
-			LEFT JOIN club c ON i.club_id = c.id
-			WHERE c.name =  '$club'
-			AND i.type = 'Signed'
-			AND i.date
-			BETWEEN  '$start'
-			AND  '$finish'
-		");
-
-		return $res->fetchAll();
-	}
-
-	public static function clear($id) {
-		$db = Db::getInstance();
-
-		$db->exec("UPDATE matchcard SET fixture_id = null WHERE fixture_id = $id");
-	}
-
 	public static function lock($id, $club) {
 		$db = Db::getInstance();
 
@@ -72,169 +29,11 @@ class Card {
 		return $lockCode;
 	}
 
-	public static function unlock($id, $club) {
-		$db = Db::getInstance();
-
-		$res = $db->exec("DELETE i FROM incident i 
-				JOIN club c ON c.id = i.club_id 
-				WHERE matchcard_id = $id 
-					AND type IN ('Signed', 'Locked')
-					AND c.Name = '$club'");
-	}
-
-	/* Moved to fuel Card/Signature
-	public static function commit($id, $club, $umpire, $score) {
-		$db = Db::getInstance();
-
-		$res = $db->query("SELECT count(1) FROM incident i
-				JOIN club c ON i.club_id = c.id
-			WHERE matchcard_id = $id AND c.name = '$club' AND i.type = 'Signed'")->fetch();
-
-		if ($res[0] > 0) throw new Exception("Card is already signed");
-
-		$db->exec("insert into incident (club_id, matchcard_id, type, detail)
-			select c.id, $id, 'Signed', '$score/$umpire'
-				from club c where c.name = '$club'");
-	}
-	*/
-
-	public static function warn($id) {
-		$db = Db::getInstance();
-
-		$res = $db->query("SELECT count(1) FROM incident i
-			WHERE matchcard_id = $id AND i.type = 'Late'")->fetch();
-
-		if ($res[0] > 0) return;
-
-		$db->exec("insert into incident (matchcard_id, type) values ($id, 'Late')");
-	}
-
-	/*
-	private static function splitName($name) {
-		if (strpos($name, ',')) {
-			if (preg_match('/^(.*), (.*)$/', $name, $matches)) 
-				return array(ucwords(strtolower($matches[2])), strtoupper($matches[1]));
-		} else {
-			if (preg_match('/^(.*) ([^ ]*)$/', $name, $matches))
-				return array(ucwords(strtolower($matches[1])), strtoupper($matches[2]));
-		}
-
-		return array('', strtoupper($name));
-	}
-
-	private static function clean($name) {
-		$names = Card::splitName($name);
-
-		return $names[1] . ', ' . $names[0];
-	}
-	*/
-
-	public static function addCardIncident($id, $type, $user) {
-		$db = Db::getInstance();
-		$req = $db->query("select i.id, resolved
-			from incident i
-			where matchcard_id = $id
-			and type = '$type'");
-
-		$row = $req->fetch();
-		if (!$row) {
-			$db->exec("insert into incident (matchcard_id, type, user_id) 
-				select $id, '$type', id from user where username = '$user'");
-		}
-	}
-
 	public static function addNote($id, $user, $msg) {
 		$db = Db::getInstance();
 		$stmt = $db->prepare("insert into incident (matchcard_id, type, user_id, detail) 
 				select $id, 'other', id, :detail from user where username = '$user'");
 		$stmt->execute(array(":detail"=>$msg));
-	}
-
-	public static function addIncident($id, $name, $club, $type, $user, $detail = null) {
-		$name = cleanName($name, 'LN, Fn');	// FIXME Changed to cleanName from Card::clean
-		$db = Db::getInstance();
-
-		if ($user == 'admin') {
-			$userId = 0;
-		} else {
-			$req = $db->query("select id from user where username = '$user'");
-			$row = $req->fetch();
-			$userId = $row['id'];
-		}
-
-		$req = $db->query("select i.id, resolved, detail
-			from incident i join club c on i.club_id = c.id
-			where player = '$name'
-			and matchcard_id = $id
-			and type = '$type'
-			and c.name = '$club'");
-
-		$row = $req->fetch();
-		if (!$row) {
-			try {
-			if ($type == 'Played') {
-				if (!$db->query("select id from incident where type = 'Played' and matchcard_id = $id limit 1")->fetch()) {
-					// There are no players on the card so set the match card datetime
-					$row1 = $db->query("select fixture_id from matchcard where id = $id")->fetch();
-					$fixture = Card::getFixture($row1['fixture_id']);
-					$fixtureDate = date('Y-m-d H:i:s', $fixture['date']);
-					$db->exec("update matchcard set date = cast('$fixtureDate' as datetime) where id = $id");
-					info("Setting card id=$id date to $fixtureDate");
-				}
-			}
-			} catch (Exception $e) {
-				warn("Failed to set matchcard date: ".$e->getMessage());
-			}
-
-			$sql = "insert into incident (player, club_id, matchcard_id, type, detail, user_id) select '$name', id, $id, '$type', ".($detail==null?"null":"'$detail'").", $userId from club c where c.name = '$club'";
-			$db->exec($sql);
-			Log::debug("Insert incident '$type'");
-		} else {
-			if ($row['resolved'] == 1) {
-				$db->exec("update incident set resolved = 0 where id = ".$row['id']);
-			}
-			if ($detail !== null && $row['detail'] != $detail) {
-				$db->exec("update incident set detail = '$detail' where id = ".$row['id']);
-			}
-			Log::debug("Update incident ".$row['id']);
-		}
-	}
-
-	public static function removePlayer($cardId, $playerName) {
-		$db = Db::getInstance();
-
-		info("Deleting: $playerName");
-
-		$playerName = cleanName($playerName, 'LN, Fn');
-
-		if (!$playerName) return;
-		info("Remove $playerName from $cardId");
-
-		$db->exec("UPDATE incident SET resolved = 1, detail = '' WHERE matchcard_id = $cardId 
-				AND player = '$playerName' AND type = 'Played'");
-
-		$db->exec("DELETE FROM incident WHERE player = '$playerName' AND matchcard_id = $cardId AND type IN ('Scored','Red Card', 'Yellow Card', 'Ineligible')");
-	}
-
-	public static function searchAndRemoveIncident($cardId, $name, $club, $type) {
-		$db = Db::getInstance();
-
-		$db->exec("UPDATE incident i JOIN club c ON i.club_id = c.id SET i.resolved = 1
-			WHERE matchcard_id = $cardId
-				AND player = '$name'
-				AND c.name = '$club'
-				AND type = '$type'"); 
-	}
-
-	public static function getImage($id) {
-		$db = Db::getInstance();
-		$req = $db->prepare("select image from image where id = :id order by id desc");
-
-		$req->execute(array("id"=>$id));
-
-		$row = $req->fetch();
-
-		return $row['image'];
 	}
 
   public static function fixtures($club) {
@@ -272,12 +71,14 @@ class Card {
 			"validate"=>date('Y-m-d', $validate));
 	}
 
-	public static function getFixtures() {
+	private static function getFixtures() {
+
+		Log::debug("Getting fixtures");
 
 		$allfixtures = array();
 		$ctr = 1;
 
-		foreach (explode("\n", FIXTURE_FEED) as $feed) {
+		foreach (Config::get("config.fixtures") as $feed) {
 
 			if (!$feed) continue;
 
@@ -346,6 +147,8 @@ class Card {
 				$object->away = $line[3];
 
 				$fixtures[] = $object;
+			} else if ($feed[0] == '^') {
+				continue;
 			} else {
 				$src = Cache::getInstance()->get($feed);
 
@@ -360,53 +163,15 @@ class Card {
 			}
 		}
 
-		debug("All Fixtures:".print_r($allfixtures, true));
+		//debug("All Fixtures:".print_r($allfixtures, true));
 
 		return $allfixtures;
-	}
-
-	public static function getLateFixtures($deadline, $club = null) {
-		$lateFixtures = array();
-		$comps = Competition::all();
-		$deadlineTime = strtotime($deadline);
-
-
-		foreach (Card::getFixtures() as $fixture) {
-			//if ($fixture->played == 'yes') continue;
-			if ($deadlineTime < strtotime($fixture->datetime)) continue;
-
-			try {
-			$card = Card::convertFixture($fixture, $club, $comps);
-
-			if (!$card) continue;
-
-			$matchcard = Card::getByFixture($fixture->fixtureID);
-			if ($matchcard) {
-				if ($club != null) {
-					$whoami = $card[$club];
-					if (isset($matchcard[$whoami]['closed'])) continue;
-				}
-				if (isset($matchcard['home']['closed']) and isset($matchcard['away']['closed'])) continue;
-				$card['cardid'] = $matchcard['id'];
-				$card['card'] = $matchcard;
-
-			}
-
-			$lateFixtures[] = $card;
-			} catch (Exception $e) {
-				// FIXME do something...
-			}
-		}
-
-		debug("Late Fixtures:".print_r($lateFixtures, true));
-
-		return $lateFixtures;
 	}
 
 	private static function fixtureFind($club, $fixtureId) { // FIXME Messy
 		$fixtures = Card::getFixtures();
 
-		$comps = Competition::all();
+		$comps = Competition::allAll();
 		//echo "<!-- Competitions\n".print_r($comps, true)." -->";
 
     $result = array();
@@ -449,7 +214,23 @@ class Card {
       }
     }
 
-		if ($fixtureId != null) return null;
+		if ($fixtureId != null) {
+				$matchcard = Card::getByFixture($fixtureId);
+				$fixture = array('home'=>$matchcard['home']['team'],
+					'away'=>$matchcard['away']['team'],
+					'fixtureID'=>$fixtureId,
+					'datetime'=>$matchcard['date'],
+					'played'=>!$matchcard['open'],
+					'competition'=>$matchcard['competition'],
+					'home_score'=>$matchcard['home']['score'],
+					'away_score'=>$matchcard['away']['score']);
+				$fixture = json_decode(json_encode($fixture));
+				$card = Card::convertFixture($fixture, $club, $comps);
+				$card['cardid'] = $matchcard['id'];
+				$card['card'] = $matchcard;
+
+				return $card;
+		}
 
     debug("Fixtures for $club/$fixtureId:\n".print_r($result,true));
 
@@ -502,12 +283,17 @@ class Card {
 
 		if (isset($recomps[$competition])) {
 			$result['competition-code'] = $recomps[$competition]['code'];
+			$result['groups'] = array();
+			
+			if ($recomps[$competition]['groups']) {
+				foreach (explode(',', $recomps[$competition]['groups']) as $group) $result['groups'][] = trim($group);
+			}
 		} else {
 			throw new Exception("Unknown competition: $competition");
 		}
 
 
-		if (in_array(strtolower($result['competition-code']),explode("\n", STRICT))) {
+		if (in_array(strtolower($result['competition-code']),explode(",", Config::get("config.strict_comps")))) {
 			$result['competition-strict'] = 'yes';
 		} else {
 			$result['competition-strict'] = 'no';
@@ -633,7 +419,7 @@ class Card {
     $sql = "select x.name competition, ch.id homeclubid, ch.name homeclub, 
 				ca.name awayclub, th.team hometeam, ta.team awayteam, m.date, m.id, m.fixture_id,
 				th.id hometeamid, ta.id awayteamid, ca.id awayclubid, x.teamsize,
-				ch.code homecode, ca.code awaycode, x.code competitioncode, m.open
+				ch.code homecode, ca.code awaycode, x.code competitioncode, m.open, x.format
       from matchcard m
         left join team th on th.id = m.home_id
         left join club ch on ch.id = th.club_id
@@ -656,6 +442,7 @@ class Card {
       'competition'=>$result['competition'],
       'competition-code'=>$result['competitioncode'],
 			'leaguematch'=>($result['teamsize'] == null ? false : true),
+			'format'=>$result['format'],
       'date'=>date("F j, Y", strtotime($result['date'])),
       'datetime'=>	strtotime($result['date']),
 			'open'=>$result['open'],
@@ -835,7 +622,7 @@ class Card {
       }
 
 			//$cName = Player::cleanName($row['player']);
-			$cName = cleanName($row['player'], "LN, Fn");
+			$cName = cleanName($row['player'], "Fn LN");
 
       if (array_key_exists($cName, $card[$side]['players'])) {
         $card[$side]['players'][$cName]['number'] = $row['detail'];

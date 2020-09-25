@@ -98,8 +98,8 @@ $(document).ready(function () {
 </form>
 
 <ul class="nav nav-tabs" id='tabs'>
-  <li><a href="#fixtures">Fixtures <span class='badge'><?= dd($counts, 'fixture', 0) + dd($counts, 'incomplete', 0) ?></span></a></li>
-  <li><a href="#results">Results <span class='badge'><?= dd($counts, 'result', 0) ?></span></a></li>
+  <li class='nav-item'><a href="#fixtures">Fixtures <span class='badge'><?= dd($counts, 'fixture', 0) + dd($counts, 'incomplete', 0) ?></span></a></li>
+  <li class='nav-item'><a href="#results">Results <span class='badge'><?= dd($counts, 'result', 0) ?></span></a></li>
 </ul>
 
 <table id='fixtures-table'>
@@ -110,7 +110,10 @@ $(document).ready(function () {
 			$mycard = $card['card'][$card[user()]];
 		} else $mycard = null;
 
-    if (!isset($card['home']['valid']) && !isset($card['away']['valid'])) continue;
+    if (!isset($card['home']['valid']) && !isset($card['away']['valid'])) {
+			echo "<!-- ".print_r($card, true)." is not valid -->\n";
+			continue;
+		}
 
     if ($month != date('F Y', $card['date'])) {
         $month = date('F Y', $card['date']); ?>
@@ -129,42 +132,36 @@ $(document).ready(function () {
 			$cardKey = str_replace(" ", "", $cardKey);
 
 			$label = 'label-league';
-			//if (isset($card['competition-code']) && strlen($card['competition-code']) == 3) $label = 'label-cup';
 			if (stripos($card['competition'], 'div') === FALSE) $label = 'label-cup';
 
 			?>
       <tr class='<?= $rowClass ?>' data-id='<?= dd($card,'id',0) ?>' data-idx='<?= createsecurekey('card'.dd($card,'id',0)) ?>' data-competition='<?= dd($card,'competition') ?>' title='<?= $card['id'] ?>' data-key='<?= $cardKey ?>'>
         <td><?= date('j', $card['date']) ?></td>
         <td>
-					<span class='hidden-xs'><span class='label <?= $label ?>'><?= dd($card,'competition') ?></span></span>
-					<span class='visible-xs'><span class='label <?= $label ?>'><?= dd($card,'competition-code') ?></span></span>
+					<span class='d-none d-md-block'><span class='label <?= $label ?>'><?= dd($card,'competition') ?></span></span>
+					<span class='d-md-none'><span class='label <?= $label ?>'><?= dd($card,'competition-code') ?></span></span>
 				</td>
         <td <?= !isset($card['home']['valid'])?"class='nonlha'":"" ?> >
 				<?php 
-					if (isset($card['card']['home']['closed'])) {
-						//echo "<img width='16' src='img/tick.png'/> ";
-						echo "<i class='fa fa-check' aria-hidden='true'></i> ";
-					} else if (isset($card['card']['home']['locked'])) {
-						//echo "<img width='16' src='img/lock.png'/> ";
-						echo "<i class='fa fa-lock' aria-hidden='true'></i> ";
-					}
-
 					if (isset($card['home'])) {
 						echo $card['home']['team'];
+					}
+
+					if (isset($card['card']['home']['closed'])) {
+						echo " <i class='fa fa-check' aria-hidden='true'></i> ";
+					} else if (isset($card['card']['home']['locked'])) {
+						echo " <i class='fa fa-lock' aria-hidden='true'></i> ";
 					}
 					?></td>
         <td <?= !isset($card['away']['valid'])?"class='nonlha'":"" ?> >
 				<?php 
-					if (isset($card['card']['away']['closed'])) {
-						//echo "<img width='16' src='img/tick.png'/> ";
-						echo "<i class='fa fa-check' aria-hidden='true'></i> ";
-					} else if (isset($card['card']['away']['locked'])) {
-						//echo "<img width='16' src='img/lock.png'/> ";
-						echo "<i class='fa fa-lock' aria-hidden='true'></i> ";
-					}
-					
 					if (isset($card['away'])) {
 						echo $card['away']['team'];
+					}
+					if (isset($card['card']['away']['closed'])) {
+						echo " <i class='fa fa-check' aria-hidden='true'></i> ";
+					} else if (isset($card['card']['away']['locked'])) {
+						echo " <i class='fa fa-lock' aria-hidden='true'></i> ";
 					}
 					?></td>
 				<td class='hidden-xs'><?php

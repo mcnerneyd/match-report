@@ -127,7 +127,8 @@
 					JOIN team t ON c.id = t.club_id
 					JOIN entry e ON e.team_id = t.id
 					JOIN competition x ON x.id = e.competition_id
-					WHERE x.teamsize IS NOT NULL";
+					WHERE 1=1";
+					//WHERE x.teamsize IS NOT NULL";
 
 			$params = array();
 

@@ -1,6 +1,6 @@
 <?php
 /* Raven/Sentry */
-require_once 'Raven/Autoloader.php';
+require_once '../lib/Raven/Autoloader.php';
 Raven_Autoloader::register();
 $sentry_client = new Raven_Client('https://0e648f1a6af5407985c427afb086e5bb:37b68176201d451a849bbbb4c81ec6f6@sentry.io/1242091');
 $error_handler = new Raven_ErrorHandler($sentry_client);
@@ -15,6 +15,8 @@ ini_set('max_execution_time', 300);
 error_reporting(E_ALL);
 
 require_once('util.php');
+require_once('fuel.php');
+define("SITEPATH", DATAPATH."/sites/".site());
 
 $consolelog = "";
 $warnings = array();
@@ -38,34 +40,19 @@ function dd($arr, $key, $def = null) {
 }
 
 function debug($msg) {
-	if (!isset($_SESSION['debug']) and !isset($_REQUEST['debug'])) return false;
-	log_write("DEBUG", $msg);
+	Log::debug($msg);
 }
 
 function info($msg) {
-	log_write("INFO", $msg);
+	Log::info($msg);
 }
 
 function warn($msg) {
-	log_write("WARNING", $msg);
+	Log::warn($msg);
 
 	global $warnings;
 
 	$warnings[] = $msg;
-}
-
-class Log {
-	static function debug($msg) {
-		log_write("DEBUG", $msg);
-	}
-
-	static function info($msg) {
-		log_write("INFO", $msg);
-	}
-
-	static function warn($msg) {
-		log_write("WARNING", $msg);
-	}
 }
 
 function url($query = null, $action = null, $controller = null) {	
@@ -161,10 +148,8 @@ try {
 		$action = $_REQUEST['action'];
 	}
 
-	require_once('config.php');
 	require_once('model/connection.php');
 	require_once('secure.php');
-	require_once('mail.php');
 
 	if (isset($_COOKIE['site']) && !isset($_REQUEST['site'])) {
 		$site = $_COOKIE['site'];
@@ -201,7 +186,7 @@ try {
 	require_once("views/$layout.php");
 
 } catch (LoginException $e) {
-	header("Location: fuel/public/Login");
+	header("Location: ".ADMIN_ROOT."/Login");
 	exit();
 } catch (RedirectException $e) {
 	header("Location: ".$e->location);
@@ -241,5 +226,5 @@ $(document).ready(function() {
 	<?php }
 
 	echo "<!-- Site=$site Controller=$controller Action=$action User=".user()." Club=".$_SESSION['club']." Roles=".join($_SESSION['roles'])."-->";
-
+	echo "<!-- ".print_r($_SESSION, true)." -->";
 ?>

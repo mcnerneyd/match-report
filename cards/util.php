@@ -1,11 +1,9 @@
 <?php
-	ini_set('display_errors',1);
-	ini_set('display_startup_errors',1);
-	ini_set('max_execution_time', 300); 
-	error_reporting(E_ALL);
+function rootUrl() {
+	return (!empty($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/';
+}
 
-use \SimpleXMLElement;
-
+//-----------------------------------------------------------------------------
 function &arr_get(&$arr, $subindex) {
 	if (!isset($arr[$subindex])) $arr[$subindex] = array();
 
@@ -18,6 +16,11 @@ function arr_add(&$arr, $subindex, $val) {
 	$arr[$subindex][] = $val;
 }
 
+# Provide 5.5 functionality
+function array_column($input, $column_key) {
+	return array_map(function($v) use ($column_key) { return $v[$column_key]; }, $input);
+}
+
 //-----------------------------------------------------------------------------
 // Returns a default value for empty value
 function emptyValue(&$var, $def) {
@@ -27,26 +30,12 @@ function emptyValue(&$var, $def) {
 }
 
 //-----------------------------------------------------------------------------
-// Apply style to matching Xpaths
-function style($xml, $xpath, $style) {
-	$xml = new \SimpleXMLElement($xml);
-
-	foreach (xpath($xpath) as $elm) {
-		$elm->attributes['style'] .= ";$style";
-	}
-
-	return $xml;
-}
-
-//-----------------------------------------------------------------------------
 function cleanName($player, $format = "Fn LN") {
 
 		if (!$player) return $player;
 
 		$player = trim(preg_replace("/[^A-Za-z, ]/", "", $player));
-		$zPlayer = $player;
 		$a = strpos($player, ",");
-		$c=0;
 		if ($a) {
 			$lastname = substr($player, 0, $a);
 			$b = strpos($player, "," , $a+1);
@@ -67,6 +56,10 @@ function cleanName($player, $format = "Fn LN") {
 				$player = strtoupper($lastname).", ".ucwords(strtolower($firstname));
 				break;
 					
+			case "[Fn][LN]":
+				return array("Fn"=>ucwords(strtolower($firstname)),
+						"LN"=>strtoupper($lastname));
+
 			case "Fn LN":
 			default:
 				$player = ucwords(strtolower($firstname))." ".strtoupper($lastname);
@@ -76,9 +69,13 @@ function cleanName($player, $format = "Fn LN") {
 		$player = trim($player);
 		if ($player == ',') $player = "";
 
-		//echo "Clean:$zPlayer->$player ($lastname/$firstname:$a+$c)\n";
 
 		return $player;
+}
+
+//-----------------------------------------------------------------------------
+function unicode_trim ($str) {
+    return preg_replace('/^[\pZ\pC]+|[\pZ\pC]+$/u','',$str);
 }
 
 //-----------------------------------------------------------------------------
@@ -95,45 +92,18 @@ function phone($player) {
 }
 
 //-----------------------------------------------------------------------------
-function unicode_trim ($str) {
-    return preg_replace('/^[\pZ\pC]+|[\pZ\pC]+$/u','',$str);
-}
-
-//-----------------------------------------------------------------------------
-// Write a log entry to the fuelphp logs
-function log_write($level, $msg) {
-	try {
-	$filename = "fuel/fuel/app/logs/".date("Y/m/d").".php";
-	$dir = dirname($filename);
-
-	if (!file_exists($dir)) {
-		mkdir($dir, 0777, true);
-	}
-
-	$msg = "{".$_SESSION['site'].".".user()."} ".$msg;
-
-	$msg = "$level - ".date("Y-m-d H:i:s")." --> # ".$msg."\n";
-
-	if (!file_exists($filename)) {
-		$msg = "<?php defined('COREPATH') or exit('No direct script access allowed'); ?>\n\n".$msg; 
-	}
-
-	file_put_contents($filename, $msg, FILE_APPEND);
-	} catch (Exception $e) {
-		echo "Log Failure: ".$e->getMessage();
-	}
-
-	return true;
-}
-
-//-----------------------------------------------------------------------------
 function currentSeasonStart() {
 	$year = date('Y');
 	$month = date('n');
 
-	if ($month < 6) $year = $year - 1;
+	if ($month < 8) $year = $year - 1;
 
-	return strtotime($year."-06-01 00:00");
+	return Date::create_from_string($year.".08.01 00:00");
+}
+
+//-----------------------------------------------------------------------------
+function generatePassword($length) {
+	return substr(str_pad(rand(0,pow(10,$length)-1),$length,'0'), 0, $length);
 }
 
 //-----------------------------------------------------------------------------
@@ -173,28 +143,19 @@ function rangeEnd($now = null) {
 
 //-----------------------------------------------------------------------------
 function parse($str) {
-	$configFile ='sites/'.site().'/patterns.ini';
-	//echo "<!-- match:$str -->";
-	if (file_exists($configFile)) {
-		$config = file($configFile);
-
-
-		$patterns = array();
-		$replacements = array();
-		while (trim(array_shift($config)) != '');
-		array_shift($config);
-		foreach ($config as $pattern) {
-			if (trim($pattern) == '') break;
-			$parts = explode($pattern[0], $pattern);
-			if (count($parts) < 3) continue;
-			$patterns[] = "/${parts[1]}/i";
-			$replacements[] = $parts[2];
-		}
-
-		$str = preg_replace($patterns, $replacements, trim($str));
-
-		if ($str == '!') return null;
+	$config = Config::get("config.pattern.team");
+	$patterns = array();
+	$replacements = array();
+	foreach ($config as $pattern) {
+		$parts = explode($pattern[0], $pattern);
+		if (count($parts) < 3) continue;
+		$patterns[] = "/${parts[1]}/i";
+		$replacements[] = $parts[2];
 	}
+
+	$str = preg_replace($patterns, $replacements, trim($str));
+
+	if ($str == '!') return null;
 
 	$matches = array();
 	if (!preg_match('/^([a-z ]*[a-z])(?:\s+([0-9]+))?$/i', trim($str), $matches)) {
@@ -211,93 +172,36 @@ function parse($str) {
 
 	$result['name'] = $result['club'] .' '. $result['team'];
 
-	//echo "<!-- to:".print_r($result, true)." -->";
 	return $result;
 }
 
 //-----------------------------------------------------------------------------
 function parseCompetition($str, $competitions) {
-	$configFile ='sites/'.site().'/patterns.ini';
-	if (file_exists($configFile)) {
-		$config = file($configFile);
-
-		$patterns = array();
-		$replacements = array();
-		array_shift($config);
-		foreach ($config as $pattern) {
-			if (trim($pattern) == '') break;
-			$parts = explode($pattern[0], $pattern);
-			if (count($parts) < 3) continue;
-			$patterns[] = "/${parts[1]}/i";
-			$replacements[] = $parts[2];
-		}
-
-		$newstr = trim(preg_replace($patterns, $replacements, trim($str)));
-
-		if ($newstr == '!') return null;
+	$config = Config::get("config.pattern.competition");
+	if (!$config) {
+		Log::warn("No competition patterns specified");
 	}
 
+	$patterns = array();
+	$replacements = array();
+	foreach ($config as $pattern) {
+		if (trim($pattern) == '') break;
+		$parts = explode($pattern[0], $pattern);
+		if (count($parts) < 3) continue;
+		$patterns[] = "/${parts[1]}/i";
+		$replacements[] = $parts[2];
+	}
+
+	$newstr = trim(preg_replace($patterns, $replacements, trim($str)));
+
+	if ($newstr == '!') return null;
+
 	if ($competitions != null && !in_array($newstr, $competitions)) {
+		echo "<!-- ".print_r($competitions, true)." -->";
 		throw new Exception("Cannot resolve competition '$newstr' ('$str')");
 	}
 
 	return $newstr;
-}
-
-$root = dirname(__FILE__);
-require_once($root.'/../lib/PHPExcel/PHPExcel/IOFactory.php');
-
-//-----------------------------------------------------------------------------
-function loadFile($file) {
-	$ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-
-	switch ($ext) {
-		case 'xls':
-		case 'xlsx':
-			$cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
-			$cacheSettings = array( 'memoryCacheSize' => '2GB');
-			PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
-
-			$inputFileType = PHPExcel_IOFactory::identify($file['tmp_name']);
-			$reader = PHPExcel_IOFactory::createReader($inputFileType);
-			$reader->setReadDataOnly(true);
-
-			$excel = $reader->load($file['tmp_name']);
-
-			$writer = PHPExcel_IOFactory::createWriter($excel, 'CSV');
-			$tmpfname = tempnam("../tmp", "xlsx");
-			$writer->save($tmpfname);
-
-			$filename = $tmpfname;
-			break;
-
-		case 'csv':
-		default:
-			$filename = $file['tmp_name'];
-			break;
-	}
-
-	$result = array();
-
-	if (copy($filename, $filename.".xxx")) {
-		//echo "Copy success\n";
-	} else {
-		echo "Copy failed\n";
-	}
-
-	//echo "Filename:$filename~$ext\n";
-	$data = file_get_contents($filename);
-	//echo bin2hex($data);
-
-	$data = str_replace("\r", "\n", $data);
-	$data = str_replace(";", ",", $data);
-
-	foreach (explode("\n", $data) as $line) {
-		if (trim($line) == "") continue;
-		$result[] = preg_replace('/[^A-Za-z0-9,+_@. \/-]/', '', trim($line));
-	}
-
-	return $result;
 }
 
 //-----------------------------------------------------------------------------
@@ -385,7 +289,7 @@ function scrape($src, $explain = false) {
 					}
 
 					if (isset($result['fixtureID'])) {
-						if ($result['home_score'] && $result['away_score']) {
+						if (isset($result['home_score']) && isset($result['away_score'])) {
 							$result['played'] = 'yes';
 							if ($explain) echo "Played\n";
 						}
@@ -440,3 +344,21 @@ function scrape($src, $explain = false) {
 
 		return $fixtures;
 }
+
+//-----------------------------------------------------------------------------
+function enqueue($command, $timestamp=null) {
+	$fp = fopen("../../../queue", "a");
+
+	$resultTask = null;
+
+	if (flock($fp, LOCK_EX)) {
+		$task = array('command-endpoint'=>$command);
+		
+		if ($timestamp) $task['date'] = $timestamp;
+
+		fputs($fp, json_encode($task)."\n");			
+	}
+
+	fclose($fp);
+}
+

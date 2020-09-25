@@ -12,14 +12,8 @@
 
     // create a new instance of the needed controller
     switch($controller) {
-			case 'admin':
-				$controllerObj = new AdminController();
-				break;
       case 'card':
         $controllerObj = new CardController();
-				break;
-      case 'club':
-        $controllerObj = new ClubController();
 				break;
       case 'player':
         $controllerObj = new PlayerController();
@@ -58,15 +52,9 @@
   // just a list of the controllers we have and their actions
   // we consider those "allowed" values
   $controllers = array(
-		'card' => array('index', 'index2', 'get', 'create', 'search', 'searchAJAX', 'player', 
-			'lock', 'commit', 'fine', 'sendResult', 'reset', 'unlock', 'close', 'view'),
+		'card' => array('index', 'get',  'search', 'searchAJAX', 'lock'),
 		'page' => array('home', 'error'),
 		'player' => array('profile', 'image', 'number', 'update', 'unplay'),
-		'club' => array('login', 'logout', 'loginUP','register','uploadregistration',
-			'confirmregistration'),
-		'admin' => array('index', 'uploadconfig', 'query', 'loginUC', 'adduser', 'user',
-			'club', 'configuration', 'registration', 'autosubmit', 'testmail', 'log',
-			'archive', 'warn', 'resetpin'),
 		'report' => array('index', 'cards', 'scorers', 'resultsMismatch')
 	);
 
