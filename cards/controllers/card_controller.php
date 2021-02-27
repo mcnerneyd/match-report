@@ -75,6 +75,7 @@ class CardController {
 					if (!(isset($teamcard['locked']) or isset($teamcard['closed']))) {
 						require_once('views/card/fixture.php');
 						return;
+<<<<<<< HEAD
 					}
         }
 
@@ -84,12 +85,28 @@ class CardController {
 							if (!isset($player['cards']))
 									$player['cards'] = array();
 							$player['cards'][] = array('type' => $rycard['type'], 'detail' => $rycard['detail']);
+=======
+>>>>>>> dc91207d842780fef03967f1ec0b3b0063e7342d
 					}
+        }
 
+<<<<<<< HEAD
 					Log::debug("Edit/View matchcard ($club): cardid=" . $fixture['card']['id']);
 					$fixture['card']['away']['suggested-score'] = emptyValue($fixture['card']['home']['oscore'], 0);
 					$fixture['card']['home']['suggested-score'] = emptyValue($fixture['card']['away']['oscore'], 0);
 				}
+=======
+        foreach ($fixture['card']['rycards'] as $rycard) {
+            $player = &$fixture['card'][$rycard['side']]['players'][$rycard['player']];
+            if (!isset($player['cards']))
+                $player['cards'] = array();
+            $player['cards'][] = array('type' => $rycard['type'], 'detail' => $rycard['detail']);
+        }
+
+				Log::debug("Edit/View matchcard ($club): cardid=" . $fixture['card']['id']);
+				$fixture['card']['away']['suggested-score'] = emptyValue($fixture['card']['home']['oscore'], 0);
+				$fixture['card']['home']['suggested-score'] = emptyValue($fixture['card']['away']['oscore'], 0);
+>>>>>>> dc91207d842780fef03967f1ec0b3b0063e7342d
 
 				require_once('views/card/matchcard.php');
 				return;
@@ -103,6 +120,7 @@ class CardController {
         securekey("card$cardid");
 
         $lockCode = Card::lock($cardid, $_SESSION['club']);
+<<<<<<< HEAD
 
 	      $fixture = Card::getFixtureByCardId($cardid);
 
@@ -131,4 +149,34 @@ class CardController {
 
         echo json_encode($result);
     }
+=======
+
+	      $fixture = Card::getFixtureByCardId($cardid);
+
+        redirect('card', 'get', "fid=" . $fixture['id'] . "&x=" . createsecurekey("card" . $fixture['id']));
+    }
+
+    public function search() {
+        $competitions = Competition::all();
+        $clubs = Club::all();
+        $teams = Club::getTeamMap();
+
+        require_once('views/card/search.php');
+    }
+
+    public function searchAJAX() {
+        if (!(isset($_REQUEST['club']) or isset($_REQUEST['competition'])))
+            return "";
+
+        $result = Card::fixtures(isset($_REQUEST['club']) ? $_REQUEST['club'] : null);
+
+        if (isset($_REQUEST['competition'])) {
+            $result = array_filter($result, function($item) {
+                return $item['competition'] == $_REQUEST['competition'];
+            });
+        }
+
+        echo json_encode($result);
+    }
+>>>>>>> dc91207d842780fef03967f1ec0b3b0063e7342d
 }

@@ -1,8 +1,6 @@
 .infinite-scroll {
   position: absolute;
   height: 400px;
-  bottom: 50px;
-  top: 50px;
   right: 0;
   left: 0;
   overflow-y: scroll;
@@ -10,6 +8,4 @@
   .infinite-scroll-row {
     padding: 10px;
   }
-
-  td { padding: 0px 10px; }
 }

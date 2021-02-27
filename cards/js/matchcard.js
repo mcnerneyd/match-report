@@ -265,7 +265,10 @@ $(document).ready(function() {
         contextMenu.data('player', playerName);
         contextMenu.data('club', $(this).closest('table').data('club'));
         contextMenu.data('tr', $(this));
+<<<<<<< HEAD
         $("#card-add option:selected").prop("selected", false)
+=======
+>>>>>>> dc91207d842780fef03967f1ec0b3b0063e7342d
 
         var playerData = $(this).find(".player-annotations").data('player');
         if (typeof playerData !== 'undefined') {
@@ -310,6 +313,7 @@ $(document).ready(function() {
       .done(function(d) { location.reload(); });
     });
 
+<<<<<<< HEAD
     $('#card-add').change(function() {
         var selected = $(this).find(':selected');
         incident(selected.data('pcard'),$(this).val(), function() {
@@ -327,6 +331,8 @@ $(document).ready(function() {
         });
     });
 
+=======
+>>>>>>> dc91207d842780fef03967f1ec0b3b0063e7342d
     $('#context-menu .card-yellow').click(function() {
         incident('yellow',$(this).text(), function() {
             getPlayerRow().find('.player-annotations')

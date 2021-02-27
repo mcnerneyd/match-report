@@ -197,7 +197,10 @@ function parseCompetition($str, $competitions) {
 	if ($newstr == '!') return null;
 
 	if ($competitions != null && !in_array($newstr, $competitions)) {
+<<<<<<< HEAD
 		echo "<!-- ".print_r($competitions, true)." -->";
+=======
+>>>>>>> dc91207d842780fef03967f1ec0b3b0063e7342d
 		throw new Exception("Cannot resolve competition '$newstr' ('$str')");
 	}
 

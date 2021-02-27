@@ -40,6 +40,10 @@ function dd($arr, $key, $def = null) {
 }
 
 function debug($msg) {
+<<<<<<< HEAD
+=======
+	if (!isset($_SESSION['debug']) and !isset($_REQUEST['debug'])) return false;
+>>>>>>> dc91207d842780fef03967f1ec0b3b0063e7342d
 	Log::debug($msg);
 }
 

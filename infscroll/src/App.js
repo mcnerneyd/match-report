@@ -2,28 +2,30 @@ import './App.css';
 import React from 'react';
 
 import Scroller from './scroller'
+import { Row, Col } from 'antd';
 
 
 function App() {
+  
+  return <Scroller
+      render= {(x, i) => <Row key={x.fixtureID}>
+        <Col span={5}>{x.datetimeZ}</Col>
+        <Col span={5}>{x.competition}</Col>
+        <Col span={8}>{x.home} v {x.away}</Col>
+        <Col span={6}>{x.fixtureID}/{i}</Col>
+      </Row>}
+      data={async (i0, i1) => {
 
-  return (
-    <Scroller
-      render={x => {
-        <>
-          <span>{x.name}</span>
-        </>
-      }}
-      keyField='fixtureID'
-      data={(i0, i1) => {
-
-        return fetch(`http://cards.leinsterhockey.ie/public/api/fixtures?c=Bray&site=lhamen&i0=${i0}&i1=${i1}`,
-             {
-               mode: "cors",
-               method: 'GET'
-             })
-             .then(response => response.text())
-             .then(response => response === '' ? [] : JSON.parse(response))
-             .then(response => { console.log("" + response.length + ` row(s) ${i0} = ${i1}`); response.forEach((x, i) => x.i = (i0 < 0 ? i0 - i : i0 + i)); return response;})
+        const response = await fetch(`http://cards.leinsterhockey.ie/public/api/fixtures?c=Bray&site=lhamen&i0=${i0}&i1=${i1}`,
+          {
+            mode: "cors",
+            method: 'GET'
+          });
+        const response_1 = await response.text();
+        const response_2 = response_1 === '' ? [] : JSON.parse(response_1);
+        console.log("" + response_2.length + ` row(s) ${i0} = ${i1}`);
+        response_2.forEach((x, i) => x.i = (i0 < 0 ? i0 - i : i0 + i));
+        return response_2;
 
         // fetch('http://cards.leinsterhockey.ie/public/api/fixtures?c=Bray&site=lhamen&pagesize=' + d + '&page',
         // //fetch('http://cards.leinsterhockey.ie/public/api/cards?site=lhamen',
@@ -53,8 +55,7 @@ function App() {
         //   console.log(a);
         //   return a;
         }}
-    ></Scroller>
-  );
+    ></Scroller>;
 }
 
 export default App;

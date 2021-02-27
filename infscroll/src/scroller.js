@@ -20,8 +20,6 @@ class Scroller extends React.Component {
         return;
       }
 
-      if (this.state.bottom > 50) return;
-
       if (this.container.children.length === 0) {  // if it is empty, add the first row
         this.container.addEventListener('scroll', this.handleScroll);
 
@@ -36,7 +34,7 @@ class Scroller extends React.Component {
         const currentBottom = this.container.children[this.container.children.length - 1];
         const visibleHeight = this.container.clientHeight;
 
-        //console.log("Range: " + currentTop.textContent + " => " + currentBottom.textContent);
+        console.log("Range: " + currentTop.fixtureId + " => " + currentBottom.fixtureId + " st:" + this.container.scrollTop);
 
         // add new bottom rows first
         if (this.state.bottom >= 0 && currentBottom.offsetTop < (visibleHeight + this.container.scrollTop)) { // top of last row is visible
@@ -55,13 +53,14 @@ class Scroller extends React.Component {
               }
             });
         } else if (this.state.top <= 0 && currentTop.offsetTop + currentTop.clientHeight > this.container.scrollTop) { // bottom of first row is visible
-          console.log("top");
+          console.log("top: " + this.state.top);
           this.getData(this.state.top - 1, this.state.top - 5)
             .then(x => {
-              if (x.length > 0) {
+              if (this.state.top > 0 && x.length > 0) {
                 this.setState({
                   rows: x.reverse().concat(this.state.rows),
-                  top: this.state.top - x.length,
+                  //top: this.state.top - x.length,
+                  top: 1
                 });
 
                 this.container.scrollTo(0, this.container.scrollTop + 1);
@@ -86,17 +85,10 @@ class Scroller extends React.Component {
 
   render() {
     return <div className='infinite-scroll' ref={(el) => this.container = el}>
-          {this.state.rows.filter(x => x)
-            .map((x,i) => <tr className='infinite-scroll-row' key={i} keyx={x[this.props.keyField]}>
-              <td>{x.datetimeZ} </td>
-              <td>{x.competition} </td>
-              <td>{x.home} </td>
-              <td> v </td>
-              <td>{x.away} </td>
-              <td style={{ width: "300px" }}> {x.i} / {x.fixtureID}</td>
-              {/*this.props.render ? this.props.render(x) : "Row " + x[this.props.keyField]*/}
-            </tr>
-            )}
+          {this.state.rows
+            .filter(x => x)
+            .map((x,i) => this.props.render ? this.props.render(x,i) : `Row [${i}]: ${x}`)
+          }
     </div>
   }
 }
