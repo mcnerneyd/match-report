@@ -45,7 +45,7 @@ class Controller_FixtureApi extends Controller_RestApi
 		// Find the index where past/future fixtures meet
 		$ts = Date::time()->get_timestamp();
 		$ct=0;
-		foreach ($fixtures as $fixture) {
+		foreach ($fixtures as &$fixture) {
 			if ($fixture['datetime']->get_timestamp() > $ts) break;
       $fixture['index'] = $ct;
 			$ct++;
