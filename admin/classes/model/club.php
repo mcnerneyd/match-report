@@ -38,6 +38,20 @@ class Model_Club extends \Orm\Model
 		return $result;
 	}
 
+	public static function getAnalysis() {
+		$results = array();
+		foreach (DB::query("SELECT id, name FROM club c")->execute() as $row) {
+			$club = Model_Club::find_by_id($row['id']);
+			$teams = $club->getTeamSizes();
+			$reg = Model_Registration::find_before_date($row['name'], time());
+			$summary = $club->getPlayerHistorySummary();
+			
+			$results[$row['id']] = array('name'=>$row['name'], 'players'=>count($reg), 'teams'=>count($teams), 'reg'=>$reg);
+		}
+
+		print_r($results);
+	}
+
 	public function getPlayerHistorySummary() {
 		$clubId = $this['id'];
 		$req = DB::query("select distinct player, COALESCE(th.team, ta.team) team from incident i 
@@ -71,9 +85,11 @@ class Model_Club extends \Orm\Model
 			if (trim($pattern) == '') break;
 			$parts = explode($pattern[0], $pattern);
 			if (count($parts) < 3) continue;
-			$patterns[] = "/${parts[1]}/i";
+			$patterns[] = "/".str_replace("/", "", $parts[1])."/i";
 			$replacements[] = $parts[2];
 		}
+
+		Log::debug("Patterns:".print_r($patterns, true)." Replace:".print_r($replacements,true));
 
 		$str = preg_replace($patterns, $replacements, trim($str));
 

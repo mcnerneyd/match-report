@@ -67,6 +67,7 @@ class Model_Incident extends \Orm\Model
 					break;
 			}
 
+			$new = false;
 			if ($incident == null) {
 					$incident = new Model_Incident();
 					$incident['player'] = $player;
@@ -74,6 +75,7 @@ class Model_Incident extends \Orm\Model
 					$incident['club_id'] = $clubId;
 					$incident['matchcard_id'] = $cardId;
 					$incident['user_id'] = $userId;
+					$new = true;
 			}
 
 			$incident['resolved'] = 0;
@@ -82,5 +84,7 @@ class Model_Incident extends \Orm\Model
 					$incident['detail'] = $detail;
 			}
 			$incident->save();
+
+			return $new;
 	}
 }

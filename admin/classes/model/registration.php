@@ -3,6 +3,16 @@ ini_set("auto_detect_line_endings", true);
 
 class Model_Registration 
 {
+	private static $cache;
+	private static $codes;
+	static function init() {
+		$path = DATAPATH."/sites/".Session::get('site')."/tmp/cache";
+		if (!file_exists($path)) mkdir($path, 0777, true);
+		static::$cache = Cache::forge("membership", array('file'=>array('path'=>$path),'driver'=>'file','expiration'=>3600*24)); 
+		$codes = parse_ini_file(APPPATH."/classes/model/clublist.ini");
+
+	}
+
 	public static function addRegistration($file, $club) {
 		$ts = Date::forge()->format("%y%m%d%H%M%S");
 		$arcDir = self::getRoot($club);
@@ -85,6 +95,20 @@ class Model_Registration
 				}
 			}
 		}
+
+		try {
+			$ids = self::$cache->get();
+		} catch (\CacheNotFoundException $e) {
+			$ids = array();
+		}
+
+		foreach ($ids as $membershipId=>$detail) {
+			if (strpos($detail, "$club:") === 0) {
+				unset($ids[$membershipId]);
+			}
+		}
+
+		self::$cache->set($ids, 30 * 24 * 3600);	// 30 days
 	}
 
 	public static function find_all($club) {
@@ -123,30 +147,22 @@ class Model_Registration
 		return $result;
 	}
 
-	public static function find_between_dates($clubName, $initialDate, $currentDate) {
-		$club = Model_Club::find_by_name($clubName);
-		$result = array();
+	public static function buildRegistration($current, $initial = null, $teamSizes = null, $history = null, $allowPlaceholders = false) {
 		$currentNames = array();
 		$currentLookup = array();
 
-		$current = Model_Registration::find_before_date($clubName, $currentDate);
 		foreach ($current as $player) {
 			$currentNames[] = $player['name'];
 			$currentLookup[$player['name']] = $player;
 		}
 
-		Log::debug("Boor in place: $clubName");
-		$restrictionDate = strtotime(Config::get('config.date.restrict'));
-
 		$order = 0;
-		if ($currentDate > $restrictionDate) {
-			Log::debug("Restrictions in place");
-			$initial = Model_Registration::find_before_date($clubName, $initialDate);
+		$result = array();
+		if ($initial) {
 			foreach ($initial as $player) {
 				if (($key = array_search($player['name'], $currentNames)) !== false) {
 					if (isset($currentLookup[$player['name']]['membershipid'])) {
 						$player['membershipid'] = $currentLookup[$player['name']]['membershipid'];
-						//Log::info("Glif: $key = ${player['membershipid']} --".$currentNames[$key]['membershipid']);
 					}
 					unset($currentNames[$key]);
 				} else {
@@ -165,19 +181,44 @@ class Model_Registration
 			$result[] = $player;
 		}
 
-		$lastTeam = 1;
-		$teamsAllocation = array();
-		if ($club) {
-			$teamSizes = $club->getTeamSizes();
-			for ($i=0;$i<count($teamSizes);$i++) {
-				for ($j=0;$j<$teamSizes[$i];$j++) {
-					$teamsAllocation[] = $i+1;
-				}
-				$lastTeam = $i+1;
+		// generate player history
+		foreach ($result as &$player) {
+			$player['score'] = 99;
+			if (!isset($history[$player['name']])) {
+				$player['history'] = array();	
+				$placeholders[] = $player;
+				continue;
+			}
+			$player['history'] = $history[$player['name']];
+			$teams = array_map(function($a) { return $a['team']; }, $player['history']);
+			if ($teams) {
+				$first = min($teams);
+				$firstCount = array_count_values($teams);
+				$firstCount = $firstCount[$first];
+				$player['score'] = round($first + (1 - ($firstCount/count($teams))), 2);
 			}
 		}
 
-		foreach ($result as $player) {
+		if (!$allowPlaceholders) {
+			// move placeholders to end of list
+			$placeholders = array_filter($result, function($a) { return count($a['history']) == 0; });
+			$result = array_filter($result, function($a) { return count($a['history']) > 0; });
+			$result = array_merge($result, $placeholders);
+		}
+
+		// assign players to teams
+		$lastTeam = 1;
+		$teamsAllocation = array();
+		if ($teamSizes) {
+			for ($i=0;$i<count($teamSizes);$i++) {
+				$lastTeam = $i+1;
+				for ($j=0;$j<$teamSizes[$i];$j++) {
+					$teamsAllocation[] = $lastTeam;
+				}
+			}
+		}
+
+		foreach ($result as &$player) {
 			if ($player['team'] > $lastTeam) $lastTeam = $player['team'];
 		}
 
@@ -192,6 +233,7 @@ class Model_Registration
 			}
 		}
 
+		// sort players by team
 		usort($result, function($a, $b) {
 			if ($a['team'] == $b['team']) {
 				return $a['order'] - $b['order'];
@@ -199,30 +241,28 @@ class Model_Registration
 			return $a['team'] - $b['team'];
 		});
 
-		$history = Model_Player::getHistory($clubName);
-		
-		foreach ($result as &$player) {
-			$player['score'] = 99;
-			if (!isset($history[$player['name']])) {
-				$player['history'] = array();	
-				continue;
-			}
-			$player['history'] = array_filter($history[$player['name']], function($a) use ($currentDate) {
-				return Date::create_from_string($a['date'], 'mysql')->get_timestamp() < $currentDate;
-			});
-			$teams = array_map(function($a) { return $a['team']; }, $player['history']);
-			if ($teams) {
-				$first = min($teams);
-				$firstCount = array_count_values($teams);
-				$firstCount = $firstCount[$first];
-				$player['score'] = round($first + (1 - ($firstCount/count($teams))), 2);
-			}
-		}
-
 		Log::debug("Registration has ".count($result). " valid player(s)");
 
 		return $result;
 	}
+
+	public static function find_between_dates($clubName, $initialDate, $currentDate) {
+		Log::debug("Request for registration for $clubName: between $initialDate and $currentDate");
+		$current = Model_Registration::find_before_date($clubName, $currentDate);
+		$restrictionDate = strtotime(Config::get('config.date.restrict'));
+		$initial = null;
+		if ($currentDate > $restrictionDate) {
+			Log::debug("Restrictions in place");
+			$initial = Model_Registration::find_before_date($clubName, $initialDate);
+		}
+
+		$club = Model_Club::find_by_name($clubName);
+		$teamSizes = $club ? $club->getTeamSizes() : array();
+		$history = Model_Player::getHistory($clubName, $currentDate);
+
+		return self::buildRegistration($current, $initial, $teamSizes, $history, \Config::get("config.registration.placeholders", true));
+	}
+
 
 	 /**
 	  * Returns a list of players that are elgible to play before a specific date.
@@ -233,12 +273,12 @@ class Model_Registration
 		*            the first available registration instead
 		* @return A list of players
     */
-	public static function find_before_date($club, $date, $firstAsNecessary = true) {
+	public static function find_before_date($club, $date) {
 		$match = null;
 		$club = strtolower($club);
 		foreach (self::find_all($club) as $registration) {
-			if ($firstAsNecessary && $match == null) $match = $registration['name'];
-			if ($registration['timestamp'] < $date) {
+			if ($match == null) $match = $registration['name'];	// At least get one, i.e. the first one
+			if ($registration['timestamp'] < $date) {		// If there's a newer one before the date use that
 				$match = $registration['name'];
 			}
 		}
@@ -281,12 +321,15 @@ class Model_Registration
 
 		$result = self::parse(file($file), $rclub, $groups);
 
-		$json_data = xjson_encode($result, JSON_PRETTY_PRINT);
-		file_put_contents("$file.json", $json_data);
+		//$json_data = xjson_encode($result, JSON_PRETTY_PRINT);
+		file_put_contents("$file.json", Format::forge($result)->to_json());
 
 		return $result;
 	}
 
+	/**
+	 * Parse a registration providered as an array of lines.
+	 */
 	public static function parse($lines, $rclub, $groups) {
 
 		$result = array();
@@ -390,17 +433,54 @@ class Model_Registration
 
 			$playerArr = cleanName($player, "[Fn][LN]");
 
-			if ($player) $result[] = array("name"=>$player,
-				"lastname"=>$playerArr['LN'],
-				"firstname"=>$playerArr['Fn'],
-				"membershipid"=>$membershipId,
-				"status"=>"registered",
-				"phone"=>phone($player), 
-				"team"=>$playerTeam,
-				"pt"=>$pt,
-				"club"=>$rclub);
+			if ($player) {
+				if (!self::validateMembership($rclub, $playerArr['Fn'], $playerArr['LN'], $membershipId)) {
+					if (Config::get("config.registration.mandatoryhi", "noselect") === 'noregister') continue;
+					$membershipId = null;
+				}
+
+				$result[] = array("name"=>$player,
+					"lastname"=>$playerArr['LN'],
+					"firstname"=>$playerArr['Fn'],
+					"membershipid"=>$membershipId,
+					"status"=>"registered",
+					"phone"=>phone($player), 
+					"team"=>$playerTeam,
+					"pt"=>$pt,
+					"club"=>$rclub);
+			}
 		}
 
 		return $result;
 	}
+
+	private static function validateMembership($club, $firstName, $lastName, $membershipId) {
+
+		$clubId = self::$codes[$club];
+
+		$url="http://portal.azolve.com/azolveapi/AzolveService/Neptune2?clientReference=HockeyIreland".
+			"&objectName=Cus_ValidateClubMembers&objectType=sp".
+			"&parameters=MID%7C$membershipId;Firstname%7CXX;Surname%7CXX;ClubID%7C$clubId;DOB%7C1970-01-01".
+			"&password=0O34zW934rVC&userId=AzolveAPI";
+        
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		// Set so curl_exec returns the result instead of outputting it.
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		// Get the response and close the channel.
+		$response = curl_exec($ch);
+		curl_close($ch);
+
+		$response = json_decode($response);
+		if (!is_array($response) || $response[1][0] === 0) {
+			Log::warn("Invalid membership ID: $membershipId = $club:$firstName:$lastName ".print_r($response, true));
+			return false;
+		}
+
+		Log::debug("Valid membership ID: $membershipId = $club:$firstName:$lastName");
+
+		return true;
+	}
 }
+
+Model_Registration::init();

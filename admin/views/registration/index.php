@@ -101,8 +101,8 @@ echo "<!-- Registration Allowed: $registrationAllowed -->";
 </script>
 <style>
 .form-confirmation {
-		position: relative;
-		height: 45px;
+	position: relative;
+	height: 45px;
 }
 .form-confirmation p {
 	position: absolute;
@@ -194,11 +194,11 @@ foreach ($registrations as $registration) {
 		<td>".strtoupper($date->format("%Y-%m-%d %H:%M:%S"))."</td>
 		<td>${registration['cksum']}</td>
 		<td>
-			<a class='btn btn-primary btn-sm btn-download'>Download <i class='glyphicon glyphicon-cloud-download'></i></a>";
-		if ($registrationAllowed === 'all') {
+			<a class='btn btn-primary btn-sm btn-download'>Download <i class='fas fa-download'></i></a>";
+		if (Auth::has_access('registration.delete')) {
 			echo "\n<a class='btn btn-danger btn-sm btn-delete'
 				data-toggle='confirmation' data-title='Delete Registration' 
-				data-content='Are you sure?'>Delete <i class='glyphicon glyphicon-trash'></i></a>\n";
+				data-content='Are you sure?'>Delete <i class='fas fa-trash-alt'></i></a>\n";
 		}
 		echo "</td>
 		</tr>";

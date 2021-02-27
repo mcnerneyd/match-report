@@ -3,6 +3,7 @@
 class Controller_Admin extends Controller_Hybrid {
 
     public function action_index() {
+
 			$allusers = array_column(Model_User::find('all'), 'username');
 			sort($allusers);
 			
@@ -14,13 +15,13 @@ class Controller_Admin extends Controller_Hybrid {
      * Get the tasks configured on the system
      */
     public function get_tasks() {
-        if (!Auth::has_access("tasks.view"))
-            throw new HttpNoAccessException;
+			if (!Auth::has_access("tasks.view"))
+					throw new HttpNoAccessException;
 
-        $tasks = Model_Task::find('all');
+			$tasks = Model_Task::find('all');
 
-        $this->template->title = "Task Processing";
-        $this->template->content = View::forge('admin/tasks', array('tasks' => $tasks));
+			$this->template->title = "Task Processing";
+			$this->template->content = View::forge('admin/tasks', array('tasks' => $tasks));
     }
 
     public function get_testtask() {
@@ -163,20 +164,31 @@ class Controller_Admin extends Controller_Hybrid {
     public function action_log() {
 
         $date = \Input::param('d', Date::forge()->format("%Y%m%d"));
+				$page = \Input::param('p', 1);
+				$site = \Input::get('site', Session::get('site' , 'none'));
+				
+				if ($site != 'none') {
+					$logPath = DATAPATH."sites/$site/logs/";
+				} else {
+					$logPath = DATAPATH."logs/";
+				}
 
-        $filename = DATAPATH . "/logs/" . substr($date, 0, 4) . "/" . substr($date, 4, 2) . "/" . substr($date, 6, 2) . ".php";
+        $filename = $logPath . substr($date, 0, 4) . "/" . substr($date, 4, 2) . "/" . substr($date, 6, 2) . ".php";
         $fp = fopen($filename, 'r');
-        fseek($fp, -512000, SEEK_END);
+        fseek($fp, -512000 * $page, SEEK_END);
         $src = fread($fp, 512000);
 
         echo "<head><title>Log</title><style>code { white-space: nowrap; }</style></head>";
-        echo "<a href='" . Uri::create('Admin/Log?d=' . Date::forge(strtotime("-1 day", strtotime($date)))->format("%Y%m%d")) . "'>Previous</a><br>";
+				$previous = 'Admin/Log?d=' . Date::forge(strtotime("-1 day", strtotime($date)))->format("%Y%m%d");
+				if ($site) $previous .= "&site=$site";
+        echo "<a href='" . Uri::create($previous) . "'>Previous</a><br>";
+				echo "<code style='display:block;clear:both;margin:10px 0;'>$filename</code>";
 
         foreach (array_reverse(explode("\n", $src)) as $line) {
-			if (\Input::param('raw', null) !== null) {
-				echo "<pre>$line</pre>";
-				continue;
-			}
+						if (\Input::param('raw', null) !== null) {
+							echo "<pre>$line</pre>";
+							continue;
+						}
 
             $match = array();
             if (!preg_match("/(.*) - (.*) --> (.*)/", $line, $match))
@@ -196,16 +208,19 @@ class Controller_Admin extends Controller_Hybrid {
                     $match2 = array();
                     if (preg_match("/--- Execute: (.*)/", $match[3], $match2)) {
                         $squeak = substr("----- " . $match2[1] . " " . str_repeat("-", 120), 0, 120);
-                        echo "<code style='color:#88bb99'>" . $match[2] . " $squeak </code><br>";
+                        echo "<code style='color:#88bb99'>" . $match[2] . " $squeak </code><br><br>";
                         break;
                     }
                     if (preg_match("/Fuel.Core.Request::__construct - Creating a new main Request with URI = \"(.*)\"/", $match[3], $match2)) {
-                        $squeak = substr("----- " . $match2[1] . " " . str_repeat("-", 120), 0, 120);
-                        echo "<code style='color:green'>" . $match[2] . " $squeak</code><br>";
+                        echo "<code style='color:green'>${match[2]} ${match2[1]}</code><br><br>";
                         break;
                     }
 
                     echo "<code>" . $match[2] . " <strong>" . $match[1] . "</strong> " . $match[3] . "</code><br>";
+                    if (preg_match("/Request:(.*)/", $match[3], $match2)) {
+                        $squeak = str_repeat("&nbsp;", 20).substr("----- Begin Request " . str_repeat("-", 120), 0, 120);
+                        echo "<code style='color:green;size:80%'>$squeak</code><br><br>";
+										}
                     break;
             }
         }
@@ -305,7 +320,20 @@ class Controller_Admin extends Controller_Hybrid {
         $teamLookup = array();
         $errors = 0;
 
+				echo "Processing ".count($fixtures)." fixture(s)\n";
+
+				$unknowns = array();
+
         foreach ($fixtures as $fixture) {
+						if (!isset($fixture['home_club'])) {
+							$unknowns[$fixture['home']] = true;
+							continue;
+						}
+						if (!isset($fixture['away_club'])) {
+							$unknowns[$fixture['away']] = true;
+							continue;
+						}
+
             try {
                 self::treeset($competitionTeams, $fixture['competition'], $fixture['home']);
                 self::treeset($competitionTeams, $fixture['competition'], $fixture['away']);
@@ -320,6 +348,8 @@ class Controller_Admin extends Controller_Hybrid {
                 $errors++;
             }
         }
+
+				Log::warning("Unknown teams: ".join(',', array_keys($unknowns)));
 
         Log::debug("Fixtures loaded and parsed: xt=" . count($competitionTeams) . " ct=" . count($clubTeams) . " tl=" . count($teamLookup));
 
@@ -522,8 +552,10 @@ class Controller_Admin extends Controller_Hybrid {
         Config::set("config.strict_comps", Input::post("strict_comps"));
         Config::set("config.automation.allowrequest", Input::post('allow_registration'));
         Config::set("config.allowassignment", Input::post('allow_assignment') == 'on');
+        Config::set("config.registration.placeholders", Input::post('allow_placeholders') == 'on');
         Config::set("config.result.submit", Input::post("resultsubmit"));
         Config::set("config.blockerrors", Input::post("block_errors"));
+        Config::set("config.registration.mandatoryhi", Input::post("mandatory_hi"));
         //Config::set("config.date.start", Input::post("seasonstart"));
         Config::set("config.date.restrict", Input::post("regrestdate"));
         Config::set("config.fixtures", explode("\r\n", trim(Input::post("fixtures"))));
@@ -558,10 +590,12 @@ class Controller_Admin extends Controller_Hybrid {
                     "automation_password" => Config::get("config.automation.password"),
                     "automation_allowrequest" => Config::get("config.automation.allowrequest"),
                     "allowassignment" => Config::get("config.allowassignment"),
+                    "allowplaceholders" => Config::get("config.registration.placeholders", true),
+                    "mandatory_hi" => Config::get("config.registration.mandatoryhi", "noselect"),
                     "fixescompetition" => join("\r\n", Config::get("config.pattern.competition")),
                     "fixesteam" => join("\r\n", Config::get("config.pattern.team")),
                     "fixtures" => join("\r\n", Config::get("config.fixtures")),
-                    "resultsubmit" => Config::get("config.result.submit"),
+                    "resultsubmit" => Config::get("config.result.submit", 'no'),
                     //"seasonstart" => Config::get("config.date.start"),
                     "regrestdate" => Config::get("config.date.restrict"),
                     "block_errors" => Config::get("config.registration.blockerrors"),

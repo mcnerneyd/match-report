@@ -89,6 +89,7 @@ $(document).ready(function() {
 				<p>The match must be played the next day (or within 8 days by agreement).</p>
 			</div>
 
+			<?php if ($lastteam) { ?>
 			<div class='form-check'>
 				<input class='form-check-input' type='radio' name='postponement-reason' value='lastteampost'/>
 				<label>Last Team Postponement (Bye-Law 3.5.2)</label>
@@ -97,6 +98,7 @@ $(document).ready(function() {
 				<p>A fine will be issued if the request made is after 1pm on the day previous to the match</p>
 				<p>Refix must be within 22 days.</p>
 			</div>
+			<?php } ?>
 
 			<div class='form-check' data-notice='30'>
 				<input class='form-check-input' type='radio' name='postponement-reason' value='univerpost'/>

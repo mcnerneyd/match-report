@@ -78,7 +78,11 @@ class Model_Card extends \Orm\Model
 
 		$sql = "select m.id, m.fixture_id, m.date, x.name competition, 
 				ch.id home_id, ch.name home_name, th.team home_team, 
-				ca.id away_id, ca.name away_name, ta.team away_team
+				ca.id away_id, ca.name away_name, ta.team away_team,
+				(select count(*) from incident i where matchcard_id = m.id and ch.id = club_id and i.type = 'Played' and i.resolved = 0) home_count,
+				(select count(*) from incident i where matchcard_id = m.id and ca.id = club_id and i.type = 'Played' and i.resolved = 0) away_count,
+				(select sum(detail) from incident i where matchcard_id = m.id and ch.id = club_id and i.type = 'Scored' and i.resolved = 0) home_score,
+				(select sum(detail) from incident i where matchcard_id = m.id and ca.id = club_id and i.type = 'Scored' and i.resolved = 0) away_score
 			from matchcard m
 				left join competition x on m.competition_id = x.id
 				left join team th on m.home_id = th.id
@@ -139,6 +143,35 @@ class Model_Card extends \Orm\Model
 		Log::info("Search query: $sql");
 
 		return \DB::query($sql)->execute();
+	}
+
+	public static function search2($q, $limit = -1, $offset = 0) {
+
+		$sql = " (
+		SELECT m.id, CONCAT_WS('/',x.name, ch.name, th.team, ca.name, ta.team) d FROM matchcard m
+			JOIN competition x ON m.competition_id = x.id
+			JOIN team th ON m.home_id = th.id
+			JOIN club ch ON th.club_id = ch.id
+			JOIN team ta ON m.away_id = ta.id
+			JOIN club ca ON ta.club_id = ca.id) x";
+
+		if ($q) $sql .= " WHERE ".
+			implode(' AND ',
+				array_map(function($x) { return "x.d like '%".str_replace(array('/',"'"), '', $x)."%'"; }, $q));
+
+		if ($limit < 0) {
+			$sql = "SELECT COUNT(*) as count FROM $sql";
+			foreach (\DB::query($sql)->execute() as $row) {
+				return $row['count'];
+			}
+			return 0;
+		} else {
+			$sql = "SELECT id FROM $sql LIMIT $limit OFFSET $offset";
+			foreach (\DB::query($sql)->execute() as $row) {
+				$result[] = Model_Card::card($row['id']);
+			}
+			return $result;
+		}
 	}
 
 	public static function find_by_fixture($fixtureid, $createAsNeeded = false) {
@@ -272,11 +305,12 @@ class Model_Card extends \Orm\Model
 
 		// Verify that the fixture is still valid
 		$fixture = Model_Fixture::get($card['fixture_id']);
-		if ($fixture == null) {
-			throw new Exception("Card $id is associated with non-existant fixture (id=".$card['fixture_id'].")");
+		if ($fixture != null) {
+			$card['comment'] = isset($fixture['comment']) ? $fixture['comment'] : "";
+			//throw new Exception("Card $id is associated with non-existant fixture (id=".$card['fixture_id'].")");
+		} else {
+			$card['comment'] = 'No fixture';
 		}
-
-		$card['comment'] = isset($fixture['comment']) ? $fixture['comment'] : "";
 
 		if ($card['date']) {
 

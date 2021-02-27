@@ -50,7 +50,7 @@ return array(
 		'user_manager' => array('users'=>array('view','create','delete')),
 		 'admin'  => array('configuration'=>array('view','edit'), 
 		 							'card'=>array('superedit'),
-		 							'registration'=>array('impersonate','status'),
+		 							'registration'=>array('impersonate','status','delete'),
 		 							'competition'=>array('view','edit'),
 		 							'user'=>array('create')),
 		 'secretary' => array('registration' => array('view', 'post'),

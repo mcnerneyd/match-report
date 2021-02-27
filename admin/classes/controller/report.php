@@ -2,6 +2,92 @@
 class Controller_Report extends Controller_Template
 {
 	// --------------------------------------------------------------------------
+	public function action_stats() {
+		echo "<style>table{margin-top:10px;}table *{font-family:monospace;text-align:left;padding-right:20px;}</style>";
+		self::dump("Average number of players by competition",
+			"select x.competition, round(avg(least(num,16)),1) num from ( 
+			select count(*) num, matchcard_id, competition from incidents 
+			where type = 'Played' and resolved = 0 group by club_name, team, matchcard_id
+			) x
+			group by competition with rollup");
+
+		self::dump("Average number of players on teams",
+			"select x.club_name, x.team, round(avg(least(num,16)),1) num, count(*) matches from ( 
+			select count(*) num, club_name, team, matchcard_id from incidents 
+			where type = 'Played' and resolved = 0 group by club_name, team, matchcard_id
+			) x
+			group by club_name, team with rollup");
+
+		self::dump("Average number of players on last team",
+			"select x.club_name, round(avg(least(num,16)),1) num from ( 
+			select count(*) num, club_name, team, matchcard_id from incidents 
+			where type = 'Played' and resolved = 0 group by club_name, team, matchcard_id
+			) x join (
+			select club_name, max(team) team from incidents group by club_name) y 
+				on x.club_name = y.club_name and x.team = y.team 
+			group by club_name with rollup");
+
+		self::dump("Players playing for more than one team",
+			"select club_name, 
+					count(*) as total, 
+					count(if (times = 1, player, null)) as c1, 
+					count(if (times = 2, player, null)) as c2, 
+					count(if (times = 3, player, null)) as c3, 
+					count(if (times = 4, player, null)) as c4
+				from (
+				SELECT player, club_name, count(distinct team) times FROM `incidents` 
+					where type = 'Played' and resolved = 0 and competition like 'Division %'  
+					group by player, club_name 
+					order by times desc) k0 group by club_name with rollup");
+
+		self::dump("Number of goals scored depending on size of team",
+			"select players, round(avg(score),1) 'average score' from (
+					SELECT count(distinct if (type = 'Played', player, null)) players, 
+						sum(if (type = 'Scored', detail, 0)) score 
+						FROM `incidents` where resolved = 0 group by matchcard_id, club_name 
+				order by players) k0 group by players order by players");
+
+		self::dump("Home advantage", "select round(avg(score),1) avg_adv, round(std(score),1) std_adv from (
+					select m.id, COALESCE(kh.score,0) -  COALESCE( ka.score,0) score from
+					matchcard m
+					left join
+					(SELECT matchcard_id, sum(detail) score FROM `incidents` 
+						where type = 'Scored' and resolved = 0 and at_home group by matchcard_id, club_name) kh 
+						on kh.matchcard_id = m.id
+					left join
+					(SELECT matchcard_id, sum(detail) score FROM `incidents` 
+						where type = 'Scored' and resolved = 0 and not at_home group by matchcard_id, club_name) ka 
+						on ka.matchcard_id = m.id
+					where ka.matchcard_id is not null or kh.matchcard_id is not null
+							) k0");
+
+
+
+		return new Response("Report sent", 200);
+	}
+
+	private static function dump($title, $sql) {
+		echo "<h1>$title</h1>\n<code style='color:#abe'>$sql</code>\n";
+		$result = DB::query($sql)->execute();
+
+		echo "<table>";
+		$first = true;
+		foreach ($result->as_array() as $row) {
+			if ($first) {
+				echo "<tr>";
+				foreach (array_keys($row) as $head) echo "<th>$head</th>";
+				echo "</tr>";
+				$first = false;
+			}
+
+			echo "<tr>";
+			foreach (array_values($row) as $value) echo "<td>$value</td>";
+			echo "</tr>";
+		}
+		echo "</table><hr>";
+	}
+
+	// --------------------------------------------------------------------------
 	public function action_notes() {
 		if (!\Auth::has_access("registration.status")) {
 			return new Response("Not permitted: administrator only", 403);
@@ -52,6 +138,24 @@ class Controller_Report extends Controller_Template
 	}
 
 	// --------------------------------------------------------------------------
+	public function action_analysis() {
+		$rows = Db::query("select x.name comp, c.name club, m.date, matchcard_id, i.club_id, cdp, sd, (i.club_id = t.club_id) home from (select i.matchcard_id, i.club_id, cdp, COALESCE(sd, 0) sd FROM (SELECT matchcard_id, club_id, count(distinct player) cdp FROM `incident` where type = 'Played' and resolved = 0 group by matchcard_id, club_id) AS `i` left join (select matchcard_id, club_id, sum(detail) sd from incident where type='Scored' group by matchcard_id, club_id) i2 on i.club_id = i2.club_id and i.matchcard_id = i2.matchcard_id) i left join matchcard m on m.id = matchcard_id left join competition x on x.id = m.competition_id left join team t on t.id = m.home_id left join club c on c.id = i.club_id")->execute();
+
+		foreach ($rows as $row) {
+			echo "${row['comp']},${row['club']},${row['date']}, ${row['cdp']}, ${row['sd']}, ${row['home']}\n";
+		}
+
+		return new Response("Report sent", 200);
+	}
+
+	// --------------------------------------------------------------------------
+	public function action_clubs() {
+		Model_Club::getAnalysis();
+
+		return new Response("Report sent", 200);
+	}
+
+	// --------------------------------------------------------------------------
 	public function action_cards() {
 		$cards = Model_Incident::find('all', array(
 			'where'=> array(
@@ -87,6 +191,119 @@ class Controller_Report extends Controller_Template
 		$this->template->content = View::forge('report/registration', array(
 			'reportDate'=>$reportDate
 		));
+	}
+
+	// -------------------------------------------------------
+	public function action_grid() {
+		$competition = Input::get("x");
+
+		self::header("Grid Report - $competition");
+
+		$fixtures = array_filter(Model_Fixture::getAll(), function($a) use($competition) { return $a['competition'] === $competition; });
+		$map = array();
+		$clubs = array_unique(array_values(array_map(function($a) { return $a['home_club']; }, $fixtures)));
+		$playct = array_fill_keys($clubs, 0);
+		$clubs = array_fill_keys($clubs, 0);
+		foreach ($fixtures as $fixture) {
+
+			if ($fixture['home_club'] === 'Blank') continue;
+			if ($fixture['away_club'] === 'Blank') continue;
+
+			$map[$fixture['home_club'].":".$fixture['away_club']] = $fixture;
+
+			if ($fixture['played'] === 'no') continue;
+
+			$hpts = 0;
+			$apts = 0;
+			if ($fixture['home_score'] > $fixture['away_score']) {
+				$hpts = 3;
+			} else if ($fixture['home_score'] < $fixture['away_score']) {
+				$apts = 3;
+			} else if ($fixture['home_score'] === $fixture['away_score']) {
+				$hpts = 1;
+				$apts = 1;
+			}
+
+			$playct[$fixture['home_club']] = (@$playct[$fixture['home_club']] ?: 0) + 1;
+			$playct[$fixture['away_club']] = (@$playct[$fixture['away_club']] ?: 0) + 1;
+			$clubs[$fixture['home_club']] = (@$clubs[$fixture['home_club']] ?: 0) + $hpts;
+			$clubs[$fixture['away_club']] = (@$clubs[$fixture['away_club']] ?: 0) + $apts;
+		}
+		foreach ($clubs as $club=>$score) {
+			$clubs[$club] = array('c'=>$club, 's'=>$score);
+		}
+		usort($clubs, function($a, $b) { return $b['s'] - $a['s']; });
+
+		echo "<style>
+			table { margin-top: 2cm; }
+			td { border:1px solid black; text-align:center; max-width:1cm; height:1cm; } 
+			#away th div {width:1cm;transform:rotate(-90deg);}
+			.home th { text-align: right; }
+			.blank { background-color: #bbb; }
+			.unplayed { background-color: #bbf; }
+			.late { background-color: #fbb; }
+			.draw { background-color: #bfb; }
+			.away-win {
+				background: rgba(248, 80, 50, 1);
+				background:linear-gradient(to bottom left,#bfb 50%,#fff 50%);
+			}
+			.home-win {
+				background: rgba(248, 80, 50, 1);
+				background:linear-gradient(to bottom left,#fff 50%,#bfb 50%);
+			}
+			</style>";
+
+		$nowts = Date::time()->get_timestamp();
+
+		echo "<table><tr id='away'><th/><th>Pld</th><th>Pts</th>";
+		foreach ($clubs as $club) echo "<th><div>${club['c']}</div></th>";
+		echo "<th>HI<br>%</th></tr>";
+		foreach ($clubs as $home_club) {
+			$ct = $playct[$home_club['c']];
+			echo "<tr class='home'><th>${home_club['c']}</th><td style='border:0'>$ct</td><td style='border:0'>${home_club['s']}</td>";
+			foreach ($clubs as $away_club) {
+				$key = "${home_club['c']}:${away_club['c']}";
+				if (!isset($map[$key])) {
+					echo "<td class='blank'/>";
+					continue;
+				}
+
+				$fixture = $map[$key];
+				if ($fixture['played'] === 'no') {
+
+					$class = "unplayed";
+					if ($fixture['datetime']->get_timestamp() < $nowts) $class = "late";
+
+					echo "<td class='fixture $class'>".$fixture['datetime']->format('%d<br>%b')."</td>";
+				} else {
+					$class = "draw";
+					if ($fixture['home_score'] > $fixture['away_score']) $class = "home-win";
+					if ($fixture['home_score'] < $fixture['away_score']) $class = "away-win";
+
+					echo "<td class='fixture $class'>
+						<div style='text-align:right'>${fixture['away_score']}</div>
+						<div style='text-align:left'>${fixture['home_score']}</div>
+						</td>";
+				}
+			}
+			$hipct = 0;
+			if ($ct > 0) $hipct = round(18 * $home_club['s'] / $ct);
+			echo "<td style='border: 0'>".$hipct."</td>";
+			echo "</tr>";
+		}
+		echo "</table>";
+
+		$comps = array_map(function($a) { return $a['name']; }, Model_Competition::find('all'));
+		sort($comps);
+
+		echo "<br>";
+
+		foreach ($comps as $name) {
+			//if (!preg_match('/Division .*/', $name)) continue;
+			echo "<a class='no-print' href='http://cards.leinsterhockey.ie/public/report/Grid?site=".Session::get('site')."&x=$name'>$name</a> ";
+		}
+
+		return new Response("", 200);
 	}
 
 	// -------------------------------------------------------
@@ -559,5 +776,13 @@ class Controller_Report extends Controller_Template
 			$newfine->resolved = 0;
 
 			return $newfine;
+	}
+
+	static function header($title) {
+		echo "<html><head><title>$title</title></head>\n";
+		echo "<body><style>
+			* { font: 12pt 'Courier New' }
+			@media print { .no-print, .no-print * { display: none !important; } }
+			</style>";			
 	}
 }

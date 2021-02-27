@@ -90,7 +90,7 @@ class Controller_RegistrationApi extends Controller_Rest
 
 	// --------------------------------------------------------------------------
 	public function delete_index() {
-		if (!\Auth::has_access("admin.all")) {
+		if (!\Auth::has_access('registration.delete')) {
 			return new Response("Not permitted to register: $access", 403);
 		}
 

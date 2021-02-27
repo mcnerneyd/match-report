@@ -17,8 +17,10 @@ function arr_add(&$arr, $subindex, $val) {
 }
 
 # Provide 5.5 functionality
-function array_column($input, $column_key) {
-	return array_map(function($v) use ($column_key) { return $v[$column_key]; }, $input);
+if (!function_exists('array_column')) {
+	function array_column($input, $column_key) {
+		return array_map(function($v) use ($column_key) { return $v[$column_key]; }, $input);
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -33,6 +35,10 @@ function emptyValue(&$var, $def) {
 function cleanName($player, $format = "Fn LN") {
 
 		if (!$player) return $player;
+
+		if ($format==='') {
+			return unicode_trim($player);
+		}
 
 		$player = trim(preg_replace("/[^A-Za-z, ]/", "", $player));
 		$a = strpos($player, ",");
@@ -92,13 +98,21 @@ function phone($player) {
 }
 
 //-----------------------------------------------------------------------------
-function currentSeasonStart() {
-	$year = date('Y');
-	$month = date('n');
+function seasonStart($ts) {
+	$year = date('Y', $ts);
+	$month = date('n', $ts);
 
 	if ($month < 8) $year = $year - 1;
 
 	return Date::create_from_string($year.".08.01 00:00");
+}
+
+function currentSeasonStart() {
+	$css = \Input::param('css', null);
+	if ($css == null) $ts = time();
+	else $ts = strtotime($css);
+
+	return seasonStart($ts);
 }
 
 //-----------------------------------------------------------------------------

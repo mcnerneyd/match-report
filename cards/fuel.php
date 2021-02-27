@@ -9,7 +9,7 @@ define("DATAPATH", "$root/data");
 // Write a log entry to the fuelphp logs
 function log_write($level, $msg) {
 	try {
-		$filename = DATAPATH."/logs/".date("Y/m/d").".php";
+		$filename = DATAPATH."/sites/".site()."/logs/".date("Y/m/d").".php";
 		$dir = dirname($filename);
 
 		if (!file_exists($dir)) {

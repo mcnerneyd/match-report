@@ -1,3 +1,12 @@
+<!--
+<?php
+	$configPath = sitepath().'/config.json';
+	$config = Config::load($configPath, 'config');
+	unset($config['memcached']);
+	unset($config['database']);
+	echo "CONFIG:$configPath\n".json_encode($config);
+?>
+-->
 <style>
 form { position: relative; }
 .valid { color: green; display: none; }
@@ -90,28 +99,33 @@ $(document).ready(function(event) {
 			</div>
 
 			<div class='form-row'>
-				<div class='form-group col-md-6'>
-					<label>Result Submission</label>
-					<p>When a matchcard is complete, the result can be submitted to the LHA website.</p>
-					<div class='radio'>
-						<label>
-							<input name='resultsubmit' type='radio' value='no'></input>
-							Do not submit results
-						</label>
+				<fieldset class='form-group'>
+					<div class='form-group col-md-12'>
+						<legend><u>Result Submission</u></legend>
+						<p>When a matchcard is complete, the result can be submitted to the LHA website.</p>
+						<div class='form-check'>
+							<label>
+								<input class='form-check-input' name='resultsubmit' type='radio' value='no' 
+									<?php if (!$resultsubmit || $resultsubmit == 'no') echo 'checked'; ?>></input>
+								Do not submit results
+							</label>
+						</div>
+						<div class='form-check'>
+							<label>
+							<input class='form-check-input' name='resultsubmit' type='radio' value='new'
+									<?php if ($resultsubmit == 'new') echo 'checked'; ?>></input>
+								Submit results, but do not overwrite an existing result
+							</label>
+						</div>
+						<div class='form-check'>
+							<label>
+								<input class='form-check-input' name='resultsubmit' type='radio' value='yes'
+									<?php if ($resultsubmit == 'yes') echo 'checked'; ?>></input>
+								Submit results
+							</label>
+						</div>
 					</div>
-					<div class='radio'>
-						<label>
-						<input name='resultsubmit' type='radio' value='new'></input>
-							Submit results, but do not overwrite an existing result
-						</label>
-					</div>
-					<div class='radio'>
-						<label>
-							<input name='resultsubmit' type='radio' value='yes'></input>
-							Submit results
-						</label>
-					</div>
-				</div>
+				</fieldset>
 
 				<div class='form-group col-md-6'>
 					<label>Season Start Date</label>
@@ -126,30 +140,70 @@ $(document).ready(function(event) {
 				</div>
 			</div>
 
-			<fieldset>
-				<legend>Registration</legend>
-
-				<div class='checkbox'>
-					<label> <input type='checkbox' name='allow_registration' <?php 
-						if ($automation_allowrequest) echo 'checked'; ?>></input> Allow Registration</label>
-				</div>
-
-				<div class='checkbox'>
-					<label> <input type='checkbox' name='allow_assignment' <?php 
-						if ($allowassignment) echo 'checked'; ?>></input> Allow Explicit Team Assignment</label>
-				</div>
-
-				<div class='checkbox'>
-					<label> <input type='checkbox' name='block_errors' <?php 
-						if (Config::get("hockey.block_errors", false)) echo 'checked'; ?>></input> Block Registration on Errors</label>
-				</div>
+				<h2>Registration</h2>
 
 				<div class='form-group col'>
 					<label>Registration Restriction Date</label>
 					<input name='regrestdate' type='text' class='form-control date-select' value='<?= $regrestdate ?>'></input>
 					<small>After this date all rules regrading player registration will be applied</small>
 				</div>
-			</fieldset>
+
+				<div class='form-group col'>
+				<h3>Options</h3>
+
+				<div class='form-check'>
+					<label> <input class='form-check-input' type='checkbox' name='allow_registration' <?php 
+						if ($automation_allowrequest) echo 'checked'; ?>></input> Allow club secretaries to submit their own registration</label>
+				</div>
+
+				<div class='form-check'>
+					<label> <input class='form-check-input' type='checkbox' name='allow_assignment' <?php 
+						if ($allowassignment) echo 'checked'; ?>></input> Allow players to be assigned to specific teams in registration files</label>
+				</div>
+
+				<div class='form-check'>
+					<label> <input class='form-check-input' type='checkbox' name='allow_placeholders' <?php 
+						if ($allowplaceholders) echo 'checked'; ?>></input> Allow players who have not played any matches to be registered on teams other than the last team</label>
+				</div>
+
+				<div class='form-check'>
+					<label> <input class='form-check-input' type='checkbox' name='block_errors' <?php 
+						if (Config::get("hockey.block_errors", false)) echo 'checked'; ?>></input> Do not activate a registration file if it contains errors</label>
+				</div>
+
+				<div class='form-group'>
+					<p>If a player does not have a valid Hockey Ireland membership:</p>
+					<!-- Mandatory HI: <?= $mandatory_hi ?> -->
+					<div class='form-check'>
+						<label>
+							<input class='form-check-input' name='mandatory_hi' type='radio' value='noregister'
+									<?php if (!$mandatory_hi || $mandatory_hi == 'noregister') echo 'checked'; ?>></input>
+							That player cannot be registered	
+						</label>
+					</div>
+					<div class='form-check'>
+						<label>
+							<input class='form-check-input' name='mandatory_hi' type='radio' value='noselect'
+									<?php if ($mandatory_hi == 'noselect') echo 'checked'; ?>></input>
+							That player cannot be selected for any team	
+						</label>
+					</div>
+					<div class='form-check'>
+						<label>
+							<input class='form-check-input' name='mandatory_hi' type='radio' value='lastteamonly'
+									<?php if ($mandatory_hi == 'lastteamonly') echo 'checked'; ?>></input>
+							That player can only be selected for the last team in the club
+						</label>
+					</div>
+					<div class='form-check'>
+						<label>
+							<input class='form-check-input' name='mandatory_hi' type='radio' value='unrestricted'
+									<?php if ($mandatory_hi == 'unrestricted') echo 'checked'; ?>></input>
+							That player will not be restricted
+						</label>
+					</div>
+				</div>
+				</div>
 
 		</div> <!-- #home -->
 
@@ -159,6 +213,8 @@ $(document).ready(function(event) {
 					<label for='config-fixtures'>Fixtures</label>
 					<textarea name='fixtures' id='config-fixtures' rows='8' cols='140' class='form-control' spellcheck='false'><?= $fixtures ?></textarea>
 				</div>
+
+				<small>[feed] | [file.csv] | ![web page] | =[yyyy-mm-dd,comp,home,away]</small>
 			</div>
 
 			<div class='form-row'>
@@ -195,7 +251,7 @@ $(document).ready(function(event) {
 					<div class='input-group'>
 						<span class='input-group-btn'>
 							<button class='btn btn-success' type='button'>
-								<i class='glyphicon glyphicon-refresh'></i>
+								<i class="fas fa-sync-alt"></i>
 							</button>
 						</span>
 						<input name='salt' type='text' class='form-control' value='<?= $salt ?>'></input>

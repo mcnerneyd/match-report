@@ -3,7 +3,19 @@ class Controller_UserApi extends Controller_RestApi
 {
 	// --------------------------------------------------------------------------
 	public function get_index() {
-			return new Response("User session valid", 200);
+
+		if ($this->param('user')) {
+			$password = \Input::param('password', null);
+			if (Auth::login($this->param('user'), $password)) {
+				$redirect = Input::param('to', null);
+				if ($redirect) {
+					Response::redirect($redirect);
+				}
+			}
+		}
+
+		//return new Response("User session valid", 200);
+
 		if (Session::get('username', null) != null) {
 			return new Response("User session valid", 200);
 		} else {

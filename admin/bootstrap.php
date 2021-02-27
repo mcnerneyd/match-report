@@ -1,6 +1,6 @@
 <?php
 /* Raven/Sentry */
-require_once '../lib/Raven/Autoloader.php';
+require_once APPPATH.'../lib/Raven/Autoloader.php';
 Raven_Autoloader::register();
 $sentry_client = new Raven_Client('https://0e648f1a6af5407985c427afb086e5bb:37b68176201d451a849bbbb4c81ec6f6@sentry.io/1242091');
 $error_handler = new Raven_ErrorHandler($sentry_client);
@@ -37,21 +37,48 @@ require APPPATH."../lib/PHPExcel/PHPExcel/IOFactory.php";
 require APPPATH.'classes/lib/upgrade.php';
 require APPPATH.'classes/lib/util.php';
 
-$site = Input::param('site', Session::get('site',null));
+if (defined('DATAPATH')) {
+	$globalLogPath = DATAPATH."logs/";
+	if (!file_exists($globalLogPath)) {
+		mkdir($globalLogPath, 0777, TRUE);
+	}
 
-if (!$site) {
-	Response::redirect("Login?site=none");
-}
+	\Config::set('log_path', $globalLogPath);
 
-function sitepath() {
-	$site = Input::param('site', Session::get('site',null));
-	return DATAPATH.'/sites/'.$site;
-}
+	if (!defined('SITE')) {
+		$site = Input::param('site', Session::get('site',null));
 
-$path = sitepath();
-if ($path) {
-	define('CONFIG_FILE', "$path/config.json");
-	if (file_exists($path)) {
-		Config::load("$path/config.json", 'config');
+		if (!$site) {
+			echo "Redirecting to login";
+			Response::redirect("Login?site=none");
+		}
+
+		function sitepath() {
+			$site = Input::param('site', Session::get('site',null));
+			return DATAPATH."/sites/$site/";
+		}
+
+		$path = sitepath();
+
+		if (!file_exists($path)) {
+			echo "Bad site - redirecting to login";
+			Response::redirect("Login?site=none");
+		}
+
+		if ($path) {
+			define('CONFIG_FILE', "$path/config.json");
+			if (file_exists($path)) {
+				Config::load("$path/config.json", 'config');
+			}
+		}
+
+		$logPath = $path."logs/";
+
+		if (!file_exists($logPath)) {
+			mkdir($logPath, 0777, TRUE);
+		}
+
+		\Config::set('log_path', $logPath);
 	}
 }
+

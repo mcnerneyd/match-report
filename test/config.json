@@ -1,0 +1,974 @@
+{
+	"database": null,
+	"table_name": "config",
+	"memcached": {
+		"identifier": "config",
+		"servers": [
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			},
+			{
+				"host": "127.0.0.1",
+				"port": 11211,
+				"weight": 100
+			}
+		]
+	},
+	"title": "LHA Mens Section",
+	"automation_email": "lhamcs@gmail.com",
+	"fixtures": "http:\/\/admin.sportsmanager.ie\/fixtureFeed\/pull.php?gender=male\r\n!http:\/\/leinsterhockey.ie\/league\/130797\/mens_e_y_h_l\r\n\r\n\r\n\r\n",
+	"code": 123,
+	"salt": "5ANg2H2bDbv5UlI5oqa3dw@AGnh1f%Bm",
+	"elevation_password": "83244",
+	"admin_email": "leinsterhockey@gmail.com",
+	"pattern_competition": "\/ 20[0-9]{2}(-(20)?[0-9]{2})?\/\/\r\n\/\\bneville davin\\b\/Neville-Davin\/\r\n\/^lha mens \\b\/\/\r\n\/^mens \\b\/\/\r\n\/^LM\\b\/\/\r\n\/Division 3\\s?a\/Division 3\/\r\n\/Division 1\\s?[ab] league\/Division 1\/\r\n\/EY Hockey League - Men\/EYHL\/\r\n\/ 16-17$\/\/\r\n\/^LBU?1[46] [ABC] .*\/!\/\r\n\/^U1[46] .*\/!\/\r\n\/^U21 Mens.*\/!\/\r\n\/^Indoor League\/!\/\r\n\/^(LJPSB|Boys|LSSB|LJB|LCB) .*\/!\/\r\n\/^LJB.*\/!\/\r\n\/^Benny Atkinson Cup$\/!\/\r\n\/^Jnr Schoolboys League .*\/!\/",
+	"pattern_team": "\/^(Leinster|Ulster|Munster) U.*\/!\/\r\n\/\\bhockey club\\b|\\bhc\\b\/\/\r\n\/([0-9]+)(?:st|nd|rd|th)s?\/\\1\/\r\n\/([0-9]+)\\s*XI\/\\1\/\r\n\/Pembroke Wand\\.\/Pembroke Wanderers\/\r\n\/Phoenix Park\/PP\/\r\n\/SBPP Swords\/St Brendans PP\/\r\n\/Three Rock Rovers\/TRR\/\r\n\/Corinthians\/Corinthian\/\r\n\/^St Colmcille.*\/!\/",
+	"automation_password": "OOfxrCaOAYru6fG5Z7hv",
+	"strict_comps": "d1",
+	"fine": "20",
+	"automation_allowrequest": "on",
+	"allowassignment": false,
+	"result_submit": "no"
+}

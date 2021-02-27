@@ -102,6 +102,28 @@ class Controller_User extends Controller_Template
 		}
 	}
 
+  public function action_resetlink() {
+		if (!\Auth::has_access('user.impersonate')) throw new HttpNoAccessException;
+
+		$username = Input::param('email');
+		$user = Model_User::find_by_email($username);
+		if (!$user) {
+			Log::warning("Unknown user:$username");
+			return new Response("User not found", 404);
+		}
+		if ($user['role'] == 'user' || $user['role'] == 'umpire') {
+			return new Response("Cannot reset matchcard user password (only secretaries/admins)", 403);
+		}
+
+		$salt = Config::get("config.salt");
+		$site = \Session::get('site');
+		$ts = Date::forge()->get_timestamp() + (24 * 60 * 60);
+		$hash = md5("$site $username $ts $salt");
+
+    $url = Uri::create("/User/ForgottenPassword?e=$username&ts=$ts&h=$hash&site=$site");
+    return new Response($url, 200);
+  }
+
 	// --------------------------------------------------------------------------
 	public function action_accessdenied() {
 		if (!Session::get('username')) {

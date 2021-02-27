@@ -2,6 +2,10 @@
 
 class Model_Team extends \Orm\Model
 {
+	public function getName() {
+		return $this->club->name ." ". $this->team;
+	}
+
 	protected static $_properties = array(
 		'id',
 		'team',
@@ -33,6 +37,16 @@ class Model_Team extends \Orm\Model
 		\Log::warning("Unable to locate team: $name");
 
 		return null;
+	}
+
+	public static function findTeam($club, $team) {
+		$result = Model_Team::query()
+			->related('club')
+			->where('team', '=', $team)
+			->where('club.name', '=', $club)
+			->get();
+
+			return reset($result);
 	}
 
 	public static function lastGame($teamName) {

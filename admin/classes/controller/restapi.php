@@ -1,7 +1,9 @@
 <?php
 class Controller_RestApi extends Controller_Rest
 {
-	public function after($response) {
+	protected $rest_format = 'json';
+
+	/*public function after($response) {
 
 		if ($response->status < 400) {
 			Log::info($response->body);
@@ -10,5 +12,36 @@ class Controller_RestApi extends Controller_Rest
 		}
 
 		return $response;
+	}*/
+
+	public function simplify($arrayTree) {
+
+		array_walk_recursive($arrayTree, function(&$item, $key) {
+			if ($item instanceof \Date) {
+				$item = $item->format();
+			}
+		});
+
+		self::stripnulls($arrayTree);
+
+		return $arrayTree;
+	}
+
+	private static function stripnulls(&$array) {
+
+		foreach ($array as $k=>$v) {
+			if ($v === null) {
+				unset($array[$k]);
+				continue;
+			}
+
+			if (is_object($v)) {
+				self::stripnulls((array)$v);
+			}
+
+			if (is_array($v)) {
+				self::stripnulls($v);
+			}
+		}
 	}
 }

@@ -104,23 +104,3 @@ foreach ($registration as $player)
 	}
 	echo "</td><td>";
 
-	foreach ($player['history'] as $match) {
-		$date = date('d.n', strtotime($match['date']));
-		if ($match['code'][0] == 'D') $cls = 'match-pill-league';
-		else $cls = 'match-pill-cup';
-		echo "<a class='match-pill $cls' href='#'><span>${match['code']}</span><span>$date</span></a>";
-	}
-
-	$score = $player['score'];
-	echo "</td>
-		<td>${player['team']}";
-	echo "</td><td>";
-	if (Session::get('site') === 'lhamen' && $score < 99) echo $score;
-	echo "</td>";
-	echo "</tr>";
-
-	$ct++;
-}
-?>
-	</tbody>
-</table>

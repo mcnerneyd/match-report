@@ -3,7 +3,7 @@
 class Model_Player extends \Model
 {
 
-	public static function getHistory($club) {
+	public static function getHistory($club, $beforeDate = null) {
 		$sql = "select distinct i.player, x.code, x.name, m.date, t.team, m.id, m.fixture_id
 					from incident i join matchcard m on i.matchcard_id = m.id
 					join competition x on m.competition_id = x.id
@@ -13,9 +13,15 @@ class Model_Player extends \Model
 				where resolved = 0
 				and t.team is not null
 				and i.type = 'Played'
-				and c.name = '$club'
-				and i.date > '".date("Y-m-d", currentSeasonStart()->get_timestamp())."'
-				ORDER BY i.date DESC";
+				and c.name = '$club'";
+				if ($beforeDate) {
+					$sql .= " and i.date > '".date("Y-m-d", seasonStart($beforeDate)->get_timestamp())."'
+						 and i.date < '".date("Y-m-d", $beforeDate)."' ";
+				} else {
+					$sql .= " and i.date > '".date("Y-m-d", currentSeasonStart()->get_timestamp())."'";
+				}
+
+				$sql .= " ORDER BY i.date DESC";
 
 				$result = array();
 

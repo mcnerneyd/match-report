@@ -149,19 +149,19 @@ p { margin: 0; }
 <div id='gauge' style='width:1cm;height:1cm;'></div>
 
 <a class='round-button' id='comment-button'>
-	<i class='glyphicon glyphicon-comment'></i>
+	<i class="fas fa-comment"></i>
 </a>
 
 <a class='round-button' id='prev-button'>
-	<i class='glyphicon glyphicon-arrow-left'></i>
+	<i class="fas fa-arrow-circle-left"></i>
 </a>
 
 <a class='round-button' id='next-button'>
-	<i class='glyphicon glyphicon-arrow-right'></i>
+	<i class="fas fa-arrow-circle-right"></i>
 </a>
 
 <a class='round-button' id='search-button'>
-	<i class='glyphicon glyphicon-search'></i>
+	<i class="fas fa-search"></i>
 </a>
 
 <div class='card'>

@@ -110,6 +110,15 @@ class Controller_Card extends Controller_Template
 				$data['sender'] = null;
 		}
 
+		$data['lastteam'] = false;
+
+		if (isset($user['club'])) {
+			$sizes = $user['club']->getTeamSizes();
+			$sizes = array_keys($sizes);
+			$team = $user['club']['name']." ".(end($sizes)+1);
+			$data['lastteam'] = $team === $fixture['home'] || $team === $fixture['away'];
+		}
+
 		$msg = Input::post('message', null);
 
 		if ($msg != null) {
@@ -121,16 +130,19 @@ class Controller_Card extends Controller_Template
 			$email->to($data['to']);
 			$email->cc($data['cc']);
 			$subject = $data['description']." #".$data['id'];
+			$notes = "";
 			if (Input::param('postponement-request', false)) {
 				$reason = Input::param('postponement-reason', false);
 				if ($reason) {
 					$subject = "POSTPONEMENT REQUEST ".$subject;
 					$matchDate = $fixture['datetime']->get_timestamp();
+					$auto = false;
 					switch ($reason) {
 						case 'earlier':
 							$reasonMsg = "Request to play match earlier than currently scheduled date";
 							$refix = null;
 							$notice = null;
+							$auto = " subject to acceptance by opposition and umpires";
 							break;
 						case 'lenservpost':
 							$reasonMsg = "Leinster Service Postponement Request";
@@ -147,6 +159,7 @@ class Controller_Card extends Controller_Template
 							$refix = strtotime("+22 days", $matchDate);
 							$notice = strftime("%Y/%m/%d", strtotime("-1 days", $matchDate))." 13:00";
 							$notice = strtotime($notice);
+							$auto = ". If this is the third or more postponement for this team then it is subject to a fine and/or points deduction";
 							break;
 						case 'univerpost':
 							$reasonMsg = "University Postponement Request";
@@ -155,21 +168,27 @@ class Controller_Card extends Controller_Template
 							break;
 					}
 
-					$reasonMsg .= "\n\n";
-					if ($refix) { $reasonMsg .= "Refix must be before ".strftime("%A, %-d %B, %Y", $refix)."\n"; }
-					if ($notice) { if ($notice < time()) {
-						$reasonMsg .= "This request is not within the required notification period. A fine will be issued ".
-							"(This does not mean that the request is denied)\n";
-					}
+					$msg = $reasonMsg."\n$msg";
+
+					$notes = "";
+					if ($refix) { $notes .= "** Refix must be before ".strftime("%A, %-d %B, %Y", $refix)."\n\n"; }
+					if ($notice) { 
+						if ($notice < time()) {
+						$notes .= "** This request is not within the required notification period. A fine will be issued ".
+							"(This does not mean that the request is denied)\n\n";
+						}
 						//$reasonMsg .= "Notice:".strftime("%A, %-d %B, %Y %H:%M", $notice)."\n"; 
 					}
-					$msg = $reasonMsg."\n".$msg;
 
+					if ($auto) {
+						$notes .= "** Unless explicitly overridden by the Division Manager this postponement IS GRANTED$auto\n\n";
+					}
 				}
 			}
 			if ($data['sender']) {
 				$msg .= "\n\nRegards,\n${data['sender']}";
 			}
+			$msg.= "\n----------------------------------\n\n$notes";
 			$email->subject($subject);
 			$email->body($msg);
 			if (strpos($msg, 'SPINDLE') !== false) {	// Include the word SPINDLE to make this a test
@@ -181,7 +200,7 @@ class Controller_Card extends Controller_Template
 				return new Response( "Received", 200);
 			}
 
-			$email->send();
+			$email->send();	
 			Log::info("Email sent for ${data['description']}");
 			Response::redirect(rootUrl()."/card/index.php?controller=card&action=index");
 		}
