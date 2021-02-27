@@ -52,6 +52,8 @@ class Controller_FixtureApi extends Controller_RestApi
 
     $id = -$ct;
     foreach ($fixtures as &$fixture) $fixture['index']=$id++;
+    $id = 0;
+    foreach ($fixtures as &$fixture) $fixture['index0']=$id++;
 
 		$first = \Input::param('i0', null);
 		$last = \Input::param('i1', null);

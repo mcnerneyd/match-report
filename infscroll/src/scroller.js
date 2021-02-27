@@ -6,6 +6,7 @@ class Scroller extends React.Component {
   constructor(props) {
     super(props);
     this.state = { rows: [], top: 0, bottom: 0 };
+    this.ticking = false;
 
     this.getData = (start, finish) => {
       console.log("Fetch " + start + " - " + finish);
@@ -14,11 +15,17 @@ class Scroller extends React.Component {
       });
     }
 
-    this.handleScroll = () => {
+    this.handleScroll = (e) => {
+        this.addRows(3);
+    }
+
+    this.addRows = (k) => {
       if (this.container === undefined) {
         console.warn("Container is not defined");
         return;
       }
+
+      console.log("k=" + k);
 
       if (this.container.children.length === 0) {  // if it is empty, add the first row
         this.container.addEventListener('scroll', this.handleScroll);
@@ -29,45 +36,55 @@ class Scroller extends React.Component {
             bottom: x.length,
           });
         });
+
       } else {
         const currentTop = this.container.children[0];
         const currentBottom = this.container.children[this.container.children.length - 1];
         const visibleHeight = this.container.clientHeight;
 
-        console.log("Range: " + currentTop.fixtureId + " => " + currentBottom.fixtureId + " st:" + this.container.scrollTop);
+        console.log("Range: " + this.state.top + " => " + this.state.bottom + " st:" + this.container.scrollTop);
 
         // add new bottom rows first
         if (this.state.bottom >= 0 && currentBottom.offsetTop < (visibleHeight + this.container.scrollTop)) { // top of last row is visible
           this.getData(this.state.bottom + 1, this.state.bottom + 5)
             .then(x => {
-              console.log("bottom");
-              if (x.length > 0) {
-                this.setState({
-                  rows: this.state.rows.concat(x),
-                  bottom: this.state.bottom + x.length,
-                });
-              } else {
+              if (x.length == 0) {
                 this.setState({
                   bottom: -1
-                })
+                });
+                return;
+              }
+              console.log("bottom");
+              const validRows = x.filter(y => !this.state.rows.map(z => z.fixtureID).includes(y.fixtureID));
+              if (validRows.length > 0) {
+                this.setState({
+                  rows: this.state.rows.concat(validRows),
+                  bottom: this.state.bottom + validRows.length,
+                });
               }
             });
         } else if (this.state.top <= 0 && currentTop.offsetTop + currentTop.clientHeight > this.container.scrollTop) { // bottom of first row is visible
           console.log("top: " + this.state.top);
           this.getData(this.state.top - 1, this.state.top - 5)
             .then(x => {
-              if (this.state.top > 0 && x.length > 0) {
+              if (x.length == 0) {
                 this.setState({
-                  rows: x.reverse().concat(this.state.rows),
-                  //top: this.state.top - x.length,
                   top: 1
                 });
-
-                this.container.scrollTo(0, this.container.scrollTop + 1);
-              } else {
+                return;
+              }
+              const validRows = x.filter(y => !this.state.rows.map(z => z.fixtureID).includes(y.fixtureID));
+              console.log("  +top: " + x.length, validRows);
+              if (validRows.length > 0) {
                 this.setState({
-                  top: 1
-                })
+                  rows: validRows.concat(this.state.rows),
+                  top: this.state.top - validRows.length,
+                });
+
+                this.ticking = true;
+                console.log("scrollTo");
+                this.container.scrollTo(0, this.container.scrollTop + 1);
+                console.log("scrollTo done");
               }
             });
         }
@@ -76,11 +93,11 @@ class Scroller extends React.Component {
   }
 
   componentDidMount() {
-    this.handleScroll();
+    this.addRows(1);
   }
 
   componentDidUpdate() {
-    this.handleScroll();
+    this.addRows(2);
   }
 
   render() {

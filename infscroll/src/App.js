@@ -12,7 +12,7 @@ function App() {
         <Col span={5}>{x.datetimeZ}</Col>
         <Col span={5}>{x.competition}</Col>
         <Col span={8}>{x.home} v {x.away}</Col>
-        <Col span={6}>{x.fixtureID}/{i}</Col>
+        <Col span={6}>{x.fixtureID}/{i}/{x.index}</Col>
       </Row>}
       data={async (i0, i1) => {
 
