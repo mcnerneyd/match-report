@@ -64,7 +64,7 @@ class Controller_FixtureApi extends Controller_RestApi
       /*if ($last < 0 ) $last = 0;
       if ($first > count($fixtures)) $first = count($fixtures);
       if ($last > count($fixtures)) $last = count($fixtures);*/
-      $fixtures = array_slice($fixtures, $first, $last - $first);
+      $fixtures = array_slice($fixtures, $first, $last - $first + 1);
       Log::debug("Slicing absolute: $first -- $last (ct=$ct)");
     } else {
       if ($pagesize > 0) {
