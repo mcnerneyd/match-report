@@ -144,15 +144,7 @@ if (!Session::get('site', false)) { ?>
 	<?php } else { ?>
 	<a class='switch-login' href='<?= Uri::create('/Login') ?>'>Standard Login</a>
 	<?php } ?>
-<<<<<<< Updated upstream
-
 </form>
-
-=======
-</form>
-
-
->>>>>>> Stashed changes
 <script>
 $(document).ready(function() {
 	var site = <?= "'" + Session::get('site') + "'" ?: 'null' ?>;
