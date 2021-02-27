@@ -47,11 +47,11 @@ class Controller_FixtureApi extends Controller_RestApi
 		$ct=0;
 		foreach ($fixtures as &$fixture) {
 			if ($fixture['datetime']->get_timestamp() > $ts) break;
-      $fixture['index'] = $ct;
 			$ct++;
 		}
 
-    foreach ($fixtures as &$fixture) $fixture['index'] -= $ct;
+    $id = -$ct;
+    foreach ($fixtures as &$fixture) $fixture['index']=$id++;
 
 		$first = \Input::param('i0', null);
 		$last = \Input::param('i1', null);
