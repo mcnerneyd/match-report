@@ -221,6 +221,9 @@ WHERE old_password IS NULL;
 ALTER TABLE `user` ADD `pin` VARCHAR(4) NULL AFTER `password`;
 UPDATE `user` SET pin = old_password WHERE role IN ('umpire', 'user') AND pin IS NULL;
 
+INSERT INTO user (username, role, `password`, email, `group`)
+VALUES ('admin', 'admin', 'QEcCEs9WqrFRFm8lqene0ilcRJZWCvONIsZfeDsTaYo=', 'user@nomail.com', 100);
+
 ALTER TABLE `incident` ADD `jdoc` TEXT NULL DEFAULT NULL AFTER `user_id`;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
