@@ -187,6 +187,7 @@ class Controller_User extends Controller_Template
 
 		$sites = array();
 		foreach (scandir(DATAPATH."/sites/") as $site) {
+      echo "<!-- processing site: $site -->\n";
 			if ($site[0] === '.') continue;
 			$configPath = DATAPATH."/sites/$site/config.json";
 			if (!file_exists($configPath)) continue;

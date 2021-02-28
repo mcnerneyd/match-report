@@ -12,8 +12,9 @@ function App() {
         <Col span={5}>{x.datetimeZ}</Col>
         <Col span={5}>{x.competition}</Col>
         <Col span={8}>{x.home} v {x.away}</Col>
-        <Col span={6}>{x.fixtureID}/{i}/{x.index}</Col>
+        <Col span={6}>{x.fixtureID}/{i}/{x.index}/{x.index0}</Col>
       </Row>}
+      keyField='fixtureID'
       data={async (i0, i1) => {
 
         const response = await fetch(`http://cards.leinsterhockey.ie/public/api/fixtures?c=Bray&site=lhamen&i0=${i0}&i1=${i1}`,

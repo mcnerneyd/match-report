@@ -66,6 +66,20 @@ return array(
 		'table_prefix' => '',
 	),
 
+	'schools' => array(
+		'type'        => 'mysqli',
+		'connection'  => array(
+			'hostname'   => 'localhost',
+			'port'       => '3306',
+			'username'   => 'schools',
+			'password'   => 'schoolspassword',
+			'database'   => 'schools',
+			'persistent' => false,
+			'compress' => false
+		),
+		'table_prefix' => '',
+	),
+
 	'test' => array(
 		'type'        => 'mysqli',
 		'connection'  => array(
