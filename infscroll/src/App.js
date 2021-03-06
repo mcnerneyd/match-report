@@ -1,62 +1,92 @@
-import './App.css';
-import React from 'react';
+import "./App.scss";
+import React from "react";
 
-import Scroller from './scroller'
-import { Row, Col } from 'antd';
+import Scroller from "./scroller";
+import { Row, Col, Layout, Menu } from "antd";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import dateFormat from "dateformat";
 
+const { Header, Content, Footer } = Layout;
 
 function App() {
-  
-  return <Scroller
-      render= {(x, i) => <Row key={x.fixtureID}>
-        <Col span={5}>{x.datetimeZ}</Col>
-        <Col span={5}>{x.competition}</Col>
-        <Col span={8}>{x.home} v {x.away}</Col>
-        <Col span={6}>{x.fixtureID}/{i}/{x.index}/{x.index0}</Col>
-      </Row>}
-      keyField='fixtureID'
-      data={async (i0, i1) => {
+  return (
+    <Layout>
+      <Header>
+        <Menu theme="dark" mode="horizontal">
+          <Menu.Item></Menu.Item>
+          <Menu.Item>Fixtures</Menu.Item>
+          <Menu.Item>Registration</Menu.Item>
+          <Menu.Item>Reports</Menu.Item>
+          <Menu.Item>Help</Menu.Item>
+          <Menu.Item>Admin</Menu.Item>
+        </Menu>
+      </Header>
+      <Content>
+        <MyScroller />
+      </Content>
+      <Footer></Footer>
+    </Layout>
+  );
+}
 
-        const response = await fetch(`http://cards.leinsterhockey.ie/public/api/fixtures?c=Bray&site=lhamen&i0=${i0}&i1=${i1}`,
+function MyScroller() {
+  return (
+    <Scroller
+      render={(x, i) => {
+        const dt = new Date(x.datetimeZ);
+
+        let dateBreak = null;
+
+        if (x.previous === undefined || (x.previous.datetimeZ.substring(0,7) !== x.datetimeZ.substring(0,7))) {
+          dateBreak = <Row className='date-break'>
+            <Col span={24}>
+              {dateFormat(dt, "mmmm yyyy")}
+            </Col>
+          </Row>
+        }
+
+        return (
+          <>
+          {dateBreak}
+          <Row className="fixture-row" key={x.fixtureID}>
+            <Col span={1}>{dateFormat(dt, "d")}</Col>
+            <Col span={2}>{dateFormat(dt, "H:MM")}</Col>
+            <Col span={5}>
+              <span className="label-league">{x.competition}</span>
+            </Col>
+            <Col span={6}>{x.home}</Col>
+            <Col span={6}>{x.away}</Col>
+            <Col offset={3} span={1}>
+            <FontAwesomeIcon icon={faEnvelope} />
+            </Col>
+          </Row>
+          </>
+        );
+      }}
+      data={async (i0, i1) => {
+        const label = `${i0}-${i1}`
+        console.time(label);
+        const url = `http://cards.leinsterhockey.ie/public/api/fixtures?c=Bray&site=lhamen&i0=${i0}&i1=${i1}`;
+        const response = await fetch(url,
           {
             mode: "cors",
-            method: 'GET'
-          });
+            method: "GET",
+          }
+        );
         const response_1 = await response.text();
-        const response_2 = response_1 === '' ? [] : JSON.parse(response_1);
-        console.log("" + response_2.length + ` row(s) ${i0} = ${i1}`);
-        response_2.forEach((x, i) => x.i = (i0 < 0 ? i0 - i : i0 + i));
+        console.timeEnd(label);
+        const response_2 = response_1 === "" ? [] : JSON.parse(response_1);
+        console.log("" + response_2.length + ` row(s) ${i0} = ${i1} (url=${url})`);
+        response_2.forEach((x, i) => (x.i = i0 < 0 ? i0 - i : i0 + i));
+        response_2.forEach((x,i) => (x.mark = `[${i}]:${label}`));
+        if (response_2.length > 0) {
+          response_2[0].breakBefore = true;
+        }
         return response_2;
-
-        // fetch('http://cards.leinsterhockey.ie/public/api/fixtures?c=Bray&site=lhamen&pagesize=' + d + '&page',
-        // //fetch('http://cards.leinsterhockey.ie/public/api/cards?site=lhamen',
-        // //fetch('http://cards.leinsterhockey.ie/api/1.0/lhamen/cards',
-        //     {
-        //       mode: "cors",
-        //       method: 'GET'
-        //     })
-        //     .then(response => response.json());
-
-        // if (i0 > 20) return [];
-        // if (i1 > 20) i1 = 20;
-        // if (i0 < -10) return [];
-        // if (i1 < -10) i1 = -10;
-
-        // const d = Math.abs(i1 - i0);
-        // const page = i0 / 5;
-        
-
-        // console.log("A:" + i0 + " " + i1 + " =" + d);
-        // const a= Array.from(Array(d))
-        //   .map((x,i) => i0 < 0 ? i0 - i : i0 + i)
-        //   .map(x => ({
-        //     index: x,
-        //     name: 'name' + x,
-        //   }));
-        //   console.log(a);
-        //   return a;
-        }}
-    ></Scroller>;
+      }}
+    ></Scroller>
+  );
 }
 
 export default App;

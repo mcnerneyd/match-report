@@ -19,6 +19,15 @@ class Scroller extends React.Component {
         this.addRows(3);
     }
 
+    this.chain = (rows) => {
+      for (let i=0;i<rows.length-1;i++) {
+        rows[i].next = rows[i+1];
+      }
+      rows.forEach(x => {
+        if (x.next !== undefined) x.next.previous = x;
+      });
+    }
+
     this.addRows = (k) => {
       if (this.container === undefined) {
         console.warn("Container is not defined");
@@ -29,6 +38,7 @@ class Scroller extends React.Component {
         this.container.addEventListener('scroll', this.handleScroll);
 
         this.getData(0, 5).then(x => {
+          this.chain(x);
           this.setState({
             rows: x,
             bottom: x.length,
@@ -54,6 +64,7 @@ class Scroller extends React.Component {
               }
               //console.log("bottom");
               const validRows = x.filter(y => !this.state.rows.map(z => z[this.props.keyField]).includes(y[this.props.keyField]));
+              this.chain([this.state.rows[this.state.rows.length - 1], ...validRows]);
               if (validRows.length > 0) {
                 this.setState({
                   rows: this.state.rows.concat(validRows),
@@ -62,7 +73,7 @@ class Scroller extends React.Component {
               }
             });
         } else if (this.state.top <= 0 && currentTop.offsetTop + currentTop.clientHeight > this.container.scrollTop) { // bottom of first row is visible
-          //console.log("top: " + this.state.top + " " + this.props.keyField);
+          console.log("top: " + this.state.top + " " + this.props.keyField);
           this.getData(this.state.top - 1, this.state.top - 5)
             .then(x => {
               if (x.length === 0) {
@@ -72,8 +83,9 @@ class Scroller extends React.Component {
                 return;
               }
               const validRows = x.filter(y => !this.state.rows.map(z => z[this.props.keyField]).includes(y[this.props.keyField]));
-              //console.log("  +top: " + x.length, validRows);
+              console.log("  +top: " + x.length, validRows);
               if (validRows.length > 0) {
+                this.chain([...validRows,this.state.rows[0]]);
                 this.setState({
                   rows: validRows.concat(this.state.rows),
                   top: this.state.top - validRows.length,
