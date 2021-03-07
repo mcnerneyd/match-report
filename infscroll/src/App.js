@@ -39,7 +39,7 @@ function MyScroller() {
         let dateBreak = null;
 
         if (x.previous === undefined || (x.previous.datetimeZ.substring(0,7) !== x.datetimeZ.substring(0,7))) {
-          dateBreak = <Row className='date-break'>
+          dateBreak = <Row className='date-break' key={x.fixtureID + "-break"}>
             <Col span={24}>
               {dateFormat(dt, "mmmm yyyy")}
             </Col>
@@ -64,6 +64,7 @@ function MyScroller() {
           </>
         );
       }}
+      keyField="fixtureID"
       data={async (i0, i1) => {
         const label = `${i0}-${i1}`
         console.time(label);
