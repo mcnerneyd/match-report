@@ -6,6 +6,8 @@ class Controller_CardApi extends Controller_RestApi
 		public function simplify($card) {
 			$card = parent::simplify($card);
 
+      $card['fixtureID'] = $card['fixture_id'];
+
 			unset($card['goals']);
 			unset($card['home_name']);
 			unset($card['home_team']);
