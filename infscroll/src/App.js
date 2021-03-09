@@ -11,9 +11,9 @@ import Matchcard from "./matchcard";
 const { Header, Content, Footer } = Layout;
 
 function App() {
-  const [card, setCard] = useState({});
+  const [card, setCard] = useState(undefined);
   useEffect(() => {
-    const url = `http://cards.leinsterhockey.ie/public/api/cards/6107?site=lhamen`;
+    const url = `http://cards.leinsterhockey.ie/public/api/cards/6811?site=lhamen`;
     return fetch(url, {
       mode: "cors",
       method: "GET",
@@ -21,7 +21,7 @@ function App() {
       .then((response) => response.text())
       .then((t) => {
         console.log("Text:" + t);
-        setCard(t === "" ? {} : JSON.parse(t));
+        setCard(t === "" ? {} : JSON.parse(t).data);
       })
       .catch((error) => {
         console.error("Err:", error);
