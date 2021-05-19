@@ -49,9 +49,18 @@ body {
   background: white;
 }
 
-.ant-layout-content {
-  margin: 10px 100px;
+@media screen and (min-width: 415px){
+  .container {
+    margin: 10px 400px;
+  }
 }
+
+@media screen and (max-width: 415px){
+  .container {
+    margin: 10px 10px;
+  }
+}
+
 
 .fixture-row {
   margin: 3px 20px;

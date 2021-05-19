@@ -7,10 +7,16 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import dateFormat from "dateformat";
 import Matchcard from "./matchcard";
+import { useMediaPredicate } from 'react-media-hook';
 
 const { Header, Content, Footer } = Layout;
 
 function App() {
+
+  const checkIfMediumPlus = useMediaPredicate(
+    '(min-width: 415px)'
+  );
+  
   const [card, setCard] = useState(undefined);
   useEffect(() => {
     const url = `http://cards.leinsterhockey.ie/public/api/cards/6811?site=lhamen`;
@@ -40,8 +46,8 @@ function App() {
           <Menu.Item>Admin</Menu.Item>
         </Menu>
       </Header>
-      <Content>
-        <Matchcard card={card} />
+      <Content className='container'>
+        <Matchcard card={card} isMediumPlus={checkIfMediumPlus} />
       </Content>
       <Footer></Footer>
     </Layout>

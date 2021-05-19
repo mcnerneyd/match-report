@@ -3,7 +3,7 @@
   $scoreColor: #484;
   padding-top: 10px;
 
-  &>.ant-row:first-child {
+  & > .ant-row:first-child {
     .ant-col:first-child {
       font-size: 30px;
       font-weight: bold;
@@ -19,17 +19,17 @@
   }
 
   .score {
-    color: #484;    
+    color: #484;
     text-align: right;
     padding-right: 5px;
     float: right;
     &:before {
-      content: 'x';
+      content: "x";
     }
   }
 
   .team {
-    .ant-row:first-child {
+    > .ant-row:first-child {
       font-size: 20px;
       font-weight: bold;
       border-top: solid 2px black;
@@ -42,10 +42,15 @@
       }
     }
 
-    .ant-row button {
-      width: 100%;
+    >.ant-row>button {
       margin: 15px 0;
     }
+
+    .ant-row button {
+      width: 100%;
+    }
+
+
 
     .player {
       font-size: 14px;
@@ -58,6 +63,40 @@
       }
       :nth-child(2) {
         font-style: italic;
+      }
+    }
+
+    .addbox {
+      box-shadow: 0 -8px 8px 0 rgba(0, 0, 0, 0.2),
+        0 6px 20px 0 rgba(0, 0, 0, 0.19);
+      display: block;
+      position: fixed;
+      background: white;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: auto;
+      padding: 20px;
+    }
+
+    .editbox {
+      
+      button {
+        width: 100%;
+      }
+
+      >.ant-row {
+        .ant-input-prefix {
+          margin-right: 10px;
+          margin-top: -1px;
+        }
+        margin-bottom: 12px;
+        font-size: 18px;
+        font-weight: bold;
+
+        img {
+          width: 30px;
+        }
       }
     }
   }

@@ -23,16 +23,16 @@ class Matchcard extends React.Component {
 
     return <div className='matchcard'>
       <Row>
-        <Col span={16}>
+        <Col span={this.props.isMediumPlus ? 16 : 24}>
         {card.competition}
       </Col>
-      <Col span={5}>
+      <Col span={this.props.isMediumPlus ? 5 : 13}>
       <dl>
           <dt>Date</dt>
           <dd>{dateFormat(dt, "dd mmmm, yyyy")}</dd>
         </dl>
         </Col>
-      <Col span={3}>
+      <Col span={this.props.isMediumPlus ? 3 : 11}>
         <dl>
           <dt>Time</dt>
           <dd>{dateFormat(dt, "H:MM")}</dd>
@@ -46,10 +46,10 @@ class Matchcard extends React.Component {
         </dl>
       </Row> */}
       <Row gutter={[16,16]}>
-        <Col span={12}>
+        <Col span={this.props.isMediumPlus ? 12 : 24}>
         <Teamsheet teamsheet={card.home} active={true}/>
       </Col>
-      <Col span={12}>
+      <Col span={12} hidden={!this.props.isMediumPlus}>
         <Teamsheet teamsheet={card.away}/>
       </Col>
       </Row>
