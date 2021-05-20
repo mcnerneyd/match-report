@@ -1,97 +1,118 @@
 <?php
 /**
- * Part of the Fuel framework.
+ * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.8
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010 - 2016 Fuel Development Team
- * @link       http://fuelphp.com
+ * @copyright  2010 - 2019 Fuel Development Team
+ * @link       https://fuelphp.com
  */
 
 /**
- * NOTICE:
+ * -----------------------------------------------------------------------------
+ *  [!] NOTICE
+ * -----------------------------------------------------------------------------
  *
- * If you need to make modifications to the default configuration, copy
- * this file to your app/config folder, and make them in there.
+ *  If you need to make modifications to the default configuration,
+ *  copy this file to your 'app/config' folder, and make them in there.
  *
- * This will allow you to upgrade fuel without losing your custom config.
+ *  This will allow you to upgrade FuelPHP without losing your custom config.
+ *
  */
 
 return array(
+	/**
+	 * -------------------------------------------------------------------------
+	 *  Active Configurations
+	 * -------------------------------------------------------------------------
+	 *
+	 *  If you don't specify a DB configuration name when you create
+	 *  a database connection, the configuration to be used will be determined
+	 *  by the 'active' value.
+	 *
+	 */
 
-	//'active' => 'test',
+	'active' => 'default',
 
-	'lhamen' => array(
-		'type'        => 'mysqli',
-		'connection'  => array(
-			'hostname'   => 'localhost',
-			'port'       => '3306',
-			'username'   => 'registration',
-			'password'   => 'password',
-			'database'   => 'registration',
+	/**
+	 * -------------------------------------------------------------------------
+	 *  PDO
+	 * -------------------------------------------------------------------------
+	 *
+	 *  Base PDO configurations.
+	 *
+
+	'default' => array(
+		'type' => 'pdo',
+
+		'connection' => array(
+			'dsn'        => '',
+			'hostname'   => '',
+			'username'   => null,
+			'password'   => null,
+			'database'   => '',
 			'persistent' => false,
-			'compress' => false,
+			'compress'   => false,
 		),
-		'profiling' => true,
+
+		'identifier'   => '`',
 		'table_prefix' => '',
+		'charset'      => 'utf8',
+		'collation'    => false,
+		'enable_cache' => true,
+		'profiling'    => false,
+		'readonly'     => false,
+	),
+	 */
+
+	/**
+	 * -------------------------------------------------------------------------
+	 *  MySQLi
+	 * -------------------------------------------------------------------------
+	 *
+	 *  Base MySQLi configurations.
+	 *
+	 */
+
+	'default' => array(
+		'type' => 'mysqli',
+
+		'connection' => array(
+			'dsn'        => '',
+			'hostname'   => 'sql110.epizy.com',
+			'username'   => 'epiz_28660544',
+			'password'   => 'iErlyw4e4gaB',
+			'database'   => 'epiz_28660544_hockey',
+			'persistent' => false,
+			'compress'   => false,
+		),
+
+		'identifier'   => '`',
+		'table_prefix' => '',
+		'charset'      => 'utf8',
+		'collation'    => false,
+		'enable_cache' => false,
+		'profiling'    => false,
+		'readonly'     => false,
 	),
 
-	'lhaladies' => array(
-		'type'        => 'mysqli',
-		'connection'  => array(
-			'hostname'   => 'localhost',
-			'port'       => '3306',
-			'username'   => 'lregdb',
-			'password'   => 'password',
-			'database'   => 'registration_ladies',
-			'persistent' => false,
-			'compress' => false
-		),
-		'table_prefix' => '',
-	),
+	/**
+	 * -------------------------------------------------------------------------
+	 *  Redis
+	 * -------------------------------------------------------------------------
+	 *
+	 *  Base Redis configurations.
+	 *
 
-	'lhajunior' => array(
-		'type'        => 'mysqli',
-		'connection'  => array(
-			'hostname'   => 'localhost',
-			'port'       => '3306',
-			'username'   => 'regjunior',
-			'password'   => 'password',
-			'database'   => 'registration_junior',
-			'persistent' => false,
-			'compress' => false
+	'redis' => array(
+		'default' => array(
+			'hostname' => '127.0.0.1',
+			'port'     => 6379,
+			'timeout'  => null,
+			'database' => 0,
 		),
-		'table_prefix' => '',
 	),
-
-	'schools' => array(
-		'type'        => 'mysqli',
-		'connection'  => array(
-			'hostname'   => 'localhost',
-			'port'       => '3306',
-			'username'   => 'schools',
-			'password'   => 'schoolspassword',
-			'database'   => 'schools',
-			'persistent' => false,
-			'compress' => false
-		),
-		'table_prefix' => '',
-	),
-
-	'test' => array(
-		'type'        => 'mysqli',
-		'connection'  => array(
-			'hostname'   => 'localhost',
-			'port'       => '3306',
-			'username'   => 'test',
-			'password'   => 'password',
-			'database'   => 'test',
-			'persistent' => false,
-			'compress' => false
-		),
-		'profiling' => true,
-		'table_prefix' => '',
-	),
+	 */
 );

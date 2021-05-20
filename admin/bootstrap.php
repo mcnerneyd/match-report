@@ -1,6 +1,6 @@
 <?php
 /* Raven/Sentry */
-require_once APPPATH.'../lib/Raven/Autoloader.php';
+require_once PKGPATH.'Raven/Autoloader.php';
 Raven_Autoloader::register();
 $sentry_client = new Raven_Client('https://0e648f1a6af5407985c427afb086e5bb:37b68176201d451a849bbbb4c81ec6f6@sentry.io/1242091');
 $error_handler = new Raven_ErrorHandler($sentry_client);
@@ -32,7 +32,7 @@ require COREPATH.'bootstrap.php';
 // Initialize the framework with the config file.
 \Fuel::init('config.php');
 
-require APPPATH."../lib/PHPExcel/PHPExcel/IOFactory.php";
+require PKGPATH."PHPExcel/PHPExcel/IOFactory.php";
 
 require APPPATH.'classes/lib/upgrade.php';
 require APPPATH.'classes/lib/util.php';

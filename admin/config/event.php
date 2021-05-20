@@ -28,8 +28,8 @@ return array(
 				return;
 			}
 
-			DB::instance($site);
-			Config::set('db.active', $site);
+			DB::instance('mysqli');
+			//Config::set('db.active', $site);
 			Cookie::set('site', $site, 60*60*24*30);
 			Session::set('site', $site);
 
