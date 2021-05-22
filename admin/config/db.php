@@ -38,37 +38,6 @@ return array(
 
 	/**
 	 * -------------------------------------------------------------------------
-	 *  PDO
-	 * -------------------------------------------------------------------------
-	 *
-	 *  Base PDO configurations.
-	 *
-
-	'default' => array(
-		'type' => 'pdo',
-
-		'connection' => array(
-			'dsn'        => '',
-			'hostname'   => '',
-			'username'   => null,
-			'password'   => null,
-			'database'   => '',
-			'persistent' => false,
-			'compress'   => false,
-		),
-
-		'identifier'   => '`',
-		'table_prefix' => '',
-		'charset'      => 'utf8',
-		'collation'    => false,
-		'enable_cache' => true,
-		'profiling'    => false,
-		'readonly'     => false,
-	),
-	 */
-
-	/**
-	 * -------------------------------------------------------------------------
 	 *  MySQLi
 	 * -------------------------------------------------------------------------
 	 *
@@ -81,10 +50,6 @@ return array(
 
 		'connection' => array(
 			'dsn'        => '',
-			'hostname'   => 'sql110.epizy.com',
-			'username'   => 'epiz_28660544',
-			'password'   => 'iErlyw4e4gaB',
-			'database'   => 'epiz_28660544_hockey',
 			'persistent' => false,
 			'compress'   => false,
 		),
@@ -97,22 +62,4 @@ return array(
 		'profiling'    => false,
 		'readonly'     => false,
 	),
-
-	/**
-	 * -------------------------------------------------------------------------
-	 *  Redis
-	 * -------------------------------------------------------------------------
-	 *
-	 *  Base Redis configurations.
-	 *
-
-	'redis' => array(
-		'default' => array(
-			'hostname' => '127.0.0.1',
-			'port'     => 6379,
-			'timeout'  => null,
-			'database' => 0,
-		),
-	),
-	 */
 );

@@ -147,7 +147,7 @@ if (!Session::get('site', false)) { ?>
 </form>
 <script>
 $(document).ready(function() {
-	var site = <?= "'" + Session::get('site') + "'" ?: 'null' ?>;
+	//var site = <= "'" + Session::get('site') + "'" ?: 'null' >;
 
 	$('#user-select').change(function() {
 		$("input[name='pin']").prop('disabled', $(this).val() == "");

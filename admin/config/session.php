@@ -47,7 +47,7 @@ return array(
 	'cookie_http_only'	=> null,
 
 	// whether or not to encrypt the session cookie (optional, default is true)
-	'encrypt_cookie'	=> true,
+	'encrypt_cookie'	=> false,
 
 	// if true, the session expires when the browser is closed (optional, default = false)
 	'expire_on_close'	=> true,

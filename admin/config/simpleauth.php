@@ -30,7 +30,7 @@ return array(
 	'guest_login' => true,
 	'multiple_logins' => false,
 	'remember_me' => array(
-		'enabled' => true,
+		'enabled' => false,
 		'cookie_name' => 'rmcookie',
 		'expiration' => 86400 * 31,
 	),

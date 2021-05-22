@@ -38,6 +38,10 @@ require APPPATH.'classes/lib/upgrade.php';
 require APPPATH.'classes/lib/util.php';
 
 if (defined('DATAPATH')) {
+  if (!file_exists(DATAPATH)) {
+    mkdir(DATAPATH, 0777, TRUE);
+  }
+
 	$globalLogPath = DATAPATH."logs/";
 	if (!file_exists($globalLogPath)) {
 		mkdir($globalLogPath, 0777, TRUE);
@@ -45,7 +49,7 @@ if (defined('DATAPATH')) {
 
 	\Config::set('log_path', $globalLogPath);
 
-	if (!defined('SITE')) {
+/*	if (!defined('SITE')) {
 		$site = Input::param('site', Session::get('site',null));
 
 		if (!$site) {
@@ -79,6 +83,6 @@ if (defined('DATAPATH')) {
 		}
 
 		\Config::set('log_path', $logPath);
-	}
+	}*/
 }
 
