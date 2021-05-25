@@ -1,12 +1,3 @@
-<!--
-<?php
-	$configPath = sitepath().'/config.json';
-	$config = Config::load($configPath, 'config');
-	unset($config['memcached']);
-	unset($config['database']);
-	echo "CONFIG:$configPath\n".json_encode($config);
-?>
--->
 <style>
 form { position: relative; }
 .valid { color: green; display: none; }
@@ -20,7 +11,7 @@ $(document).ready(function(event) {
 	$('#task-table').DataTable();
 	$("#configform").submit(function(e){
 		e.preventDefault();
-    $.post("<?= Uri::current() ?>", $("#configform").serialize(), function(data) {
+    $.post("<?= Uri::create('/api/1.0/admin/config') ?>", $("#configform").serialize(), function(data) {
 			location.reload();
 		});
 	});

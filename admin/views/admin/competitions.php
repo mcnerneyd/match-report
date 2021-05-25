@@ -3,6 +3,7 @@
 		$('#competitions-table').dataTable({
 			"columns": [
 				{ "width": "20%" },
+				{ "width": "20%" },
 				{ "width": "10%" },
 				{ "width": "10%", "orderable": false },
 				{ "width": "10%", "orderable": false, "className":"dt-center" },
@@ -55,6 +56,7 @@
 <table id='competitions-table' class='table table-condensed table-striped'>
 	<thead>
 	<tr>
+		<th>Section</th>
 		<th>Competition</th>
 		<th>Code</th>
 		<th>Team Size</th>
@@ -67,12 +69,13 @@
 	<tbody style='display:none'>
 	<?php foreach ($competitions as $competition) {
 		echo "<tr data-code='${competition['code']}'>
+			<td>".$competition->section['name']."</td>
 			<td>${competition['name']}</td>
 			<td>${competition['code']}</td>
 			<td>${competition['teamsize']}</td>
 			<td>${competition['teamstars']}</td>
 			<td class='label-list'>";
-		foreach ($competition['team'] as $team) {
+		foreach ($competition->team as $team) {
 			echo "<span class='badge label-team'>".$team['club']['code'].$team['team']."</span>";
 		}
 		echo "</td>

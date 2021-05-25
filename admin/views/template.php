@@ -72,7 +72,7 @@
 	<?php require_once('nav.php'); ?>
 
 	<?php if (\Auth::check()) { ?>
-	<div id='user'><?= \Session::get('username') ?></div>
+	<div id='user'><?= \Session::get('username') ?><?= \Session::get('user')->section ? "/".\Session::get('user')->section['name'] : "" ?></div>
 	<?php } /* auth check */ ?>
 
 	<?php if (!Cookie::get('CONSENT', null)) { ?>
@@ -138,10 +138,10 @@
 
 	<footer>
 		<style>
-			footer .btn {
+			footer div {
 				position:fixed;
-				bottom: 1px;
-				right: 1px;
+				bottom: 0;
+				left: 0;
 				background: black;
 				color: white;
 				font-size: 60%;
@@ -149,10 +149,12 @@
 			}
 		</style>
 		<div>
-			<p class='btn visible-xs-block'>XS</p>
-			<p class='btn visible-sm-block'>SM</p>
-			<p class='btn visible-md-block'>MD</p>
-			<p class='btn visible-lg-block'>LG</p>
+      <span>F</span>
+      <span><?= substr(\Fuel::$env,0,1) ?></span>
+			<span class='visible-xs-block'>X</span>
+			<span class='visible-sm-block'>S</span>
+			<span class='visible-md-block'>M</span>
+			<span class='visible-lg-block'>L</span>
 		</div>
 	</footer>
 

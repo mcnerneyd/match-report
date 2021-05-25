@@ -136,7 +136,7 @@ class Controller_Fine extends Controller_Hybrid
 				return strcmp($a['club_id'], $b['club_id']);
 			});
 
-			$admin_email = Config::get("config.admin_email");
+			$admin_email = Config::get("section.admin_email");
 
 			if ($admin_email) {
 				$email = Email::forge();

@@ -8,20 +8,6 @@ class Auth_Login_Userauth extends Auth_Login_Simpleauth {
 
 		Log::info("Login: $username $password ".$this->hash_password($password));
 
-		/*
-		\Session::delete('elevated');
-
-		if (strtolower($username) === 'admin') {
-			if ($password !== \Config::get("config.elevation_password", "1234")) {
-				return false;
-			}
-
-			\Session::set('elevated', true);
-
-			return array('username'=>'admin', 'group'=>100);
-		}
-		*/
-
 		return parent::validate_user($username, $password);
 	}
 }

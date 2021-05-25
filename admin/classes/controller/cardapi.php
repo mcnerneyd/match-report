@@ -411,7 +411,7 @@ class Controller_CardApi extends Controller_RestApi
         
         if ($emailAddress) {
             $card  = Model_Card::card($cardId);
-            $title = Config::get("config.title");
+            $title = Config::get("section.title");
             $email = Email::forge();
             //$email->from($autoEmail, "$title (No Reply)");
             $email->to($emailAddress);
@@ -538,7 +538,7 @@ class Controller_CardApi extends Controller_RestApi
             $awayGoals = $card['away']['goals'];
             
             $fixtureId    = $card['fixture_id'];
-            $resultSubmit = Config::get("config.result_submit");
+            $resultSubmit = Config::get("section.result_submit");
             Log::debug("RRS:" . $resultSubmit);
             
             if ($resultSubmit === 'new') {

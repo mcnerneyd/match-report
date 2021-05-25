@@ -4,6 +4,8 @@ class Controller_UserApi extends Controller_RestApi
 	// --------------------------------------------------------------------------
 	public function get_index() {
 
+    Log::info("get_index");
+
 		if ($this->param('user')) {
 			$password = \Input::param('password', null);
 			if (Auth::login($this->param('user'), $password)) {
@@ -59,6 +61,7 @@ class Controller_UserApi extends Controller_RestApi
 
 	// --------------------------------------------------------------------------
 	public function post_index() {
+    Log::debug("Create user");
 		if (!\Auth::has_access('users.create')) return new Response("Forbidden", 401);
 
 		$clubName = Input::post('club');
@@ -96,14 +99,13 @@ class Controller_UserApi extends Controller_RestApi
 		}
 
 		$user = new Model_User();
-		$user->role = $role;
 		$user->username = $username;
 		$user->password = \Auth::hash_password($password);
-		$user->old_password = $oldPassword;
 		$user->email = $email;
 		$user->club_id = $club ? $club['id'] : null;
 		$user->group = $group;
 		$user->save();
+    Log::info("User created: ".print_r($user,true));
 
 		return new Response("Created $role: $username", 201);
 	}

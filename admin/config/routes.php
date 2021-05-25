@@ -21,6 +21,7 @@ return array(
 	'api/cards/:id/notes' => 'cardapi/note',
 	'api/cards/:id' => 'cardapi',
 	'api/cards' => 'cardapi',
+	'api/users' => 'userapi',
 	'api/users/:user' => 'userapi',
 	'api/competitions/:id' => 'competitionapi',
 	'api/competitions' => 'competitionapi',

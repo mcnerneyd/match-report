@@ -1,9 +1,31 @@
 <?php
 // FuelPHP faking classes/functions
 
-define("ADMIN_ROOT", "http://cards.leinsterhockey.ie/public");
-$root=realpath(dirname(__FILE__)."/..");
-define("DATAPATH", "$root/data");
+define('DOCROOT', __DIR__.DIRECTORY_SEPARATOR.'/../');
+define('PKGPATH', realpath(DOCROOT.'/fuel/packages/').DIRECTORY_SEPARATOR);
+define('APPPATH', DOCROOT.'/fuel/app/');
+
+define("ADMIN_ROOT", "/");
+define("DATAPATH", DOCROOT."/data");
+
+class Fuel {
+  static $env = "development";
+}
+
+// https://stackoverflow.com/questions/6768793/get-the-full-url-in-php
+function url_origin( $s, $use_forwarded_host = false )
+{
+    $ssl      = ( ! empty( $s['HTTPS'] ) && $s['HTTPS'] == 'on' );
+    $sp       = strtolower( $s['SERVER_PROTOCOL'] );
+    $protocol = substr( $sp, 0, strpos( $sp, '/' ) ) . ( ( $ssl ) ? 's' : '' );
+    $port     = $s['SERVER_PORT'];
+    $port     = ( ( ! $ssl && $port=='80' ) || ( $ssl && $port=='443' ) ) ? '' : ':'.$port;
+    $host     = ( $use_forwarded_host && isset( $s['HTTP_X_FORWARDED_HOST'] ) ) ? $s['HTTP_X_FORWARDED_HOST'] : ( isset( $s['HTTP_HOST'] ) ? $s['HTTP_HOST'] : null );
+    $host     = isset( $host ) ? $host : $s['SERVER_NAME'] . $port;
+    return $protocol . '://' . $host;
+}
+
+define('BASE', url_origin($_SERVER));
 
 //-----------------------------------------------------------------------------
 // Write a log entry to the fuelphp logs
@@ -56,6 +78,10 @@ function site() {
 		$site = $_COOKIE['site'];
 	}
 
+  if ($site == null && isset($_SESSION['site'])) {
+		$site = $_SESSION['site'];
+  }
+
 	if ($site == "") $site = null;
 	
 	if (!$site) {
@@ -67,7 +93,7 @@ function site() {
 
 class Config {
 	public static function get($path) {
-		$configFile = DATAPATH.'/sites/'.site().'/config.json';
+		$configFile = DATAPATH.'/config.json';
 
 		$json = file_get_contents($configFile);
 
@@ -89,7 +115,7 @@ class Config {
 	}
 }
 
-class Uri { static function create($str) { return ADMIN_ROOT."/$str"; } } 
+class Uri { static function create($str) { return BASE."/$str"; } } 
 class Asset {
 	static function js($files) { foreach ($files as $file) echo "<script src='".Uri::create("assets/js/$file")."'></script>\n"; }
 	static function css($files) { foreach ($files as $file) echo "<link rel='stylesheet' href='".Uri::create("assets/css/$file")."'/>\n"; }

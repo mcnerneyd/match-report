@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-			<?php require_once('../admin/views/head.php'); ?>
+			<?php require_once(APPPATH.'/views/head.php'); ?>
   </head>
 
   <body>
@@ -24,7 +24,7 @@
 				});
 			</script>
 
-			<?php require_once('../admin/views/nav.php'); ?>
+			<?php require_once(APPPATH.'/views/nav.php'); ?>
 
 			<?php if (user()) { ?>
 			<div id='user'><?php 
@@ -45,10 +45,25 @@
 		</div>
 
     <footer class='center-block'>
-			<!--span class='hidden-xs'>A</span>
-			<span class='hidden-sm'>B</span>
-			<span class='hidden-md'>C</span>
-			<span class='hidden-lg'>D</span-->
+		<style>
+			footer div {
+				position:fixed;
+				bottom: 0;
+				left: 0;
+				background: black;
+				color: white;
+				font-size: 60%;
+				padding: 2px;
+			}
+		</style>
+		<div>
+      <span>C</span>
+      <span><?= substr(\Fuel::$env,0,1) ?></span>
+			<span class='.d-none.d-xs-block.d-sm-none'>X</span>
+			<span class='visible-sm-block'>S</span>
+			<span class='visible-md-block'>M</span>
+			<span class='visible-lg-block'>L</span>
+		</div>
 		</footer>
 
 		<div class="modal" id='help-modal' tabindex="-1" role="dialog">

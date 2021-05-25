@@ -29,8 +29,7 @@ class Controller_Card extends Controller_Template
 			}
 
 			if (\Auth::check()) {
-				$base = Uri::base()."/../../..";
-				Response::redirect($base.'/card/index.php?site='.Session::get('site').'&controller=card&action=get&fid='.$card['fixture_id']);
+				Response::redirect('/cards/index.php?site='.Session::get('site').'&controller=card&action=get&fid='.$card['fixture_id']);
 			} else {
 				$data['card'] = $card;
 				$data['searchUrl'] = Uri::create('Card/Index', array(), array('q'=>$query));
@@ -43,8 +42,7 @@ class Controller_Card extends Controller_Template
 
 			$this->template->content = View::forge('card/index', $data);
 		} else {
-			$base = Uri::base()."/../../..";
-			Response::redirect($base.'/index.php?site='.Session::get('site').'&controller=card&action=index');
+			Response::redirect('/cards/index.php?site='.Session::get('site').'&controller=card&action=index');
 		}
 	}
 
@@ -65,7 +63,7 @@ class Controller_Card extends Controller_Template
 		$data['description'] = "${fixture['competition']}: ${fixture['home']} v ${fixture['away']}";
 
 		$emails = array();
-		$ccList = Config::get("config.cc.email");
+		$ccList = Config::get("section.cc.email");
 		if ($ccList) $emails = array_merge($emails, array_map('trim', explode(",", $ccList)));
 
 		if (Session::get('site') == 'lhamen') {
@@ -123,7 +121,7 @@ class Controller_Card extends Controller_Template
 
 		if ($msg != null) {
 			$autoEmail = "lhamcs@gmail.com";
-			$title = Config::get("config.title");
+			$title = Config::get("section.title");
 			$email = Email::forge();
 			$email->from($autoEmail, "$title (No Reply)");
 			$email->reply_to(array_merge($data['to'], $data['cc']));

@@ -22,9 +22,11 @@
 return array(
 	'default' => array(
 		'connection' => array(
-			'dsn'      => 'mysql:host=localhost;dbname=hockey',
+      'port'     => '3306',
 			'username' => 'user',
 			'password' => 'pass',
+      'database' => 'hockey',
+      'hostname' => 'localhost',
 		),
 	),
 );

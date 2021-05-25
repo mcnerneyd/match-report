@@ -375,8 +375,8 @@ class Controller_Report extends Controller_Template
 		}
 
 		//$card = Model_Card::card($cardId);
-		$autoEmail = Config::get("config.automation_email");
-		$title = Config::get("config.title");
+		$autoEmail = Config::get("section.automation_email");
+		$title = Config::get("section.title");
 		$email = Email::forge();
 		$email->from($autoEmail, "$title (No Reply)");
 		$email->to($emailAddresses);
@@ -721,7 +721,7 @@ class Controller_Report extends Controller_Template
 			if (isset($clubcard['umpire'])) return false;
 			if (!$clubcard['players']) return false;
 
-			$value = \Config::get('config.fine', 10);
+			$value = \Config::get('section.fine', 10);
 
 			$newfine = new Model_Fine();
 			$newfine->competition = $card['competition'];
@@ -761,7 +761,7 @@ class Controller_Report extends Controller_Template
 			if ($onTimePlayerCount >= 7) return false;
 			$fCardTime = date("Y.m.d G:i", $cardTime);
 
-			$value = \Config::get('config.fine', 10);
+			$value = \Config::get('section.fine', 10);
 
 			$newfine = new Model_Fine();
 			$newfine->competition = $card['competition'];

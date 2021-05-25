@@ -8,6 +8,19 @@ $error_handler->registerExceptionHandler();
 $error_handler->registerErrorHandler();
 $error_handler->registerShutdownFunction();
 
+function ensurePath($path) {
+  if (!file_exists($path)) {
+    mkdir($path, 0777, TRUE);
+  }
+  return realpath($path);
+}
+
+define('DATAPATH', DOCROOT.'/data/');
+
+ensurePath(DATAPATH);
+ensurePath(DATAPATH."logs/");
+$sectionBase = ensurePath(DATAPATH."sections/");
+
 // Bootstrap the framework DO NOT edit this
 require COREPATH.'bootstrap.php';
 
@@ -27,46 +40,58 @@ require COREPATH.'bootstrap.php';
  * Fuel::STAGING
  * Fuel::PRODUCTION
  */
-\Fuel::$env = \Arr::get($_SERVER, 'FUEL_ENV', \Arr::get($_ENV, 'FUEL_ENV', \Fuel::DEVELOPMENT));
+\Fuel::$env = \Arr::get($_SERVER, 'FUEL_ENV', \Arr::get($_ENV, 'FUEL_ENV', \Fuel::PRODUCTION));
 
 // Initialize the framework with the config file.
 \Fuel::init('config.php');
+
+Log::info("Request: ".$_SERVER['REQUEST_METHOD']." ".$_SERVER['REQUEST_URI']." ->".$_SERVER['PHP_SELF']);
+$rq = \Request::forge();
+Log::info("Route: ".print_r(\Router::process($rq, true), true));
 
 require PKGPATH."PHPExcel/PHPExcel/IOFactory.php";
 
 require APPPATH.'classes/lib/upgrade.php';
 require APPPATH.'classes/lib/util.php';
 
-if (defined('DATAPATH')) {
-  if (!file_exists(DATAPATH)) {
-    mkdir(DATAPATH, 0777, TRUE);
+Config::load(DATAPATH."config.json", 'config');
+
+$user = Session::get('user', null);
+Log::info("Checking for user");
+if ($user) {
+  Log::info("User set: ".$user['username']);
+  if ($user->section) {
+    Log::info("Section: ".$user->section['name']);
+    $sectionPath = ensurePath($sectionBase."/".($user->section['name']));
+    $sectionConfig = $sectionPath."/config.json";
+    if (!file_exists($sectionConfig)) {
+      Log::info("Initializing config file $sectionConfig");
+      file_put_contents($sectionConfig, "{}");
+    }
+    Config::load($sectionConfig, 'section');
+    Config::set('section.name', $user->section['name']);
+    Log::info(print_r(Config::get('section', array()), true));
   }
+}
 
-	$globalLogPath = DATAPATH."logs/";
-	if (!file_exists($globalLogPath)) {
-		mkdir($globalLogPath, 0777, TRUE);
-	}
+/*	if (!defined('section')) {
+		$section = Input::param('section', Session::get('section',null));
 
-	\Config::set('log_path', $globalLogPath);
-
-/*	if (!defined('SITE')) {
-		$site = Input::param('site', Session::get('site',null));
-
-		if (!$site) {
+		if (!$section) {
 			echo "Redirecting to login";
-			Response::redirect("Login?site=none");
+			Response::redirect("Login?section=none");
 		}
 
-		function sitepath() {
-			$site = Input::param('site', Session::get('site',null));
-			return DATAPATH."/sites/$site/";
+		function sectionpath() {
+			$section = Input::param('section', Session::get('section',null));
+			return DATAPATH."/sections/$section/";
 		}
 
-		$path = sitepath();
+		$path = sectionpath();
 
 		if (!file_exists($path)) {
-			echo "Bad site - redirecting to login";
-			Response::redirect("Login?site=none");
+			echo "Bad section - redirecting to login";
+			Response::redirect("Login?section=none");
 		}
 
 		if ($path) {
@@ -84,5 +109,3 @@ if (defined('DATAPATH')) {
 
 		\Config::set('log_path', $logPath);
 	}*/
-}
-

@@ -134,7 +134,7 @@ class Controller_RegistrationApi extends Controller_Rest
 	public function post_index() {
 		// FIXME Check user admin or matches club
 		$access = 'admin.all';
-		if (Config::get('config.automation.allowrequest')) {
+		if (Config::get('section.automation.allowrequest')) {
 			$access = 'registration.post';
 		}
 		
@@ -209,7 +209,7 @@ class Controller_RegistrationApi extends Controller_Rest
 
 		if (isset($lastReg['errors'])) {
 			Log::info("Registration has error");
-			$errorStatus = Config::get("config.registration.blockerrors", false) ? "error":"warn";
+			$errorStatus = Config::get("section.registration.blockerrors", false) ? "error":"warn";
 			foreach ($lastReg['errors'] as $error) {
 				$errors[] = array('class'=>$errorStatus, 'msg'=>$error);
 			}
@@ -312,7 +312,7 @@ class Controller_RegistrationApi extends Controller_Rest
 
 		}
 
-		if (Config::get("config.allowassignment")) {
+		if (Config::get("section.allowassignment")) {
 			foreach ($registration as $player) {
 				$counts = array();
 				foreach ($player['history'] as $history) {

@@ -22,9 +22,11 @@
 return array(
 	'default' => array(
 		'connection' => array(
-			'dsn'      => 'mysql:host=sql110.epizy.com;dbname='epiz_28660544_hockey',
+			'dsn'      => 'mysql:host=sql110.epizy.com;dbname=epiz_28660544_hockey',
 			'username'   => 'epiz_28660544',
 			'password'   => 'iErlyw4e4gaB',
+      'hostname'  => 'sql110.epizy.com',
+      'database' => 'epiz_28660544_hockey',
 		),
 	),
 );

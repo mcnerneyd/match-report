@@ -6,13 +6,13 @@ class Model_User extends \Orm\Model
 		'id',
 		'username',
 		'password',
-		'role',
+    'club_id',
+    'section_id',
 		'email',
-		'club_id',
 		'group',
 	);
 
-	protected static $_belongs_to = array('club');
+	protected static $_belongs_to = array('club','section');
 
 	protected static $_table_name = 'user';
 

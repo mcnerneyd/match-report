@@ -77,7 +77,7 @@ class Model_Club extends \Orm\Model
 	}
 
 	public static function parse($str) {
-		$config = Config::get("config.pattern.team");
+		$config = Config::get("section.pattern.team");
 
 		$patterns = array();
 		$replacements = array();

@@ -137,7 +137,7 @@ return array(
 	 * Log file and path. If no filename is given, it will be generated.
 	 */
 	'log_file'         => null,
-	'log_path'         => APPPATH.'logs/',
+	'log_path'         => DATAPATH.'logs/',
 
 	'log_date_format'  => 'Y-m-d H:i:s',
 
@@ -372,9 +372,9 @@ return array(
 	 *
 	 * Paths MUST end with a directory separator (the DS constant)!
 	 */
-	'module_paths' => array(
+	//'module_paths' => array(
 		//APPPATH.'modules'.DS
-	),
+	//),
 
 	/**
 	 * To enable you to split up your additions to the framework, packages are
@@ -419,7 +419,7 @@ return array(
 		 *
 		 * A path must be set in module_paths for this to work.
 		 */
-		'modules'  => array(),
+		//'modules'  => array(),
 
 		/**
 		 * Classes to autoload & initialize even when not used

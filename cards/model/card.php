@@ -580,7 +580,7 @@ class Card {
 					break;
 
 				case 'Yellow Card':
-					if (user('umpire') && $row['role'] != 'umpire') continue;
+					if (user('umpire') && $row['role'] != 'umpire') continue 2;
 
 					$card['rycards'][] = array('card'=>'yellow',
 						'type'=>$row['type'],
@@ -590,7 +590,7 @@ class Card {
 				 break;
 
 				case 'Red Card':
-					if (user('umpire') && $row['role'] != 'umpire') continue;
+					if (user('umpire') && $row['role'] != 'umpire') continue 2;
 
 					$card['rycards'][] = array('card'=>'red',
 						'type'=>$row['type'],

@@ -542,35 +542,6 @@ class Controller_Admin extends Controller_Hybrid {
         $this->template->content = View::forge('admin/teams', $data);
     }
 
-    public function post_config() {
-        Config::set("config.title", Input::post("title"));
-        Config::set("config.salt", Input::post("salt"));
-        Config::set("config.fine", Input::post("fine"));
-        Config::set("config.elevation.password", Input::post("elevation_password"));
-        Config::set("config.admin.email", Input::post("admin_email"));
-        Config::set("config.cc.email", Input::post("cc_email"));
-        Config::set("config.strict_comps", Input::post("strict_comps"));
-        Config::set("config.automation.allowrequest", Input::post('allow_registration'));
-        Config::set("config.allowassignment", Input::post('allow_assignment') == 'on');
-        Config::set("config.registration.placeholders", Input::post('allow_placeholders') == 'on');
-        Config::set("config.result.submit", Input::post("resultsubmit"));
-        Config::set("config.blockerrors", Input::post("block_errors"));
-        Config::set("config.registration.mandatoryhi", Input::post("mandatory_hi"));
-        //Config::set("config.date.start", Input::post("seasonstart"));
-        Config::set("config.date.restrict", Input::post("regrestdate"));
-        Config::set("config.fixtures", explode("\r\n", trim(Input::post("fixtures"))));
-        Config::set("config.pattern.competition", explode("\r\n", trim(Input::post("fixescompetition"))));
-        Config::set("config.pattern.team", explode("\r\n", trim(Input::post("fixesteam"))));
-        Config::save(CONFIG_FILE, 'config');
-				try {
-	        Cache::delete_all();
-				} catch (Exception $e) {
-					Log::warning("Failed to flush cache");
-				}
-
-        return new Response("", 200);
-    }
-
     public function get_config() {
         $tasks = Model_Task::find('all');
 
@@ -578,30 +549,30 @@ class Controller_Admin extends Controller_Hybrid {
 
         $this->template->title = "Configuration";
         $this->template->content = View::forge('admin/config', array(
-                    "config" => Config::get("hockey"),
-                    "title" => Config::get("config.title"),
-                    "salt" => Config::get("config.salt"),
-                    "fine" => Config::get("config.fine", 25),
-                    "elevation_password" => Config::get("config.elevation.password"),
-                    "admin_email" => Config::get("config.admin.email"),
-                    "cc_email" => Config::get("config.cc.email"),
-                    "strict_comps" => Config::get("config.strict_comps"),
-                    "automation_email" => Config::get("config.automation.email"),
-                    "automation_password" => Config::get("config.automation.password"),
-                    "automation_allowrequest" => Config::get("config.automation.allowrequest"),
-                    "allowassignment" => Config::get("config.allowassignment"),
-                    "allowplaceholders" => Config::get("config.registration.placeholders", true),
-                    "mandatory_hi" => Config::get("config.registration.mandatoryhi", "noselect"),
-                    "fixescompetition" => join("\r\n", Config::get("config.pattern.competition")),
-                    "fixesteam" => join("\r\n", Config::get("config.pattern.team")),
-                    "fixtures" => join("\r\n", Config::get("config.fixtures")),
-                    "resultsubmit" => Config::get("config.result.submit", 'no'),
-                    //"seasonstart" => Config::get("config.date.start"),
-                    "regrestdate" => Config::get("config.date.restrict"),
-                    "block_errors" => Config::get("config.registration.blockerrors"),
-                    "tasks" => $tasks,
-                    "competitions" => $comps,
-                    "teams" => $teams,
+            "config" => Config::get("hockey"),
+            "title" => Config::get("section.title"),
+            "salt" => Config::get("section.salt"),
+            "fine" => Config::get("section.fine", 25),
+            "elevation_password" => Config::get("section.elevation.password"),
+            "admin_email" => Config::get("section.admin.email"),
+            "cc_email" => Config::get("section.cc.email"),
+            "strict_comps" => Config::get("section.strict_comps"),
+            "automation_email" => Config::get("section.automation.email"),
+            "automation_password" => Config::get("section.automation.password"),
+            "automation_allowrequest" => Config::get("section.automation.allowrequest"),
+            "allowassignment" => Config::get("section.allowassignment"),
+            "allowplaceholders" => Config::get("section.registration.placeholders", true),
+            "mandatory_hi" => Config::get("section.registration.mandatoryhi", "noselect"),
+            "fixescompetition" => join("\r\n", Config::get("section.pattern.competition", array())),
+            "fixesteam" => join("\r\n", Config::get("section.pattern.team", array())),
+            "fixtures" => join("\r\n", Config::get("section.fixtures", array())),
+            "resultsubmit" => Config::get("section.result.submit", 'no'),
+            //"seasonstart" => Config::get("section.date.start"),
+            "regrestdate" => Config::get("section.date.restrict"),
+            "block_errors" => Config::get("section.registration.blockerrors"),
+            "tasks" => $tasks,
+            "competitions" => $comps,
+            "teams" => $teams,
         ));
     }
 

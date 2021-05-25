@@ -47,9 +47,9 @@ class Controller_User extends Controller_Template
 			return new Response("Cannot reset matchcard user password (only secretaries/admins)", 403);
 		}
 
-		$salt = Config::get("config.salt");
-		$autoEmail = Config::get("config.automation.email");
-		$title = Config::get("config.title");
+		$salt = Config::get("section.salt");
+		$autoEmail = Config::get("section.automation.email");
+		$title = Config::get("section.title");
 		$site = \Session::get('site');
 		$hash = Input::param('h');
 
@@ -115,7 +115,7 @@ class Controller_User extends Controller_Template
 			return new Response("Cannot reset matchcard user password (only secretaries/admins)", 403);
 		}
 
-		$salt = Config::get("config.salt");
+		$salt = Config::get("section.salt");
 		$site = \Session::get('site');
 		$ts = Date::forge()->get_timestamp() + (24 * 60 * 60);
 		$hash = md5("$site $username $ts $salt");
@@ -161,12 +161,16 @@ class Controller_User extends Controller_Template
 			Log::debug("Crypted password: ".Auth::hash_password(\Input::param('pin')));
 			if (Auth::login()) {
 				Input::param("remember-me", false) ? \Auth::remember_me() : \Auth::dont_remember_me();
-				Log::info("Logged in user: ".Session::get('username'));
+        $username = Session::get('username');
+        $user = Model_User::find_by_username($username);
+        Log::info("Logged in user: ".$username);
+
+        Session::set('user', $user);
 
 				if (Session::get('username') === 'admin') {
 					Response::redirect(Uri::create('Admin'));
 				} else {
-					Response::redirect('../card/sso.php?'.base64_encode($this->encode("/card/index.php")));
+					Response::redirect('/cards/sso.php?'.base64_encode($this->encode("/cards/index.php")));
 				}
 			} else {
 				$data['username'] = Input::post('user');
@@ -175,15 +179,14 @@ class Controller_User extends Controller_Template
 			}
 		}
 
-		if (Session::get('site')) {
-			$users = array_filter($this->userlist(), function($k) { return $k['password']; });
-			$users = self::classify($users, 'role');
-			$data['users'] = array('Clubs'=>array(), 'Umpires'=>array());
-			if ($users) {
-				if (isset($users['user'])) $data['users']['Clubs'] = $users['user'];
-				if (isset($users['umpire'])) $data['users']['Umpires'] = $users['umpire'];
-			}
-		}
+    $users = array_filter($this->userlist(), function($k) { return $k['password']; });
+    //$users = self::classify($users, 'role');
+    //$data['users'] = array('Clubs'=>array(), 'Umpires'=>array());
+    //if ($users) {
+    //  if (isset($users['user'])) $data['users']['Clubs'] = $users['user'];
+    //  if (isset($users['umpire'])) $data['users']['Umpires'] = $users['umpire'];
+    //}
+    $data['users'] = $users;
 
 		$sites = array();
 		foreach (scandir(DATAPATH."/sites/") as $site) {
@@ -203,22 +206,16 @@ class Controller_User extends Controller_Template
 	// --------------------------------------------------------------------------
 	private function encode($redirect = null) {
 		$data = array('timestamp'=>time(), 'session'=>array());
-		$site = Session::get('site', null);
-		if (!$site) {
-			throw new Exception("No site set");
-		}
-
 		$username = Session::get('username', null);
-		if (!$username) {
-			throw new Exception("No username set");
-		}
 
-		$data['site'] = $site;
 		$data['u'] = $username;
-		$user = Model_User::find_by_username($username);
+		$user = Session::get('user');
+		$data['site'] = $user->section['name'];
 		$data['session']['user'] = $username;
 		if ($user['role'] != 'umpire') {
-			$data['session']['club'] = $user['club']['name'];
+			if ($user['club']) {
+				$data['session']['club'] = $user['club']['name'];
+			}
 		}
 
 		$roles = array($user['role']);
@@ -246,14 +243,14 @@ class Controller_User extends Controller_Template
 	public function action_switch() {
 		Log::debug("User switching: ".\Session::get('username'));
 		if (!\Auth::has_access('user.impersonate')) throw new HttpNoAccessException;
-		$user = Input::param('u');
-		$user = Model_User::find_by_username($user);
+		$username = Input::param('u');
+		$user = Model_User::find_by_username($username);
 		$success = \Auth::force_login($user['id']);
 		$a = \Session::get('login_hash');
-		$user = \Session::get('username');
-		Log::debug("User switched: $success $user $a ".Session::get('site'));
+    Session::set('user', $user);
+		Log::debug("User switched: $success $username $a ".Session::get('site'));
 
-		Response::redirect('../card/sso.php?'.base64_encode($this->encode("/card/index.php")));
+		Response::redirect('cards/sso.php?'.base64_encode($this->encode("/cards/index.php")));
 	}
 
 	public function action_root() {
@@ -267,12 +264,23 @@ class Controller_User extends Controller_Template
 	private function userlist() {
 		$allusers = array();
 		$clubs = array();
-		//foreach (Db::query("select distinct name from club c")->execute() as $row) $clubs[] = $row['name'];
 		
 		foreach (Model_User::find('all') as $user) {
-			if (!$user['username']) continue;
-			//if ($user['role'] == 'user' and !in_array($user['username'], $clubs)) continue;
-			$allusers[$user['username']] = $user;
+      $username = $user['username'];
+      if ($username === null) {
+        $username = $user['email'];
+      }
+      if ($username === null) {
+        if ($user->club) {
+          $username = $user->club['name'];
+          if ($user->section) {
+            $username .= " (".$user->section['name'].")";
+          }
+        }
+      }
+			if ($username) {
+        $allusers[$username] = $user;
+      }
 		}
 
 		return $allusers;

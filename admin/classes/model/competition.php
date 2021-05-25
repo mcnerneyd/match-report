@@ -4,6 +4,7 @@ class Model_Competition extends \Orm\Model
 {
 	protected static $_properties = array(
 		'id',
+    'section_id',
 		'name',
 		'code',
 		'teamsize',
@@ -13,20 +14,22 @@ class Model_Competition extends \Orm\Model
 		'sequence',
 	);
 
+	protected static $_belongs_to = array('section');
+
 	protected static $_conditions = array(
 		'order_by' => array('sequence' => 'asc'),
 	);
 
 	protected static $_many_many = array(
 		'team' => array(
-				'table_through' => 'entry',
+				'table_through' => 'team__competition',
 				));
 
 
 	protected static $_table_name = 'competition';
 
 	public static function parse($str) {
-		$config = Config::get("config.pattern.competition");
+		$config = Config::get("section.pattern.competition");
 
 		$patterns = array();
 		$replacements = array();

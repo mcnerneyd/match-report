@@ -54,12 +54,7 @@ return array(
 			'compress'   => false,
 		),
 
-		'identifier'   => '`',
 		'table_prefix' => '',
-		'charset'      => 'utf8',
-		'collation'    => false,
-		'enable_cache' => false,
-		'profiling'    => false,
-		'readonly'     => false,
+		'profiling'    => true,
 	),
 );

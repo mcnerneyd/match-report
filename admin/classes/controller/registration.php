@@ -13,12 +13,14 @@ class Controller_Registration extends Controller_Template
 		if (!isset($club)) {
 			$username = Session::get("username");
 			$user = Model_User::find_by_username($username);
-			$club = $user['club']['name'];
+      if ($user['club']) {
+  			$club = $user['club']['name'];
+      }
 		}
 
 		Log::info("Requesting registration for $club");
 
-		$registrations = Model_Registration::find_all($club);
+		$registrations = $club ? Model_Registration::find_all($club) : array();
 		
 		$this->template->title = "Registrations";
 		$this->template->content = View::forge('registration/index', array('club'=>$club,

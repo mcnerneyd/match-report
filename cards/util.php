@@ -17,7 +17,7 @@ function arr_add(&$arr, $subindex, $val) {
 }
 
 # Provide 5.5 functionality
-function array_column($input, $column_key) {
+function x_array_column($input, $column_key) {
 	return array_map(function($v) use ($column_key) { return $v[$column_key]; }, $input);
 }
 
@@ -197,10 +197,7 @@ function parseCompetition($str, $competitions) {
 	if ($newstr == '!') return null;
 
 	if ($competitions != null && !in_array($newstr, $competitions)) {
-<<<<<<< HEAD
 		echo "<!-- ".print_r($competitions, true)." -->";
-=======
->>>>>>> dc91207d842780fef03967f1ec0b3b0063e7342d
 		throw new Exception("Cannot resolve competition '$newstr' ('$str')");
 	}
 

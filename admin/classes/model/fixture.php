@@ -83,7 +83,7 @@ class Model_Fixture extends \Model
 		$ct=1;
 		$t = microtime(true);
 		$pt = $t;
-		foreach (Config::get("config.fixtures") as $feed) {
+		foreach (Config::get("section.fixtures", array()) as $feed) {
 
 			$feed = trim($feed);
 

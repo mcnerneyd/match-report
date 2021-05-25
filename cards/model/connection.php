@@ -1,5 +1,5 @@
 <?php
-require_once('../lib/phpfastcache/phpfastcache.php');
+require_once(PKGPATH.'/phpfastcache/phpfastcache.php');
 
 $cachePath = SITEPATH."/tmp/cache";
 if (!file_exists($cachePath)) mkdir($cachePath, 0755, true);
@@ -26,7 +26,7 @@ class Db {
 				  $pdo_options);
 				//debug("Connected to:".DB_DATABASE);
 			} catch (Exception $e) {
-				echo $e->message;
+				echo $e->getMessage();
 				throw new Exception("Failed to connected to database");
 			}
 		}

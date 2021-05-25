@@ -1,11 +1,7 @@
 <?php
 // vim: et:ts=2:sw=2
 if (!isset($fixture['card']))
-<<<<<<< HEAD
     throw new Exception("A card for this fixture does not exist yet");
-=======
-    throw new Exception("Card does not exist");
->>>>>>> dc91207d842780fef03967f1ec0b3b0063e7342d
 
 global $strictProcessing;
 $strictProcessing = false;
@@ -129,13 +125,10 @@ if ($mycard) {
   margin-bottom: 7px;
 }
 
-<<<<<<< HEAD
 #card-addx {
   max-width: 80%;
 }
 
-=======
->>>>>>> dc91207d842780fef03967f1ec0b3b0063e7342d
 #submit-card a.float-right {
     margin-left: 10px;
   }
@@ -151,7 +144,6 @@ h2 { margin-top: 0.5rem; font-size: 0.75em !important; font-style: italic; }
   margin-left: 3px;
   margin-top: 3px;
 }
-<<<<<<< HEAD
 #select-role {
   xdisplay:none;
 }
@@ -161,10 +153,6 @@ h2 { margin-top: 0.5rem; font-size: 0.75em !important; font-style: italic; }
   border-radius:0;
   padding: 2px 4px;
   font-size: 80%;
-=======
-#select-role label {
-  color:white;
->>>>>>> dc91207d842780fef03967f1ec0b3b0063e7342d
 }
 .role-goalkeeper {
   background: green;
@@ -459,7 +447,6 @@ if ($cardIsOpen || user('admin') || user('umpire') || \Auth::has_access('card.su
     </div>
     <div class='dropdown-divider'></div>
     <div id='select-role' class='dropdown-item'>
-<<<<<<< HEAD
       <label class='btn btn-xs role-captain'>
         <input type='checkbox' data-role='C'> Capt
       </label>
@@ -471,19 +458,6 @@ if ($cardIsOpen || user('admin') || user('umpire') || \Auth::has_access('card.su
       </label>
       <label class='btn btn-xs role-physio'>
         <input type='checkbox' data-role='P'> Phys
-=======
-      <label class='btn role-captain'>
-        <input type='checkbox' data-role='C'> Captain
-      </label>
-      <label class='btn role-goalkeeper'>
-        <input type='checkbox' data-role='G'> GK
-      </label>
-      <label class='btn role-manager'>
-        <input type='checkbox' data-role='M'> Manager
-      </label>
-      <label class='btn role-physio'>
-        <input type='checkbox' data-role='P'> Physio
->>>>>>> dc91207d842780fef03967f1ec0b3b0063e7342d
       </label>
     </div>
     <div class='dropdown-divider'></div>
@@ -494,7 +468,6 @@ if ($cardIsOpen || user('admin') || user('umpire') || \Auth::has_access('card.su
     <?php
     if (!$card['official'] || user('umpire') || \Auth::has_access('card.superedit')) {
 ?>
-<<<<<<< HEAD
 
     <div class='form-group dropdown-item' id='card-addx'>
       <label><img class='card' src='img/green-card.png'/><img class='card' src='img/yellow-card.png'/><img class='card' src='img/red-card.png'/>Add Penalty Card</label>
@@ -514,18 +487,6 @@ if ($cardIsOpen || user('admin') || user('umpire') || \Auth::has_access('card.su
       </select>
     </div>
     <a class='dropdown-item card-clear'>Clear Cards</a>
-=======
-    <a class='dropdown-item card-green'>Green Card</a>
-    <a class='dropdown-item card-yellow'>Technical - Breakdown</a>
-    <a class='dropdown-item card-yellow'>Technical - Delay/Time Wasting</a>
-    <a class='dropdown-item card-yellow'>Technical - Dissent</a>
-    <a class='dropdown-item card-yellow'>Technical - Foul/Abusive Language</a>
-    <a class='dropdown-item card-yellow'>Technical - Bench/Coach/Team Foul</a>
-    <a class='dropdown-item card-yellow'>Physical - Tackle</a>
-    <a class='dropdown-item card-yellow'>Physical - Dangerous/Reckless Play</a>
-    <a class='dropdown-item card-red'>Red Card</a>
-    <a class='dropdown-item card-clear'>No Cards</a>
->>>>>>> dc91207d842780fef03967f1ec0b3b0063e7342d
     <div class='dropdown-divider'></div>
     <?php
     }

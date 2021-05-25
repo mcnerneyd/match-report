@@ -8,7 +8,7 @@ class Model_Team extends \Orm\Model
 
 	protected static $_properties = array(
 		'id',
-		'team',
+		'name',
 		'club_id',
 	);
 

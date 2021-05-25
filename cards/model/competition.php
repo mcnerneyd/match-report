@@ -12,7 +12,7 @@
 			$db = Db::getInstance();
 
 			$req = $db->query("select distinct c.name, c.teamsize, c.teamstars, c.code, c.groups, c.format
-				from competition c join entry e on c.id = e.competition_id
+				from competition c join team__competition e on c.id = e.competition_id
 				order by sequence, name");
 
 			return $req->fetchAll();
@@ -34,7 +34,7 @@
 			$db = Db::getInstance();
 
 			$db->exec("DELETE FROM code");
-			$db->exec("DELETE FROM entry");
+			$db->exec("DELETE FROM team__competition");
 		}
 
 		public static function addCompetition($name, $code, $teamsize, $teamstars, $regsec, $sequence) 

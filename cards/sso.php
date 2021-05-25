@@ -1,6 +1,11 @@
 <?php
 require_once 'fuel.php';
 
+ini_set('display_errors',1);
+ini_set('display_startup_errors',1);
+ini_set('max_execution_time', 300); 
+error_reporting(E_ALL);
+
 header('Content-Type: text/plain');
 
 try {
@@ -19,16 +24,14 @@ try {
 	}
 
 	$data = json_decode($src, true);
-#print_r($data);
 	$site = $data['site'];
 	$username = $data['u'];
 	echo "Request received ($username@$site)\n";
 	$root = dirname(__FILE__);
 	define('SITEPATH', "$root/sites/$site");
 	$configFile = $root.'/sites/'.$site.'/config.ini';
-#print_r(file_get_contents($configFile));
-	//$config = parse_ini_file($configFile, true);
 
+  echo "C:$configFile";
 	require_once 'model/connection.php';
 	echo "Transferring: $username\n";
 
@@ -66,9 +69,14 @@ try {
 		echo "Session data not valid\n";	
 	}
 
+	$redirect = "/cards/index.php";
 	if (isset($data['redirect'])) {
+		$redirect = $data['redirect'];
+	}
+
+	if ($redirect !== '-') {
 		header($_SERVER['SERVER_PROTOCOL']." 303 Redirecting");
-		header("Location: ".$data['redirect']);
+		header("Location: ".$redirect);
 		echo "303 Redirecting\n";
 		exit();
 	} 
@@ -77,5 +85,5 @@ try {
 	echo "202 Accepted\n";
 
 } catch (Exception $e) {
-	echo $e->message;
+	echo $e->getMessage();
 }

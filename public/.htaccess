@@ -1,0 +1,15 @@
+###  .htaccess
+
+<IfModule mod_rewrite.c>
+		RewriteEngine on
+    RewriteBase /
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+		RewriteRule ^check.php - [L]
+    RewriteRule ^cards/.*$ - [L]
+    RewriteRule ^assets/.*$ - [L]
+    RewriteRule ^index.php/.* - [L]
+    RewriteRule ^$ user/login
+		RewriteRule ^api/1.0/(.*)$ api/$1 [DPI]
+		RewriteRule ^(.*)$ index.php/$1
+</IfModule>

@@ -1,6 +1,10 @@
 <?php
+
+require_once('util.php');
+require_once('fuel.php');
+
 /* Raven/Sentry */
-require_once '../lib/Raven/Autoloader.php';
+require_once PKGPATH.'/Raven/Autoloader.php';
 Raven_Autoloader::register();
 $sentry_client = new Raven_Client('https://0e648f1a6af5407985c427afb086e5bb:37b68176201d451a849bbbb4c81ec6f6@sentry.io/1242091');
 $error_handler = new Raven_ErrorHandler($sentry_client);
@@ -8,14 +12,11 @@ $error_handler->registerExceptionHandler();
 $error_handler->registerErrorHandler();
 $error_handler->registerShutdownFunction();
 
-define("ROOT_DIR", './');
 ini_set('display_errors',1);
 ini_set('display_startup_errors',1);
 ini_set('max_execution_time', 300); 
 error_reporting(E_ALL);
 
-require_once('util.php');
-require_once('fuel.php');
 define("SITEPATH", DATAPATH."/sites/".site());
 
 $consolelog = "";
@@ -40,10 +41,7 @@ function dd($arr, $key, $def = null) {
 }
 
 function debug($msg) {
-<<<<<<< HEAD
-=======
 	if (!isset($_SESSION['debug']) and !isset($_REQUEST['debug'])) return false;
->>>>>>> dc91207d842780fef03967f1ec0b3b0063e7342d
 	Log::debug($msg);
 }
 
@@ -190,22 +188,26 @@ try {
 	require_once("views/$layout.php");
 
 } catch (LoginException $e) {
-	header("Location: ".ADMIN_ROOT."/Login");
+	header("Location: ".BASE."/Login");
+  header("X-Detail: ".$e->getMessage());
 	exit();
 } catch (RedirectException $e) {
 	header("Location: ".$e->location);
+  header("X-Detail: redirect2");
 	echo "Redirecting";
 	exit();
 } catch (Exception $e) {
 	echo "<pre>".print_r($e, true)."</pre>";
 }
 
+/*
 if (!isset($_COOKIE['noremember']) and user()) {
 	$expiry = time()+60*60*24*3;
 	setCookie("username", user(), $expiry, "/");
 	setCookie("site", site(), $expiry, "/");
-	setCookie("key", createsecurekey(site() + "cookie" + user()), $expiry, "/");
+	setCookie("key", createsecurekey(site() . "cookie" . user()), $expiry, "/");
 }
+*/
 
 ob_end_flush();
 

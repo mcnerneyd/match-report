@@ -7,6 +7,7 @@
 			responsive:true,
 			columns: [ 
 				{ responsivePriority: "1" },
+				{ responsivePriority: "1" },
 				{ responsivePriority: "3" },
 				{ responsivePriority: "4" },
 				{ responsivePriority: "5" },
@@ -24,7 +25,6 @@
 
 			table.columns(3).search(key, true).draw();
 		});
-		//$('#users-table tbody').show();
 		$('#users-table').on('click', 'a[href="refresh"]', function(e) {
 			e.preventDefault();
 			var username = $(this).closest('tr').data('user');
@@ -72,7 +72,7 @@
 		});
 
 		$("#add-user-modal button[type='submit']").click(function() {
-			$.post('<?= Uri::create('userapi') ?>', $('#add-user-modal form').serialize(), function(data) {
+			$.post('<?= Uri::create('index.php/api/users') ?>', $('#add-user-modal form').serialize(), function(data) {
 				window.location.reload();
 				$.notify({message: 'User Created'}, {
 					placement: { from: 'top', align: 'right' },		
@@ -113,6 +113,7 @@
 	<thead>
 		<tr>
 			<th>Username</th>
+			<th>Section</th>
 			<th>Club</th>
 			<th>PIN</th>
 			<th>Role</th>
@@ -128,7 +129,8 @@
 
 		echo "<tr data-user='".$user['username']."'>
 			<td>${user['username']}</td>
-			<td>".$user['club']['name']."</td>
+			<td>".($user->section ? $user->section['name'] : "-")."</td>
+			<td>".($user['club'] ? $user['club']['name'] : "-")."</td>
 			<td>";
 		if ($user['role'] == 'Users' || $user['role'] == 'Umpires') {
 			echo "${user['pin']} <a href='refresh'> <i class='fas fa-sync-alt'></i> </a>";

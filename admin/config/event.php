@@ -11,12 +11,13 @@ return array(
 			$ua = null;
 			if (isset($_SERVER['HTTP_USER_AGENT'])) $ua = $_SERVER['HTTP_USER_AGENT'];
 
-			Log::info("method: ".Request::main()->get_method(). " content-type: ".\Input::headers('Content-Type')." site=$site ua=$ua"); 
+			Log::info("Request: ".Request::main()->get_method()." ".Request::active()->uri." content-type: ".\Input::headers('Content-Type')." site=$site ua=$ua"); 
 
 			/*if (\Auth::check()) {
 				Log::info("User: ".\Auth::get("club_id")." =".\Auth::get_screen_name());
 			}*/
 
+      /*
 			if (!$site or $site == 'none') {
 				//Session::delete('site');
 				Log::warning("No site specified: ".Request::active()->uri);
@@ -27,6 +28,7 @@ return array(
 
 				return;
 			}
+      */
 
 			DB::instance('mysqli');
 			//Config::set('db.active', $site);

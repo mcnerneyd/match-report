@@ -9,7 +9,7 @@ class Model_Registration
 		$path = DATAPATH."/sites/".Session::get('site')."/tmp/cache";
 		if (!file_exists($path)) mkdir($path, 0777, true);
 		static::$cache = Cache::forge("membership", array('file'=>array('path'=>$path),'driver'=>'file','expiration'=>3600*24)); 
-		$codes = parse_ini_file(APPPATH."/classes/model/clublist.ini");
+		$codes = file_exists(APPPATH."/classes/model/clublist.ini") ? parse_ini_file(APPPATH."/classes/model/clublist.ini") : array();
 
 	}
 
@@ -249,7 +249,7 @@ class Model_Registration
 	public static function find_between_dates($clubName, $initialDate, $currentDate) {
 		Log::debug("Request for registration for $clubName: between $initialDate and $currentDate");
 		$current = Model_Registration::find_before_date($clubName, $currentDate);
-		$restrictionDate = strtotime(Config::get('config.date.restrict'));
+		$restrictionDate = strtotime(Config::get('section.date.restrict'));
 		$initial = null;
 		if ($currentDate > $restrictionDate) {
 			Log::debug("Restrictions in place");
@@ -260,7 +260,7 @@ class Model_Registration
 		$teamSizes = $club ? $club->getTeamSizes() : array();
 		$history = Model_Player::getHistory($clubName, $currentDate);
 
-		return self::buildRegistration($current, $initial, $teamSizes, $history, \Config::get("config.registration.placeholders", true));
+		return self::buildRegistration($current, $initial, $teamSizes, $history, \Config::get("section.registration.placeholders", true));
 	}
 
 
@@ -307,7 +307,7 @@ class Model_Registration
 		}
 
 		$groups = array();
-		if (Config::get("config.allowassignment")) {
+		if (Config::get("section.allowassignment")) {
 			foreach (Model_Competition::find('all') as $comp) {
 				if ($comp['groups']) {
 					foreach (explode(',', $comp['groups']) as $group) {
@@ -411,7 +411,7 @@ class Model_Registration
 
 			$playerTeam = $team;
 
-			if (Config::get("config.allowassignment")) {
+			if (Config::get("section.allowassignment")) {
 				for ($i=count($arr)-1;$i>0;$i--) {
 					if ($arr[$i]) {
 						$group = trim(strtolower($arr[$i]));
@@ -435,7 +435,7 @@ class Model_Registration
 
 			if ($player) {
 				if (!self::validateMembership($rclub, $playerArr['Fn'], $playerArr['LN'], $membershipId)) {
-					if (Config::get("config.registration.mandatoryhi", "noselect") === 'noregister') continue;
+					if (Config::get("section.registration.mandatoryhi", "noselect") === 'noregister') continue;
 					$membershipId = null;
 				}
 
