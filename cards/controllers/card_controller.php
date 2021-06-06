@@ -11,7 +11,12 @@ class CardController {
 				$competitions = array_column(Competition::all(), "name");
 				$clubs = array_column(Club::all(), "name");
 
-        require_once('views/card/index2.php');
+        if (!in_array($_SESSION['club'], $clubs)) {
+          $clubs[] = $_SESSION['club'];
+        }
+        sort($clubs);
+
+        require_once('views/card/index.php');
 
 				return;
     }

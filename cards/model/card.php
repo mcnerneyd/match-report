@@ -76,7 +76,7 @@ class Card {
 		Log::debug("Getting fixtures");
 
 		$allfixtures = array();
-		$ctr = 1;
+/*		$ctr = 1;
 
 		foreach (Config::get("config.fixtures") as $feed) {
 
@@ -161,9 +161,9 @@ class Card {
 			} else {
 				warn("Fixture Source:".$feed." cannot be resolved");
 			}
-		}
+		}*/
 
-		//debug("All Fixtures:".print_r($allfixtures, true));
+    $allfixtures = json_decode(file_get_contents(DATAPATH."/fixtures.json"));
 
 		return $allfixtures;
 	}
@@ -255,7 +255,7 @@ class Card {
 
 		$result = array(
 			'id'=>$fixture->fixtureID,
-			'date'=>strtotime($fixture->datetime),
+			'date'=>strtotime($fixture->datetimeZ),
 			'datetime'=>$fixture->datetime,
 			'org'=>$fixture->competition,
 			'home'=>array(
@@ -318,14 +318,14 @@ class Card {
 		}
 
 		$req = $db->query("SELECT t.id FROM team t JOIN club c ON t.club_id = c.id WHERE 
-					t.team =".$fixture['home']['teamnumber']."
+					t.name =".$fixture['home']['teamnumber']."
 					AND c.name ='".$fixture['home']['club']."'");
 
 		$homeId = "null";
 		if ($row = $req->fetch()) $homeId = $row[0];
 
 		$req = $db->query("SELECT t.id FROM team t JOIN club c ON t.club_id = c.id WHERE 
-					t.team =".$fixture['away']['teamnumber']."
+					t.name =".$fixture['away']['teamnumber']."
 					AND c.name ='".$fixture['away']['club']."'");
 
 		$awayId = "null";
@@ -339,8 +339,8 @@ class Card {
 			throw new Exception("Team cannot play itself");
 		}
 
-		$sql = "INSERT INTO matchcard (fixture_id, competition_id, home_id, away_id, contact_id, date)
-			SELECT ${fixture['id']}, x.id, $homeId, $awayId, 1, from_unixtime('${fixture['date']}')
+		$sql = "INSERT INTO matchcard (fixture_id, competition_id, home_id, away_id, contact_id, date, description)
+			SELECT ${fixture['id']}, x.id, $homeId, $awayId, 1, from_unixtime('${fixture['date']}'), ''
 				FROM competition x
 				WHERE x.name = '${fixture['competition']}'";
 
@@ -395,7 +395,7 @@ class Card {
 		$sql = "select player from incident i join 
 			(SELECT m.id matchcard_id,c.id club_id FROM matchcard m join team t ON m.home_id = t.id or m.away_id = t.id
 				join club c on t.club_id = c.id
-			where t.team = :team and c.name = :club and m.date < subdate(current_date, 1)
+			where t.name = :team and c.name = :club and m.date < subdate(current_date, 1)
 				and m.date > '".currentSeasonStart()."'
 			order by m.date desc
 			limit 1) t0 on t0.matchcard_id = i.matchcard_id and t0.club_id = i.club_id";
@@ -417,7 +417,7 @@ class Card {
     $db = Db::getInstance();
 
     $sql = "select x.name competition, ch.id homeclubid, ch.name homeclub, 
-				ca.name awayclub, th.team hometeam, ta.team awayteam, m.date, m.id, m.fixture_id,
+				ca.name awayclub, th.name hometeam, ta.name awayteam, m.date, m.id, m.fixture_id,
 				th.id hometeamid, ta.id awayteamid, ca.id awayclubid, x.teamsize,
 				ch.code homecode, ca.code awaycode, x.code competitioncode, m.open, x.format
       from matchcard m
@@ -468,7 +468,7 @@ class Card {
 				));
 
 		// Blend all incidents from all matchcards referencing this fixture
-    $sql = "select i.id, i.player, i.club_id, i.type, i.detail, i.date, u.username, u.role, i.resolved
+    $sql = "select i.id, i.player, i.club_id, i.type, i.detail, i.date, u.username, i.resolved
         from incident i
 					left join user u on i.user_id = u.id
 					left join matchcard m on i.matchcard_id = m.id
@@ -580,7 +580,7 @@ class Card {
 					break;
 
 				case 'Yellow Card':
-					if (user('umpire') && $row['role'] != 'umpire') continue 2;
+					// FIXME if (user('umpire') && $row['role'] != 'umpire') continue 2;
 
 					$card['rycards'][] = array('card'=>'yellow',
 						'type'=>$row['type'],
@@ -590,7 +590,7 @@ class Card {
 				 break;
 
 				case 'Red Card':
-					if (user('umpire') && $row['role'] != 'umpire') continue 2;
+					// FIXME if (user('umpire') && $row['role'] != 'umpire') continue 2;
 
 					$card['rycards'][] = array('card'=>'red',
 						'type'=>$row['type'],

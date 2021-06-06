@@ -19,7 +19,7 @@ class Db {
 		if (!isset(self::$instance)) {
 			try {
 				$pdo_options[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
-				self::$instance = new PDO('mysql:host=localhost;dbname='.
+				self::$instance = new PDO('mysql:host='.Config::get("config.database.host", "localhost").';dbname='.
 					Config::get("config.database.name"),
 					Config::get("config.database.username"),
 					Config::get("config.database.password"),

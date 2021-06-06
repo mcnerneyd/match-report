@@ -22,12 +22,12 @@ class Controller_RestApi extends Controller_Rest
 			}
 		});
 
-		self::stripnulls($arrayTree);
+		//self::stripnulls($arrayTree);
 
 		return $arrayTree;
 	}
 
-	private static function stripnulls(&$array) {
+/*	private static function stripnulls(&$array) {
 
 		foreach ($array as $k=>$v) {
 			if ($v === null) {
@@ -43,5 +43,5 @@ class Controller_RestApi extends Controller_Rest
 				self::stripnulls($v);
 			}
 		}
-	}
+	}*/
 }

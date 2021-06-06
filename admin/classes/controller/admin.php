@@ -3,10 +3,12 @@
 class Controller_Admin extends Controller_Hybrid {
 
     public function action_index() {
+        if (!Auth::has_access("super.edit"))
+        throw new HttpNoAccessException;
 
-			$allusers = array_column(Model_User::find('all'), 'username');
-			sort($allusers);
-			
+			$allusers = Model_User::find('all');
+			usort($allusers, function($a, $b) { return strcmp($a->getName(), $b->getName());});
+
 			$this->template->title = "SuperUser Administration";
 			$this->template->content = View::forge('admin/index', array('users'=>$allusers));
     }
@@ -49,11 +51,156 @@ class Controller_Admin extends Controller_Hybrid {
         if ($d)
             $d = Date::create_from_string($d, "%y%m%d%H%M%S");
 
-        $root = sitepath() . "/registration/$f";
+        foreach (Model_Section::find('all') as $section) {
+          $root = DATAPATH."/sections/".$section['name'] . "/registration/$f";
 
-        static::touchAll($root, $d);
+          static::touchAll($root, $d);
+        }
 
         Response::redirect("admin");
+    }
+
+    public function post_import() {
+      $src = \Upload::get_files(0);
+      switch ($src['extension']) {
+          case 'csv':
+            $csv = array_map('str_getcsv', file($src['file']));
+            array_walk($csv, function(&$a) use ($csv) {
+                $a = array_combine($csv[0], $a);
+              });
+            array_shift($csv); # remove column header
+            $src = json_encode($csv);            
+            break;
+          default:
+            $src = file_get_contents($src['file']);
+            break;
+      }
+      $src = json_decode($src);  
+      self::import($src);
+
+      return new Response("", 200);
+    }
+
+    private function import($src) {
+      echo "<pre>";
+      if ($src) {
+        foreach ($src as $srci) {
+          $item = (array)$srci;
+          echo "-----------------------------------------\nSource: ";
+          print_r($item);
+          if (!isset($item['type'])) {
+            $item['type'] = 'section';
+            if (isset($item['username'])) $item['type'] = 'user';
+            else if (isset($item['format'])) $item['type'] = 'competition';
+            else if (isset($item['code'])) $item['type'] = 'club';
+            else if (!isset($item['name'])) {
+                echo "No type";
+                continue;
+            }
+          }
+
+          foreach ($item as $key=>&$value) {
+            if ($value === 'NULL') $value = null;
+          }
+
+          echo "Importing ".$item['type']."\n";
+
+          try {
+            switch ($item['type']) {
+              case 'section':
+                if (!Model_Section::find_by_name($item['name'])) {
+                  $s = new Model_Section();
+                  $s['name'] = $item['name'];
+                  $s->save();
+                  echo "Imported Section: ".$item['name']."\n";
+                }
+                break;
+              case 'club':
+                if (!Model_Club::find_by_name($item['name'])) {
+                  $c = new Model_Club();
+                  $c['name'] = $item['name'];
+                  $c['code'] = $item['code'];
+                  $c->save();
+                  echo "Imported Club: ".$item['name']."\n";
+                }
+                break;
+              case 'competition':
+                $s = Model_Section::find_by_name($item['section']);
+                if ($s) {
+                  $c = DB::select()->from("competition")->where('name', $item['name'])->where('section_id', $s['id'])
+                    ->execute();
+                   if (isset($c)) {
+                     $x = new Model_Competition();
+                     $x['name'] = $item['name'];
+                     $x['code'] = $item['code'];
+                     $x['section'] = $s;
+                     $x['teamsize'] = $item['teamsize'];
+                     $x['teamstars'] = $item['teamstars'];
+                     $x['groups'] = $item['groups'];
+                     $x['format'] = $item['format'];
+                     $x['sequence'] = $item['sequence'];
+                     $x->save();
+                     echo "Imported Competition: ".$item['name']."\n";
+                   }
+                }
+                break;
+              case 'user':
+                {
+                    $username = $item['username'];
+                    switch ($item['group']) {
+                        case 25: // secretary
+                        case 99: // admin
+                            $username = $item['email'];
+                            break;
+                        case 2: // umpire
+                            $username = ucwords($item['username']);
+                            break;
+                        case 1: // player
+                            if ($item['club']) $username = $item['club']." (".$item['section'].")";
+                            break;
+                    }
+                    if (!$username) continue 2;
+                    echo "Username: $username\n";
+                    $u0 = Model_User::find_by_username($username);
+                    if ($u0) {
+                        if (isset($u0->section)) {
+                            if (!isset($item['section'])) {   // new user has no section, overrides existing user
+                                $u0->section = null;
+                                $u0->save();
+                            } else if ($u0->section['name'] !== $item['section']) {  // new user is not same as existing user
+                                if ($u0['group'] == 25 || $u0['group'] == 99) {   // user is a secretary/admin - widen their scope
+                                    $u0->section = null;
+                                    $u0->save();
+                                }
+                            }
+                        }
+
+                        continue 2;
+                    }
+                    echo "New User\n";
+                    $s = isset($item['section']) ? Model_Section::find_by_name($item['section']) : null;
+                    if ($item['group'] == 2) $s = null;  // umpires
+                    $c = isset($item['club']) ? Model_Club::find_by_name($item['club']) : null;
+                    $u = new Model_User();
+                    $u['username'] = $username;
+                    $u['password'] = $item['password'];
+                    $u['club'] = $c;
+                    $u['section'] = $s;
+                    $u['group'] = $item['group'];
+                    $u['email'] = $item['email'];
+                    $u->save();
+                    echo "Imported user: ".$item['username']."\n";
+                }
+                break;
+
+              default:
+                echo $item['type']."\n";
+            }
+          } catch (Exception $e) {
+            Log::error("Error importing: ".print_r($item, true)."\n".$e->getMessage());
+          }
+        }
+      }
     }
 
     private static function touchAll($path, $date) {
@@ -166,15 +313,23 @@ class Controller_Admin extends Controller_Hybrid {
         $date = \Input::param('d', Date::forge()->format("%Y%m%d"));
 				$page = \Input::param('p', 1);
 				$site = \Input::get('site', Session::get('site' , 'none'));
-				
-				if ($site != 'none') {
+
+        if (isset($_GET['mark'])) Log::info("==== Log Marker ====");
+
+				if ($site && $site != 'none') {
 					$logPath = DATAPATH."sites/$site/logs/";
 				} else {
 					$logPath = DATAPATH."logs/";
 				}
 
         $filename = $logPath . substr($date, 0, 4) . "/" . substr($date, 4, 2) . "/" . substr($date, 6, 2) . ".php";
+
+        if (!file_exists($filename)) {
+          return new Response("Log file does not exist: $filename", 404);
+        }
+
         $fp = fopen($filename, 'r');
+
         fseek($fp, -512000 * $page, SEEK_END);
         $src = fread($fp, 512000);
 
@@ -206,6 +361,10 @@ class Controller_Admin extends Controller_Hybrid {
                     break;
                 default:
                     $match2 = array();
+                    if (preg_match("/==== Log Marker ====/", $match[3], $match2)) {
+                      echo "<hr>";
+                      break;
+                    }
                     if (preg_match("/--- Execute: (.*)/", $match[3], $match2)) {
                         $squeak = substr("----- " . $match2[1] . " " . str_repeat("-", 120), 0, 120);
                         echo "<code style='color:#88bb99'>" . $match[2] . " $squeak </code><br><br>";
@@ -314,17 +473,32 @@ class Controller_Admin extends Controller_Hybrid {
 
     private function get_refresh() {
 
+        foreach (Model_Section::find('all') as $section) {
+          self::refreshSection($section);
+        }
+
+        Log::debug("Refresh complete");
+
+        $this->template->title = 'Refresh';
+        $this->template->content = "";
+    }
+
+
+    private function refreshSection($section) {
+        //Response::redirect("admin/competitions");
+
         $fixtures = Model_Fixture::getAll();
         $competitionTeams = array();
         $clubTeams = array();
         $teamLookup = array();
         $errors = 0;
 
-				echo "Processing ".count($fixtures)." fixture(s)\n";
-
+				Log::info("Rebuilding competitions for ${section['name']}: ".count($fixtures)." fixture(s)");
 				$unknowns = array();
 
         foreach ($fixtures as $fixture) {
+            if ($fixture['section'] !== $section['name']) continue;
+
 						if (!isset($fixture['home_club'])) {
 							$unknowns[$fixture['home']] = true;
 							continue;
@@ -355,34 +529,40 @@ class Controller_Admin extends Controller_Hybrid {
 
         try {
             DB::start_transaction();
-            DB::delete('entry')->execute();  // Delete all entrys
+            DB::delete('team__competition')->execute();  // Delete all entrys
 
             foreach ($teamLookup as $team => $detail) {
-                $t = Model_Team::find_by_name($team);
-                if ($t)
-                    continue;
-
-                $clubName = $detail['club'];
-                $club = Model_Club::find_by_name($clubName);
-                if (!$club) {
-                    continue;
+                $t = Model_Team::find_by_name($team, $section);
+                if (!$t) {
+                  Log::info("Creating team: $team ".print_r($detail,true));
+                  // if team does not exist, create it
+                  $clubName = $detail['club'];
+                  $club = Model_Club::find_by_name($clubName);
+                  if (!$club) {
+                    Log::warning("No club $clubName");
+                      continue;
+                  }
+                  $t = new Model_Team();
+                  $t->club = $club;
+                  $t->section = $section;
+                  $t->name = $detail['team'];
+                  $t->save();
                 }
-                $t = new Model_Team();
-                $t->club = $club;
-                $t->team = $detail['team'];
-                $t->save();
             }
 
             Log::debug("Teams updated");
 
             foreach ($competitionTeams as $competition => $teams) {
-                $comp = Model_Competition::find_by_name($competition);
+                $comp = Model_Competition::query()
+                          ->where('name', '=', $competition)
+                          ->where('section_id','=',$section['id'])
+                          ->get_one();
                 if (!$comp) {
                     continue;
                 }
 
                 foreach ($teams as $team) {
-                    $findTeam = Model_Team::find_by_name($team);
+                    $findTeam = Model_Team::find_by_name($team, $section);
 
                     if ($findTeam) {
                         $comp->team[] = $findTeam;
@@ -393,7 +573,7 @@ class Controller_Admin extends Controller_Hybrid {
 
             Log::debug("Competitions updated");
 
-            foreach (Model_Card::query()
+            foreach (Model_Matchcard::query()
                     ->where('home_id', '=', null)
                     ->or_where('away_id', '=', null)->get() as $card) {
 
@@ -402,11 +582,11 @@ class Controller_Admin extends Controller_Hybrid {
                         continue;
 
                     if (!$card['home_id']) {
-                        $t = Model_Team::find_by_name($fixture['home']);
+                        $t = Model_Team::find_by_name($fixture['home'], $section);
                         $card['home_id'] = $t['id'];
                     }
                     if (!$card['away_id']) {
-                        $t = Model_Team::find_by_name($fixture['away']);
+                        $t = Model_Team::find_by_name($fixture['away'], $section);
                         $card['away_id'] = $t['id'];
                     }
                     $card->save();
@@ -419,13 +599,6 @@ class Controller_Admin extends Controller_Hybrid {
 
             throw $e;
         }
-
-        Log::debug("Refresh complete");
-
-        $this->template->title = 'Refresh';
-        $this->template->content = "";
-
-        //Response::redirect("admin/competitions");
     }
 
     private static function treeset(&$t, $k, $v) {
@@ -543,6 +716,9 @@ class Controller_Admin extends Controller_Hybrid {
     }
 
     public function get_config() {
+        if (!Auth::has_access("configuration.view"))
+            throw new HttpNoAccessException;
+
         $tasks = Model_Task::find('all');
 
         list($comps, $teams) = self::parsing();
@@ -553,7 +729,6 @@ class Controller_Admin extends Controller_Hybrid {
             "title" => Config::get("section.title"),
             "salt" => Config::get("section.salt"),
             "fine" => Config::get("section.fine", 25),
-            "elevation_password" => Config::get("section.elevation.password"),
             "admin_email" => Config::get("section.admin.email"),
             "cc_email" => Config::get("section.cc.email"),
             "strict_comps" => Config::get("section.strict_comps"),
@@ -581,6 +756,7 @@ class Controller_Admin extends Controller_Hybrid {
         $competitions = array();
 
         foreach (Model_Fixture::getAll() as $fixture) {
+          if ($fixture['section'] !== 'lha-men') continue;
 					$competitions[$fixture['competition']] = "xx";
 
 					if (isset($fixture['x'])) $teams[$fixture['x']['raw']] = "xx";
@@ -601,7 +777,10 @@ class Controller_Admin extends Controller_Hybrid {
 				$dbClubs = array_column(Model_Club::find('all'), 'name');
 
         foreach ($teams as $team => $x) {
-            $tm = Model_Club::parse($team);
+            $tm = Model_Team::parse($team);
+            if ($tm === null) {
+              continue;
+            }
             $tm['valid'] = in_array($tm['club'], $dbClubs);
             $teams[$team] = $tm;
         }

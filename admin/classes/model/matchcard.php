@@ -50,18 +50,13 @@ class Model_Matchcard extends \Orm\Model
 
 			$comp = Model_Competition::find_by_name($fixture['competition']);
 			$comp = $comp->id;
-			$home = Model_Team::find_by_name($fixture['home']);
+			$home = Model_Team::find_by_name($fixture['section'], $fixture['home']);
 			$home = $home->id;
-			$away = Model_Team::find_by_name($fixture['away']);
+			$away = Model_Team::find_by_name($fixture['section'], $fixture['away']);
 			$away = $away->id;
-
-			//echo "$fixtureId=${fixture['competition']}->$comp, ${fixture['home']}->$home, ${fixture['away']}->$away\n";
 
 			DB::insert('matchcard', array('fixture_id','home_id','away_id','competition_id'))
 				->values(array($fixtureId, $home, $away, $comp))->execute();
-
-			//DB::query("INSERT INTO matchcard (fixture_id, home_id, away_id, competition_id)
-			//	values ($fixtureId, $home, $away, $comp})")->execute();
 
 			Log::info("Created new card for $fixtureId");
 
@@ -376,7 +371,7 @@ class Model_Matchcard extends \Orm\Model
 					}
 					break;
 				case 'Scored':
-					if ($incident['resolved'] == 1) continue;
+					if ($incident['resolved'] == 1) break;
 					$card[$key]['goals'] = $card[$key]['goals'] + $incident['detail'];
 					if (isset($card[$key]['scorers'][$playerName])) $score = $card[$key]['scorers'][$playerName];
 					else $score = 0;
@@ -386,7 +381,7 @@ class Model_Matchcard extends \Orm\Model
 					$card[$key]['fines'][] = array('Missing'=>$incident['detail'], "resolved"=>$incident['resolved']);
 					break;
 				case 'Signed':
-					if ($incident['resolved'] == 1) continue;
+					if ($incident['resolved'] == 1) break;
 					if (preg_match("/^([0-9]+)?(?:\/([^;]*))?(?:;(.*))?$/i", $incident['detail'], $output_array)) {
 						$card[$key]['signed'] = true;
 						$oppositionScore = $output_array[1];
@@ -397,7 +392,7 @@ class Model_Matchcard extends \Orm\Model
 					break;
 				case 'Yellow Card':
 				case 'Red Card':
-					if ($incident['resolved'] == 1) continue;
+					if ($incident['resolved'] == 1) break;
 					self::arr_add($card[$key],'penalties', array(
 						'player'=>$incident['player'], 
 						'penalty'=>$incident['type'],
@@ -412,7 +407,6 @@ class Model_Matchcard extends \Orm\Model
 					break;
 				default:
 					$card[$key]['incidents'][] = $incident;
-					continue;
 			}
 		}
 

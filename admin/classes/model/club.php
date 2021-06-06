@@ -76,42 +76,4 @@ class Model_Club extends \Orm\Model
 		return $result;
 	}
 
-	public static function parse($str) {
-		$config = Config::get("section.pattern.team");
-
-		$patterns = array();
-		$replacements = array();
-		foreach ($config as $pattern) {
-			if (trim($pattern) == '') break;
-			$parts = explode($pattern[0], $pattern);
-			if (count($parts) < 3) continue;
-			$patterns[] = "/".str_replace("/", "", $parts[1])."/i";
-			$replacements[] = $parts[2];
-		}
-
-		Log::debug("Patterns:".print_r($patterns, true)." Replace:".print_r($replacements,true));
-
-		$str = preg_replace($patterns, $replacements, trim($str));
-
-		if ($str == '!') return null;
-
-		$matches = array();
-		if (!preg_match('/^([a-z ]*[a-z])(?:\s+([0-9]+))?$/i', trim($str), $matches)) {
-			//Log::warning("Cannot match '$str'");
-			return null;
-		}
-
-		$result = array('club'=>$matches[1], 'raw'=>$str);
-
-		if (count($matches) > 2) {
-			$result['team'] = $matches[2];
-		} else {
-			$result['team'] = 1;
-		}
-
-		$result['name'] = $result['club'] .' '. $result['team'];
-
-		return $result;
-	}
-
 }

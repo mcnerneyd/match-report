@@ -18,7 +18,7 @@ class Model_Fine extends \Orm\Model
 		'card'=>array(
 			'key_to'=>'id',
 			'key_from'=>'matchcard_id',
-			'model_to'=>'Model_Card',
+			'model_to'=>'Model_Matchcard',
 		)
 	);
 
@@ -151,7 +151,7 @@ class Model_Fine extends \Orm\Model
 		}
 
 		// Find the fixtures of all cards and eliminate them from missing cards
-		$matchcardFixtures = Model_Card::query()->where('fixture_id','!=','null')->select('fixture_id')->get();
+		$matchcardFixtures = Model_Matchcard::query()->where('fixture_id','!=','null')->select('fixture_id')->get();
 		$matchcardFixtures = array_map(function($a) { return $a->fixture_id; }, $matchcardFixtures);
 
 		$fines = array();

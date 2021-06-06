@@ -52,6 +52,9 @@ $(document).ready(function(event) {
 			<a class='nav-link active' href='#home' data-toggle='tab'>General</a>
 		</li>
 		<li class='nav-item'>
+			<a class='nav-link' href='#registration' data-toggle='tab'>Registration</a>
+		</li>
+		<li class='nav-item'>
 			<a class='nav-link' href='#fixtures' data-toggle='tab'>Fixtures</a>
 		</li>
 		<li class='nav-item'>
@@ -130,9 +133,9 @@ $(document).ready(function(event) {
 					(Separate with commas)</small>
 				</div>
 			</div>
+    </div>
 
-				<h2>Registration</h2>
-
+		<div class='tab-pane' id='registration'>
 				<div class='form-group col'>
 					<label>Registration Restriction Date</label>
 					<input name='regrestdate' type='text' class='form-control date-select' value='<?= $regrestdate ?>'></input>
@@ -249,12 +252,6 @@ $(document).ready(function(event) {
 						
 					</div>
 				</div>
-
-				<div class='form-group col-sm-6'>
-					<label>Elevation Password</label>
-					<input name='elevation_password' type='text' class='form-control' value='<?= $elevation_password ?>'></input>
-				</div>
-
 		</div> <!-- #security -->
 
 		<div class='tab-pane' id='tasks'>

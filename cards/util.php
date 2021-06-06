@@ -143,7 +143,7 @@ function rangeEnd($now = null) {
 
 //-----------------------------------------------------------------------------
 function parse($str) {
-	$config = Config::get("config.pattern.team");
+	$config = Config::get("config.pattern.team", array());
 	$patterns = array();
 	$replacements = array();
 	foreach ($config as $pattern) {
@@ -177,7 +177,7 @@ function parse($str) {
 
 //-----------------------------------------------------------------------------
 function parseCompetition($str, $competitions) {
-	$config = Config::get("config.pattern.competition");
+	$config = Config::get("config.pattern.competition", array());
 	if (!$config) {
 		Log::warn("No competition patterns specified");
 	}

@@ -8,6 +8,16 @@ body {
   margin-top: 80px;
 }
 
+footer div {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  background: black;
+  color: white;
+  font-size: 60%;
+  padding: 2px;
+}
+
 /* ---------- Navbar ------------------------------------------- */
 /*nav { border-bottom: 3px solid crimson !important; }
 
@@ -84,7 +94,7 @@ td.command-group {
 .label-team {
   vertical-align: middle;
   border: 1px solid #7ab733;
-  padding: 3px 5px 4px 5px;
+  padding: 5px 5px 3px 5px;
   margin-right: 2px;
 }
 
@@ -112,29 +122,29 @@ td.command-group {
   width: 100%;
   overflow-x: hidden;
   /* where screen is wide enough put side by side */
+  width: 100%;
+  overflow-x: hidden;
+  position: relative;
+  /* where screen is wide enough put side by side */
 }
-
 #match-card h1 {
   width: 100%;
   border-bottom: 2px solid black;
   font-size: 30px;
   font-weight: bold;
+  margin-top: 0;
 }
-
 #match-card #teams {
   margin-right: 0;
 }
-
 #match-card .team {
   width: 100%;
   margin-bottom: 30px;
 }
-
 @media (min-width: 768px) {
   #match-card #teams {
     margin-right: -20px;
   }
-
   #match-card .team {
     width: 50%;
     padding-right: 20px;
@@ -144,20 +154,16 @@ td.command-group {
 #match-card table {
   width: 100%;
 }
-
 #match-card tr td {
   padding: 5px 10px 5px 0;
   border-bottom: 1px solid #ddd;
 }
-
 #match-card tr td:nth-child(2) {
   font-style: italic;
 }
-
 #match-card tr td:nth-child(3) {
   width: 60%;
 }
-
 #match-card detail {
   width: 100%;
   min-height: 50px;
@@ -165,48 +171,38 @@ td.command-group {
   display: block;
   float: left;
 }
-
 #match-card detail dl {
   padding-right: 40px;
   float: left;
 }
-
 #match-card #lock-code {
   float: right;
   padding-right: 0;
 }
-
 #match-card #lock-code * {
   text-align: right;
 }
-
 #match-card tr {
   height: 2em;
 }
-
 #match-card tr span {
   float: right;
 }
-
 #match-card tr.filler {
   background: repeating-linear-gradient(45deg, white, white 9px, #eee 2px, #eee 11px);
 }
-
 #match-card span.score {
   color: #484;
   padding-left: 0.5em;
   font-weight: bold;
 }
-
 #match-card span.score::before {
   content: "x";
 }
-
 #match-card span.card-penalty img {
   width: 1.5em;
   margin: -1.5em -0.3em -0.5em 0.5em;
 }
-
 #match-card thead tr {
   font-size: 20px;
   color: black;
@@ -214,21 +210,20 @@ td.command-group {
   border-bottom: 1px solid black;
   border-top: 1px solid black;
 }
-
 #match-card thead tr th {
   text-align: left;
 }
-
 #match-card thead tr span.score {
   float: right;
   color: #484;
   font-weight: bold;
 }
-
+#match-card thead tr img {
+  height: 20px;
+}
 #match-card .ineligible {
   background: repeating-linear-gradient(45deg, white, white 10px, #fea 10px, #fea 20px);
 }
-
 #match-card figure {
   float: left;
   margin: 5px 5px 0 0;
@@ -237,23 +232,19 @@ td.command-group {
   position: relative;
   overflow: hidden;
 }
-
 #match-card figure img {
   width: 100%;
 }
-
 #match-card figure .score {
   position: absolute;
   top: 5px;
   right: 8px;
 }
-
 #match-card figure .number {
   width: 15px;
   text-align: center;
   display: block;
 }
-
 #match-card figcaption {
   margin-top: -19px;
   font-size: 70%;
@@ -261,10 +252,125 @@ td.command-group {
   margin-left: 18px;
   height: 1.6rem;
 }
-
 #match-card figcaption::first-line {
   font-size: 60%;
   font-style: italic;
+}
+#match-card h2 {
+  font-size: 25px;
+}
+#match-card #headshot {
+  position: absolute;
+  right: 0;
+}
+#match-card tr th {
+  padding: 5px 10px 5px 0;
+  border-bottom: 1px solid #ddd;
+}
+#match-card #fixture tr {
+  height: 2em;
+}
+#match-card thead tr th,
+#match-card #fixture thead tr th {
+  text-align: left;
+  width: 2em;
+}
+#match-card tbody tr th:first-child {
+  text-align: center;
+  width: 3em;
+}
+#match-card tr .player-annotations {
+  display: inline;
+  float: right;
+}
+#match-card figure span.score::before,
+#match-card tr span.score::before {
+  content: "x";
+}
+#match-card #fixture thead tr {
+  font-size: 20px;
+  color: black;
+  padding: 5px 10px 5px 0;
+  border-bottom: 1px solid black;
+  border-top: 1px solid black;
+}
+#match-card #fixture table#players {
+  margin-top: 20px;
+}
+#match-card #fixture thead tr span.score {
+  float: right;
+  color: #484;
+  font-weight: bold;
+  /* score within a score */
+}
+#match-card thead tr span.score span.score {
+  color: #aca;
+  padding: 0;
+  font-size: 80%;
+}
+#match-card thead tr span.score span.score:before {
+  content: "\\";
+}
+#match-card .late {
+  color: #d9534f;
+}
+#match-card .deleted td {
+  position: relative;
+  color: #d9534f80;
+}
+#match-card .deleted td:after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 1px;
+  position: absolute;
+  top: 50%;
+  background: #d9534f80;
+}
+#match-card div.figures {
+  padding-top: 5px;
+}
+#match-card figure {
+  float: left;
+  margin: 5px 5px 0 0;
+  border: 1px solid #ccc;
+  padding: 5px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 2px 2px 2px #ccc;
+}
+#match-card figure img {
+  width: 100%;
+}
+#match-card figure img.card {
+  width: 1.5em;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+}
+#match-card figure .score {
+  position: absolute;
+  top: 5px;
+  right: 8px;
+}
+#match-card figure .number {
+  width: 15px;
+  text-align: center;
+  display: block;
+}
+#match-card figcaption {
+  margin-top: -19px;
+  font-size: 70%;
+  text-align: left;
+  margin-left: 18px;
+  height: 1.6rem;
+}
+#match-card figcaption::first-line {
+  font-size: 60%;
+  font-style: italic;
+}
+#match-card button.add-player {
+  margin-top: 5px;
 }
 
 .waiting {
@@ -316,253 +422,7 @@ header {
   border-top: 1px dotted lightgray;
 }
 
-/* ---------- Competition Tags --------------------------------- */
-.label-league,
-.label-cup {
-  border: 1px solid #7ab733;
-  padding: 1px 5px 2px 5px;
-  margin-right: 2px;
-  border-radius: 0.5em;
-}
-
-.label-league {
-  background-color: #7ab733;
-  color: white;
-}
-
-.label-cup {
-  background-color: #eeffcc;
-  color: #7ab733 !important;
-}
-
-.label-team {
-  border: 1px solid #b7337a;
-  background-color: #b7337a;
-}
-
 /* ---------- Matchcard Formatting ------------------------------ */
-#match-card {
-  width: 100%;
-  overflow-x: hidden;
-  position: relative;
-  /* where screen is wide enough put side by side */
-}
-
-#match-card h1 {
-  width: 100%;
-  margin-top: 0;
-  border-bottom: 2px solid black;
-  font-size: 30px;
-  font-weight: bold;
-}
-
-#match-card h2 {
-  font-size: 25px;
-}
-
-#match-card #headshot {
-  position: absolute;
-  right: 0;
-}
-
-#match-card #teams {
-  margin-right: 0;
-}
-
-#match-card .team {
-  width: 100%;
-  margin-bottom: 30px;
-}
-
-@media (min-width: 768px) {
-  #match-card #teams {
-    margin-right: -20px;
-  }
-
-  #match-card .team {
-    width: 50%;
-    padding-right: 20px;
-    float: left;
-  }
-}
-#match-card table {
-  width: 100%;
-}
-
-#match-card tr td,
-#match-card tr th {
-  padding: 5px 10px 5px 0;
-  border-bottom: 1px solid #ddd;
-}
-
-#match-card tr td:nth-child(2) {
-  font-style: italic;
-}
-
-#match-card tr td:nth-child(3) {
-  width: 60%;
-}
-
-#match-card detail {
-  width: 100%;
-  min-height: 50px;
-  clear: both;
-  display: block;
-  float: left;
-}
-
-#match-card detail dl {
-  padding-right: 40px;
-  float: left;
-}
-
-#match-card #lock-code {
-  float: right;
-  padding-right: 0;
-}
-
-#match-card #lock-code * {
-  text-align: right;
-}
-
-#match-card tr,
-#fixture tr {
-  height: 2em;
-}
-
-#match-card thead tr th,
-#fixture thead tr th {
-  text-align: left;
-  width: 2em;
-}
-
-#match-card tbody tr th:first-child {
-  text-align: center;
-  width: 3em;
-}
-
-#match-card tr.filler {
-  background: repeating-linear-gradient(45deg, white, white 9px, #eee 2px, #eee 11px);
-}
-
-#match-card tr .player-annotations {
-  display: inline;
-  float: right;
-}
-
-#match-card figure span.score::before,
-#match-card tr span.score::before {
-  content: "x";
-}
-
-#match-card thead tr,
-#fixture thead tr {
-  font-size: 20px;
-  color: black;
-  padding: 5px 10px 5px 0;
-  border-bottom: 1px solid black;
-  border-top: 1px solid black;
-}
-
-#fixture table#players {
-  margin-top: 20px;
-}
-
-#match-card thead tr img {
-  height: 20px;
-}
-
-#match-card thead tr span.score,
-#fixture thead tr span.score {
-  float: right;
-  color: #484;
-  font-weight: bold;
-  /* score within a score */
-}
-
-#match-card thead tr span.score span.score {
-  color: #aca;
-  padding: 0;
-  font-size: 80%;
-}
-
-#match-card thead tr span.score span.score:before {
-  content: "\\";
-}
-
-#match-card .late {
-  color: #d9534f;
-}
-
-#match-card .deleted td {
-  position: relative;
-  color: #d9534f80;
-}
-
-#match-card .deleted td:after {
-  content: "";
-  display: block;
-  width: 100%;
-  height: 1px;
-  position: absolute;
-  top: 50%;
-  background: #d9534f80;
-}
-
-#match-card div.figures {
-  padding-top: 5px;
-}
-
-#match-card figure {
-  float: left;
-  margin: 5px 5px 0 0;
-  border: 1px solid #ccc;
-  padding: 5px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 2px 2px 2px #ccc;
-}
-
-#match-card figure img {
-  width: 100%;
-}
-
-#match-card figure img.card {
-  width: 1.5em;
-  position: absolute;
-  top: 4px;
-  left: 4px;
-}
-
-#match-card figure .score {
-  position: absolute;
-  top: 5px;
-  right: 8px;
-}
-
-#match-card figure .number {
-  width: 15px;
-  text-align: center;
-  display: block;
-}
-
-#match-card figcaption {
-  margin-top: -19px;
-  font-size: 70%;
-  text-align: left;
-  margin-left: 18px;
-  height: 1.6rem;
-}
-
-#match-card figcaption::first-line {
-  font-size: 60%;
-  font-style: italic;
-}
-
-#match-card button.add-player {
-  margin-top: 5px;
-}
-
 #context-menu {
   xbackground: white;
   xfont-size: 90%;
@@ -747,6 +607,94 @@ header {
   margin-top: 8px;
   font-size: 90%;
   display: block;
+}
+
+#registration #date-select {
+  position: absolute;
+  z-index: 1000;
+  display: none;
+}
+#registration #registration-table th, #registration #registration-table td {
+  text-align: center;
+}
+#registration #registration-table th:nth-child(3), #registration #registration-table td:nth-child(3) {
+  text-align: left;
+}
+#registration #registration-table th:nth-child(1), #registration #registration-table td:nth-child(1) {
+  width: 32px;
+}
+#registration #registration-table th:nth-child(2), #registration #registration-table td:nth-child(2) {
+  width: 24px;
+}
+#registration #registration-table .deleted {
+  text-decoration: line-through;
+  color: red;
+}
+#registration #registration-table .added {
+  font-style: italic;
+  color: green;
+}
+#registration #registration-table .match-pill {
+  margin: 2px;
+  display: block;
+  float: left;
+}
+#registration #registration-table .match-pill span {
+  font-size: 80%;
+  color: black;
+  padding: 3px;
+  background: #fffff8;
+  border: 2px solid #b08080;
+  border-left: 0;
+  border-radius: 0 5px 5px 0;
+}
+#registration #registration-table .match-pill span:first-child {
+  border-radius: 5px 0 0 5px;
+  background: #b08080;
+  color: white;
+  border-color: #b08080;
+  border-right: 0;
+}
+#registration #registration-table .match-pill-cup span {
+  border-color: #8080b0 !important;
+}
+#registration #registration-table .match-pill-cup span:first-child {
+  background: #8080b0;
+}
+#registration #registration-table img.membership {
+  width: 20px;
+  height: 20px;
+  margin: -2px 0 0 5px;
+}
+#registration .form-confirmation {
+  position: relative;
+  height: 45px;
+}
+#registration .form-confirmation p {
+  position: absolute;
+  top: 2px;
+  left: 2em;
+  font-size: 75%;
+  font-style: italic;
+}
+#registration .form-control label {
+  margin-bottom: 0px;
+  font-size: 80%;
+}
+#registration tr.error td {
+  color: red;
+}
+#registration .dt-right {
+  text-align: right;
+}
+#registration #errors {
+  display: none;
+}
+#registration #errors .error {
+  color: red;
+}
+#registration #errors .warn {
+  color: orange;
 }
 
 /*# sourceMappingURL=style.css.map */

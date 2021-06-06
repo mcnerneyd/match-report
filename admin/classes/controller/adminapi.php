@@ -39,6 +39,9 @@ class Controller_AdminApi extends Controller_RestApi
 	}
 
     public function post_config() {
+        if (!Auth::has_access("configuration.edit"))
+            throw new HttpNoAccessException;
+
         Log::info("Post config");
         Config::set("section.title", Input::post("title"));
         Config::set("section.salt", Input::post("salt"));
@@ -58,7 +61,7 @@ class Controller_AdminApi extends Controller_RestApi
         Config::set("section.fixtures", explode("\r\n", trim(Input::post("fixtures"))));
         Config::set("section.pattern.competition", explode("\r\n", trim(Input::post("fixescompetition"))));
         Config::set("section.pattern.team", explode("\r\n", trim(Input::post("fixesteam"))));
-        $configFile = DATAPATH."./sections/".Config::set("section.name");
+        $configFile = realpath(DATAPATH."./sections/".Config::get("section.name")."/config.json");
         Log::info("Saving configuration for $configFile");
 
         Config::save($configFile, 'section');
@@ -69,5 +72,52 @@ class Controller_AdminApi extends Controller_RestApi
 				}
 
         return new Response("", 200);
+    }
+
+    public function get_export() {
+      $result = array();
+
+      foreach (Model_Section::find('all') as $section) {
+        $result[] = array('type'=>'section',
+          'name'=>$section['name']);
+      }
+
+      foreach (Model_Club::find('all') as $club) {
+        $result[] = array('type'=>'club',
+          'name'=>$club['name'],
+          'code'=>$club['code']);
+      }
+
+      foreach (Model_Competition::find('all') as $competition) {
+        $result[] = array('type'=>'competition',
+          'section'=>$competition->section['name'],
+          'name'=>$competition['name'],
+          'code'=>$competition['code'],
+          'groups'=>$competition['groups'],
+          'format'=>$competition['format'],
+          'teamsize'=>$competition['teamsize'],
+          'teamstars'=>$competition['teamstars'],
+          'sequence'=>$competition['sequence']);
+      }
+
+      foreach (Model_User::find('all') as $user) {
+        $u = array('type'=>'user',
+          'username'=>$user['username'],
+          'password'=>$user['password'],
+          'email'=>$user['email'],
+          'group'=>$user['group']);
+
+        if ($user->section) {
+          $u['section'] = $user->section['name'];
+        }
+
+        if ($user->club) {
+          $u['club'] = $user->club['name'];
+        }
+
+        $result[] = $u;
+      }
+
+      return $result;
     }
 }

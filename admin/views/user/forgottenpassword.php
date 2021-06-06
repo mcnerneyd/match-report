@@ -1,7 +1,7 @@
 <?php if (isset($email)) { ?>
 <p>An email has been sent to <?= $email ?> with instructions for
 resetting your password.</p>
-<? return; } ?>
+<?php return; } ?>
 <form>
 
 	<p>A email will be sent to this address with instructions for

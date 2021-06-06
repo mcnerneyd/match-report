@@ -6,13 +6,16 @@ class Controller_FixtureApi extends Controller_RestApi
 		header('Access-Control-Allow-Origin: *');
 
 		$page = \Input::param('p', 0);
-		$pagesize = \Input::param('s', 10);
+		$pagesize = \Input::param('n', 10);
+		$section = \Input::param('s', null);
 		$club = \Input::param('c', null);
 
-		if (! $club) {
+		if ($club === null) {
 			$clubId = \Auth::get('club_id');
-			$club = Model_Club::find_by_id($clubId);
-			$club = $club['name'];
+      if ($clubId) {
+        $club = Model_Club::find_by_id($clubId);
+        $club = $club['name'];
+      }
 		}
 
 		Log::debug("Fixtures requested: $club/$page size=$pagesize");
@@ -25,9 +28,8 @@ class Controller_FixtureApi extends Controller_RestApi
 		$fixtures = Model_Fixture::getAll(false);
 		$fixtures = array_filter($fixtures, function($a) { return !$a['hidden']; });
 	
-		Log::debug("Fixtures loaded");
-
-		if ($club != null) {
+		if ($club) {
+      Log::debug("Filtering by club");
 			$clubFixtures = array();
 			foreach ($fixtures as $fixture) {
 				if (!isset($fixture['home_club'])) { Log::error("Bad fixture: ".print_r($fixture, true)); continue; }
@@ -37,6 +39,8 @@ class Controller_FixtureApi extends Controller_RestApi
 			}
 			$fixtures = $clubFixtures;
 		}
+
+		Log::debug("Fixtures loaded (".count($fixtures).")");
 
 		usort($fixtures, function($a, $b) {
 			return $a['datetime']->get_timestamp() - $b['datetime']->get_timestamp();
@@ -66,8 +70,8 @@ class Controller_FixtureApi extends Controller_RestApi
       /*if ($last < 0 ) $last = 0;
       if ($first > count($fixtures)) $first = count($fixtures);
       if ($last > count($fixtures)) $last = count($fixtures);*/
-      $fixtures = array_slice($fixtures, $first, $last - $first + 1);
-      Log::debug("Slicing absolute: $first -- $last (ct=$ct)");
+      $start = $first;
+      $size = $last - $first + 1;
     } else {
       if ($pagesize > 0) {
         $minPage = floor(-$ct / $pagesize);
@@ -79,22 +83,25 @@ class Controller_FixtureApi extends Controller_RestApi
       Log::debug("Minimum page: $minPage/$pagesize ($ct)");
 
       if ($page < $minPage) {
-        $fixtures = array();
+        $start = 0;
+        $size = 0;
       } else {
-        $ctToReturn = $pagesize;
-        $startToReturn = ($page * $pagesize) + $ct;
-        if ($startToReturn < 0) {
-          $ctToReturn += $startToReturn;
-          $startToReturn = 0;
+        $size = $pagesize;
+        $start = ($page * $pagesize) + $ct;
+        if ($start < 0) {
+          $size += $start;
+          $start = 0;
         }
-        $fixtures = array_slice($fixtures, $startToReturn, $ctToReturn);
-        Log::debug("Slice: $startToReturn-$ctToReturn = ".count($fixtures));
       }
     }
 
+    Log::debug("Slicing absolute from:$start size=$size");
+    $fixtures = array_slice($fixtures, $start, $size);
+
     foreach ($fixtures as &$fixture) {
-      $card = Model_Card::find_by_fixture($fixture['fixtureID']);
-      if ($card && $card['open'] < 0) {
+      $card = Model_Matchcard::find_by_fixture($fixture['fixtureID']);
+      if (!$card) continue;
+      if ($card['open'] < 0) {
         $fixture['state'] = 'invalid';
         continue;
       }
@@ -118,9 +125,31 @@ class Controller_FixtureApi extends Controller_RestApi
       }
     }
 
-		Log::debug("Fixtures ready");
+		Log::debug("Fixtures ready: ".count($fixtures));
 
-		return $this->response($fixtures);
+    $fixtures = array_map(fn($f) => array(
+        "id"=>$f['fixtureID'],
+        "datetimeZ"=>$f['datetime']->format('iso8601'),
+        "section"=>$f['section'],
+        "competition"=>$f['competition'],
+        "played"=>$f['played'],
+        "home"=>array(
+          "name"=>$f['home'],
+          "club"=>Arr::get($f,'home_club'),
+          "team"=>Arr::get($f,'home_team'),
+          "score"=>$f['home_score']
+          ),
+        "away"=>array(
+          "name"=>$f['away'],
+          "club"=>Arr::get($f,'away_club'),
+          "team"=>Arr::get($f,'away_team'),
+          "score"=>$f['away_score']
+          )
+        ), $fixtures);
+
+    $result = array('page'=>$page, 'start'=>$start, 'size'=>$size, 'fixtures'=>$fixtures);
+
+		return $this->response($result);
 	}
 
 	private function getCardInfo($card, $side) {

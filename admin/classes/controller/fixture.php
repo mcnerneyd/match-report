@@ -13,7 +13,7 @@ class Controller_Fixture extends Controller_Hybrid
 			$fixture['show'] = true;
 		}
 
-		foreach (Model_Card::query()->where('open','<=','-50')->get() as $card) {
+		foreach (Model_Matchcard::query()->where('open','<=','-50')->get() as $card) {
 			$fixtures[$card['fixture_id']]['show'] = false;
 		}
 

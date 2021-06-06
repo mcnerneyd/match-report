@@ -1,7 +1,13 @@
 <?php
+echo "<!-- \$fixture=";print_r($fixture);echo "-->";
 // vim: et:ts=2:sw=2
-if (!isset($fixture['card']))
-    throw new Exception("A card for this fixture does not exist yet");
+$club = $_SESSION['club'];
+
+if (isset($fixture['card'])) {
+  $card = $fixture['card'];
+} else {
+  $card = null;
+}
 
 global $strictProcessing;
 $strictProcessing = false;
@@ -10,9 +16,6 @@ if (isset($fixture['competition-strict']) && $fixture['competition-strict'] == '
 }
 if (isset($_REQUEST['strict']))
     $strictProcessing = true;
-
-$club = $_SESSION['club'];
-$card = $fixture['card'];
 
 $cardIsOpen = false;
 
@@ -33,38 +36,25 @@ if (user('umpire')) {
         $cardIsOpen = true;
 }
 
-list($date, $time) = explode(" ", $fixture['datetime']);
-$time                            = substr($time, 0, 5);
-$card['away']['suggested-score'] = emptyValue($card['home']['oscore'], 0);
-$card['home']['suggested-score'] = emptyValue($card['away']['oscore'], 0);
-$baseUrl                         = substr(url(), 0, -11) . "&cid=${card['id']}&x=" . createsecurekey("card${card['id']}");
-?>
-<!-- <?= "WhoAmI:$whoami Open?:$cardIsOpen" ?> -->
-<script>
-var baseUrl = '<?= $baseUrl ?>';
-var restUrl = '<?= Uri::create('CardApi') ?>';
-</script>
+$date = strftime("%Y-%m-%d", $fixture['date']);
+$time = strftime("%H:%M", $fixture['date']);
+
+if ($card) {
+  $card['away']['suggested-score'] = emptyValue($card['home']['oscore'], 0);
+  $card['home']['suggested-score'] = emptyValue($card['away']['oscore'], 0);
+  $baseUrl = substr(url(), 0, -11) . "&cid=${card['id']}&x=" . createsecurekey("card${card['id']}");
+  ?>
+  <!-- <?= "WhoAmI:$whoami Open?:$cardIsOpen" ?> -->
+  <script>
+  var baseUrl = '<?= $baseUrl ?>';
+  var restUrl = '<?= Uri::create('CardApi') ?>';
+  </script>
+<?php } ?>
 <script src='js/matchcard.js' type='text/javascript'></script>
 <script>
 var card = <?= json_encode($card) ?>;
-var messages = [
-  {
-    level: "info",
-    title: "Remember",
-    text: "When recording goals - include 1v1/Strokes",
-  },
-  { 
-    level: "success",
-    text: "When you are finished, make sure click the 'Submit Card' button",
-  },
-  { 
-    level: "danger",
-    text: "Players added or removed after the match start time are listed in red",
-  },
-];
 
 $(document).ready(function() {
-  triggerMessage();
   flashSubmit();
 
   <?php
@@ -172,6 +162,7 @@ div.role-captain {
 </style>
 
 <?php
+if ($card)
 if ($card['official'] || $strictProcessing) {
 ?>
 <div class='alert alert-warning alert-small'>
@@ -197,19 +188,20 @@ $(document).ready(function() {
 }
 ?>
 
-<div id='messages' class='alert alert-small hidden'></div>
-
 <div id='match-card' <?php
 $class = "";
 if ($cardIsOpen)
     $class .= "open ";
-if ($card['official'])
+if ($card && $card['official'])
     $class .= "official ";
 if ($class)
-    echo "class='" . trim($class) . "' ";
-?>data-fixtureid='<?= $fixture['id'] ?>' data-cardid='<?= $card['id'] ?>' data-starttime='<?= $card['datetime'] * 1000 ?>'>
+    echo "class='" . trim($class) . "' data-fixtureid='${fixture['id']}'";
+if ($card) {
+  echo "data-cardid='".$card['id']."' data-starttime='".$card['date']."'>";
+}
+?>
+  <h1 id='competition' data-code='<?= $fixture['competition-code'] ?>' data-format='<?= $card ? $card['format'] : 'Any' ?>'><?= $fixture['competition'] ?></h1>
 
-  <h1 id='competition' data-code='<?= $card['competition-code'] ?>' data-format='<?= $card['format'] ?>'><?= $card['competition'] ?></h1>
 		<?php
 if ($fixture['groups']) {
 ?>
@@ -238,14 +230,16 @@ if (isset($card['away']['locked'])) {
       <dd><a href='http://cards.leinsterhockey.ie/public/Report/Card/<?= $fixture['id'] ?>'><?= $fixture['id'] ?></a></dd>
     </dl>
 
+    <?php if ($card) { ?>
     <dl id='cardid'>
       <dt>Card ID</dt>        
       <dd><?= $card['id'] ?></dd>
     </dl>
+    <?php } ?>
 
     <dl id='date'>
       <dt>Date</dt>        
-      <dd><?= $card['date'] ?></dd>
+      <dd><?= $date ?></dd>
     </dl>
 
     <dl id='time'>
@@ -257,14 +251,14 @@ if (isset($card['away']['locked'])) {
   <div id='teams'>
     <div id='matchcard-home' class='team <?= $whoami == 'home' ? 'ours' : 'theirs' ?>' data-side='home'>
       <?php
-render_team($card['home']);
-?>
+      render_team($fixture['home'], $card ? $card['home'] : null);
+      ?>
     </div>
 
     <div id='matchcard-away' class='team <?= $whoami == 'away' ? 'ours' : 'theirs' ?>' data-side='away'>
       <?php
-render_team($card['away']);
-?>
+      render_team($fixture['away'], $card ? $card['away'] : null);
+      ?>
     </div>
 
     <div style='clear:both'/>
@@ -594,24 +588,22 @@ print_r($card);
 ?>
 -->
 <?php //--------------------------------------------------------------
-function render_team($team)
+function render_team($fixture, $team)
 {
     global $strictProcessing;
     
-    echo "<table class='team-table' data-club='${team['club']}' data-team='${team['teamx']}' data-score='${team['score']}'>
-  <thead><tr><th colspan='100'>" . $team['team'] . " <span class='score'>${team['score']}";
-    if ($team['suggested-score'] != $team['score'])
+    echo "<table class='team-table' data-club='${fixture['club']}' data-team='${fixture['teamnumber']}' data-score='${fixture['score']}'>
+  <thead><tr><th colspan='100'>" . $fixture['team'] . " <span class='score'>${fixture['score']}";
+    if ($team && $team['suggested-score'] != $fixture['score'])
         echo "<span class='score'>" . $team['suggested-score'] . "</span>";
     echo "</span>";
-    if (user('admin'))
-        echo "<a class='unlock'>Unlock</a>";
     echo "</th></tr></thead>
 
   <tbody>\n";
     
     $ct = 0;
+    if ($team)
     foreach ($team['players'] as $player => $detail) {
-        
         
         $names = cleanName($player, "[Fn][LN]");
         

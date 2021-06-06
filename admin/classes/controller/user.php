@@ -170,6 +170,7 @@ class Controller_User extends Controller_Template
 				if (Session::get('username') === 'admin') {
 					Response::redirect(Uri::create('Admin'));
 				} else {
+          Log::info("Redirecting to SSO");
 					Response::redirect('/cards/sso.php?'.base64_encode($this->encode("/cards/index.php")));
 				}
 			} else {
@@ -189,7 +190,7 @@ class Controller_User extends Controller_Template
     $data['users'] = $users;
 
 		$sites = array();
-		foreach (scandir(DATAPATH."/sites/") as $site) {
+		foreach (scandir(DATAPATH."/sections/") as $site) {
 			if ($site[0] === '.') continue;
 			$configPath = DATAPATH."/sites/$site/config.json";
 			if (!file_exists($configPath)) continue;
@@ -210,7 +211,7 @@ class Controller_User extends Controller_Template
 
 		$data['u'] = $username;
 		$user = Session::get('user');
-		$data['site'] = $user->section['name'];
+		$data['site'] = $user->section ? $user->section['name'] : null;
 		$data['session']['user'] = $username;
 		if ($user['role'] != 'umpire') {
 			if ($user['club']) {
@@ -254,6 +255,7 @@ class Controller_User extends Controller_Template
 	}
 
 	public function action_root() {
+    Log::error("action_root");
 		if (!Session::get('username')) {
 			Response::redirect(Uri::create('Login'));
 		} else {

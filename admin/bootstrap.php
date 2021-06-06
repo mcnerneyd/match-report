@@ -45,9 +45,13 @@ require COREPATH.'bootstrap.php';
 // Initialize the framework with the config file.
 \Fuel::init('config.php');
 
-Log::info("Request: ".$_SERVER['REQUEST_METHOD']." ".$_SERVER['REQUEST_URI']." ->".$_SERVER['PHP_SELF']);
-$rq = \Request::forge();
-Log::info("Route: ".print_r(\Router::process($rq, true), true));
+$route = \Router::process(\Request::forge(), true);
+$route = $route ? " (".$route->controller."/".$route->action.")" : "";
+
+Log::info("*****************\nRequest: ".$_SERVER['REQUEST_METHOD']." ".$_SERVER['REQUEST_URI']." ->".$_SERVER['PHP_SELF'].
+  "$route ua=".$_SERVER['HTTP_USER_AGENT']);
+
+Model_User::initialize();
 
 require PKGPATH."PHPExcel/PHPExcel/IOFactory.php";
 
@@ -55,6 +59,7 @@ require APPPATH.'classes/lib/upgrade.php';
 require APPPATH.'classes/lib/util.php';
 
 Config::load(DATAPATH."config.json", 'config');
+Config::set('cache_dir', ensurePath(DATAPATH."/cache"));
 
 $user = Session::get('user', null);
 Log::info("Checking for user");
@@ -74,6 +79,16 @@ if ($user) {
   }
 }
 
+$cardsConfig = DATAPATH."/config.json";
+if (!file_exists($cardsConfig)) {
+  $config = array("database"=>array("name"=>\Config::get("db.default.connection.database"),
+    "username"=>\Config::get("db.default.connection.username"),
+    "password"=>\Config::get("db.default.connection.password"),
+    "host"=>\Config::get("db.default.connection.hostname")));
+  file_put_contents($cardsConfig, json_encode($config));
+}
+
+Log::debug("Bootstrap complete");
 /*	if (!defined('section')) {
 		$section = Input::param('section', Session::get('section',null));
 

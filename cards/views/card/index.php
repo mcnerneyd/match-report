@@ -1,186 +1,294 @@
-<?php
-if (isset($_GET['alternate'])) {
-	require_once("index2.php");
-	return;
-}
-?>
 <style>
-  table { width: 100%; }
-  table th:first-child, table td:first-child { width: 3em; padding-left: 6px; }
-  table tr td { border-top: 1px solid #ddd; padding: 5px 0px; }
-	table tr td:last-child { text-align: right; padding-right: 6px; }
-	a[data-toggle='confirmation'] { margin-top: -1px; }
-  table tr th { padding: 20px 0 5px 0; border-bottom: 2px solid black; }
-	table tr.unprocessed { background: repeating-linear-gradient( 45deg, #ffbbbb, #ffbbbb 5px, white 5px, white 20px); }
-	table tr.incomplete-warned { background: #E42217 !important; color: white; }
-	table tr.incomplete { background: #ffa500; }
-	table tr.incomplete.partial { background: #ffa50050; }
-	table tr.incomplete td { border-top: 1px solid black; }
-  .form-inline select { margin-left: 5px; }
-  select[name=competition] { font-weight: normal; }
-	.form-inline .form-control { width:auto; display:inline-block; }
-	.nav-tabs { padding-top: 20px; }
-	td.nonlha { color:#aa8; font-style:italic; }
+.month-marker th { margin: 10px 0px; padding: 20px 2px 5px 2px; border-bottom: 2px solid black; }
+.result { background: #efe; }
+.late { background: #faa; }
+.locked { 
+	background-image: linear-gradient(135deg, #ddffdd 8.33%, #ffffff 8.33%, #ffffff 50%, #ddffdd 50%, #ddffdd 58.33%, #ffffff 58.33%, #ffffff 100%);
+	background-size: 8.49px 8.49px;
+}
+.signed { background: #dfd; }
+.title th { font-size: 150%; padding-top: 20px; }
+.title:first-child { margin-top: 0; }
+.time { font-size: 80%; color: #aaa; }
+.score { font-weight: bold; padding: 0px 8px; }
+body { position: absolute; top: 0; bottom: 0; left: 0; right: 0; }
+table { width: 100%; }
+table tr td { border-top: 1px solid #ddd; padding: 5px 0px; }
+tr td:nth-child(1) { width: 0; }
+tr td:nth-child(4) { width: 0; padding: 2px 5px; }
+tr td:nth-child(4) .label { width: 0; padding: 2px 5px; display: inline !important; }
+#fixtures-container {
+	overflow-y: auto;
+}
+#fixtures tr:first-child {
+	margin-top: 0;
+	padding-top: 0;
+}
+.scrollrow {
+	text-align: center;
+	border: none;
+}
 </style>
 
 <script>
-$(document).ready(function () {
-  $("table tr[data-id]").click(function() {
-    window.document.location = "<?= url(null, 'get','card') ?>&fid="+$(this).data("id")+
-					"&x="+$(this).data("idx")+
-					"&status="+$(this).attr('class');
+function loadPage(row) {
+	var page = row.data('page');
+	console.log("Loading page", page, $('#pills-club').val());
+	if (page === undefined) return;
+	row.removeData('page');
+	row.find("i:first").hide();
+	row.find("i.fa-sync-alt").show();
+
+	// results are page<0, fixtures>=0
+
+	$.get('<?= Uri::create('fixtureapi.json') ?>?c='+$('#pills-club').val()+'&p=' + page +'&n=50', function(datax) {
+    if (!datax) {
+      console.log("No results");
+    }
+		if (datax) {
+      const data = datax['fixtures'];
+			var anchorRow;
+			var anchorTop = 0;
+			var anchorScrollTopBefore = $('#fixtures-container').scrollTop();
+
+			if (page < 0) {
+				anchorRow = row.next();
+				data.reverse();	// Items are going in backwards
+			} else {
+				anchorRow = row.prev();
+			}
+			var ofs = anchorRow.offset();
+			if (ofs) {
+				anchorTop = ofs.top;
+			}
+			console.log(`Loaded page: ${page} ${data.length} entry/s.`);
+			for (var i=0;i<data.length;i++) {
+				var item = data[i];
+
+				var fixtureID = item['id'];
+				if ($('#' + fixtureID).length > 0) return;
+
+				var dt = moment(item['datetimeZ']);
+				var title = `#${fixtureID}:${item['competition']} - ${item['home']['name']} v ${item['away']['name']}`;
+				
+				 //+ "/" + item['cardId'] 
+
+				if (page < 0) {
+					row.after(`<tr id="${fixtureID}" title="${title}"></tr>`);
+				} else {
+					row.before(`<tr id="${fixtureID}" title="${title}"></tr>`);
+				}
+
+				var current = $('#' + fixtureID);
+				current.addClass('fixture');
+
+				current.data('competition', item['competition']);
+				current.data('home', item['home']['club']);
+				current.data('away', item['away']['club']);
+
+				filter(current);
+
+				var tds = `<td data-value="${dt.format()}" class="date">${dt.format('D')}</td>
+					<td class="d-none d-md-table-cell time">${dt.format('h:mm')}</td>
+					<td class="d-none d-md-table-cell"><span>${item['section']}</span></td>
+					<td class="d-none d-md-table-cell"><span class="badge label-league">${item['competition']}</span></td>
+					<td class="d-table-cell d-md-none"><span class="badge label-league">${item['competition-code']}</span></td>
+					<td class="d-none d-md-table-cell">${item['home']['name']}`;
+
+        /*
+				if (item['home_info']['signed']) tds += ' <i class="fas fa-check-square"></i>';
+				else if (item['home_info']['locked']) tds += ' <i class="fas fa-lock"></i>';
+        */
+				tds += '</td>';
+
+				tds += "<td class='d-none d-md-table-cell'>";
+				if (item['played'] === 'yes') tds += item['home']['score'] + " - " + item['away']['score'];
+				tds += "</td>";
+
+				tds += '<td class="d-none d-md-table-cell">' + item['away']['name'];
+				//if (item['away_info']['signed']) tds += ' <i class="fas fa-check-square"></i>';
+				//else if (item['away_info']['locked']) tds += ' <i class="fas fa-lock"></i>';
+				tds += `</td>
+				<td class="d-md-none">${item['home']['name']} `;
+
+				if (item['played'] === 'yes') tds += "<span class='score'>" + item['home']['score'] + "-" + item['away']['score'] + "</span> ";
+				else tds += "v ";
+				tds += item['away']['name'] + '</td>';
+
+				current.append(tds);
+				current.data('time', dt);
+				current.data('id', fixtureID);
+
+				if (page > 0) {
+					var prevDate = null;
+					if (current.prev()) {
+						prevDate = current.prev().data('time');
+					}
+					if (!prevDate || dt.format('MMMM YYYY') != prevDate.format('MMMM YYYY')) {
+						addMonthYear(current);
+					}
+				} else {
+					if (current.next()) {
+						var nextDate = current.next().data('time');
+						if (nextDate && dt.format('MMMM YYYY') != nextDate.format('MMMM YYYY')) {
+							addMonthYear(current.next());
+						}
+					}
+				}
+
+				if (page < 0) {
+					$(window).scrollTop(row.position().top + row.height() + 5);
+					$(window).scroll(triggerLoad);
+				}
+			}
+
+			if (data.length > 0) {
+				row.find("i:first").hide();
+				row.find("i.fa-sync-alt").show();
+				$(".scrollrow").show();
+				if (page<0) {
+					row.data('page', page-1);
+				} else {
+					row.data('page', page+1);
+				}
+			} else {
+				row.remove();
+			}
+		} else {
+			console.log(`Loaded page: ${page} empty`);
+			row.remove();
+			if (page < 0) {
+				addMonthYear($('#fixtures tr.fixture:first'));
+			}
+		}
+
+		if (anchorRow) {
+			ofs = anchorRow.offset();
+			if (typeof ofs !== 'undefined') {
+				var t = anchorTop;
+				anchorTop = (ofs.top - anchorTop) + anchorScrollTopBefore;
+			}
+			$('#fixtures-container').scrollTop(anchorTop);
+		}
+
+		triggerLoad();
+	});
+}
+
+function filter(fixtureRow) {
+	var competition = $('#pills-competition').val();
+	//var club = $('#pills-club').val();
+	var show = true;
+	if (competition !== "" && competition !== fixtureRow.data('competition')) {
+		show = false;
+	}
+	//if (club !== "" && club !== fixtureRow.data('home') && club !== fixtureRow.data('away')) {
+	//	show = false;
+	//}
+	if (show) fixtureRow.show();
+	else fixtureRow.hide();
+}
+
+function addMonthYear(firstRow) {
+	var dt = firstRow.data('time');
+	firstRow.before("<tr class='month-marker'><th colspan='20'>" + dt.format('MMMM YYYY') + "</th></tr>");
+}
+
+function triggerLoad() {
+	$('#fixtures tr.scrollrow:last, #fixtures tr.scrollrow:first').each(function() {
+		if (typeof $(this).data('page') === 'undefined') return true;
+		var elementTop = $(this)[0].offsetTop;
+		var elementBottom = elementTop + $(this).outerHeight();
+		var viewportTop = $('#fixtures-container').scrollTop();
+		var viewportBottom = viewportTop + $('#fixtures-container').height();
+		if (elementBottom > viewportTop && elementTop < viewportBottom) {
+			loadPage($(this));
+		}
+	});
+}
+
+function sizeFixtures() {
+	var ofs = $('#fixtures-tab').offset();
+	$('#fixtures-container').css("left", ofs.left);
+	$('#fixtures-container').css("width", $('#fixtures-tab').width());
+	$('#fixtures-container').css("top", ofs.top + $('#fixtures-tab').height());
+}
+
+
+const resetTable = () => {
+  $('#fixtures tr').remove();
+  $('#fixtures tbody').append($(`<tr class='scrollrow'>
+      <td colspan='100'><i class='fas fa-chevron-up'></i><i class='fas fa-sync-alt fa-spin'></i></td> 
+    </tr> 
+    <tr class='scrollrow'> 
+      <td colspan='100'><i class='fas fa-chevron-down'></i><i class='fas fa-sync-alt fa-spin'></i></td> 
+    </tr>`));
+	$("#fixtures tr:first").data('page', -1).hide();
+	$(".scrollrow i.fa-sync-alt").hide();
+	$("#fixtures tr:last").data('page', 0);
+	loadPage($("#fixtures tr:last"));
+}
+
+$(document).ready(function() {
+	// Load initial dataset
+  resetTable();
+	$('#fixtures-container').scroll(triggerLoad);
+	sizeFixtures();
+	$('#fixtures-container').focus();
+
+  $('#pills-club').change(function(evt) {
+    resetTable();
   });
 
-	var selectedTab = window.location.hash.substr(0);
-
-	if (!selectedTab) {
-		selectedTab = $('#tabs a:first').attr('href');
-	}
-
-	$(".nav a[href='" + selectedTab + "']").closest('li').addClass('active');
-	filterCards();
-
-  function filterCards() {
-    $('tr').hide();
-
-    if ($(".nav li.active a[href='#fixtures']").length) {
-      $('tr.fixture').show();
-      $('tr.incomplete').show();
-    }
-
-    if ($(".nav li.active a[href='#results']").length) {
-      $('tr.result').show();
-    }
-
-    if ($("#competition-selector").val()!='') {
-      $('tr:not([data-competition="'+ $('#competition-selector').val() +'"])').hide();
-    }
-
-    $('table th:first-child').each(function() {
-      var tr = $(this).parent();
-      var trNext = tr.nextUntil("tr:has(th)", "tr:visible");
-      
-      if (trNext.length==0) tr.hide();
-      else tr.show();
-    });
-  }
-
-  $('#competition-selector').on('change', filterCards);
-
-  $('.nav li a').on('click', function() {
-    $('.nav li').removeClass('active');
-    $(this).parent().addClass('active');
-
-    filterCards();
+	$('.filter').change(function(evt) {
+		$('.fixture').each(function(index) {
+			filter($(this));
+		});
 	});
 
-	$('#fixtures-table .fa-envelope').on('click', function(event) {
-		event.preventDefault();
-		var cardId = $(this).closest('tr').data('id');
-		location.href = 'http://cards.leinsterhockey.ie/cards/fuel/public/card/sendmail?id='+cardId;
-		return false;
+  $("#fixtures").on("click", ".mail-btn", function(evt) {
+		var tr = $(this).closest("tr.fixture");
+    window.document.location = "<?= Uri::create("/Card/Sendmail") ?>?id="+tr.attr("id");
+		evt.stopPropagation();
 	});
 
-  filterCards();
+  $("#fixtures").on("click", "tr.fixture", function() {
+    window.document.location = "<?= url(null, 'get','card') ?>&fid="+$(this).attr("id");
+	});
+
+  $("#pills-club").val('<?= $_SESSION['club'] ?>');
 });
 </script>
 
-<form class='form-inline'>
-       <div class='form-group col-md-5'>
-               <label for='competition-selector'>Competition</label>
-               <select id='competition-selector' class='form-control' name='competition'>
-                       <option value=''>All competitions</option>
-               <?php foreach ($competitions as $competition) { ?>
-                       <option <?= (isset($_REQUEST['competition']) and ($competition->name == $_REQUEST['competition'])) ? 'selected' : '' ?>><?= $competition ?></option> 
-               <?php } ?>
-               </select>
-       </div>  <!-- .form-group -->
+<form id='fixtures-tab' style='flex: 0 1 auto'>
+  <div class='form-row'>
+    <div class='col'>
+    <select id='pills-club' class='custom-select'>
+      <option selected value=''>All Clubs</option>
+      <?php foreach ($clubs as $club) echo "<option value='$club'>$club</option>\n" ?>
+    </select>
+    </div>
+    <div class='col'>
+    <select id='pills-competition' class='filter custom-select'>
+      <option selected value="">All Competitions</option>
+      <?php foreach ($competitions as $competition) echo "<option>$competition</option>\n" ?>
+    </select>
+    </div>
+    <div class="btn-group btn-group-toggle col-auto" data-toggle="buttons">
+      <label class="btn btn-secondary active">
+        <input type="checkbox" checked autocomplete="off"> Results
+      </label>
+      <label class="btn btn-secondary active">
+        <input type="checkbox" checked autocomplete="off"> Fixtures
+      </label>
+    </div>
+  </div>
 </form>
 
-<ul class="nav nav-tabs" id='tabs'>
-  <li class='nav-item'><a href="#fixtures">Fixtures <span class='badge'><?= dd($counts, 'fixture', 0) + dd($counts, 'incomplete', 0) ?></span></a></li>
-  <li class='nav-item'><a href="#results">Results <span class='badge'><?= dd($counts, 'result', 0) ?></span></a></li>
-</ul>
-
-<table id='fixtures-table'>
-  <tbody>
-<?php $month = "";
-  foreach ($cards as $card) { 
-		if (user('user') and isset($card['card'])) {
-			$mycard = $card['card'][$card[user()]];
-		} else $mycard = null;
-
-    if (!isset($card['home']['valid']) && !isset($card['away']['valid'])) {
-			echo "<!-- ".print_r($card, true)." is not valid -->\n";
-			continue;
-		}
-
-    if ($month != date('F Y', $card['date'])) {
-        $month = date('F Y', $card['date']); ?>
-      <tr>
-        <th colspan='6'><?= $month ?></th>
-      </tr>
-<?php  } 
-			
-			$rowClass = $card['status'];
-			if (isset($card['warned'])) $rowClass .= " incomplete-warned";
-			if ($rowClass == 'incomplete' and $card['submitted']) $rowClass .= " partial";
-
-			$cardKey = dd($card,'competition-code'); 
-			if (isset($card['home'])) $cardKey .= $card['home']['team']; else $cardKey .= "XH0";
-			if (isset($card['away'])) $cardKey .= $card['away']['team']; else $cardKey .= "XA0";
-			$cardKey = str_replace(" ", "", $cardKey);
-
-			$label = 'label-league';
-			if (stripos($card['competition'], 'div') === FALSE) $label = 'label-cup';
-
-			?>
-      <tr class='<?= $rowClass ?>' data-id='<?= dd($card,'id',0) ?>' data-idx='<?= createsecurekey('card'.dd($card,'id',0)) ?>' data-competition='<?= dd($card,'competition') ?>' title='<?= $card['id'] ?>' data-key='<?= $cardKey ?>'>
-        <td><?= date('j', $card['date']) ?></td>
-        <td>
-					<span class='d-none d-md-block'><span class='label <?= $label ?>'><?= dd($card,'competition') ?></span></span>
-					<span class='d-md-none'><span class='label <?= $label ?>'><?= dd($card,'competition-code') ?></span></span>
-				</td>
-        <td <?= !isset($card['home']['valid'])?"class='nonlha'":"" ?> >
-				<?php 
-					if (isset($card['home'])) {
-						echo $card['home']['team'];
-					}
-
-					if (isset($card['card']['home']['closed'])) {
-						echo " <i class='fa fa-check' aria-hidden='true'></i> ";
-					} else if (isset($card['card']['home']['locked'])) {
-						echo " <i class='fa fa-lock' aria-hidden='true'></i> ";
-					}
-					?></td>
-        <td <?= !isset($card['away']['valid'])?"class='nonlha'":"" ?> >
-				<?php 
-					if (isset($card['away'])) {
-						echo $card['away']['team'];
-					}
-					if (isset($card['card']['away']['closed'])) {
-						echo " <i class='fa fa-check' aria-hidden='true'></i> ";
-					} else if (isset($card['card']['away']['locked'])) {
-						echo " <i class='fa fa-lock' aria-hidden='true'></i> ";
-					}
-					?></td>
-				<td class='hidden-xs'><?php
-					if (isset($card['late'])) {
-					if ($card['late'] === true) {
-						echo "Fined";
-					} else {
-						echo $card['late']." days ";
-
-						if (user('admin') && isset($card['warned'])) {
-							echo "<a class='btn btn-xs btn-danger' data-toggle='confirmation' data-title='Fine issued?' href='".url(null,'fine','card')."&fixtureid=".$card['id']."'><i class='fa fa-eur' aria-hidden='true'></i></a>";
-						}
-					}
-					}
-?>
-						<i class='fa fa-envelope'></i>
-					</td>
-      </tr>
-<?php } ?>
-  </tbody>
-</table>
+<div id='fixtures-container' style='position: fixed; bottom: 10px; left: 0; right: 0; top: 95px; margin-top: 20px; border-top: 1px solid lightgray; border-bottom: 1px solid lightgray;'>
+  <table id='fixtures'>
+    <tbody>
+    </tbody>
+  </table>
+</div>
 

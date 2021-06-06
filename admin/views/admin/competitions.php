@@ -69,7 +69,7 @@
 	<tbody style='display:none'>
 	<?php foreach ($competitions as $competition) {
 		echo "<tr data-code='${competition['code']}'>
-			<td>".$competition->section['name']."</td>
+			<td>".$competition->section->getProperty('shorttitle')."</td>
 			<td>${competition['name']}</td>
 			<td>${competition['code']}</td>
 			<td>${competition['teamsize']}</td>

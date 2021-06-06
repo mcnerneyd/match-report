@@ -6,6 +6,8 @@ class Controller_Registration extends Controller_Template
 			throw new HttpNoAccessException;
 		}
 
+    $section = Input::param('s');
+
 		if (Auth::has_access("registration.impersonate")) {
 			$club = Input::param("c");
 		}
@@ -18,13 +20,15 @@ class Controller_Registration extends Controller_Template
       }
 		}
 
-		Log::info("Requesting registration for $club");
+		Log::info("Requesting registration for $section/$club");
 
-		$registrations = $club ? Model_Registration::find_all($club) : array();
+		$registrations = $club && $section ? Model_Registration::find_all($section, $club) : array();
 		
 		$this->template->title = "Registrations";
 		$this->template->content = View::forge('registration/index', array('club'=>$club,
+      'section'=>$section,
 			'clubs'=>Model_Club::find('all'),
+      'sections'=>Model_Section::find('all'),
 			'registrations'=>$registrations));
 	}
 
@@ -34,11 +38,16 @@ class Controller_Registration extends Controller_Template
 			throw new HttpNoAccessException;
 		}
 
-		$user = Model_User::find_by_username(Session::get("username"));
-		$club = $user['club']['name'];
+    $section = \Input::param('s', null);
 
+		$user = Model_User::find_by_username(Session::get("username"));
+    $club = null;
+    if ($user and $user['club']) {
+      $club = $user['club']['name'];
+    }
+    
 		if (\Auth::has_access("registration.impersonate")) {
-			$club = \Input::param('c', $club);
+      $club = \Input::param('c', null);
 		}
 
 		if (!$club) {
@@ -48,8 +57,7 @@ class Controller_Registration extends Controller_Template
 		$file = Input::param('f', null);
 
 		if ($file != null) {
-			File::download(Model_Registration::getRoot($club, $file),
-				 null, "text/csv");
+			File::download(Model_Registration::getRoot($club, $file), null, "text/csv");
 		}
 
 		$date = Input::param('d', null);
@@ -67,14 +75,15 @@ class Controller_Registration extends Controller_Template
 			$thurs = strtotime("+1 day", $thurs);
 		}
 
-		Model_Registration::flush($club);
-		$registration = Model_Registration::find_between_dates($club, $thurs, $date->get_timestamp());
+		Model_Registration::flush($section, $club);
+		$registration = Model_Registration::find_between_dates($section, $club, $thurs, $date->get_timestamp());
 		$this->template->title = "Registrations";
 		$this->template->content = View::forge('registration/list', array(
 			'registration'=>$registration,
 			//'history'=>$history,
 			'club'=>$club,
-			'all'=>Model_Registration::find_before_date($club, Date::forge()->get_timestamp()),
+			'section'=>$section,
+			'all'=>Model_Registration::find_before_date($section, $club, Date::forge()->get_timestamp()),
 			'ts'=>$date, 
 			'base'=>Date::forge($thurs)));
 	}

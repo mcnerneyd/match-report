@@ -26,14 +26,13 @@ try {
 	$data = json_decode($src, true);
 	$site = $data['site'];
 	$username = $data['u'];
-	echo "Request received ($username@$site)\n";
+	echo "Request received ($username@".($site || '-').")\n";
 	$root = dirname(__FILE__);
 	define('SITEPATH', "$root/sites/$site");
-	$configFile = $root.'/sites/'.$site.'/config.ini';
 
-  echo "C:$configFile";
 	require_once 'model/connection.php';
-	echo "Transferring: $username\n";
+	Log::debug("Transferring: $username");
+	echo "Transferring: $username";
 
 	$user = Db::getInstance()->query("SELECT * FROM user WHERE username = '$username'")->fetch();
 	if (!$user) {
@@ -41,7 +40,6 @@ try {
 		header($_SERVER['SERVER_PROTOCOL']." 403 Unknown user");
 		return;
 	}
-	//echo "C:$configFile";print_r($config);
 	echo "User valid\n";
 
 	$key = $data['signature'];
@@ -49,7 +47,7 @@ try {
 
 	$raw = json_encode($data).$user['login_hash'];
 	if (md5($raw) != $key) {
-		echo "403 Forbidden";
+		Log::error("403 Forbidden: $username");
 		header($_SERVER['SERVER_PROTOCOL']." 403 Forbidden");
 		return;
 	}
@@ -77,13 +75,13 @@ try {
 	if ($redirect !== '-') {
 		header($_SERVER['SERVER_PROTOCOL']." 303 Redirecting");
 		header("Location: ".$redirect);
-		echo "303 Redirecting\n";
+		echo "303 Redirecting: $redirect";
+		Log::info("303 Redirecting: $redirect");
 		exit();
 	} 
 
 	header($_SERVER['SERVER_PROTOCOL']." 202 Accepted");
 	echo "202 Accepted\n";
-
 } catch (Exception $e) {
 	echo $e->getMessage();
 }

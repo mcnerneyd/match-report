@@ -69,10 +69,29 @@
 </head>
 
 <body>
-	<?php require_once('nav.php'); ?>
+	<?php require_once('nav.php'); 
+  
+  function buildName() {
+    $user = \Session::get('user');
+    $name = $user['username'];
+    $assoc = array();
+    if ($user->club) {
+      $assoc[] = $user->club['name'];
+    }
+    if ($user->section) {
+      $assoc[] = $user->section['name'];
+    }
+    if ($assoc) {
+      $name .= " (".join("/", $assoc).")";
+    }
+
+    return $name;
+  }
+
+  ?>
 
 	<?php if (\Auth::check()) { ?>
-	<div id='user'><?= \Session::get('username') ?><?= \Session::get('user')->section ? "/".\Session::get('user')->section['name'] : "" ?></div>
+	<div id='user'><?= buildName() ?></div>
 	<?php } /* auth check */ ?>
 
 	<?php if (!Cookie::get('CONSENT', null)) { ?>

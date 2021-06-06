@@ -18,7 +18,7 @@ class Model_Incident extends \Orm\Model
 		'card'=>array(
 			'key_to'=>'id',
 			'key_from'=>'matchcard_id',
-			'model_to'=>'Model_Card',
+			'model_to'=>'Model_Matchcard',
 		),
 
 	);
@@ -32,7 +32,7 @@ class Model_Incident extends \Orm\Model
 		/*'card'=>array(
 			'key_to'=>'id',
 			'key_from'=>'matchcard_id',
-			'model_to'=>'Model_Card',
+			'model_to'=>'Model_Matchcard',
 		),*/
 	);
 

@@ -2,17 +2,6 @@
 class Model_Fixture extends \Model
 {
 
-	// fixtures cache expires every hour
-	private static $cache;
-	private static $webcache;
-
-	static function init() {
-		$path = DATAPATH."/sites/".Session::get('site')."/tmp/cache";
-		if (!file_exists($path)) mkdir($path, 0777, true);
-		static::$cache = Cache::forge("fixtures", array('file'=>array('path'=>$path),'driver'=>'file','expiration'=>600)); 
-		static::$webcache = Cache::forge("webcache", array('file'=>array('path'=>$path),'driver'=>'file','expiration'=>3600)); 
-	}
-
 	public static function get($fixtureId) {
 			foreach (Model_Fixture::getAll() as $fixture) {
 				if ($fixture['fixtureID'] == $fixtureId) {
@@ -39,20 +28,22 @@ class Model_Fixture extends \Model
 
 		// TODO Skip processing with cksums - only process if source has changed
 		try {
-			$fixtures = self::$cache->get();
+			$fixtures = Cache::get('fixtures');
 		} catch (\CacheNotFoundException $e) {
 			Log::warning("Fixtures cache does not exist");
 			$fixtures = array();
 		}
 
+		Log::debug("Fixtures cache contains ".count($fixtures)." record(s)");
+
 		if ($fixtures && $flush === false) return $fixtures;
 
-		Log::debug("Fixtures cache contains ".count($fixtures)." record(s)");
+    if (count($fixtures) == 0) $flush = true;
 
 		$flushFeed = false;
 		if ($flush === true) {
 			try {			// Flush all downloaded webpages
-				Model_Fixture::$webcache->delete();
+				Cache::delete('fixtures.source');
 				Log::info("Webcache Flushed");
 			} catch (\CacheNotFoundException $e) { }
 		} else {		// If a specific fixture is specified for flush then find it
@@ -65,8 +56,38 @@ class Model_Fixture extends \Model
 			}
 		}
 
+		Log::info('Fixtures full load');
+
+		$ct=1;
+		$t = microtime(true);
+		$pt = $t;
+
+
+    $allfixtures = array();
+
+    foreach (Model_Section::find('all') as $section) {
+      $allfixtures = array_merge($allfixtures, self::getFixtures($section, $flushFeed));
+    }
+
+    file_put_contents(DATAPATH.'/fixtures.json', json_encode($allfixtures));
+
+    Cache::set('fixtures', $allfixtures, 600);
+
+    return $allfixtures;
+  }
+
+  static function getFixtures($section, $flushFeed = null) {
+
+		$allfixtures = array();
+
+    $configFile = DATAPATH."/sections/${section['name']}/config.json";
+
+    if (!file_exists($configFile)) return array();
+
+    Config::load($configFile, $section['name']);
+
 		try {
-				$srcs = Model_Fixture::$webcache->get();
+				$srcs = Cache::get('fixtures.source');
 				if ($flushFeed) {
 					unset($srcs[$flushFeed]);
 				} else {
@@ -76,15 +97,7 @@ class Model_Fixture extends \Model
 				$srcs = array();
 	  }
 
-		Log::info('Fixtures full load');
-
-		$allfixtures = array();
-
-		$ct=1;
-		$t = microtime(true);
-		$pt = $t;
-		foreach (Config::get("section.fixtures", array()) as $feed) {
-
+		foreach (Config::get($section['name'].".fixtures", array()) as $feed) {
 			$feed = trim($feed);
 
 			if (!$feed) continue;
@@ -94,7 +107,6 @@ class Model_Fixture extends \Model
 			Log::info("Pulling fixtures $feed");
 
 			try {
-
 				$matches = array();
 				
 				// Remove ^ fixtures
@@ -121,7 +133,20 @@ class Model_Fixture extends \Model
 						Log::info("Fetching feed: $feed");
 						$src = file_get_contents(substr($feed, 1));
 						$srcs[$feed] = $src;
-						static::$webcache->set($srcs);
+						Cache::set('fixtures.source', $srcs, 3600);
+					}
+					$pt=microtime(true);
+					$fixtures = self::load_scrape($src);
+					$pt=microtime(true);
+					$fixtures = self::load_csv($src);
+				} else if (preg_match('/^!.*/', $feed)) {
+					if (isset($srcs[$feed])) {
+						$src = $srcs[$feed];
+					} else {
+						Log::info("Fetching feed: $feed");
+						$src = file_get_contents(substr($feed, 1));
+						$srcs[$feed] = $src;
+						Cache::set('fixtures.source', $srcs, 3600);
 					}
 					$pt=microtime(true);
 					$fixtures = self::load_scrape($src);
@@ -165,7 +190,7 @@ class Model_Fixture extends \Model
 		$clubs = array_map(function($a) { return trim($a['name']); },
 			Model_Club::find('all'));
 		$competitions = array_map(function($a) { return trim($a['name']); },
-			Model_Competition::find('all'));
+      Model_Competition::query()->where('section_id','=',$section['id'])->get());
 		Log::debug("Competitions: ".implode(",", $competitions));
 		foreach ($allfixtures as $key => $fixture) {
 			$k = Model_Competition::parse($fixture['competition']);
@@ -180,19 +205,22 @@ class Model_Fixture extends \Model
 				$allfixtures[$key]['hidden'] = true;
 				$allfixtures[$key]['cover'] = '';
 			} else {
-				$allfixtures[$key]['cover'] = 'C';
-			}
+        $allfixtures[$key]['cover'] = 'C';
+      }
 
 			if (strpos($fixture['datetime'], '0000') === 0) {
 				Log::debug("Bad date for $k");
 				continue;
 			}
 
-
 			$allfixtures[$key]['datetime'] = Date::forge(strtotime($fixture['datetime']));
 			$allfixtures[$key]['competition'] = $k;
-			$k = Model_Club::parse($fixture['home']);
-			if ($k != null) {
+			$k = Model_Team::parse($fixture['home']);
+			if (!$k) {
+				$badFixtures[] = $fixture['home'];
+				unset($allfixtures[$key]); 
+				continue;
+			}
 				$allfixtures[$key]['home'] = $k['name'];
 				$allfixtures[$key]['home_club'] = $k['club'];
 				$allfixtures[$key]['home_team'] = $k['team'];
@@ -200,9 +228,12 @@ class Model_Fixture extends \Model
 				if (in_array($k['club'], $clubs)) {
 					$allfixtures[$key]['cover'] .= 'H';
 				}
+			$k = Model_Team::parse($fixture['away']);
+			if (!$k) {
+				$badFixtures[] = $fixture['away'];
+				unset($allfixtures[$key]); 
+				continue;
 			}
-			$k = Model_Club::parse($fixture['away']);
-			if ($k != null) {
 				$allfixtures[$key]['away'] = $k['name'];
 				$allfixtures[$key]['away_club'] = $k['club'];
 				$allfixtures[$key]['away_team'] = $k['team'];
@@ -210,7 +241,6 @@ class Model_Fixture extends \Model
 				if (in_array($k['club'], $clubs)) {
 					$allfixtures[$key]['cover'] .= 'A';
 				}
-			}
 			if (!isset($allfixtures[$key]['played'])) $allfixtures[$key]['played'] = 'no';
 			$allfixtures[$key]['lastupdated_t'] = time();
 		}
@@ -220,23 +250,14 @@ class Model_Fixture extends \Model
 		}
 
 		foreach ($allfixtures as &$fixture) {
+      $fixture['section'] = $section['name'];
 			if (!is_object($fixture['datetime'])) {
 				$fixture['datetime'] = Date::time();
 			}
-			if (!isset($fixture['cover'])) $fixture['cover'] = '';
-		}
+      $fixture['datetimeZ'] = $fixture['datetime']->format('iso8601');
+    }
 
-		self::$cache->set($allfixtures, 60);		// Refresh fixtures every 60 seconds
-		Log::debug('Loading fixtures complete');
-
-		/*foreach ($allfixtures as $key => $fixture) {
-			if (!is_object($fixture['datetime'])) {
-				LOG::error("Bad fixture: $key");
-				unset($allfixtures[$key]);
-			}
-		}*/
-
-		return $allfixtures;
+		return array_values($allfixtures);
 	}
 
 	static function load_csv($src) {
@@ -295,5 +316,3 @@ class Model_Fixture extends \Model
 	}
 
 }
-
-Model_Fixture::init();

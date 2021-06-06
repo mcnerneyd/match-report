@@ -31,7 +31,8 @@ define('BASE', url_origin($_SERVER));
 // Write a log entry to the fuelphp logs
 function log_write($level, $msg) {
 	try {
-		$filename = DATAPATH."/sites/".site()."/logs/".date("Y/m/d").".php";
+		$filename = DATAPATH."/logs/".date("Y/m/d").".php";
+		#$filename = DATAPATH."/sites/".site()."/logs/".date("Y/m/d").".php";
 		$dir = dirname($filename);
 
 		if (!file_exists($dir)) {
@@ -59,6 +60,10 @@ class Log {
 
 	static function info($msg) {
 		log_write("INFO", $msg);
+	}
+
+	static function error($msg) {
+		log_write("ERROR", $msg);
 	}
 
 	static function warn($msg) {
@@ -92,8 +97,8 @@ function site() {
 }
 
 class Config {
-	public static function get($path) {
-		$configFile = DATAPATH.'/config.json';
+	public static function get($path, $def = null) {
+		$configFile = realpath(DATAPATH.'/config.json');
 
 		$json = file_get_contents($configFile);
 
@@ -106,7 +111,7 @@ class Config {
 		foreach ($keys as $key) {
 			if (!isset($value[$key])) {
 				Log::warn("No such key $key from $path");
-				return null;
+				return $def;
 			}
 			$value = $value[$key];
 		}

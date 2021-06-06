@@ -192,7 +192,8 @@ class Controller_RegistrationApi extends Controller_Rest
 
 	public function get_errors() {
 		$club = Input::param("c", null);
-		if ($club == null) return array();
+		$section = Input::param("s", null);
+		if ($club == null or $section == null) return array();
 		$club = strtolower($club);
 
 		$errors = array();
@@ -204,7 +205,7 @@ class Controller_RegistrationApi extends Controller_Rest
 			}	
 		}
 
-		$registrations = Model_Registration::find_all($club);
+		$registrations = Model_Registration::find_all($section, $club);
 		$lastReg = end($registrations);
 
 		if (isset($lastReg['errors'])) {

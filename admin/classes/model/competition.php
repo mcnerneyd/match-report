@@ -28,8 +28,14 @@ class Model_Competition extends \Orm\Model
 
 	protected static $_table_name = 'competition';
 
+  public static function getCompetition($section, $name) {
+    return DB::select()->from('competition')
+      ->where('section', $section)
+      ->where('name', $name)->execute();
+  }
+
 	public static function parse($str) {
-		$config = Config::get("section.pattern.competition");
+		$config = Config::get("section.pattern.competition", []);
 
 		$patterns = array();
 		$replacements = array();

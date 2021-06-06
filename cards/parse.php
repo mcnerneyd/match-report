@@ -25,7 +25,7 @@ sort($competitions);
 
 $db = Db::getInstance();
 $dbTeams = array();
-foreach ($db->query("select c.name, t.team from team t join club c on t.club_id = c.id")->fetchAll() as $row) {
+foreach ($db->query("select c.name, t.rank from team t join club c on t.club_id = c.id")->fetchAll() as $row) {
 	$dbTeams[] = "!".$row['name']." ".$row['team'];
 }
 foreach ($db->query("select name from competition") as $row) {

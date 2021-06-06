@@ -45,25 +45,14 @@
 		</div>
 
     <footer class='center-block'>
-		<style>
-			footer div {
-				position:fixed;
-				bottom: 0;
-				left: 0;
-				background: black;
-				color: white;
-				font-size: 60%;
-				padding: 2px;
-			}
-		</style>
-		<div>
-      <span>C</span>
-      <span><?= substr(\Fuel::$env,0,1) ?></span>
-			<span class='.d-none.d-xs-block.d-sm-none'>X</span>
-			<span class='visible-sm-block'>S</span>
-			<span class='visible-md-block'>M</span>
-			<span class='visible-lg-block'>L</span>
-		</div>
+      <div>
+        <span>C</span>
+        <span><?= substr(\Fuel::$env,0,1) ?></span>
+        <span class='.d-none.d-xs-block.d-sm-none'>X</span>
+        <span class='visible-sm-block'>S</span>
+        <span class='visible-md-block'>M</span>
+        <span class='visible-lg-block'>L</span>
+      </div>
 		</footer>
 
 		<div class="modal" id='help-modal' tabindex="-1" role="dialog">

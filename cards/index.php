@@ -3,6 +3,8 @@
 require_once('util.php');
 require_once('fuel.php');
 
+Log::info("Entry cards");
+
 /* Raven/Sentry */
 require_once PKGPATH.'/Raven/Autoloader.php';
 Raven_Autoloader::register();
@@ -169,6 +171,8 @@ try {
 
 	if (isset($_SESSION['site'])) $site = $_SESSION['site'];
 
+	if (!$site) Log::error("User does not have a site associated");
+  /*
 	if (!$site) {
 		unset($_SESSION['site']);
 		unset($_SESSION['user']);
@@ -176,6 +180,7 @@ try {
 		unset($_SESSION['roles']);
 		throw new LoginException("User not logged in");
 	}
+  */
 
 	$layout = 'layout';
 	if (isset($_REQUEST['layout'])) $layout = $_REQUEST['layout'];
@@ -188,13 +193,14 @@ try {
 	require_once("views/$layout.php");
 
 } catch (LoginException $e) {
+  Log::info("Login exception: ".$e->getMessage());
 	header("Location: ".BASE."/Login");
   header("X-Detail: ".$e->getMessage());
 	exit();
 } catch (RedirectException $e) {
+  Log::info("Redirect exception: ".$e->getMessage());
 	header("Location: ".$e->location);
   header("X-Detail: redirect2");
-	echo "Redirecting";
 	exit();
 } catch (Exception $e) {
 	echo "<pre>".print_r($e, true)."</pre>";

@@ -152,10 +152,10 @@ if (isset($action) && $action == 'loginUP') {
 
 function user($role = null) {
 	// for a secure call the site must be set
-	if (!site()) {
-    echo "Site not set";
-		return false;
-	}
+#	if (!site()) {
+#    echo "Site not set";
+#		return false;
+#	}
 
 	if ($role != null) {
 		if (!isset($_SESSION['roles'])) return false;

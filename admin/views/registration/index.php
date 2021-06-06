@@ -29,7 +29,7 @@ echo "<!-- Registration Allowed: $registrationAllowed -->";
 			});
 		$('#view-registration a').click(function(e) {
 			e.preventDefault();
-			window.location = "./Registration/Registration?c=<?= $club ?>";
+			window.location = "./Registration/Registration?c=<?= $club ?>&s=<?= $section ?>";
 		});
 		$("#upload-registration button[type=submit]").click(function(e) {
 			$('#upload-registration form').submit();
@@ -60,13 +60,26 @@ echo "<!-- Registration Allowed: $registrationAllowed -->";
 				).done(function(data) { window.location.reload(); });
 		});
 
-		$('#registration-club select').change(function() {
-			window.location.href='<?= Uri::create('Registration') ?>?c=' + $(this).val();
-		});
+    const reload = () => {
+      console.log("Reg");
+      const club = $('#registration-club select').val();
+      const section = $('#registration-section select').val();
+      console.log('Registration params:', club, section);
+      if (club !== undefined && (!club || club == '<?= $club ?>')) return;
+      if (!section || section == '<?= $section ?>') return;
+			window.location.href=`<?= Uri::create('Registration') ?>?c=${club}&s=${section}`;
+    }
 
+		$('#registration-club select').change(reload);
+		$('#registration-section select').change(reload);
+
+		<?php if ($section) { ?>
+		$('#registration-section select').val('<?= $section ?>');
+		<?php } ?>
 		<?php if ($club) { ?>
 		$('#registration-club select').val('<?= $club ?>');
 		<?php } ?>
+
 		$.get('<?= Uri::create('registrationapi/errors.json') ?>?c=<?= $club ?>')
 			.done(function(data) {
 				if (typeof data !== 'undefined') {
@@ -99,180 +112,158 @@ echo "<!-- Registration Allowed: $registrationAllowed -->";
 		{ target: "#upload-button", message: "Click Upload to upload a new registration file", dir:"left" },
 		];
 </script>
-<style>
-.form-confirmation {
-	position: relative;
-	height: 45px;
-}
-.form-confirmation p {
-	position: absolute;
-	top: 2px;
-	left: 2em;
-	font-size: 75%;
-	font-style: italic;
-}
-.form-control label {
-	margin-bottom:0px;
-	font-size: 80%;
-}
-tr.error td {
-	color: red;
-}
-.dt-right {
-	text-align: right;
-}
-#errors {
-	display: none;
-}
-#errors .error {
-	color: red;
-}
-#errors .warn {
-	color: orange;
-}
-</style>
 
-<div class='command-group form'>
-	<div class='form-row'>
-		<div id='registration-club' class='col-auto'>
-		<?php if ($registrationAllowed === 'all') { ?>
-			<select class='form-control' name='club'>
-				<option selected>Select Club...</option>
-				<?php foreach ($clubs as $c) {
-					echo "<option>".$c['name']."</option>";
-				}?>
-			</select>
-		<?php } ?>
-		</div>
-
-		<div class='col'>
-		<?php if ($registrationAllowed) { ?>
-		<a class='btn btn-primary' id='upload-button' tabindex='1' data-target='#upload-registration' data-toggle='modal'><i class="fas fa-upload"></i><span class='d-none d-sm-inline'> Upload</span></a> 
-		<?php } ?>
-		</div>
-
-		<div id='view-registration' class='col'>
-			<div class='input-group-append'>
-				<a class="btn btn-success" tabindex="2"><i class="far fa-eye"></i> View</a>
-			</div>
-		</div>
-	</div>	<!-- .form-row -->
-</div>
-
-<?php 
-		$currentDate = time();
-		$restrictionDate = strtotime(Config::get('config.date.restrict'));
-
-		if ($currentDate > $restrictionDate) {
-			echo "<div class='alert alert-danger'>Full Registration Rules Apply (Since ".strftime("%A %e, %B %G", $restrictionDate).")</div>";
-		} else {
-			echo "<div class='alert alert-success'>Full Registration Rules Suspended (Until ".strftime("%A %e, %B %G", $restrictionDate).")</div>";
-		}
-?>
-
-<table id='registration-table' class='table table-condensed table-striped'>
-	<thead>
-		<tr>
-			<th>Club</th>
-			<th>File</th>
-			<th>Timestamp</th>
-			<th>Checksum</th>
-			<th></th>
-		</tr>
-	</thead>
-	<tbody style='display:none'>
-<?php
-foreach ($registrations as $registration) {
-	$date = Date::forge($registration['timestamp']);
-	$class = "";
-	if (Config::get("hockey.block_errors", false) && isset($registration['errors'])) {
-		$class = "title='This registration has errors' class='error'";
-	}
-	echo "<tr $class data-filename='${registration['name']}' data-club='${registration['club']}' data-type='${registration['type']}'>
-		<td>${registration['club']}</td>
-		<td>${registration['name']}</td>
-		<td>".strtoupper($date->format("%Y-%m-%d %H:%M:%S"))."</td>
-		<td>${registration['cksum']}</td>
-		<td>
-			<a class='btn btn-primary btn-sm btn-download'>Download <i class='fas fa-download'></i></a>";
-		if (Auth::has_access('registration.delete')) {
-			echo "\n<a class='btn btn-danger btn-sm btn-delete'
-				data-toggle='confirmation' data-title='Delete Registration' 
-				data-content='Are you sure?'>Delete <i class='fas fa-trash-alt'></i></a>\n";
-		}
-		echo "</td>
-		</tr>";
-}
-?>
-	</tbody>
-</table>
-
-<?php echo "<!-- ".Config::get("config.allowassignment")." -->";
-if (!Config::get("config.allowassignment")) { ?>
-<p>Explicit team assignment is disabled.</p>
-<?php } ?>
-
-<?php if ($registrationAllowed === 'all') { ?>
-<button id='validate' class='btn btn-success btn-sm pull-right'>Revalidate</button>
-<?php } ?>
-<div id='errors'>
-<hr>
-<h3>Errors/Warnings</h3>
-<p>Registration will not be valid if it has <span class='error'>errors</span>. <span class='warn'>Warnings</span> should be resolved but do not
-block registration.<p>
-<p>To remove errors, upload a new valid registration or get the Section registration secretary to clear the errors.</p>
-<ul></ul>
-</div>
-
-<?php if ($registrationAllowed === 'all') { ?>
-<h3>Rename Player</h3>
-<form id='rename-player' class='form-inline'>
-	<div class='form-group'>
-		<label>Original Name</label>
-		<input class='form-control' type='text' name='oldname'/>
-	</div>
-	<div class='form-group'>
-		<label>New Name</label>
-		<input class='form-control' type='text' name='newname'/>
-	</div>
-	<button type="submit" class="btn btn-danger">Rename</button>
-</form>
-<?php } ?>
-
-<div class="modal" id='upload-registration' tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">Upload Registration</h4>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+<div id='registration'>
+  <div class='command-group form'>
+    <div class='form-row'>
+      <?php if ($registrationAllowed === 'all') { ?>
+      <div id='registration-club' class='col-auto'>
+        <select class='form-control' name='club'>
+          <option selected value=''>Select Club...</option>
+          <?php foreach ($clubs as $c) {
+            echo "<option>".$c['name']."</option>";
+          }?>
+        </select>
       </div>
-      <div class="modal-body">
-        <form action='<?= Uri::create("/RegistrationAPI") ?>' method='POST' enctype='multipart/form-data'>
-					<div class='form-group'>
-						<label>Club</label>
-						<input class='form-control' type='text' name='club' readonly value='<?= $club ?>'/>
-					</div>
-					<div class='form-group'>
-						<label>File</label>
-						<input class='form-control' type='file' name='file'/>
-					</div>
-					<div class='form-group form-confirmation'>
-						<input type='checkbox' unchecked id='upload-permission-checkbox'/>
-						<p>By clicking this checkbox, you are confirming that every person listed in this registration
-						file has given express permission for their name to be uploaded, and that they give permission
-						for their data to be used and retained as set forth in the Leinster Hockey Association GDPR data
-						privacy guideines. In the case of minors, you are confirming that you have the permission of 
-						their parent/guardian.</p>
-					</div>
-				</form>
+      <?php } ?>
+      <div id='registration-section' class='col-auto'>
+        <select class='form-control' name='section'>
+          <option selected value=''>Select Section...</option>
+          <?php foreach ($sections as $s) {
+            echo "<option>".$s['name']."</option>";
+          }?>
+        </select>
       </div>
-      <div class="modal-footer">
-        <button type="submit" class="btn btn-primary" disabled>Save changes</button>
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+
+      <div class='col'>
+      <?php if ($registrationAllowed) { ?>
+      <a class='btn btn-primary' id='upload-button' tabindex='1' data-target='#upload-registration' data-toggle='modal'><i class="fas fa-upload"></i><span class='d-none d-sm-inline'> Upload</span></a> 
+      <?php } ?>
       </div>
-    </div>
+
+      <div id='view-registration' class='col'>
+        <div class='input-group-append'>
+          <a class="btn btn-success" tabindex="2"><i class="far fa-eye"></i> View</a>
+        </div>
+      </div>
+    </div>	<!-- .form-row -->
   </div>
 
+  <?php 
+      $currentDate = time();
+      $restrictionDate = strtotime(Config::get('config.date.restrict'));
+
+      if ($currentDate > $restrictionDate) {
+        echo "<div class='alert alert-danger'>Full Registration Rules Apply (Since ".strftime("%A %e, %B %G", $restrictionDate).")</div>";
+      } else {
+        echo "<div class='alert alert-success'>Full Registration Rules Suspended (Until ".strftime("%A %e, %B %G", $restrictionDate).")</div>";
+      }
+  ?>
+
+  <table id='registration-table' class='table table-condensed table-striped'>
+    <thead>
+      <tr>
+        <th>Club</th>
+        <th>File</th>
+        <th>Timestamp</th>
+        <th>Checksum</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody style='display:none'>
+  <?php
+  foreach ($registrations as $registration) {
+    $date = Date::forge($registration['timestamp']);
+    $class = "";
+    if (Config::get("hockey.block_errors", false) && isset($registration['errors'])) {
+      $class = "title='This registration has errors' class='error'";
+    }
+    echo "<tr $class data-filename='${registration['name']}' data-club='${registration['club']}' data-type='${registration['type']}'>
+      <td>${registration['club']}</td>
+      <td>${registration['name']}</td>
+      <td>".strtoupper($date->format("%Y-%m-%d %H:%M:%S"))."</td>
+      <td>${registration['cksum']}</td>
+      <td>
+        <a class='btn btn-primary btn-sm btn-download'>Download <i class='fas fa-download'></i></a>";
+      if (Auth::has_access('registration.delete')) {
+        echo "\n<a class='btn btn-danger btn-sm btn-delete'
+          data-toggle='confirmation' data-title='Delete Registration' 
+          data-content='Are you sure?'>Delete <i class='fas fa-trash-alt'></i></a>\n";
+      }
+      echo "</td>
+      </tr>";
+  }
+  ?>
+    </tbody>
+  </table>
+
+  <?php echo "<!-- ".Config::get("config.allowassignment")." -->";
+  if (!Config::get("config.allowassignment")) { ?>
+  <p>Explicit team assignment is disabled.</p>
+  <?php } ?>
+
+  <?php if ($registrationAllowed === 'all') { ?>
+  <button id='validate' class='btn btn-success btn-sm pull-right'>Revalidate</button>
+  <?php } ?>
+  <div id='errors'>
+  <hr>
+  <h3>Errors/Warnings</h3>
+  <p>Registration will not be valid if it has <span class='error'>errors</span>. <span class='warn'>Warnings</span> should be resolved but do not
+  block registration.<p>
+  <p>To remove errors, upload a new valid registration or get the Section registration secretary to clear the errors.</p>
+  <ul></ul>
+  </div>
+
+  <?php if ($registrationAllowed === 'all') { ?>
+  <h3>Rename Player</h3>
+  <form id='rename-player' class='form-inline'>
+    <div class='form-group'>
+      <label>Original Name</label>
+      <input class='form-control' type='text' name='oldname'/>
+    </div>
+    <div class='form-group'>
+      <label>New Name</label>
+      <input class='form-control' type='text' name='newname'/>
+    </div>
+    <button type="submit" class="btn btn-danger">Rename</button>
+  </form>
+  <?php } ?>
+
+  <div class="modal" id='upload-registration' tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Upload Registration</h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form action='<?= Uri::create("/RegistrationAPI") ?>' method='POST' enctype='multipart/form-data'>
+            <div class='form-group'>
+              <label>Club</label>
+              <input class='form-control' type='text' name='club' readonly value='<?= $club ?>'/>
+            </div>
+            <div class='form-group'>
+              <label>File</label>
+              <input class='form-control' type='file' name='file'/>
+            </div>
+            <div class='form-group form-confirmation'>
+              <input type='checkbox' unchecked id='upload-permission-checkbox'/>
+              <p>By clicking this checkbox, you are confirming that every person listed in this registration
+              file has given express permission for their name to be uploaded, and that they give permission
+              for their data to be used and retained as set forth in the Leinster Hockey Association GDPR data
+              privacy guideines. In the case of minors, you are confirming that you have the permission of 
+              their parent/guardian.</p>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary" disabled>Save changes</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>

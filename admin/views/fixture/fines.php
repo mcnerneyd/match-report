@@ -71,7 +71,7 @@ $(document).ready(function() {
 </style>
 
 <div class='form-group command-group'>
-	<a class='btn btn-danger' href='#' title='Send the selected fines to the administrator for processing'><i class="fas fa-envelope"></i>> Issue Fines</a>
+	<a class='btn btn-danger' href='#' title='Send the selected fines to the administrator for processing'><i class="fas fa-envelope"></i> Issue Fines</a>
 	<a class='btn btn-warning' href='#' title='Cancel the selected fines'><i class="fas fa-trash-alt"></i> Cancel Fines</a>
 </div>
 
