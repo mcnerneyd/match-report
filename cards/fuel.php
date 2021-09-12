@@ -32,7 +32,6 @@ define('BASE', url_origin($_SERVER));
 function log_write($level, $msg) {
 	try {
 		$filename = DATAPATH."/logs/".date("Y/m/d").".php";
-		#$filename = DATAPATH."/sites/".site()."/logs/".date("Y/m/d").".php";
 		$dir = dirname($filename);
 
 		if (!file_exists($dir)) {
@@ -126,7 +125,10 @@ class Asset {
 	static function css($files) { foreach ($files as $file) echo "<link rel='stylesheet' href='".Uri::create("assets/css/$file")."'/>\n"; }
 }
 class Session {
-	static function get($key) { return $_SESSION[$key]; }
+	static function get($key, $d = null) { 
+    if (!isset($_SESSION[$key])) return $d; 
+    return $_SESSION[$key]; 
+  }
 }
 class Auth {
 	static function check() { return user(); }

@@ -1,7 +1,7 @@
 *** Settings ***
 Resource				../Common.robot
 Suite Setup			Login	Umpire	1111
-Test Setup			Create Card With Player		15
+Test Setup			Create Card With Player		test.division1.aardvarks1.bears2
 Suite Teardown	Close Browser
 
 *** Test Cases ***
@@ -33,7 +33,7 @@ Submit Card
 
 Verify Card
 	[Arguments]			${description}
-	Go To						http://cards.leinsterhockey.ie/public/Report/Card/6
+	Go To						${BASE}/Report/Card?key=test.division1.aardvarks1.bears2
 	Comment					${description}
 	Page Should Contain Element		xpath://tr[@data-description='${description}']
 

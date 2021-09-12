@@ -53,11 +53,11 @@ Create Card With Player
 	Page Should Contain		matchcard has officially appointed umpires
 
 Set Strict
-	Secretary Login					administrator@nomail.com		password
-	Go To					http://cards.leinsterhockey.ie/public/Admin/Config
-	Input Text		name:strict_comps						d3
-	Click Button	Save
-	Close Browser
+	#Secretary Login					admin		password
+	#Go To					${BASE}/Admin/Config
+	#Input Text		name:strict_comps						d3
+	#Click Button	Save
+	#Close Browser
 
 Standard Login
 	Login					Aardvarks		1111
@@ -94,7 +94,7 @@ Generate Username
 Verify Card
   [Arguments]    ${description}
   Sleep		      1s
-  Go To          http://cards.leinsterhockey.ie/public/Report/Card/35
+  Go To          ${BASE}/Report/Card/35
   Comment        ${description}
   Page Should Contain Element    xpath://tr[@data-description='${description}']
 

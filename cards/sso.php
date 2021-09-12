@@ -28,7 +28,6 @@ try {
 	$username = $data['u'];
 	echo "Request received ($username@".($site || '-').")\n";
 	$root = dirname(__FILE__);
-	define('SITEPATH', "$root/sites/$site");
 
 	require_once 'model/connection.php';
 	Log::debug("Transferring: $username");
@@ -36,7 +35,7 @@ try {
 
 	$user = Db::getInstance()->query("SELECT * FROM user WHERE username = '$username'")->fetch();
 	if (!$user) {
-		echo "403 Unknown user";
+		echo "\n\n403 Unknown user";
 		header($_SERVER['SERVER_PROTOCOL']." 403 Unknown user");
 		return;
 	}
@@ -58,13 +57,16 @@ try {
 		session_start();
 		$_SESSION['site'] = $site;
 		$_SESSION['user'] = $session['user'];
+		$_SESSION['user-title'] = $session['user-title'];
 		$_SESSION['club'] = $session['club'];
 		$_SESSION['roles'] = $session['roles'];
 		$_SESSION['perms'] = $session['perms'];
+    Log::debug("Session transferred:".print_r($_SESSION, true));
 		echo "Session data valid\n";
 	} else {
 		session_unset();
 		echo "Session data not valid\n";	
+    Log::warning("Session data is not valid");
 	}
 
 	$redirect = "/cards/index.php";

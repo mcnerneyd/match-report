@@ -1,14 +1,17 @@
 <?php
 $registrationAllowed = FALSE;
-if (Config::get('config.automation.allowrequest')) {
+
+if (Config::get("section.automation.allowrequest")) {
 	$registrationAllowed = TRUE;
 }
+
 if (Auth::has_access('registration.impersonate')) {
 	$registrationAllowed = 'all';
 }
 
-echo "<!-- Registration Allowed: $registrationAllowed -->";
+echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
 ?>
+
 <script>
 	$(document).ready(function() {
 		$('#registration-table').DataTable({
@@ -38,7 +41,8 @@ echo "<!-- Registration Allowed: $registrationAllowed -->";
 		$(".btn-download").click(function(e) {
 			e.preventDefault();
 			window.location.href = "./Registration/Registration?f=" + $(this).closest("tr").data("filename")
-				+ "&c=" + $("#registration-club select").val();
+				+ "&c=" + $("#registration-club select").val()
+        + "&s=<?= $section ?>";
 		});
 
 		$(".btn-delete").click(function(e) {
@@ -74,6 +78,7 @@ echo "<!-- Registration Allowed: $registrationAllowed -->";
 		$('#registration-section select').change(reload);
 
 		<?php if ($section) { ?>
+    console.log("Selecting <?= $section ?>");
 		$('#registration-section select').val('<?= $section ?>');
 		<?php } ?>
 		<?php if ($club) { ?>
@@ -151,7 +156,7 @@ echo "<!-- Registration Allowed: $registrationAllowed -->";
 
   <?php 
       $currentDate = time();
-      $restrictionDate = strtotime(Config::get('config.date.restrict'));
+      $restrictionDate = strtotime(Config::get('section.date.restrict'));
 
       if ($currentDate > $restrictionDate) {
         echo "<div class='alert alert-danger'>Full Registration Rules Apply (Since ".strftime("%A %e, %B %G", $restrictionDate).")</div>";
@@ -197,10 +202,14 @@ echo "<!-- Registration Allowed: $registrationAllowed -->";
     </tbody>
   </table>
 
-  <?php echo "<!-- ".Config::get("config.allowassignment")." -->";
-  if (!Config::get("config.allowassignment")) { ?>
-  <p>Explicit team assignment is disabled.</p>
-  <?php } ?>
+    <?php
+      $hints = array();
+      if (!Config::get("$section.config.allowassignment")) $hints[] = "Explicit team assignment is disabled";
+      if ($registrationAllowed === FALSE) $hints[] = "Uploading of registration is not enabled ";
+
+      echo "<p class='hints'>".implode(" / ", $hints)."</p>";
+    ?>
+
 
   <?php if ($registrationAllowed === 'all') { ?>
   <button id='validate' class='btn btn-success btn-sm pull-right'>Revalidate</button>
@@ -240,6 +249,7 @@ echo "<!-- Registration Allowed: $registrationAllowed -->";
         </div>
         <div class="modal-body">
           <form action='<?= Uri::create("/RegistrationAPI") ?>' method='POST' enctype='multipart/form-data'>
+            <input type='hidden' name='section' value='<?= $section ?>'/>
             <div class='form-group'>
               <label>Club</label>
               <input class='form-control' type='text' name='club' readonly value='<?= $club ?>'/>
@@ -259,7 +269,7 @@ echo "<!-- Registration Allowed: $registrationAllowed -->";
           </form>
         </div>
         <div class="modal-footer">
-          <button type="submit" class="btn btn-primary" disabled>Save changes</button>
+          <button type="submit" id='registration-save-changes' class="btn btn-primary" disabled>Save changes</button>
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         </div>
       </div>

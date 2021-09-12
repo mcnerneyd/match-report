@@ -5,8 +5,8 @@ Suite Setup			Login	Aardvarks	1111
 
 *** Test Cases ***
 User Can Create A Card
-	Reset Card		6
-	Open Card			6
+	Reset Card		test.division1.aardvarks1.bears2
+	Open Card			test.division1.aardvarks1.bears2
 	Select Player			Jackeline GOSHA
 	Select Player			Alia LINDAHL
 	Select Player			Kenyatta SHORE
@@ -30,15 +30,15 @@ User Can Create A Card
 	Select Player			Hellen MANRIQUEZ
 	Submit Team
 
-Add Player To Fixture
+#Add Player To Fixture
 
-Remove Player From Fixture
+#Remove Player From Fixture
 
 Add Last Players To Fixture
 
 Clear Players On Fixture
-	Reset Card		6
-	Open Card			6
+	Reset Card		    test.division1.aardvarks1.bears2
+	Open Card			    test.division1.aardvarks1.bears2
 	Select Player			Jackeline GOSHA
 	Select Player			Alia LINDAHL
 	Select Player			Kenyatta SHORE

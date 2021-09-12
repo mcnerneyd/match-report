@@ -12,7 +12,7 @@
 
 /**
  * -----------------------------------------------------------------------------
- *  Database settings for staging environment
+ *  Database settings for development environment
  * -----------------------------------------------------------------------------
  *
  *  These settings get merged with the global settings.
@@ -22,9 +22,11 @@
 return array(
 	'default' => array(
 		'connection' => array(
-			'dsn'      => 'mysql:host=localhost;dbname=fuel_staging',
-			'username' => 'fuel_app',
-			'password' => 'super_secret_password',
+      'port'     => '3306',
+			'username' => 'user',
+			'password' => 'pass',
+      'database' => 'staging',
+      'hostname' => 'localhost',
 		),
 	),
 );

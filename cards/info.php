@@ -39,7 +39,7 @@ if (isset($_GET['c'])) {
 }
 
 echo "<pre>";
-$configFile = DATAPATH.'/sites/'.site().'/config.json';
+$configFile = DATAPATH.'/sections/'.site().'/config.json';
 print_r(json_decode(file_get_contents($configFile), true));
 echo "</pre>";
 

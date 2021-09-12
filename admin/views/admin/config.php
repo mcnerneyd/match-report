@@ -1,3 +1,20 @@
+<script>
+$(document).ready(function(event) {
+   $('#section-select').change(function() {
+    window.location="<?= Uri::create('/admin/config') ?>?section=" + $('#section-select').val();
+   });
+});
+</script>
+
+<?php if (!$section) { ?>
+<div class='command-group'>
+    <select class='form-control' id='section-select'>
+        <option>Select Section...</option>
+        <?php foreach ($sections as $s) echo "<option>".$s['name']."</option>"; ?>
+    </select>
+</div>
+<?php return; } ?>
+
 <style>
 form { position: relative; }
 .valid { color: green; display: none; }
@@ -39,9 +56,29 @@ $(document).ready(function(event) {
 });
 </script>
 
+<!--
+<div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+  <div class="toast-header">
+    <strong class="mr-auto">Configuration Saved</strong>
+    <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="toast-body">
+    Configuration Saved Successfully
+  </div>
+</div>
+-->
+
 <form id='configform' method='POST' autocomplete='off'>
 
+    <input type='hidden' name='section' value='<?= $section ?>'/>
+
 	<div class='command-group'>
+        <select class='form-control' id='section-select'>
+            <option>Select Section...</option>
+            <?php foreach ($sections as $s) echo "<option>".$s['name']."</option>"; ?>
+        </select>
 		<button class='btn btn-success'>Save</button>
 		<a href='<?= Uri::current() ?>' class='btn btn-warning'>Cancel</a>
 	</div>
@@ -228,7 +265,7 @@ $(document).ready(function(event) {
 				<div class='form-group col-sm-6'>
 					<label for='config-fixes-team help'>Team Fixes</label>
 					<textarea name='fixesteam' id='config-fixes-team' rows='8' class='form-control' spellcheck='false'><?= $fixesteam ?></textarea>
-					<?php foreach ($teams as $raw=>$team) {
+					<?php foreach ($teams as $raw=>$team) { 
 							if ($team['valid']) {
 							echo "<span class='valid'>[${team['club']}&nbsp;<span>${team['team']}</span>]</span>"; 
 						} else {
@@ -274,6 +311,6 @@ $(document).ready(function(event) {
 </form>
 
 <!-- Config Summary:
-Result Submit: <?= Config::get("config.result_submit") ?>
+Result Submit: <?= Config::get("section.result_submit") ?>
 -->
 

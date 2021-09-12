@@ -7,6 +7,7 @@ class Controller_Registration extends Controller_Template
 		}
 
     $section = Input::param('s');
+    if ($section) loadSectionConfig($section);
 
 		if (Auth::has_access("registration.impersonate")) {
 			$club = Input::param("c");
@@ -57,7 +58,9 @@ class Controller_Registration extends Controller_Template
 		$file = Input::param('f', null);
 
 		if ($file != null) {
-			File::download(Model_Registration::getRoot($club, $file), null, "text/csv");
+			$filename = Model_Registration::getRoot($section, $club, $file);
+			Log::info("Downloading $filename");
+			File::download($filename, null, "text/csv");
 		}
 
 		$date = Input::param('d', null);
@@ -100,18 +103,30 @@ class Controller_Registration extends Controller_Template
 			return;
 		}
 
+		if ($userObj->club === null) {
+			Log::error("User does not have a club");
+			return;
+		}
+
 		$club = $userObj->club['name'];
 
-		$clubUser = Model_User::find('first', array(
+		Log::info("Request info for $club");
+
+		$clubUsers = Model_User::find('all', array(
 				'where'=>array(
-					array('username','=',$club),
-					array('role','=','user')	
+					array('club_id','=',$userObj->club['id']),
+					array('group','=',1)	
 				)
 			));
 
+		if ($userObj->section) {
+			$sectionName = $userObj->section['name'];
+			$clubUsers = array_filter($clubUsers, function($a) use ($sectionName) { return $a->section['name'] === $sectionName; });
+		}
+
 		$this->template->title = "Club Info";
 		$this->template->content = View::forge('registration/info',
-			array('user'=>$clubUser));
+			array('users'=>$clubUsers));
 	}
 
 }

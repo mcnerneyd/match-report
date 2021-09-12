@@ -3,7 +3,7 @@
 require_once('util.php');
 require_once('fuel.php');
 
-Log::info("Entry cards");
+Log::info("Entry cards:".$_SESSION['qwerty']);
 
 /* Raven/Sentry */
 require_once PKGPATH.'/Raven/Autoloader.php';
@@ -18,8 +18,6 @@ ini_set('display_errors',1);
 ini_set('display_startup_errors',1);
 ini_set('max_execution_time', 300); 
 error_reporting(E_ALL);
-
-define("SITEPATH", DATAPATH."/sites/".site());
 
 $consolelog = "";
 $warnings = array();

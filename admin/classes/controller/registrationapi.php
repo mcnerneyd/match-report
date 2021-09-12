@@ -5,22 +5,28 @@ class Controller_RegistrationApi extends Controller_Rest
 	public function get_list() {
 		$dateS = \Input::param('d', Date::forge()->format("%Y%m%d"));
 		$clubId = \Auth::get('club_id');
+        Log::debug("Club ID:$clubId");
 		$club = Model_Club::find_by_id($clubId);
 		$club = $club['name'];
 		$team = \Input::param('t', 1);
+		$section = \Input::param('s', 1);
 		$groups = \Input::param('g', null);
 
-		$players = self::getPlayers($club, $dateS, $team, $groups);
-		$lastGameDate = Model_Team::lastGame("$club $team");
-		$lastGameDate = substr($lastGameDate['date'], 0, 10)." 00:00:00";
-		Log::debug("LGD:" . $lastGameDate);
+        $s = Model_Section::find_by_name($section);
+
+		$players = self::getPlayers($section, $club, $dateS, $team, $groups);
+		$lastGameDate = Model_Team::lastGame("$club $team", $s);
+        if ($lastGameDate !== null) {
+          $lastGameDate = substr($lastGameDate['date'], 0, 10)." 00:00:00";
+        }
+		Log::debug("LGD:" . $lastGameDate . " ct=".count($players));
 
 		$players = array_values($players);
 		usort($players, function($a, $b) { return strcmp($a['name'], $b['name']); });
 
 		foreach ($players as &$player) {
 			foreach ($player['history'] as &$history) {
-				if ($history['date'] >= $lastGameDate) {
+				if ($lastGameDate && $history['date'] >= $lastGameDate) {
 					$history['last'] = 'yes';
 			    }
 				break;
@@ -32,13 +38,13 @@ class Controller_RegistrationApi extends Controller_Rest
 		return $this->response($players);
 	}
 
-	public static function getPlayers($club, $dateS, $team, $groups) { 
+	public static function getPlayers($section, $club, $dateS, $team, $groups) { 
 		if ($groups) {
 			$groups = explode(",", strtolower($groups));
 		}
 
 		if ($groups) {
-			Log::debug("Groups is active");
+			Log::debug("Groups is active: ".join(",", $groups));
 		}
 
 		$date = Date::create_from_string($dateS, '%Y%m%d');
@@ -50,7 +56,9 @@ class Controller_RegistrationApi extends Controller_Rest
 		}
 		$startDate = strtotime("+1 day", $initialDate);
 
-		$players = Model_Registration::find_between_dates($club, $startDate, $date);
+		$players = Model_Registration::find_between_dates($section, $club, $startDate, $date);
+
+		Log::debug("Players between dates: ".count($players));
 
 		$players = array_filter($players, function($v) use ($team, $groups) {
 			if ($groups) {
@@ -76,6 +84,7 @@ class Controller_RegistrationApi extends Controller_Rest
 		$club = Model_Club::find_by_name($clubName);
 
 		$incident = new Model_Incident();
+        $incident->date = Date::time();
 		$incident->player = $player;
 		$incident->detail = $number;
 		$incident->type = 'Number';
@@ -134,6 +143,10 @@ class Controller_RegistrationApi extends Controller_Rest
 	public function post_index() {
 		// FIXME Check user admin or matches club
 		$access = 'admin.all';
+
+        $section = Input::param("section");
+        if ($section) loadSectionConfig($section);
+
 		if (Config::get('section.automation.allowrequest')) {
 			$access = 'registration.post';
 		}
@@ -148,16 +161,16 @@ class Controller_RegistrationApi extends Controller_Rest
 
 		Log::info("Posting ${file['name']} for club: $club (type=$type)");
 
-		if (preg_match("/.*\.xlsx?/", $file['name']) || !preg_match("/text\/.*/", $type)) {
+		if (preg_match("/.*\.xlsx?/", $file['name']) || !(preg_match("/text\/.*/", $type) || $type == 'application/csv')) {
 			$file['tmp_name'] = self::convertXls($file['name'], $file['tmp_name']);
 		}
 
-		$filename = Model_Registration::addRegistration($file['tmp_name'], $club);
+		$filename = Model_Registration::addRegistration($section, $file['tmp_name'], $club);
 
-		$this->validateRegistration($club);
+		$this->validateRegistration($section, $club);
 
 		//return new Response("Registration Uploaded", 201);
-		Response::redirect("registration");
+		Response::redirect("registration?s=$section");
 	}
 
 	// ----- errors -------------------------------------------------------------
@@ -264,14 +277,14 @@ class Controller_RegistrationApi extends Controller_Rest
 		return $clubErrors;
 	}
 
-	private function validateRegistration($club, $test=false) {
+	private function validateRegistration($section, $club, $test=false) {
 		$errors = array();
 
 		Log::info("Revalidating registration for $club");
 
 		$date = Date::time();
 
-		foreach (Model_Registration::find_all($club) as $regFile) {
+		foreach (Model_Registration::find_all($section, $club) as $regFile) {
 			$date = Date::forge($regFile["timestamp"]);
 		}
 
@@ -284,7 +297,7 @@ class Controller_RegistrationApi extends Controller_Rest
 		}
 		$thurs = strtotime("+1 day", $thurs);
 
-		$registration = Model_Registration::find_between_dates($club, $thurs, $date->get_timestamp());
+		$registration = Model_Registration::find_between_dates($section, $club, $thurs, $date->get_timestamp());
 		
 		$scores = array_map(function($a) { return $a['score'];}, $registration);
 		sort($scores);
@@ -344,20 +357,27 @@ class Controller_RegistrationApi extends Controller_Rest
 	}
 
 	private function convertXls($name, $tmpfile) {
-			$cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
-			$cacheSettings = array( 'memoryCacheSize' => '2GB');
-			PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
+    /*
+        $cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
+        $cacheSettings = array( 'memoryCacheSize' => '2GB');
+        PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
 
-			$inputFileType = PHPExcel_IOFactory::identify($tmpfile);
-			$reader = PHPExcel_IOFactory::createReader($inputFileType);
-			$reader->setReadDataOnly(true);
+        $inputFileType = PHPExcel_IOFactory::identify($tmpfile);
+        $reader = PHPExcel_IOFactory::createReader($inputFileType);
+        $reader->setReadDataOnly(true);
 
-			$excel = $reader->load($tmpfile);
+        $excel = $reader->load($tmpfile);
 
-			$writer = PHPExcel_IOFactory::createWriter($excel, 'CSV');
-			$tmpfname = tempnam("../tmp", "xlsx");
-			$writer->save($tmpfname);
+        $writer = PHPExcel_IOFactory::createWriter($excel, 'CSV');
+        $tmpfname = tempnam("../tmp", "xlsx");
+        $writer->save($tmpfname);
+        */
+        $spreadsheet = PhpOffice\PhpSpreadsheet\IOFactory::load($tmpfile);
 
-			return $tmpfname;
+        $writer = new PhpOffice\PhpSpreadsheet\Writer\Csv($spreadsheet);
+        $tmpfname = "/tmp/".$name.".csv"; //tempnam("/tmp", "csv");
+        $writer->save($tmpfname);
+
+        return $tmpfname;
 	}
 }

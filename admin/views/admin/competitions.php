@@ -69,7 +69,7 @@
 	<tbody style='display:none'>
 	<?php foreach ($competitions as $competition) {
 		echo "<tr data-code='${competition['code']}'>
-			<td>".$competition->section->getProperty('shorttitle')."</td>
+			<td>".($competition->section ? $competition->section->getProperty('shorttitle'):"")."</td>
 			<td>${competition['name']}</td>
 			<td>${competition['code']}</td>
 			<td>${competition['teamsize']}</td>
@@ -99,6 +99,13 @@
         <form action='<?= Uri::create('/Admin/Competition') ?>' method='POST'>
 					<div class='row'>
 					<input type='hidden' name='id'/>
+						<div class='form-group col-md-12'>
+							<select class='form-control' id='section-select' name='section' required>
+								<option>Select Section...</option>
+								<?php foreach ($sections as $s) echo "<option value='".$s['id']."'>".$s['name']."</option>"; ?>
+							</select>
+						</div>
+
 						<div class='form-group col-md-12'>
 							<label for='competitionname'>Competition Name</label>
 							<input type='text' class='form-control' id='competitionname' name='competitionname'/>

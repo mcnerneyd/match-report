@@ -2,6 +2,8 @@
 class Model_Fixture extends \Model
 {
 
+	private static $globalId = 1;
+
 	public static function get($fixtureId) {
 			foreach (Model_Fixture::getAll() as $fixture) {
 				if ($fixture['fixtureID'] == $fixtureId) {
@@ -68,6 +70,9 @@ class Model_Fixture extends \Model
     foreach (Model_Section::find('all') as $section) {
       $allfixtures = array_merge($allfixtures, self::getFixtures($section, $flushFeed));
     }
+
+		$et = microtime(true);
+		Log::info("Loaded ".count($fixtures)." fixtures: ".(($pt-$t)*1000)."/".(($et-$t)*1000));
 
     file_put_contents(DATAPATH.'/fixtures.json', json_encode($allfixtures));
 
@@ -159,7 +164,7 @@ class Model_Fixture extends \Model
 						'home_score'=>null,
 						'away_score'=>null,
 						);
-					$fixture['fixtureID'] = $ct++;	
+					$fixture['fixtureID'] = self::$globalId++;
 
 					if (count($values) > 4 && is_numeric($values[4])) $fixture['home_score'] = $values[4];
 					if (count($values) > 5 && is_numeric($values[5])) $fixture['away_score'] = $values[5];
@@ -179,10 +184,8 @@ class Model_Fixture extends \Model
 					$allfixtures[$aFixture['fixtureID']] = $aFixture;
 				}
 
-				$et = microtime(true);
-				Log::info("Loaded ".count($fixtures)." fixtures: ".(($pt-$t)*1000)."/".(($et-$t)*1000));
 			} catch (Exception $e) {
-				Log::error("Failed to scan feed: $feed, ".($e->getTraceAsString()));
+				Log::error("Failed to scan feed: $feed, ".($e->getMessage())." @".($e->getTraceAsString()));
 			}
 		}
 
@@ -193,7 +196,7 @@ class Model_Fixture extends \Model
       Model_Competition::query()->where('section_id','=',$section['id'])->get());
 		Log::debug("Competitions: ".implode(",", $competitions));
 		foreach ($allfixtures as $key => $fixture) {
-			$k = Model_Competition::parse($fixture['competition']);
+			$k = Model_Competition::parse($section['name'], $fixture['competition']);
 			if (!$k) {
 				$badFixtures[] = $fixture['competition'];
 				unset($allfixtures[$key]); 
@@ -215,7 +218,7 @@ class Model_Fixture extends \Model
 
 			$allfixtures[$key]['datetime'] = Date::forge(strtotime($fixture['datetime']));
 			$allfixtures[$key]['competition'] = $k;
-			$k = Model_Team::parse($fixture['home']);
+			$k = Model_Team::parse($section['name'], $fixture['home']);
 			if (!$k) {
 				$badFixtures[] = $fixture['home'];
 				unset($allfixtures[$key]); 
@@ -228,7 +231,7 @@ class Model_Fixture extends \Model
 				if (in_array($k['club'], $clubs)) {
 					$allfixtures[$key]['cover'] .= 'H';
 				}
-			$k = Model_Team::parse($fixture['away']);
+			$k = Model_Team::parse($section['name'], $fixture['away']);
 			if (!$k) {
 				$badFixtures[] = $fixture['away'];
 				unset($allfixtures[$key]); 
@@ -246,7 +249,7 @@ class Model_Fixture extends \Model
 		}
 
 		if ($badFixtures) {
-			Log::warning("Unresolvable competitions: ".implode(",", $badFixtures));
+			Log::warning("Unresolvable fixtures: ".implode(",", $badFixtures));
 		}
 
 		foreach ($allfixtures as &$fixture) {
@@ -255,10 +258,24 @@ class Model_Fixture extends \Model
 				$fixture['datetime'] = Date::time();
 			}
       $fixture['datetimeZ'] = $fixture['datetime']->format('iso8601');
+      $fixture['status'] = self::getStatus($fixture);
     }
 
 		return array_values($allfixtures);
 	}
+
+  private static function getStatus($fixture) {
+    if ($fixture['hidden']) return "inactive";
+
+
+    if (isset($fixture['card'])) {
+      $card = $fixture['card'];
+      if ($card['open'] === 0) return "closed";
+      return "open";
+    }
+
+    return "active";
+  }
 
 	static function load_csv($src) {
 		$fixtures = array();

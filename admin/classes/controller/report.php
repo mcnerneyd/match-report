@@ -329,7 +329,7 @@ class Controller_Report extends Controller_Template
 		);
 
 		$cards = array();
-		foreach (Model_Card::find('all', array(
+		foreach (Model_Matchcard::find('all', array(
 			'where'=> array(
 				array('date','<',date('Y-m-d', $dateTo)),
 				array('date','>',date('Y-m-d', $dateFrom)),
@@ -338,7 +338,7 @@ class Controller_Report extends Controller_Template
 			)
 		) as $card) {
 			if ($card['home']['club_id'] == $club['id'] || $card['away']['club_id'] == $club['id']) {
-				$cards[] = Model_Card::card($card['id']);
+				$cards[] = Model_Matchcard::card($card['id']);
 			}
 		}
 
@@ -374,7 +374,7 @@ class Controller_Report extends Controller_Template
 			$emailAddresses[] = $row['email'];
 		}
 
-		//$card = Model_Card::card($cardId);
+		//$card = Model_Matchcard::card($cardId);
 		$autoEmail = Config::get("section.automation_email");
 		$title = Config::get("section.title");
 		$email = Email::forge();
@@ -436,22 +436,31 @@ class Controller_Report extends Controller_Template
 	}
 
 	public function action_card() {
-		$cardId = $this->param('id');
+    $key = \Input::param('key', null);
 
-		if (substr($cardId,0,1) == "n") {
-			$card = Model_Card::card(substr($cardId, 1));
-			$fixture = Model_Fixture::get($card['fixture_id']);
-		} else {
-			$card = Model_Card::find_by_fixture($cardId);
-			$fixture = Model_Fixture::get($cardId);
-		}
+    if ($key != null) {
+        $cardId = Model_Matchcard::find_by_key($key);
+        $cardId = $cardId[0]['id']; // always take the first one
+        $card = Model_Matchcard::card($cardId);
+        $fixture = Model_Fixture::get($card['fixture_id']);
+    } else {
+      $cardId = $this->param('id');
+
+      if (substr($cardId,0,1) == "n") {
+        $card = Model_Matchcard::card(substr($cardId, 1));
+        $fixture = Model_Fixture::get($card['fixture_id']);
+      } else {
+        $card = Model_Matchcard::find_by_fixture($cardId);
+        $fixture = Model_Fixture::get($cardId);
+      }
+    }
 
 		$incidents = array();
 		$card2 = array();
 
-		if ($card['id']) {
-			$incidents = Model_Card::incidents($card['id']);
-			$card2 = Model_Card::card2($card['id']);
+		if ($card && $card['id']) {
+			$incidents = Model_Matchcard::incidents($card['id']);
+			$card2 = Model_Matchcard::card2($card['id']);
 		}
 
 		$html = View::forge('report/card', array('card'=>$card, 'fixture'=>$fixture, 
@@ -530,7 +539,7 @@ class Controller_Report extends Controller_Template
 		$mismatches = array();
 
 		foreach (Model_Fixture::getAll() as $fixture) {
-			$card = Model_Card::find_by_fixture($fixture['fixtureID']);
+			$card = Model_Matchcard::find_by_fixture($fixture['fixtureID']);
 			if (!$card) continue;		// If the fixture has no card, there's no mismatch
 			if (!$card['away_id'] || !$card['home_id']) continue;		// Don't card about EHYL etc
 
@@ -582,10 +591,10 @@ class Controller_Report extends Controller_Template
 				$fixtureIds[] = $fixture['fixtureID'];
 			}
 			Log::info("Verify ".count($fixtureIds)." fixtures");
-			$missing = Model_Card::fixturesWithoutMatchcards($fixtureIds);
+			$missing = Model_Matchcard::fixturesWithoutMatchcards($fixtureIds);
 			$newCards = false;
 			foreach ($missing as $missingCard) {
-				if (Model_Card::createCard($missingCard)) $newCards = true;
+				if (Model_Matchcard::createCard($missingCard)) $newCards = true;
 			}
 			if ($newCards) {
 				$this->template->title = "Late/Missing Cards Report";
@@ -594,11 +603,11 @@ class Controller_Report extends Controller_Template
 			}
 
 			// ---- Incomplete Cards ------------------------
-			$cards = \Model_Card::incompleteCards(0, 7);
+			$cards = \Model_Matchcard::incompleteCards(0, 7);
 
 			foreach ($cards as $cardId) {
 				try {
-					$card = \Model_Card::card($cardId['id']);
+					$card = \Model_Matchcard::card($cardId['id']);
 				} catch (Exception $e) {
 					Log::error("Failed to process incomplete card: ${cardId['id']}:".$e->getMessage());
 					continue;
@@ -634,16 +643,16 @@ class Controller_Report extends Controller_Template
 				$fine = $this->fine($card, $card['away'], $fixture['datetime']->get_timestamp());
 				if ($fine) {
 					$fines[] = $fine;
-					$card = Model_Card::find($card['id']);
+					$card = Model_Matchcard::find($card['id']);
 					$card->open = 60;
 					$card->save();
 				}
 			}
 
 			// ---- Unclosed Cards --------------------------
-			foreach (\Model_Card::unclosedCards() as $cardId) {
+			foreach (\Model_Matchcard::unclosedCards() as $cardId) {
 				try {
-					$card = \Model_Card::card($cardId['id']);
+					$card = \Model_Matchcard::card($cardId['id']);
 				} catch (Exception $e) {
 					Log::error("Failed to process unclosed card: ${cardId['id']}:".$e->getMessage());
 					continue;
@@ -676,7 +685,7 @@ class Controller_Report extends Controller_Template
 				$fine = $this->fineIncomplete($card, $card['away'], $fixture['datetime']->get_timestamp());
 				if ($fine) {
 					$fines[] = $fine;
-					$card = Model_Card::find($card['id']);
+					$card = Model_Matchcard::find($card['id']);
 					$card->open = 60;
 					$card->save();
 				}

@@ -8,17 +8,15 @@ class CardController {
     public function index() {
         checkuser();
 
-				$competitions = array_column(Competition::all(), "name");
-				$clubs = array_column(Club::all(), "name");
+        $competitions = array_column(Competition::all(), "name");
+        $clubs = array_column(Club::all(), "name");
 
-        if (!in_array($_SESSION['club'], $clubs)) {
+        if ($_SESSION['club'] && !in_array($_SESSION['club'], $clubs)) {
           $clubs[] = $_SESSION['club'];
         }
         sort($clubs);
 
         require_once('views/card/index.php');
-
-				return;
     }
 
     // ------------------------------------------------------------------------
@@ -70,6 +68,7 @@ class CardController {
             }
 
             $data = array(
+                    'section' => $fixture['section'],
                     'club' => $club,
                     'date' => date('Ymd', $fixture['date']),
                     'team' => $fixture[$fixture[$club]]['teamnumber'],
@@ -91,6 +90,8 @@ class CardController {
             }
 
             Log::debug("Edit/View matchcard ($club): cardid=" . $fixture['card']['id']);
+            $fixture['home']['score'] = emptyValue($fixture['card']['home']['score'], 0);
+            $fixture['away']['score'] = emptyValue($fixture['card']['away']['score'], 0);
             $fixture['card']['away']['suggested-score'] = emptyValue($fixture['card']['home']['oscore'], 0);
             $fixture['card']['home']['suggested-score'] = emptyValue($fixture['card']['away']['oscore'], 0);
         }

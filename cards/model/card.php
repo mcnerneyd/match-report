@@ -31,8 +31,8 @@ class Card {
 
 	public static function addNote($id, $user, $msg) {
 		$db = Db::getInstance();
-		$stmt = $db->prepare("insert into incident (matchcard_id, type, user_id, detail) 
-				select $id, 'other', id, :detail from user where username = '$user'");
+		$stmt = $db->prepare("insert into incident (matchcard_id, type, detail) 
+				select $id, 'other', :detail");
 		$stmt->execute(array(":detail"=>$msg));
 	}
 
@@ -76,94 +76,8 @@ class Card {
 		Log::debug("Getting fixtures");
 
 		$allfixtures = array();
-/*		$ctr = 1;
 
-		foreach (Config::get("config.fixtures") as $feed) {
-
-			if (!$feed) continue;
-
-			debug("Fixture feed:$feed");
-
-			$fixtures = array();
-
-			if (stripos(strrev($feed), 'vsc.') === 0) {
-				$src = Cache::getInstance()->get($feed);
-				$headers = null;
-
-				foreach (explode("\n", $src) as $line) {
-					if ($headers == null) {
-						$headers = str_getcsv($line);
-						debug("CSV header:".print_r($headers, true));
-						continue;
-					}
-
-					$object = new stdClass();
-
-					$items = str_getcsv($line);
-
-					if (count($items) != count($headers)) continue;
-
-					$object->played = 'No';
-					$object->home_score = 0;
-					$object->away_score = 0;
-
-					foreach (array_combine($headers, $items) as $key=>$value) {
-						$object->$key = $value;
-					}
-
-					$fixtures[] = $object;
-				}
-			} else if ($feed[0] == '!') {
-				$src = Cache::getInstance()->get(substr($feed, 1), 3600);
-
-				if (!$src) continue;
-
-				foreach (scrape($src) as $line) {
-
-					$object = new stdClass();
-
-					$object->played = 'No';
-					$object->home_score = 0;
-					$object->away_score = 0;
-
-					foreach ($line as $key=>$value) {
-						$object->$key = $value;
-					}
-
-					$fixtures[] = $object;
-				}
-				
-			} else if ($feed[0] == '=') {
-				$line = str_getcsv(substr($feed, 1));
-
-				$object = new stdClass();
-				$object->played = 'No';
-				$object->home_score = 0;
-				$object->away_score = 0;
-				$object->fixtureID = $ctr++;
-				$object->datetime = $line[0];
-				$object->competition = $line[1];
-				$object->home = $line[2];
-				$object->away = $line[3];
-
-				$fixtures[] = $object;
-			} else if ($feed[0] == '^') {
-				continue;
-			} else {
-				$src = Cache::getInstance()->get($feed);
-
-				$fixtures = json_decode($src);
-			}
-
-			if (isset($fixtures)) {
-				$allfixtures = array_merge($allfixtures, $fixtures);
-				debug("Fixture Source:".$feed." ".count($fixtures)." fixture(s)");
-			} else {
-				warn("Fixture Source:".$feed." cannot be resolved");
-			}
-		}*/
-
-    $allfixtures = json_decode(file_get_contents(DATAPATH."/fixtures.json"));
+        $allfixtures = json_decode(file_get_contents(DATAPATH."/fixtures.json"));
 
 		return $allfixtures;
 	}
@@ -255,6 +169,7 @@ class Card {
 
 		$result = array(
 			'id'=>$fixture->fixtureID,
+      'section'=>$fixture->section,
 			'date'=>strtotime($fixture->datetimeZ),
 			'datetime'=>$fixture->datetime,
 			'org'=>$fixture->competition,
@@ -339,10 +254,12 @@ class Card {
 			throw new Exception("Team cannot play itself");
 		}
 
-		$sql = "INSERT INTO matchcard (fixture_id, competition_id, home_id, away_id, contact_id, date, description)
-			SELECT ${fixture['id']}, x.id, $homeId, $awayId, 1, from_unixtime('${fixture['date']}'), ''
+		$sql = "INSERT INTO matchcard (fixture_id, competition_id, home_id, away_id, date, description)
+			SELECT ${fixture['id']}, x.id, $homeId, $awayId, from_unixtime('${fixture['date']}'), ''
 				FROM competition x
-				WHERE x.name = '${fixture['competition']}'";
+        LEFT JOIN section s ON x.section_id = s.id
+				WHERE x.name = '${fixture['competition']}'
+          AND s.name = '${fixture['section']}'";
 
 		debug($sql);
 

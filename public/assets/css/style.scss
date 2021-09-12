@@ -1,718 +1,720 @@
 @import url("https://fonts.googleapis.com/css?family=Montserrat");
 
+html {
+    overflow-y: scroll;
+}
+
 body {
-  font-family: "Montserrat", sans-serif;
-  font-size: 11pt;
+    font-family: "Montserrat", sans-serif;
+    font-size: 11pt;
 }
 
 .container {
-  margin-top: 80px;
+    margin-top: 80px;
 }
 
 footer div {
-  position:fixed;
-  bottom: 0;
-  left: 0;
-  background: black;
-  color: white;
-  font-size: 60%;
-  padding: 2px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    background: black;
+    color: white;
+    font-size: 60%;
+    padding: 2px;
 }
 
 
 /* ---------- Navbar ------------------------------------------- */
-/*nav { border-bottom: 3px solid crimson !important; }
-
-.navbar-inverse .navbar-brand { color: white; }
-
-.nav-tabs { padding-left: 20px; } */
 .tab-pane {
-  padding: 20px 10px;
+    padding: 20px 10px;
 }
 
 #user {
-  position: absolute;
-  min-height: 18px;
-  font-size: 12px;
-  font-weight: bold;
-  padding: 5px;
-  color: crimson;
-  right: 0;
-  top: 55px;
+    position: absolute;
+    min-height: 18px;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 5px;
+    color: crimson;
+    right: 0;
+    top: 55px;
 }
 
 #user select {
-  display: none;
-  position: absolute;
-  top: 20px;
-  right: 0;
-  z-index: 100;
-  color: black;
+    display: none;
+    position: absolute;
+    top: 20px;
+    right: 0;
+    z-index: 100;
+    color: black;
 }
 
 .objecttable {
-  margin: 20px 0px;
+    margin: 20px 0;
 }
 .table > thead > tr > th {
-  border-bottom-color: black;
+    border-bottom-color: black;
 }
 .table td {
-  padding: 0.5rem 0.25rem 0.15rem 0.25rem;
+    padding: 0.5rem 0.25rem 0.15rem;
 }
 
 /* ---------- General Styles ----------------------------------- */
 td,
 th {
-  white-space: nowrap;
+    white-space: nowrap;
 }
 
 div.command-group {
-  margin-top: -50px;
-  float: right;
+    margin-top: -50px;
+    float: right;
 }
 
 td.command-group {
-  text-align: right;
+    text-align: right;
 }
 
 .modal-header {
-  background: mediumseagreen;
-  color: white;
-  border-radius: 0;
-  border: none;
+    background: mediumseagreen;
+    color: white;
+    border-radius: 0;
+    border: none;
 }
 
 .close {
-  color: white;
-  opacity: 1;
-  text-shadow: none;
+    color: white;
+    opacity: 1;
+    text-shadow: none;
+}
+
+.hints {
+    font-style:italic;
+    font-size: 0.9;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
 }
 
 /* ---------- Competition Tags --------------------------------- */
 .label-league,
 .label-cup,
 .label-team {
-  vertical-align: middle;
-  border: 1px solid #7ab733;
-  padding: 5px 5px 3px 5px;
-  margin-right: 2px;
+    vertical-align: middle;
+    border: 1px solid #7ab733;
+    padding: 5px 5px 3px;
+    margin-right: 2px;
 }
 
 .label-league {
-  background-color: #7ab733;
+    background-color: #7ab733;
 }
 
 .label-cup {
-  background-color: #eeffcc;
-  color: #7ab733;
+    background-color: #eeffcc;
+    color: #7ab733;
 }
 
 .label-team {
-  border: 1px solid #b7337a;
-  color: white;
-  background-color: #b7337a;
+    border: 1px solid #b7337a;
+    color: white;
+    background-color: #b7337a;
 }
 
 .label-list {
-  white-space: wrap;
+    white-space: wrap;
 }
 
 /* ---------- Matchcard Formatting ------------------------------ */
 #match-card {
-  width: 100%;
-  overflow-x: hidden;
-  /* where screen is wide enough put side by side */
-  h1 {
     width: 100%;
-    border-bottom: 2px solid black;
-    font-size: 30px;
-    font-weight: bold;
-    margin-top: 0;
-  }
-  #teams {
-    margin-right: 0;
-  }
-  .team {
-    width: 100%;
-    margin-bottom: 30px;
-  }
-  @media (min-width: 768px) {
+    overflow-x: hidden;
+    /* where screen is wide enough put side by side */
+
+    h1 {
+        width: 100%;
+        border-bottom: 2px solid black;
+        font-size: 30px;
+        font-weight: bold;
+        margin-top: 0;
+    }
+
     #teams {
-      margin-right: -20px;
+        margin-right: 0;
     }
     .team {
-      width: 50%;
-      padding-right: 20px;
-      float: left;
+        width: 100%;
+        margin-bottom: 30px;
     }
-  }
-  table {
-    width: 100%;
-  }
-  tr td {
-    padding: 5px 10px 5px 0;
-    border-bottom: 1px solid #ddd;
-  }
-  tr td:nth-child(2) {
-    font-style: italic;
-  }
-  tr td:nth-child(3) {
-    width: 60%;
-  }
-  detail {
-    width: 100%;
-    min-height: 50px;
-    clear: both;
-    display: block;
-    float: left;
-  }
-  detail dl {
-    padding-right: 40px;
-    float: left;
-  }
-  #lock-code {
-    float: right;
-    padding-right: 0;
-  }
-  #lock-code * {
-    text-align: right;
-  }
-  tr {
-    height: 2em;
-  }
-  tr span {
-    float: right;
-  }
-  tr.filler {
-    background: repeating-linear-gradient(
-      45deg,
-      white,
-      white 9px,
-      #eee 2px,
-      #eee 11px
-    );
-  }
-  span.score {
-    color: #484;
-    padding-left: 0.5em;
-    font-weight: bold;
-  }
-  span.score::before {
-    content: "x";
-  }
-  span.card-penalty img {
-    width: 1.5em;
-    margin: -1.5em -0.3em -0.5em 0.5em;
-  }
-  thead tr {
-    font-size: 20px;
-    color: black;
-    padding: 5px 10px 5px 0;
-    border-bottom: 1px solid black;
-    border-top: 1px solid black;
+    @media(min-width: 768px) {
+        #teams {
+            margin-right: -20px;
+        }
+        .team {
+            width: 50%;
+            padding-right: 20px;
+            float: left;
+        }
+    }
+    table {
+        width: 100%;
+    }
+    tr td {
+        padding: 5px 10px 5px 0;
+        border-bottom: 1px solid #ddd;
+        &:nth-child(2) {
+            font-style: italic;
+        }
+        &:nth-child(3) {
+            width: 60%;
+        }
+    }
+    detail {
+        width: 100%;
+        clear: both;
+        display: block;
+        float: left;
+        dl {
+            padding-right: 30px;
+            float: left;
+            margin-bottom: 0;
+        }
+    }
+    #lock-code {
+        float: right;
+        padding-right: 0;
+        * {
+            text-align: right;
+        }
+    }
+    tr {
+        height: 2em;
+        &.filler {
+            background: repeating-linear-gradient(45deg, white, white 9px, #eee 2px, #eee 11px);
+        }
+    }
+    span.card-penalty img {
+        width: 1.5em;
+        margin: -1.5em -0.3em -0.5em 0.5em;
+    }
+    thead tr {
+        font-size: 20px;
+        color: black;
+        padding: 5px 10px 5px 0;
+        border-bottom: 1px solid black;
+        border-top: 1px solid black;
 
-    th {
-      text-align: left;
+        th {
+            text-align: left;
+        }
+
+        img {
+            height: 20px;
+        }
+    }
+    .ineligible {
+        background: repeating-linear-gradient(45deg, white, white 10px, #fea 10px, #fea 20px);
     }
 
-    span.score {
-      float: right;
-      color: #484;
+    figure {
+        float: left;
+        margin: 5px 5px 0 0;
+        border: 1px solid #ccc;
+        padding: 5px;
+        position: relative;
+        overflow: hidden;
+
+        .score {
+            position: absolute;
+            top: 5px;
+            right: 8px;
+        }
+        .number {
+            width: 15px;
+            text-align: center;
+            display: block;
+        }
+    }
+    figcaption {
+        margin-top: -19px;
+        font-size: 70%;
+        text-align: left;
+        margin-left: 18px;
+        height: 1.6rem;
+        &:first-line {
+            font-size: 60%;
+            font-style: italic;
+        }
+    }
+    width: 100%;
+    overflow-x: hidden;
+    position: relative;
+    /* where screen is wide enough put side by side */
+
+    h2 {
+        font-size: 25px;
+    }
+    #headshot {
+        position: absolute;
+        right: 0;
+    }
+    tr th {
+        padding: 5px 10px 5px 0;
+        border-bottom: 1px solid #ddd;
+    }
+    #fixture tr {
+        height: 2em;
+    }
+    thead tr th,
+    #fixture thead tr th {
+        text-align: left;
+        width: 2em;
+    }
+    tbody tr th:first-child {
+        text-align: center;
+        width: 3em;
+    }
+    tr .player-annotations {
+        display: inline;
+        float: right;
+    }
+    #fixture table#players {
+        margin-top: 20px;
+    }
+    .score {
       font-weight: bold;
+      &:nth-child(1) {
+          color: #484;
+          &:before {
+              content: "x";
+          }
+      }
+    }
+    .team-table thead tr {
+        font-size: 20px;
+        color: black;
+        padding: 5px 10px 5px 0;
+        border-bottom: 1px solid black;
+        border-top: 1px solid black;
+        .scores {
+            float: right;
+            position: relative;
+            margin-right: 10px;
+            span {
+                font-weight: bold;
+                &:nth-child(1) {
+                    color: #484;
+                    &:before {
+                        content: "x";
+                    }
+                }
+                &:nth-child(2) {
+                    &:before {
+                        content: "\\";
+                    }
+                    position: absolute;
+                    top:0;
+                    color: #aca;
+                    padding: 0;
+                    font-size: 80%;
+                }
+            }
+        }
+    }
+    .late {
+        color: #d9534f;
+    }
+    .deleted td {
+        position: relative;
+        color: #d9534f80;
+        &:after {
+            content: "";
+            display: block;
+            width: 100%;
+            height: 1px;
+            position: absolute;
+            top: 50%;
+            background: #d9534f80;
+        }
+    }
+    div.figures {
+        padding-top: 5px;
+    }
+    figure {
+        float: left;
+        margin: 5px 5px 0 0;
+        border: 1px solid #ccc;
+        padding: 5px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 2px 2px 2px #ccc;
+        img {
+            width: 100%;
+            &.card {
+                width: 1.5em;
+                position: absolute;
+                top: 4px;
+                left: 4px;
+            }
+        }
+        .number {
+            width: 15px;
+            text-align: center;
+            display: block;
+        }
+    }
+    figcaption {
+        margin-top: -19px;
+        font-size: 70%;
+        text-align: left;
+        margin-left: 18px;
+        height: 1.6rem;
+
+        &:first-line {
+            font-size: 60%;
+            font-style: italic;
+        }
     }
 
-    img {
-      height: 20px;
+    button.add-player {
+        margin-top: 5px;
     }
-  }
-  .ineligible {
-    background: repeating-linear-gradient(
-      45deg,
-      white,
-      white 10px,
-      #fea 10px,
-      #fea 20px
-    );
-  }
-
-  figure {
-    float: left;
-    margin: 5px 5px 0 0;
-    border: 1px solid #ccc;
-    padding: 5px;
-    position: relative;
-    overflow: hidden;
-
-    img {
-      width: 100%;
-    }
-    .score {
-      position: absolute;
-      top: 5px;
-      right: 8px;
-    }
-    .number {
-      width: 15px;
-      text-align: center;
-      display: block;
-    }
-  }
-  figcaption {
-    margin-top: -19px;
-    font-size: 70%;
-    text-align: left;
-    margin-left: 18px;
-    height: 1.6rem;
-  }
-  figcaption::first-line {
-    font-size: 60%;
-    font-style: italic;
-  }
-  width: 100%;
-  overflow-x: hidden;
-  position: relative;
-  /* where screen is wide enough put side by side */
-
-  h2 {
-    font-size: 25px;
-  }
-  #headshot {
-    position: absolute;
-    right: 0;
-  }
-  tr th {
-    padding: 5px 10px 5px 0;
-    border-bottom: 1px solid #ddd;
-  }
-  #fixture tr {
-    height: 2em;
-  }
-  thead tr th,
-  #fixture thead tr th {
-    text-align: left;
-    width: 2em;
-  }
-  tbody tr th:first-child {
-    text-align: center;
-    width: 3em;
-  }
-  tr .player-annotations {
-    display: inline;
-    float: right;
-  }
-  figure span.score::before,
-  tr span.score::before {
-    content: "x";
-  }
-  #fixture thead tr {
-    font-size: 20px;
-    color: black;
-    padding: 5px 10px 5px 0;
-    border-bottom: 1px solid black;
-    border-top: 1px solid black;
-  }
-  #fixture table#players {
-    margin-top: 20px;
-  }
-  #fixture thead tr span.score {
-    float: right;
-    color: #484;
-    font-weight: bold;
-    /* score within a score */
-  }
-  thead tr span.score span.score {
-    color: #aca;
-    padding: 0;
-    font-size: 80%;
-  }
-  thead tr span.score span.score:before {
-    content: "\\";
-  }
-  .late {
-    color: #d9534f;
-  }
-  .deleted td {
-    position: relative;
-    color: #d9534f80;
-  }
-  .deleted td:after {
-    content: "";
-    display: block;
-    width: 100%;
-    height: 1px;
-    position: absolute;
-    top: 50%;
-    background: #d9534f80;
-  }
-  div.figures {
-    padding-top: 5px;
-  }
-  figure {
-    float: left;
-    margin: 5px 5px 0 0;
-    border: 1px solid #ccc;
-    padding: 5px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 2px 2px 2px #ccc;
-    img {
-      width: 100%;
-    }
-    img.card {
-      width: 1.5em;
-      position: absolute;
-      top: 4px;
-      left: 4px;
-    }
-    .score {
-      position: absolute;
-      top: 5px;
-      right: 8px;
-    }
-    .number {
-      width: 15px;
-      text-align: center;
-      display: block;
-    }
-    }
-  figcaption {
-    margin-top: -19px;
-    font-size: 70%;
-    text-align: left;
-    margin-left: 18px;
-    height: 1.6rem;
-  }
-  figcaption::first-line {
-    font-size: 60%;
-    font-style: italic;
-  }
-  button.add-player {
-    margin-top: 5px;
-  }
 }
 
 .waiting {
-  cursor: progress !important;
+    cursor: progress !important;
 }
 
 .login {
-  color: white;
-}
-
-html {
-  overflow-y: scroll;
+    color: white;
 }
 
 *:active,
 *:hover {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 .navbar-brand {
-  color: white !important;
-  margin-top: -2px;
+    color: white !important;
+    margin-top: -2px;
 }
 
 pre {
-  white-space: pre-wrap;
+    white-space: pre-wrap;
 }
 
 header {
-  border-bottom: 3px solid crimson !important;
+    border-bottom: 3px solid crimson !important;
 }
 
 .modal small {
-  margin-top: 5px;
-  font-style: italic;
-  font-size: 80%;
-  display: block;
-  line-height: 1;
+    margin-top: 5px;
+    font-style: italic;
+    font-size: 80%;
+    display: block;
+    line-height: 1;
 }
 
 .modal-content,
 #context-menu {
-  border: 5px solid mediumseagreen;
+    border: 5px solid mediumseagreen;
 }
 
 .alert-detail {
-  margin-top: 5px;
-  padding-top: 5px;
-  border-top: 1px dotted lightgray;
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px dotted lightgray;
 }
 
 /* ---------- Matchcard Formatting ------------------------------ */
 #context-menu {
-  xbackground: white;
-  xfont-size: 90%;
-  position: fixed;
-  xborder-radius: 5px;
-  xtop: 1em;
-  xright: 1em;
-  xbottom: 1em;
-  xleft: 1em;
-  z-index: 5000;
-  min-width: 15em;
-  xborder: 1px solid black;
+    xbackground: white;
+    xfont-size: 90%;
+    position: fixed;
+    xborder-radius: 5px;
+    xtop: 1em;
+    xright: 1em;
+    xbottom: 1em;
+    xleft: 1em;
+    z-index: 5000;
+    min-width: 15em;
+    xborder: 1px solid black;
+
+    h3 {
+        padding-top: 15px;
+        padding-bottom: 10px;
+    }
+
+    #set-number {
+        margin: 0 20px;
+    }
+
+    .card-yellow img,
+    .card-red img,
+    .card-green img,
+    .card-clear img,
+    .card {
+        width: 1em;
+        margin-right: 2px;
+    }
+    .card {
+        display: inline-block;
+        border: none;
+    }
+    .dropdown-title {
+        font-size: 140%;
+        font-weight: bold;
+        border-radius: 5px 5px 0 0;
+    }
+    li {
+        white-space: nowrap;
+        padding: 2px 10px;
+        .divider {
+            padding: 0;
+        }
+    }
+    #context-close {
+        display: inline;
+        margin-left: 20px;
+    }
 }
 
-#context-menu h3 {
-  padding-top: 15px;
-  padding-bottom: 10px;
-}
-
-#context-menu #set-number {
-  margin: 0 20px;
-}
-
-#context-menu .card-yellow img,
-#context-menu .card-red img,
-#context-menu .card-green img,
-#context-menu .card-clear img,
-#context-menu .card {
-  width: 1em;
-  margin-right: 2px;
-}
-#context-menu .card {
-  display: inline-block;
-  border: none;
-}
-
-#context-menu .dropdown-title {
-  font-size: 140%;
-  font-weight: bold;
-  border-radius: 5px 5px 0 0;
-}
-#context-menu li {
-  white-space: nowrap;
-  padding: 2px 10px;
-}
-#context-menu li.divider {
-  padding: 0;
-}
-#context-menu #context-close {
-  display: inline;
-  margin-left: 20px;
-}
-
-#signatures div {
-  position: relative;
-  margin-top: 15px;
-}
-#signatures div span {
-  position: absolute;
-  top: 0;
-  right: 0;
-  text-align: right;
-  color: red;
-}
-#signatures div img {
-  max-width: 300px;
-  max-height: 100px;
+#signatures {
+    div {
+        position: relative;
+        margin-top: 15px;
+        span {
+            position: absolute;
+            top: 0;
+            right: 0;
+            text-align: right;
+            color: red;
+        }
+        img {
+            max-width: 300px;
+            max-height: 100px;
+        }
+    }
 }
 
 #signature {
-  position: fixed;
-  display: none;
-  background: white;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 10000;
-}
-#signature .button-box {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  #transform: rotate(-90deg);
-}
-#signature h5 {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  #transform: rotate(-90deg);
+    position: fixed;
+    display: none;
+    background: white;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    .button-box {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        transform: rotate(-90deg);
+    }
+    h5 {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        transform: rotate(-90deg);
+    }
 }
 
 #submit-card {
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  left: 0;
-  background-color: #444;
-  padding: 10px;
-  z-index: 500;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    background-color: #444;
+    padding: 10px;
+    z-index: 500;
 }
 
 #submit-matchcard #submit-form-signature canvas {
-  height: 230px;
+    height: 230px;
+}
+
+#submit-form-signature {
+    div {
+        position: relative;
+
+        #clear-button {
+            position: absolute;
+            right: 5px;
+            top: 35px;
+        }
+    }
 }
 
 #login {
-  max-width: 330px;
-  padding: 15px;
-  margin: 0 auto;
-
-  .checkbox {
-    font-weight: normal;
-    font-size: 90%;
-  }
-  .form-control {
-    position: relative;
-    height: auto;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-    padding: 10px;
-    font-size: 14px;
-  }
-  #user-select {
-    height: 45px;
-    margin-top: 22px;
-    border-bottom-right-radius: 0;
-    border-bottom-left-radius: 0;
-  }
-
-  .pin {
-    height: 45px;
-    margin-bottom: 10px;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-top: 0;
-  }
-  button {
-    margin-top: 20px;
-  }
-  img {
-    width: 10em;
-    margin-left: -5em;
-    left: 50%;
-    position: relative;
-  }
-  h2 {
-    width: 100%;
-    text-align: center;
-  }
-  h2 a {
-    color: black;
-  }
-
-  select#user-select {
-    margin-top: 14px !important;
-  }
-
-  input.pin {
-    -webkit-text-security: disc;
-  }
-  input.pin::-webkit-inner-spin-button,
-  input.pin::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-  div#site-select {
     max-width: 330px;
+    padding: 15px;
     margin: 0 auto;
-  }
-  div#site-select a {
-    margin: 5px;
-  }
-  .switch-login {
-    text-align: center;
-    margin-top: 8px;
-    font-size: 90%;
-    display: block;
-  }
+
+    .checkbox {
+        font-weight: normal;
+        font-size: 90%;
+    }
+    .form-control {
+        position: relative;
+        height: auto;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        padding: 10px;
+        font-size: 14px;
+    }
+    #user-select {
+        height: 45px;
+        margin-top: 22px;
+        border-bottom-right-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+
+    .pin {
+        height: 45px;
+        margin-bottom: 10px;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+        border-top: 0;
+    }
+    button {
+        margin-top: 20px;
+    }
+    img {
+        width: 10em;
+        margin-left: -5em;
+        left: 50%;
+        position: relative;
+    }
+    h2 {
+        width: 100%;
+        text-align: center;
+        a {
+            color: black;
+        }
+    }
+
+    select#user-select {
+        margin-top: 14px !important;
+    }
+
+    input.pin {
+        -webkit-text-security: disc;
+    }
+    input.pin::-webkit-inner-spin-button,
+    input.pin::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    div#site-select {
+        max-width: 330px;
+        margin: 0 auto;
+        a {
+            margin: 5px;
+        }
+    }
+    .switch-login {
+        text-align: center;
+        margin-top: 8px;
+        font-size: 90%;
+        display: block;
+    }
 }
 
 #registration {
-  #date-select {
-    position: absolute;
-    z-index: 1000;
-    display: none;
-  }
+    #date-select {
+        position: absolute;
+        z-index: 1000;
+        display: none;
+    }
 
-  #registration-table {
-    th, td {
-      text-align: center;
-      &:nth-child(3) {
-        text-align: left;
-      }
-      &:nth-child(1) {
-        width: 32px;
-      }
-      &:nth-child(2) {
-        width: 24px;
-      }
+    #registration-table {
+        th,
+        td {
+            text-align: center;
+            &:nth-child(1) {
+                width: 32px;
+            }
+            &:nth-child(2) {
+                width: 24px;
+            }
+            &:nth-child(3) {
+                text-align: left;
+            }
+        }
+        .deleted {
+            text-decoration: line-through;
+            color: red;
+        }
+        .added {
+            font-style: italic;
+            color: green;
+        }
+        .match-pill {
+            margin: 2px;
+            display: block;
+            float: left;
+            span {
+                font-size: 80%;
+                color: black;
+                padding: 3px;
+                background: #fffff8;
+                border: 2px solid #b08080;
+                border-left: 0;
+                border-radius: 0 5px 5px 0;
+            }
+            span:first-child {
+                border-radius: 5px 0 0 5px;
+                background: #b08080;
+                color: white;
+                border-color: #b08080;
+                border-right: 0;
+            }
+        }
+        .match-pill-cup span {
+            border-color: #8080b0 !important;
+        }
+        .match-pill-cup span:first-child {
+            background: #8080b0;
+        }
+        img.membership {
+            width: 20px;
+            height: 20px;
+            margin: -2px 0 0 5px;
+        }
     }
-    .deleted {
-      text-decoration: line-through;
-      color: red;
-    }
-    .added {
-      font-style: italic;
-      color: green;
-    }
-    .match-pill {
-      margin: 2px;
-      display: block;
-      float: left;
-    }
-    .match-pill span {
-      font-size: 80%;
-      color: black;
-      padding: 3px;
-      background: #fffff8;
-      border: 2px solid #b08080;
-      border-left: 0;
-      border-radius: 0 5px 5px 0;
-    }
-    .match-pill span:first-child {
-      border-radius: 5px 0 0 5px;
-      background: #b08080;
-      color: white;
-      border-color: #b08080;
-      border-right: 0;
-    }
-    .match-pill-cup span {
-      border-color: #8080b0 !important;
-    }
-    .match-pill-cup span:first-child {
-      background: #8080b0;
-    }
-    img.membership {
-      width: 20px;
-      height: 20px;
-      margin: -2px 0 0 5px;
-    }
-  }
 
-  .form-confirmation {
-    position: relative;
-    height: 45px;
-  }
-  .form-confirmation p {
-    position: absolute;
-    top: 2px;
-    left: 2em;
-    font-size: 75%;
-    font-style: italic;
-  }
-  .form-control label {
-    margin-bottom:0px;
-    font-size: 80%;
-  }
-  tr.error td {
-    color: red;
-  }
-  .dt-right {
-    text-align: right;
-  }
-  #errors {
-    display: none;
-  }
-  #errors .error {
-    color: red;
-  }
-  #errors .warn {
-    color: orange;
-  }
+    .form-confirmation {
+        position: relative;
+        height: 45px;
+        p {
+            position: absolute;
+            top: 2px;
+            left: 2em;
+            font-size: 75%;
+            font-style: italic;
+        }
+    }
+    .form-control label {
+        margin-bottom: 0;
+        font-size: 80%;
+    }
+    tr.error td {
+        color: red;
+    }
+    .dt-right {
+        text-align: right;
+    }
+    #errors {
+        display: none;
+
+        .error {
+            color: red;
+        }
+        .warn {
+            color: orange;
+        }
+    }
 }
+
+#users-select { padding-left: 20px; float:left; }
+

@@ -47,7 +47,7 @@ if ($card) {
   <!-- <?= "WhoAmI:$whoami Open?:$cardIsOpen" ?> -->
   <script>
   var baseUrl = '<?= $baseUrl ?>';
-  var restUrl = '<?= Uri::create('CardApi') ?>';
+  var restUrl = '<?= Uri::create('api/1.0/') ?>';
   </script>
 <?php } ?>
 <script src='js/matchcard.js' type='text/javascript'></script>
@@ -60,7 +60,7 @@ $(document).ready(function() {
   <?php
 if ($mycard) {
 ?>
-  $.getJSON('/public/registrationapi/list.json?t=<?= $mycard['teamx'] ?>&g=<?= join(",", $fixture['groups']) ?>',
+  $.getJSON('/api/1.0/registration/list.json?s=<?= $fixture['section'] ?>&t=<?= $mycard['teamx'] ?>&g=<?= join(",", $fixture['groups']) ?>',
     function(json) {
       var ct = 0;
       if (typeof json !== 'undefined') {
@@ -190,44 +190,33 @@ $(document).ready(function() {
 
 <div id='match-card' <?php
 $class = "";
-if ($cardIsOpen)
-    $class .= "open ";
-if ($card && $card['official'])
-    $class .= "official ";
-if ($class)
-    echo "class='" . trim($class) . "' data-fixtureid='${fixture['id']}'";
-if ($card) {
-  echo "data-cardid='".$card['id']."' data-starttime='".$card['date']."'>";
+if ($cardIsOpen) $class .= "open ";
+if ($card && $card['official']) $class .= "official ";
+if ($class) {
+    echo "class='" . trim($class) . "' data-fixtureid='${fixture['id']}' ";
 }
-?>
-  <h1 id='competition' data-code='<?= $fixture['competition-code'] ?>' data-format='<?= $card ? $card['format'] : 'Any' ?>'><?= $fixture['competition'] ?></h1>
+if ($card) {
+    echo "data-cardid='${card['id']}' data-starttime='${card['date']}'";
+}
+?>>
 
-		<?php
+<h1 id='competition' data-code='<?= $fixture['competition-code'] ?>' data-format='<?= $card ? $card['format'] : 'Any' ?>'><?= $fixture['competition'] ?></h1>
+
+		<?php /*
 if ($fixture['groups']) {
 ?>
 		<h2><?php
     echo join(', ', $fixture['groups']);
 ?></h2>
 		<?php
-}
-?>
+} */ ?>
 
 
   <detail data-timestamp='<?= $fixture['date'] ?>'>
-    <?php
-if (isset($card['away']['locked'])) {
-?>
-    <dl id='lock-code'>
-      <dt>Lock Code</dt>        
-      <dd><?= count($card['away']['players']) . "/" . $card['away']['locked'] ?></dd>
-    </dl>
-    <?php
-}
-?>
 
     <dl id='fixtureid'>
       <dt>Fixture ID</dt>        
-      <dd><a href='http://cards.leinsterhockey.ie/public/Report/Card/<?= $fixture['id'] ?>'><?= $fixture['id'] ?></a></dd>
+      <dd><a href='<?= URI::create("Report/Card/${fixture['id']}") ?>'><?= $fixture['id'] ?></a></dd>
     </dl>
 
     <?php if ($card) { ?>
@@ -338,6 +327,7 @@ if ($cardIsOpen) {
         <div class='form-group'>
           <label>Signature</label>
           <canvas class='form-control'></canvas>
+          <button id='clear-button' class='btn btn-sm btn-danger pull-right'>Clear</button>
         </div>
 
       </div>
@@ -593,13 +583,10 @@ function render_team($fixture, $team)
     global $strictProcessing;
     
     echo "<table class='team-table' data-club='${fixture['club']}' data-team='${fixture['teamnumber']}' data-score='${fixture['score']}'>
-  <thead><tr><th colspan='100'>" . $fixture['team'] . " <span class='score'>${fixture['score']}";
-    if ($team && $team['suggested-score'] != $fixture['score'])
-        echo "<span class='score'>" . $team['suggested-score'] . "</span>";
-    echo "</span>";
-    echo "</th></tr></thead>
-
-  <tbody>\n";
+  <thead><tr><th colspan='100'>" . $fixture['team'] . " <div class='scores'><span>${fixture['score']}</span>";
+    if ($team && $team['suggested-score'] != $fixture['score']) echo "<span>" . $team['suggested-score'] . "</span>";
+    echo "</div></th></tr></thead>
+      <tbody>\n";
     
     $ct = 0;
     if ($team)

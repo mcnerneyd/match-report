@@ -15,6 +15,7 @@
 ?>
 <style>
 	table { width: 100%; }
+	table#players .score { margin-left: 1rem; }
 	table#players tr { border-bottom: 5px solid white; }
 	table#players tbody tr td { font-weight: bold; border-radius: 0.5em; background: #ffe; padding: 10px; }
 	table#players tbody.selected td { background: #1c5; color: white; }
@@ -56,7 +57,7 @@ function counts(flash) {
 		if (ct >= -1) {
 			$(".warning td").hide();
 		} else {
-			$(".warning td").show().text((7-ct) + ' more players required before <?= $fixture['datetime'] ?>');
+			$(".warning td").show().text((7-ct) + ' more players required before <?= strftime("%H:%M on %A, %B %e, %Y", $fixture['date']) ?>');
 		}
 		<?php } else {
 			$ct = 0;
@@ -115,7 +116,7 @@ function addSorted($selector, $item, $sort) {
 
 $(document).ready(function () {
 
-	$.getJSON('/public/registrationapi/list.json?t=<?= $data['team'] ?>&d=<?= $data['date'] ?>&g=<?= join(",", $data['groups']) ?>',
+	$.getJSON('/api/1.0/registration/list.json?s=<?= $data['section'] ?>&t=<?= $data['team'] ?>&d=<?= $data['date'] ?>&g=<?= join(",", $data['groups']) ?>',
 		function(json) { 
 			if (typeof json === 'undefined') return;
 			var selected = <?= json_encode(array_keys($fixture['card'][$whoami]['players'])) ?>;
@@ -139,14 +140,17 @@ $(document).ready(function () {
 
 				html += "><td>" + p['name'];
 
-				if (p['membershipid']) html += "<img class='membership' src='http://cards.leinsterhockey.ie/public/assets/img/hockeyireland-icon.png'/>";
+				if (p['membershipid']) html += "<img class='membership' src='http://cards.leinsterhockey.ie/assets/img/hockeyireland-icon.png'/>";
 				
 				html += "</td></tr>";
 
 				$('#players .' + group).append(html);
 			}
 			counts(false);
-		});
+		})
+      .fail(function() {
+        $('#players').append('<div class="alert alert-danger" role="alert">Failed to get player list</div>');
+      });
 
 	$('tr.regular').each(function(index) {
 		var c = $(this).hasClass('last') ? 'L' : 'P';
@@ -155,7 +159,7 @@ $(document).ready(function () {
 
 	function addNote(msg) {
 		var cardId=<?= $fixture['cardid'] ?>;
-		$.post('/public/CardApi/Note',
+		$.post('/api/1.0/card/note',
 			{'card_id':cardId, 'msg':msg})
 			.done(function() {
 				window.location = '/';
@@ -206,15 +210,15 @@ $(document).ready(function () {
 		if (select) {
 			if (group.hasClass('selected')) return;
 
-			$.post('/public/CardApi/Player', {'card_id':cardId, 'player':playerName});
+			$.post('/api/1.0/cards/'+cardId, {'player':playerName});
 			
 			playerRow.remove();
 			addSorted("tbody.selected", playerRow, false);
 		} else {
 			if (!group.hasClass('selected')) return;
 
-			$.ajax('/public/CardApi/Player', {
-				data: {'card_id':cardId, 'player':playerName},
+			$.ajax('/api/1.0/cards/' + cardId, {
+				data: {'player':playerName},
 				type: 'DELETE'});
 
 			playerRow.remove();

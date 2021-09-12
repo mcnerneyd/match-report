@@ -1,6 +1,6 @@
 *** Settings ***
 Resource			../Common.robot
-Test Setup			Create Card With Player		6
+Test Setup       Create Card With Player    test.division1.aardvarks1.bears2
 Suite Teardown		Close Browser
 
 *** Test Cases ***
@@ -35,7 +35,7 @@ Umpire Can Clear Cards From Player
 	Click Menu		No Cards
 	Submit Card
 	Sleep			2s
-	Go To			http://cards.leinsterhockey.ie/public/Report/Card/6
+	Go To			${BASE}/Report/Card?key=test.division1.aardvarks1.bears2
 	Page Should Not Contain Element		xpath://tr[@data-description='Red Card Jackeline GOSHA Aardvarks Red Card']
 	
 Umpire Can Add Note To Card
@@ -60,7 +60,7 @@ Create Card With Player
 	Submit Team
 	Close Browser
 	Login			Andrew Amberman		2222
-	Go To			http://cards.leinsterhockey.ie/card/index.php?site=test&controller=card&action=get&fid=${fixtureid}
+	Go To			${BASE}/cards/index.php?site=test&controller=card&action=get&fid=${fixtureid}
 	Click Link			Yes
 
 Player Menu
@@ -82,7 +82,7 @@ Submit Card
 Verify Card
 	[Arguments]			${description}
 	Sleep				2s
-	Go To				http://cards.leinsterhockey.ie/public/Report/Card/6
+	Go To				${BASE}/Report/Card/?key=test.division1.aardvarks1.bears2
 	Comment				${description}
 	Page Should Contain Element		xpath://tr[@data-description='${description}']
 

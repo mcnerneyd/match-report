@@ -74,11 +74,16 @@
         <?php } ?>
         <?php if (\Auth::check()) { ?>
         <li class='nav-item'>
-          <a class='nav-link' href='<?= Uri::create('/Login') ?>'><i class="fas fa-sign-out-alt"></i> Logout</a>
+          <a id='logout' class='nav-link' href='<?= Uri::create('/Login') ?>'><i class="fas fa-sign-out-alt"></i> Logout</a>
         <?php } else { ?>
-          <a class='nav-link' href='<?= Uri::create('/Login') ?>'><i class='fas fa-sign-in-alt'></i> Login</a>
+          <a id='login-link' class='nav-link' href='<?= Uri::create('/Login') ?>'><i class='fas fa-sign-in-alt'></i> Login</a>
         <?php } ?>
         </li>
       </ul>
     </div>
 </nav>
+
+<?php if (\Session::get('user-title')) { ?>
+<div id='user'><?= \Session::get('user-title') ?></div>
+<?php } ?>
+

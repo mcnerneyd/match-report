@@ -18,7 +18,6 @@ return array(
 	'fixtures/:id' => 'Fixture/Index',
 
 	// Rest API
-	'api/cards/:id/notes' => 'cardapi/note',
 	'api/cards/:id' => 'cardapi',
 	'api/cards' => 'cardapi',
 	'api/users' => 'userapi',
@@ -27,5 +26,6 @@ return array(
 	'api/competitions' => 'competitionapi',
 	'api/fixtures' => 'fixtureapi',
 	'api/admin/(:any)' => 'adminapi/$1',
+	'api/registration/(:any)' => 'registrationapi/$1',
 
 );

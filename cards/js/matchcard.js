@@ -1,6 +1,13 @@
 // vim: et:ts=2:sw=2:et:
 $(document).ready(function() {
 
+    var signaturePad;
+
+    const clearSignature = () => {
+      if (signaturePad !== undefined) {
+        signaturePad.clear();
+      }}
+
     // initializations
     $('span.card-red').html("<img class='card-penalty card-red' src='img/red-card.png'/>");
     $('span.card-yellow').html("<img class='card-penalty card-yellow' src='img/yellow-card.png'/>");
@@ -117,7 +124,7 @@ $(document).ready(function() {
         var ctx = c[0].getContext("2d");
         ctx.canvas.width = c.parent().width();
         ctx.canvas.height = c.parent().height();
-        new SignaturePad(c[0]);
+        signaturePad = new SignaturePad(c[0]);
     });
 
     $('#submit-matchcard button.btn-success').click(function(e) {
@@ -132,9 +139,8 @@ $(document).ready(function() {
 
         if (receipt) localStorage.setItem("receipt_email", receipt);
 
-        $.post(restUrl + "/Signature",
+        $.post(`${restUrl}/cards/${cardId}`,
             {
-                "card_id":cardId,
                 "umpire":umpire,
                 "myscore":myscore,
                 "score":score,
@@ -158,7 +164,7 @@ $(document).ready(function() {
         var ctx = c[0].getContext("2d");
         ctx.canvas.width = c.parent().width();
         ctx.canvas.height = c.parent().height();
-        new SignaturePad(c[0]);
+        signaturePad = new SignaturePad(c[0]);
     });
 
     $('#add-player-modal .btn-success').on('click', function(e) {
@@ -166,7 +172,7 @@ $(document).ready(function() {
         var playerName = $('#player-name').val();
         console.log("Adding player: "+ playerName);
 
-        $.post('/public/CardApi/Player', {'card_id':cardId, 'player':playerName})
+        $.post(`${restUrl}/cards/${cardId}`, {'player':playerName})
             .done( function() { location.reload(); });
     });
 
@@ -176,7 +182,7 @@ $(document).ready(function() {
     });
 
     $('#signature [type=reset]').click(function() {
-        signaturePad.clear();
+        clearSignature();
     });
 
     $('#signature [type=submit]').click(function() {
@@ -184,23 +190,27 @@ $(document).ready(function() {
         var cardId = $('#match-card').data('cardid');
         var playerName = $('#signature').data('name');
         var club = $('#teams .ours>table').data('club');
-        $.post(restUrl + '/Signature',
-            {'player':playerName, 'signature':dataUrl, 'card_id':cardId, 'c':club})
+        $.post(`${restUrl}/cards/${cardId}`,
+            {'player':playerName, 'signature':dataUrl, 'c':club})
             .done(function() { location.reload(); });
-        signaturePad.clear();
+        clearSignature();
         $('#signature').hide();
         $('#mysig').attr('src',dataUrl);
     });
 
+    $('#clear-button').click(function() {
+        clearSignature();
+    });
+
     $('#cancel-signature').click(function() {
-        signaturePad.clear();
+        clearSignature();
         $('#signature').hide();
     });
 
     function addNote(msg) {
         var cardId = $('#match-card').data('cardid');
-        $.post(restUrl + '/Note',
-            {'card_id':cardId, 'msg':msg})
+        $.post(`${restUrl}/cards/${cardId}`,
+            {'note':msg})
             .done(function() { location.reload(); });
     }
 
@@ -218,7 +228,7 @@ $(document).ready(function() {
         var club = playerRow.closest('table').data('club');
         var number = $(this).closest('.input-group').find('[name=shirt-number]').val();
         if (number) {
-            $.ajax('http://cards.leinsterhockey.ie/public/RegistrationApi/Number',
+            $.ajax(`${restUrl}/registration/number`,
             { 
                 'method':'PUT',
                 'data':{'c':club,'p':playerName,'n':number}
@@ -227,7 +237,7 @@ $(document).ready(function() {
     });
 
     var cardId = $('#match-card').data('cardid');
-    $.get(restUrl + '/Signatures.json?card_id=' + cardId,
+    $.get(`${restUrl}/cards/${cardId}?signatures`,
         function(data) {
             if (data !== undefined) {
                 for (var i=0;i<data.length;i++) {
@@ -289,10 +299,6 @@ $(document).ready(function() {
       var cardId = $('#match-card').data('cardid');
       var playerData = $('#context-menu').data('playerData');
       if (typeof playerData === 'undefined') playerData = {roles:[]};
-      var url = restUrl + "/Player?m=" + cardId 
-      + "&p=" + $('#context-menu').data('player')
-      + "&club=" + $('#context-menu').data('club');
-
       if (!('roles' in playerData)) playerData['roles'] = [];
 
       if (playerData['roles'].indexOf(role) >= 0) {
@@ -303,10 +309,17 @@ $(document).ready(function() {
         playerData['roles'].push(role);
       }
 
+      const url = `${restUrl}/cards/${cardId}` ;
+      const data = {
+        p: $('#context-menu').data('player'),
+        c: $('#context-menu').data('club'),
+        detail: playerData
+      }
+
       $.ajax({url: url, 
         method:'PUT', 
         contentType:'application/json',
-        data:JSON.stringify(playerData)})
+        data:JSON.stringify(data)})
       .done(function(d) { location.reload(); });
     });
 
@@ -428,7 +441,7 @@ function updateGoals(holder) {
     holder.closest('table')
         .find('.player-annotations .score')
         .each(function() { totalGoals += parseInt($(this).text()); });
-    setText(holder.closest('table').find('thead th>.score').get(0), totalGoals);
+    holder.closest('table').find('thead th>.scores span').get(0).innerHTML = totalGoals;
     holder.closest('table').data('score', totalGoals);
 }
 
@@ -438,12 +451,14 @@ function getPlayerRow(name) {
 
 function incident(type, value, onSuccess) {
     var cardId = $('#match-card').data('cardid');
-    var url = restUrl + "/Player?card_id=" + cardId 
-		+ "&player=" + $('#context-menu').data('player')
-        + "&key=" + type 
+    var url = restUrl + "/cards/" + cardId 
+		+ "?player=" + $('#context-menu').data('player')
+    + "&key=" + type 
 		+ "&club=" + $('#context-menu').data('club');
         
     if (value) url += "&value=" + value;
+
+    console.debug("Update:" + url);
 
     if (type == 'remove') {
       $.ajax({url: url, type:'DELETE', success: onSuccess});
@@ -556,7 +571,7 @@ function getText(obj) {
 function setText(obj, text) {
     if (obj === undefined || obj === null) return false;
 
-    obj.firstChild.nodeValue = text;
+    obj.nodeValue = text;
 
     return true;
 }

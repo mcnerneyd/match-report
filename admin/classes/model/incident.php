@@ -70,6 +70,7 @@ class Model_Incident extends \Orm\Model
 			$new = false;
 			if ($incident == null) {
 					$incident = new Model_Incident();
+					$incident['date'] = Date::time(); 
 					$incident['player'] = $player;
 					$incident['type'] = $type;
 					$incident['club_id'] = $clubId;

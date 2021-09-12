@@ -10,7 +10,9 @@ class Model_Club extends \Orm\Model
 
 	protected static $_table_name = 'club';
 
-	protected static $_has_many = array('team', 'user');
+	protected static $_has_many = array('team'=>array(
+        ), 'user' => array(
+        ));
 
 	protected static $_conditions = array(
 		'order_by' => array('name'=>'asc'),
@@ -21,12 +23,14 @@ class Model_Club extends \Orm\Model
 
 		$carry = 0;
 		foreach ($this->team as $team) {
+        Log::debug("Team; ".$team->name);
 			foreach ($team->competition as $competition) {
 				$size = $competition['teamsize'];
+        Log::debug("Competition; $size ".$competition->name);
 				if ($size) {
 					if ($stars) {
 						$size += $carry;
-						$carry = $competition['teamstars'];
+						$carry = $competition['teamstars'] || 0;
 						$size -= $carry;
 					}
 					$result[] = $size;

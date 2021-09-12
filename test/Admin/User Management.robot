@@ -1,6 +1,6 @@
 *** Settings ***
 Resource        ../Common.robot
-Suite Setup      Secretary Login    admin    1234
+Suite Setup      Secretary Login    admin    password
 Test Setup      Go To User Admin Page    
 Suite Teardown  Close Browser
 

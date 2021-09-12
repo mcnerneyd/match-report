@@ -6,7 +6,7 @@ class Model_Registration
 	private static $cache;
 	private static $codes;
 	static function init() {
-		$path = DATAPATH."/sites/".Session::get('site')."/tmp/cache";
+		$path = DATAPATH."/sections/".Session::get('site')."/tmp/cache";
 		if (!file_exists($path)) mkdir($path, 0777, true);
 		static::$cache = Cache::forge("membership", array('file'=>array('path'=>$path),'driver'=>'file','expiration'=>3600*24)); 
 		$codes = file_exists(APPPATH."/classes/model/clublist.ini") ? parse_ini_file(APPPATH."/classes/model/clublist.ini") : array();
@@ -126,7 +126,8 @@ class Model_Registration
 			if ($files) {
 				foreach ($files as $name) {
 					if (!is_file($name)) continue;
-					$ts=strptime($name, '%y%m%d%H%M%S.csv');
+                    Log::debug("Checking file $name");
+					$ts=Date::create_from_string(basename($name), '%y%m%d%H%M%S.csv');
 					$finfo=finfo_open(FILEINFO_MIME);
 					$ftype = "";
 					if ($finfo) {
@@ -135,7 +136,7 @@ class Model_Registration
 					}
 					$fileData = array("club"=>$club,
 						"name"=>basename($name),
-						"timestamp"=>$ts,
+						"timestamp"=>$ts->get_timestamp(),
 						"type"=>$ftype,
 						"cksum"=>md5_file($name));
 					if (file_exists($name.".err")) {
@@ -156,7 +157,7 @@ class Model_Registration
 		$currentNames = array();
 		$currentLookup = array();
 
-    Log::debug("Current players: ".count($current));
+        Log::debug("Current players: ".count($current)." teamSizes=".print_r($teamSizes, true));
 
 		foreach ($current as $player) {
 			$currentNames[] = $player['name'];
@@ -197,7 +198,7 @@ class Model_Registration
 				continue;
 			}
 			$player['history'] = $history[$player['name']];
-			$teams = array_map(function($a) { return $a['team']; }, $player['history']);
+			$teams = array_map(function($a) { return $a['name']; }, $player['history']);
 			if ($teams) {
 				$first = min($teams);
 				$firstCount = array_count_values($teams);
@@ -213,7 +214,7 @@ class Model_Registration
 			$result = array_merge($result, $placeholders);
 		}
 
-    Log::debug("Players for assignment: ".count($result));
+        Log::debug("Players for assignment: ".count($result));
 
 		// assign players to teams
 		$lastTeam = 1;

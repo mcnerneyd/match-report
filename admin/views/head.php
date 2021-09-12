@@ -23,7 +23,6 @@
 	<meta name='theme-color' content='#ffffff'> 
 
 <?= Asset::js(array(
-	'less.min.js',
 	'jquery-3.3.1.js',
 	'popper.min.js',
 	'bootstrap.min.js',

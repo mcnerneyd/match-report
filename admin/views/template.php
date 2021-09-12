@@ -70,31 +70,8 @@
 
 <body>
 	<?php require_once('nav.php'); 
-  
-  function buildName() {
-    $user = \Session::get('user');
-    $name = $user['username'];
-    $assoc = array();
-    if ($user->club) {
-      $assoc[] = $user->club['name'];
-    }
-    if ($user->section) {
-      $assoc[] = $user->section['name'];
-    }
-    if ($assoc) {
-      $name .= " (".join("/", $assoc).")";
-    }
 
-    return $name;
-  }
-
-  ?>
-
-	<?php if (\Auth::check()) { ?>
-	<div id='user'><?= buildName() ?></div>
-	<?php } /* auth check */ ?>
-
-	<?php if (!Cookie::get('CONSENT', null)) { ?>
+	if (!Cookie::get('CONSENT', null)) { ?>
 	<style>
 	#cookie-consent {
 		position: fixed;
@@ -136,7 +113,7 @@
 
 		<button class='btn btn-warning'>Yes</button>
 	</div>
-	<?php } ?>
+	<?php } /* Consent */ ?>
 
 	<div class='container'>
 		<?php 
@@ -177,7 +154,7 @@
 		</div>
 	</footer>
 
-	<!-- Site (Fuel): site=<?= Session::get('site') ?> user=<?= Session::get('username') ?> group=<?= Auth::group()->get_name() ?> -->
+	<!-- Site (Fuel): site=<?= Session::get('site') ?> user=<?= Session::get('user-title') ?> group=<?= Auth::group()->get_name() ?> -->
 
 </body>
 </html>

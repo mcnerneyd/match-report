@@ -1,10 +1,11 @@
 <head>
-	<title>Card #<?= "${card['id']}/${card['fixture_id']}" ?></title>
+	<title>Fixture #<?= $fixture['fixtureID'] ?></title>
 	<?= Asset::js(array('jquery-3.3.1.js')) ?>
 </head>
 <style>
 * { font-family: monospace; }
-#header tr td:first-child { font-weight: bold; padding-right: 30px; }
+#header tr td:first-child { font-weight: bold; width: 8rem; }
+#teams  tr th { font-weight: bold; width: 8rem; }
 #teams th { background: #def; }
 #incidents td { white-space: nowrap; padding-right: 12px; }
 .delete { color: red; }
@@ -21,17 +22,20 @@ $(document).ready(function() {
 });
 </script>
 
-<?php if ($card) { ?>
 <table id='header'>
-	<tr><td>id</td><td><?= $card['id'] ?></td></tr>
-	<tr><td>fixture id</td><td><?= $card['fixture_id'] ?></td></tr>
-	<tr><td>fixture date</td><td><?= $fixture['datetime'] ?></td></tr>
-	<tr><td>date</td><td><?= $card['date'] ?></td></tr>
-	<tr><td>competition</td><td><?= $card['competition'] ?></td></tr>
+	<tr><td>id</td><td><?= $fixture['fixtureID'] ?></td></tr>
+	<tr><td>card id</td><td><?= $card ? $card['id'] : '-' ?></td></tr>
+	<tr><td>section</td><td><?= $fixture['section'] ?></td></tr>
+	<tr><td>fixture date</td><td><?= $fixture['datetimeZ'] ?></td></tr>
+  <?php if ($card) { ?>
+	<tr><td>card date</td><td><?= $card['date'] ?></td></tr>
+  <?php } ?>
+	<tr><td>competition</td><td><?= $fixture['competition'] ?></td></tr>
 </table>
 
 <table id='teams'>
-<tr><th>Home</th><td><?= $card['home']['club']." ".$card['home']['team'] ?></tr>
+<tr><th>Home</th><td><?= $fixture['home'] ?></tr>
+<?php if ($card) { ?>
 <tr><td><strong>Score</strong></td><td><?= $card['home']['goals'] ?></td></tr>
 <?php
 	foreach ($card['home']['players'] as $player=>$incident) {
@@ -39,8 +43,10 @@ $(document).ready(function() {
 			<td>${incident['number']}</td>
 			<td>${incident['date']}</td></tr>";
 	}
+}
 ?>
-<tr><th>Away</th><td><?= $card['away']['club']." ".$card['away']['team'] ?></tr>
+<tr><th>Away</th><td><?= $fixture['away'] ?></tr>
+<?php if ($card) { ?>
 <tr><td><strong>Score</strong></td><td><?= $card['away']['goals'] ?></td></tr>
 <?php
 	foreach ($card['away']['players'] as $player=>$incident) {
@@ -48,9 +54,10 @@ $(document).ready(function() {
 			<td>${incident['number']}</td>
 			<td>${incident['date']}</td></tr>";
 	}
-?>
+} ?>
 </table>
 
+<?php if ($card) { ?>
 <hr>
 <h3>Incidents</h3>
 <table id='incidents'>
@@ -76,11 +83,14 @@ $(document).ready(function() {
 </table>
 
 <hr>
+<?php } ?>
+
 <h3>Raw Fixture Data</h3>
 <pre>
 <?php print_r($fixture); ?>
 </pre>
 
+<?php if ($card) { ?>
 <hr>
 
 <h3>Raw Card Data</h3>

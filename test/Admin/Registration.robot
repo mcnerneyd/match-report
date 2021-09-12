@@ -1,6 +1,6 @@
 *** Settings ***
 Resource				../Common.robot
-Suite Setup			Secretary Login		administrator@nomail.com		password
+Suite Setup			Secretary Login		admin		password
 Test Setup			Go To Registration Page		
 Suite Teardown	Close Browser
 

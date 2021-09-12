@@ -143,7 +143,7 @@ function rangeEnd($now = null) {
 
 //-----------------------------------------------------------------------------
 function parse($str) {
-	$config = Config::get("config.pattern.team", array());
+/*	$config = Config::get("config.pattern.team", array());
 	$patterns = array();
 	$replacements = array();
 	foreach ($config as $pattern) {
@@ -155,7 +155,7 @@ function parse($str) {
 
 	$str = preg_replace($patterns, $replacements, trim($str));
 
-	if ($str == '!') return null;
+	if ($str == '!') return null;*/
 
 	$matches = array();
 	if (!preg_match('/^([a-z ]*[a-z])(?:\s+([0-9]+))?$/i', trim($str), $matches)) {
@@ -177,7 +177,7 @@ function parse($str) {
 
 //-----------------------------------------------------------------------------
 function parseCompetition($str, $competitions) {
-	$config = Config::get("config.pattern.competition", array());
+/*	$config = Config::get("config.pattern.competition", array());
 	if (!$config) {
 		Log::warn("No competition patterns specified");
 	}
@@ -201,7 +201,9 @@ function parseCompetition($str, $competitions) {
 		throw new Exception("Cannot resolve competition '$newstr' ('$str')");
 	}
 
-	return $newstr;
+	return $newstr;*/
+
+    return $str;
 }
 
 //-----------------------------------------------------------------------------

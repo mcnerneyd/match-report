@@ -1,6 +1,3 @@
-<style>
-#users-select { padding-left: 20px; float:left; }
-</style>
 <script>
 	$(document).ready(function() {
 		$('#users-table').DataTable({
@@ -46,6 +43,7 @@
 
 		$('#add-user').click(function() {
 			$('#add-user-modal .form-group').hide();
+			$('#add-user-modal [name=section]').closest('.form-group').show();
 			$('#add-user-modal [name=club]').closest('.form-group').show();
 			$('#add-user-modal [name=role]').val('user');
 			$('#add-user-modal').modal('show');
@@ -59,6 +57,7 @@
 		});
 		$('#add-secretary').click(function() {
 			$('#add-user-modal .form-group').hide();
+			$('#add-user-modal [name=section]').closest('.form-group').show();
 			$('#add-user-modal [name=email]').closest('.form-group').show();
 			$('#add-user-modal [name=club]').closest('.form-group').show();
 			$('#add-user-modal [name=role]').val('secretary');
@@ -66,15 +65,42 @@
 		});
 		$('#add-admin').click(function() {
 			$('#add-user-modal .form-group').hide();
+			$('#add-user-modal [name=section]').closest('.form-group').show();
 			$('#add-user-modal [name=email]').closest('.form-group').show();
 			$('#add-user-modal [name=role]').val('admin');
 			$('#add-user-modal').modal('show');
+		});
+		$('#import-users').click(function() {
+			$('#import-user-modal').modal('show');
 		});
 
 		$("#add-user-modal button[type='submit']").click(function() {
 			$.post('<?= Uri::create('index.php/api/users') ?>', $('#add-user-modal form').serialize(), function(data) {
 				window.location.reload();
 				$.notify({message: 'User Created'}, {
+					placement: { from: 'top', align: 'right' },		
+					delay: 1000,
+					animate: {
+						enter: 'animated bounceInDown',
+						exit: 'animated bounceOutUp'
+					},
+					type: 'success'});
+				});
+		});
+
+		$("#import-user-modal button[type='submit']").click(function(event) {
+            event.preventDefault();
+             var form = $('#import-user-modal form')[0]
+             var data = new FormData(form)
+             $.ajax({
+                type: 'POST',
+                url: form.action,
+                data: data,
+                processData: false,
+                contentType: false
+             }).done((data) => {
+				window.location.reload();
+				$.notify({message: 'Users Imported'}, {
 					placement: { from: 'top', align: 'right' },		
 					delay: 1000,
 					animate: {
@@ -94,7 +120,7 @@
 
 <div class='command-group'>
 	<div class='dropdown'>
-		<button type='button' class='btn btn-success dropdown-toggle' data-toggle='dropdown'>
+		<button id='add-user-button' type='button' class='btn btn-success dropdown-toggle' data-toggle='dropdown'>
 			<i class="fas fa-user-plus"></i> Add User</a>
 		</button>
 		<div class='dropdown-menu'>
@@ -104,6 +130,7 @@
 			<a class='dropdown-item' id='add-admin'>Admin User&hellip;</a>
 			<div class='dropdown-divider'></div>
 			<a class='dropdown-item' id='add-all-club-users'>Add missing club users</a>
+			<a class='dropdown-item' id='import-users'>Import Users&hellip;<a>
 		</div>
 	</div>	<!-- .btn-group -->
 </div>
@@ -124,25 +151,27 @@
 
 	<tbody>
 	<?php foreach ($users as $user) {
-		// The SuperUser is not available here
-		if ($user['username'] === 'admin') continue;
+    // The SuperUser is not available here
+    if ($user['username'] === 'admin') {
+        continue;
+    }
 
-		echo "<tr data-user='".$user['username']."'>
+    echo "<tr data-user='".$user['username']."'>
 			<td>${user['username']}</td>
 			<td>".($user->section ? $user->section['name'] : "-")."</td>
 			<td>".($user['club'] ? $user['club']['name'] : "-")."</td>
 			<td>";
-		if ($user['role'] == 'Users' || $user['role'] == 'Umpires') {
-			echo "${user['pin']} <a href='refresh'> <i class='fas fa-sync-alt'></i> </a>";
-		}
-		echo "</td>
+    if ($user['role'] == 'Users' || $user['role'] == 'Umpires') {
+        echo "${user['pin']} <a href='refresh'> <i class='fas fa-sync-alt'></i> </a>";
+    }
+    echo "</td>
 			<td>${user['role']}</td>
 			<td>${user['email']}</td>
 			<td class='command-group'>
 				<a href='delete-user' class='btn btn-danger btn-sm'><i class='fas fa-trash-alt'></i></a>
 			</td>
 		</tr>";
-	} ?>
+} ?>
 	</tbody>
 </table>
 </div>
@@ -173,12 +202,22 @@
 					</div>
 
 					<div class='form-group'>
+						<label>Section</label>
+						<select class='form-control' name='section'>
+              <option value='all'>All sections</option>
+							<?php foreach ($sections as $section) {
+    echo "<option>${section['name']}</option>\n";
+} ?>
+						</select>
+					</div>
+
+					<div class='form-group'>
 						<label>Club</label>
 						<select class='form-control' name='club'>
 							<option value='none'>No club</option>
 							<?php foreach ($clubs as $club) {
-								echo "<option>${club['name']}</option>\n";
-							} ?>
+    echo "<option>${club['name']}</option>\n";
+} ?>
 						</select>
 					</div>
 
@@ -199,6 +238,42 @@
 			<div class='modal-footer'>
 				<button type='button' class='btn btn-outline-default' data-dismiss='modal'>Close</button>
 				<button id='create-user' type='submit' class='btn btn-success'>Create User</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class='modal' id='import-user-modal'>
+	<div class='modal-dialog'>
+		<div class='modal-content'>
+			<div class='modal-header'>
+				<h5 class='modal-title'>Import Users</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class='modal-body'>
+                <form enctype="multipart/form-data" action="<?= Uri::create('Admin/Import') ?>" method="post">
+                <div class='form-group'>
+                    <label>Section</label>
+                    <select class='form-control' name='section'>
+                      <option value='all'>All sections</option>
+                            <?php foreach ($sections as $section) {
+    echo "<option>${section['name']}</option>\n";
+} ?>
+                    </select>
+                </div>
+                  <div class='row'>
+                    <div class='input-group col'>
+                      <input type='file' name='source' id='source' required='true'/>
+                    </div>
+                  </div>
+                </form>
+			</div>
+
+			<div class='modal-footer'>
+				<button type='button' class='btn btn-outline-default' data-dismiss='modal'>Cancel</button>
+				<button type='submit' class='btn btn-success'>Import</button>
 			</div>
 		</div>
 	</div>

@@ -8,9 +8,9 @@ class Controller_Card extends Controller_Template
 
 		if ($cardId) {
 			if (substr($cardId,0,1) == "n") {
-				$card = Model_Card::card(substr($cardId, 1));
+				$card = Model_Matchcard::card(substr($cardId, 1));
 			} else {
-				$card = Model_Card::find_by_fixture($cardId);
+				$card = Model_Matchcard::find_by_fixture($cardId);
 			}
 
 			$matches = array();
@@ -38,7 +38,7 @@ class Controller_Card extends Controller_Template
 			}
 		} else if ($query) {
 			$data['query'] = $query;
-			$data['results'] = \Model_Card::search($query);
+			$data['results'] = \Model_Matchcard::search($query);
 
 			$this->template->content = View::forge('card/index', $data);
 		} else {
@@ -232,7 +232,7 @@ class Controller_Card extends Controller_Template
 		$cardId = Input::param('card_id');
 		$clubName = Input::param("club");
 
-		$card = Model_Card::card($cardId);
+		$card = Model_Matchcard::card($cardId);
 
 		echo "<!-- Card: $cardId\n".print_r($card, true)." -->";
 

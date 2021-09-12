@@ -70,13 +70,13 @@ function loadPage(row) {
 
 				var dt = moment(item['datetimeZ']);
 				var title = `#${fixtureID}:${item['competition']} - ${item['home']['name']} v ${item['away']['name']}`;
-				
-				 //+ "/" + item['cardId'] 
+				var key = `${item['section']}.${item['competition']}.${item['home']['name']}.${item['away']['name']}`;
+        key = key.replaceAll(" ", "").toLowerCase();
 
 				if (page < 0) {
-					row.after(`<tr id="${fixtureID}" title="${title}"></tr>`);
+					row.after(`<tr id="${fixtureID}" title="${title}" data-key='${key}'></tr>`);
 				} else {
-					row.before(`<tr id="${fixtureID}" title="${title}"></tr>`);
+					row.before(`<tr id="${fixtureID}" title="${title} data-key='${key}'"></tr>`);
 				}
 
 				var current = $('#' + fixtureID);
@@ -230,6 +230,8 @@ const resetTable = () => {
 }
 
 $(document).ready(function() {
+  $("#pills-club").val('<?= $_SESSION['club'] ?>');
+
 	// Load initial dataset
   resetTable();
 	$('#fixtures-container').scroll(triggerLoad);
@@ -255,8 +257,6 @@ $(document).ready(function() {
   $("#fixtures").on("click", "tr.fixture", function() {
     window.document.location = "<?= url(null, 'get','card') ?>&fid="+$(this).attr("id");
 	});
-
-  $("#pills-club").val('<?= $_SESSION['club'] ?>');
 });
 </script>
 

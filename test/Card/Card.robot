@@ -1,8 +1,8 @@
 # vim:et:ts=3:sw=3
 *** Settings ***
 Resource         ../Common.robot
-Suite Setup      Login  Aardvarks  1111
-Test Setup       Create Card With Player    6
+Suite Setup      Login  Aardvarks  1112
+Test Setup       Create Card With Player    test.division1.aardvarks1.bears2
 Suite Teardown   Close Browser
 
 *** Test Cases ***
@@ -47,9 +47,9 @@ User Can Clear Cards From Player
   Click Menu     Red Card
   Wait Until Element Is Not Visible  css:#context-menu
   Player Menu    Jackeline GOSHA
-  Click Menu     No Cards
+  Click Menu     Clear Cards
   Wait Until Element Is Not Visible  css:#context-menu
-  Go To          http://cards.leinsterhockey.ie/public/Report/Card/6
+  Go To          ${BASE}/Report/Card/test.division1.aardvarks1.bears2
   Page Should Not Contain Element    xpath://tr[@data-description='Red Card Jackeline GOSHA Aardvarks Red Card']
   
 User Can Set Player Number
@@ -102,6 +102,13 @@ Opposition Score Must Be Provided
   Click Link     jquery:#submit-matchcard a.btn-success
   Element Should Be Visible		jquery:#submit-matchcard button.btn-success
 
+User Can Submit Card
+  Player Menu    Jackeline GOSHA
+  Click Button   Add Goal
+  Wait Until Element Is Not Visible    css:#context-menu
+  Submit Card
+  Verify Card    Scored Jackeline GOSHA Aardvarks 1
+
 *** Keywords ***
 Create Card With Player
   [Arguments]    ${fixtureid}
@@ -129,7 +136,7 @@ Submit Card
 
 Verify Card
   [Arguments]    ${description}
-  Go To          http://cards.leinsterhockey.ie/public/Report/Card/6
+  Go To          ${BASE}/Report/Card?key=test.division1.aardvarks1.bears2
   Comment        ${description}
   Page Should Contain Element    xpath://tr[@data-description='${description}']
 

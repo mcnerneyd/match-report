@@ -7,18 +7,6 @@
 		];
 </script>
 
-<?php /*
-// --------------------------------------------------------
-//  Site Select
-// --------------------------------------------------------
-if (!Session::get('site', false)) { ?>
-<div id='site-select'>
-<?php foreach ($sites as $site=>$v) { 
-	echo "<a data-site='$site' class='btn btn-success col-md-12 col-xs-12' href='".Uri::create('/Login', array(), array('site'=>$site))."'>".$v."</a>\n";
-} ?>
-</div>
-<?php return; } i*/ ?>
-
 <?php 
 // --------------------------------------------------------
 //  User Login
@@ -29,14 +17,15 @@ if (!Session::get('site', false)) { ?>
 	<a href='<?= Uri::create('/Login', array(), array('site'=>'none')) ?>'><?= \Config::get('config.title') ?></a>
 	</h2>
 
-	<select id='user-select' class='custom-select' name='user'>
+  <input id='user-select' class='form-control' type='text' name='user' list='users' placeholder='Username'/>
+	<datalist id='users' class='custom-select' style='display:none'>
 			<option value="" disabled selected>Select user&hellip;</option>
 			<?php
-			foreach ($users as $username=>$user) {
+			foreach ($users as $username) {
 					echo "<option>$username</option>\n";
 			}
 			?>
-	</select>
+	</datalist>
 
 	<input type='password' name='pin' class='form-control pin' placeholder='Password' required autocomplete='off' disabled/>
 
@@ -49,8 +38,6 @@ if (!Session::get('site', false)) { ?>
 </form>
 <script>
 $(document).ready(function() {
-	//var site = <= "'" + Session::get('site') + "'" ?: 'null' >;
-
 	$('#user-select').change(function() {
 		$("input[name='pin']").prop('disabled', $(this).val() == "");
 	});
@@ -58,9 +45,6 @@ $(document).ready(function() {
 	$('#user-select').keyup(function() {
 		$("input[name='pin']").prop('disabled', $(this).val() == "");
 	});
-
-	if (site != null) $('#site-select').val(site);
-	else $('#site-select').val('');
 
 	<?php if ($selectedUser) { ?>
 	$('input#user-select').val('<?= $selectedUser ?>');

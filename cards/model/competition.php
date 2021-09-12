@@ -11,7 +11,7 @@
 			$list = array();
 			$db = Db::getInstance();
 
-			$req = $db->query("select distinct c.name, c.teamsize, c.teamstars, c.code, c.groups, c.format
+			$req = $db->query("select distinct c.name, c.teamsize, c.teamstars, c.code, c.groups, c.format, c.sequence
 				from competition c join team__competition e on c.id = e.competition_id
 				order by sequence, name");
 
@@ -22,7 +22,7 @@
 			$list = array();
 			$db = Db::getInstance();
 
-			$req = $db->query("select distinct c.name, c.teamsize, c.teamstars, c.code, c.groups, c.format
+			$req = $db->query("select distinct c.name, c.teamsize, c.teamstars, c.code, c.groups, c.format, c.sequence
 				from competition c
 				order by sequence, name");
 

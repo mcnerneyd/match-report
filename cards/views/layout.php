@@ -26,12 +26,6 @@
 
 			<?php require_once(APPPATH.'/views/nav.php'); ?>
 
-			<?php if (user()) { ?>
-			<div id='user'><?php 
-				echo user();
-				if ($_SESSION['club'] and $_SESSION['club'] != user()) echo "(".$_SESSION['club'].")"; ?></div>
-			<?php } ?>
-
 		<div class='container' data-controller='<?= $controller ?>' data-action='<?= $action ?>'>
 			<?php 
 

@@ -4,7 +4,7 @@ class Model_Player extends \Model
 {
 
 	public static function getHistory($club, $beforeDate = null) {
-		$sql = "select distinct i.player, x.code, x.name, m.date, t.name, m.id, m.fixture_id
+		$sql = "select distinct i.player, x.code, x.name, m.date, t.name, m.id, m.fixture_id, i.date
 					from incident i join matchcard m on i.matchcard_id = m.id
 					join competition x on m.competition_id = x.id
 						join club c on i.club_id = c.id
@@ -37,7 +37,7 @@ class Model_Player extends \Model
 
 		// ------------------------------------------------------------------------
 		public static function archive() {
-				$siteDir = DATAPATH."/sites/".Session::get('site');
+				$siteDir = DATAPATH."/sections/".Session::get('site');
 				print_r(static::listAllFiles($siteDir."/registration/"));
 
 				$archiveDir = $siteDir."/tmp/archive/";
