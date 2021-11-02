@@ -119,6 +119,16 @@ class Config {
 	}
 }
 
+class Arr {
+	public static function get($arr, $key, $def) {
+		if (isset($arr[$key])) {
+			return $arr[$key];
+		}
+
+		return $def;
+	}
+}
+
 class Uri { static function create($str) { return BASE."/$str"; } } 
 class Asset {
 	static function js($files) { foreach ($files as $file) echo "<script src='".Uri::create("assets/js/$file")."'></script>\n"; }
@@ -132,7 +142,7 @@ class Session {
 }
 class Auth {
 	static function check() { return user(); }
-	static function has_access($perm) { return in_array($perm, $_SESSION['perms'] ?: array()); }
+	static function has_access($perm) { return in_array($perm, $_SESSION['perms'] ?? array()); }
 }
 class Date {
 	static function create_from_string($str) {

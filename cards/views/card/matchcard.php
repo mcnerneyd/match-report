@@ -1,12 +1,11 @@
 <?php
-echo "<!-- \$fixture=";print_r($fixture);echo "-->";
 // vim: et:ts=2:sw=2
-$club = $_SESSION['club'];
+$club = Arr::get($_SESSION,'club',null);
 
 if (isset($fixture['card'])) {
-  $card = $fixture['card'];
+    $card = $fixture['card'];
 } else {
-  $card = null;
+    $card = null;
 }
 
 global $strictProcessing;
@@ -14,8 +13,9 @@ $strictProcessing = false;
 if (isset($fixture['competition-strict']) && $fixture['competition-strict'] == 'yes') {
     $strictProcessing = true;
 }
-if (isset($_REQUEST['strict']))
+if (isset($_REQUEST['strict'])) {
     $strictProcessing = true;
+}
 
 $cardIsOpen = false;
 
@@ -24,43 +24,46 @@ $mycard = null;
 if ($club and isset($fixture[$club])) {
     $whoami = $fixture[$club];
     $mycard = $card[$whoami];
-    if (!isset($mycard['closed']))
+    if (!isset($mycard['closed'])) {
         $cardIsOpen = true;
+    }
 }
 
 // Card is open for umpires if either side has not closed
-if (user('umpire')) {
-    if (!isset($card['home']['closed']))
+if (user('Umpires')) {
+    if (!isset($card['home']['closed'])) {
         $cardIsOpen = true;
-    if (!isset($card['away']['closed']))
+    }
+    if (!isset($card['away']['closed'])) {
         $cardIsOpen = true;
+    }
 }
 
 $date = strftime("%Y-%m-%d", $fixture['date']);
 $time = strftime("%H:%M", $fixture['date']);
+?>
+<!-- <?= "WhoAmI:$whoami Open?:$cardIsOpen" ?> -->
 
-if ($card) {
-  $card['away']['suggested-score'] = emptyValue($card['home']['oscore'], 0);
-  $card['home']['suggested-score'] = emptyValue($card['away']['oscore'], 0);
-  $baseUrl = substr(url(), 0, -11) . "&cid=${card['id']}&x=" . createsecurekey("card${card['id']}");
-  ?>
-  <!-- <?= "WhoAmI:$whoami Open?:$cardIsOpen" ?> -->
-  <script>
-  var baseUrl = '<?= $baseUrl ?>';
-  var restUrl = '<?= Uri::create('api/1.0/') ?>';
-  </script>
-<?php } ?>
 <script src='js/matchcard.js' type='text/javascript'></script>
 <script>
-var card = <?= json_encode($card) ?>;
+<?php
+if ($card) {
+    $card['away']['suggested-score'] = emptyValue($card['home']['oscore'], 0);
+    $card['home']['suggested-score'] = emptyValue($card['away']['oscore'], 0);
+    $baseUrl = substr(url(), 0, -11) . "&cid=${card['id']}&x=" . createsecurekey("card${card['id']}"); ?>
+  var baseUrl = '<?= $baseUrl ?>';
+<?php
+} ?>
+  var restUrl = '<?= Uri::create('api/1.0/') ?>';
+  var card = <?= json_encode($card, JSON_PRETTY_PRINT) ?>;
 
-$(document).ready(function() {
-  flashSubmit();
+  $(document).ready(function() {
+    flashSubmit();
 
   <?php
 if ($mycard) {
-?>
-  $.getJSON('/api/1.0/registration/list.json?s=<?= $fixture['section'] ?>&t=<?= $mycard['teamx'] ?>&g=<?= join(",", $fixture['groups']) ?>',
+        ?>
+  $.getJSON(restUrl + 'registration/list.json?s=<?= $fixture['section'] ?>&t=<?= $mycard['teamx'] ?>&g=<?= join(",", $fixture['groups']) ?>',
     function(json) {
       var ct = 0;
       if (typeof json !== 'undefined') {
@@ -82,89 +85,15 @@ if ($mycard) {
       });
     });
   <?php
-}
+    }
 ?>
 });
 </script>
 
-<style>
-.flash {
-  background-color: white !important;
-  color: green;
-}
-.spacer {
-  height: 80px;
-}
-
-.alert-small {
-  font-size: 90% !important;
-  text-align: center !important;
-  padding: 2px 5px !important;
-  margin-bottom: 10px !important;
-}
-
-#context-menu {
-  padding-top: 0px;
-}
-
-#context-menu form {
-  padding: 0 1.5em;
-}
-
-#context-menu .modal-header {
-  margin-bottom: 7px;
-}
-
-#card-addx {
-  max-width: 80%;
-}
-
-#submit-card a.float-right {
-    margin-left: 10px;
-  }
-h2 { margin-top: 0.5rem; font-size: 0.75em !important; font-style: italic; }
-.role {
-  font-size: 0.7em;
-  font-weight: bold;
-  padding: 0 4px;
-  width:30px;
-  text-align:center;
-  color:white;
-  border-radius: 2px;
-  margin-left: 3px;
-  margin-top: 3px;
-}
-#select-role {
-  xdisplay:none;
-}
-#select-role label {
-  color:white;
-  border:0;
-  border-radius:0;
-  padding: 2px 4px;
-  font-size: 80%;
-}
-.role-goalkeeper {
-  background: green;
-}
-.role-captain {
-  background:black;
-}
-div.role-captain {
-  border-radius: 0;
-}
-.role-manager {
-  background: blue;
-}
-.role-physio {
-  background: red;
-}
-</style>
-
 <?php
-if ($card)
-if ($card['official'] || $strictProcessing) {
-?>
+if ($card) {
+    if ($card['official'] || $strictProcessing) {
+        ?>
 <div class='alert alert-warning alert-small'>
   This matchcard has officially appointed umpires. Tap here for more details.
   <div class='alert-detail'>
@@ -185,13 +114,18 @@ $(document).ready(function() {
 });
 </script>
 <?php
+    }
 }
 ?>
 
 <div id='match-card' <?php
 $class = "";
-if ($cardIsOpen) $class .= "open ";
-if ($card && $card['official']) $class .= "official ";
+if ($cardIsOpen) {
+    $class .= "open ";
+}
+if ($card && $card['official']) {
+    $class .= "official ";
+}
 if ($class) {
     echo "class='" . trim($class) . "' data-fixtureid='${fixture['id']}' ";
 }
@@ -205,10 +139,10 @@ if ($card) {
 		<?php /*
 if ($fixture['groups']) {
 ?>
-		<h2><?php
+        <h2><?php
     echo join(', ', $fixture['groups']);
 ?></h2>
-		<?php
+        <?php
 } */ ?>
 
 
@@ -257,10 +191,10 @@ if ($fixture['groups']) {
   <form id='submit-card'>
   <?php
 if ($cardIsOpen) {
-?>
+          ?>
       <a id='submit-button' class='btn btn-success' tabindex='10'><i class="fas fa-check"></i> Submit<span class='d-none d-md-inline'> Card</span></a>
   <?php
-}
+      }
 ?>
       <a class='btn btn-info float-right' data-toggle='modal' data-target='#add-note' tabindex='21'>
         <i class="far fa-sticky-note"></i><span class='d-none d-md-inline'> Add Note</span>
@@ -268,7 +202,7 @@ if ($cardIsOpen) {
       <a class='add-player btn btn-danger float-right' data-toggle='modal' data-target='#add-player-modal' tabindex='20'><i class="fas fa-user-plus"></i> Add Player</a>
   <?php
 if (!$cardIsOpen) {
-?>
+    ?>
       <a class='btn btn-success sign-card' data-toggle='modal' data-target='#submit-matchcard' tabindex='2'>
         <i class="fas fa-signature"></i> Add Signature</a>
   <?php
@@ -297,7 +231,7 @@ if (!$cardIsOpen) {
 
         <?php
 if ($cardIsOpen) {
-?>
+    ?>
 
         <form class='needs-validation' novalidation>
           <div class='form-group'>
@@ -335,7 +269,7 @@ if ($cardIsOpen) {
       <div class="modal-footer">
         <?php
 if (false and $cardIsOpen) {
-?>
+    ?>
         <div class='alert alert-danger alert-small md-col-12'>
           <strong>Don't forget</strong> Make sure you have added goals, red/yellow cards to
           your players <u>before</u> submitting the matchcard
@@ -360,20 +294,19 @@ if (false and $cardIsOpen) {
 
 <?php
 if (isset($card['notes'])) {
-?>
+    ?>
 <div id='Notes'>
 <h4>Notes</h4>
   <table id='notes'>
     <?php
     foreach ($card['notes'] as $note) {
-?>
+        ?>
     <tr>
       <th><i class="far fa-sticky-note"></i>&nbsp;<?= $note['user'] ?></th>
       <td><?= $note['note'] ?></td>
     </tr>
     <?php
-    }
-?>
+    } ?>
   </table>
 </div>
 <?php
@@ -406,8 +339,8 @@ if (isset($card['notes'])) {
 // ------------------------------------------------------------------------
 //     Context Menu
 // ------------------------------------------------------------------------
-if ($cardIsOpen || user('admin') || user('umpire') || \Auth::has_access('card.superedit')) {
-?>
+if ($cardIsOpen || \Auth::has_access('card.addcards')) {
+    ?>
 <div id='context-menu' class='dropdown-menu'>
     <div class="modal-header">
       <h4 class="modal-title">Player Name</h4>
@@ -415,8 +348,8 @@ if ($cardIsOpen || user('admin') || user('umpire') || \Auth::has_access('card.su
     </div>
 
     <?php
-    if (!user('umpire')) {
-?>
+    if (!user('Umpires')) {
+        ?>
     <div class='dropdown-item'>
       <button id='remove-player' class='btn btn-block btn-sm btn-danger'>Remove Player</button>
     </div>
@@ -446,12 +379,11 @@ if ($cardIsOpen || user('admin') || user('umpire') || \Auth::has_access('card.su
     </div>
     <div class='dropdown-divider'></div>
     <?php
-    }
-?>
+    } ?>
 
     <?php
-    if (!$card['official'] || user('umpire') || \Auth::has_access('card.superedit')) {
-?>
+    if (!$card['official'] || \Auth::has_access('card.addcards')) {
+        ?>
 
     <div class='form-group dropdown-item' id='card-addx'>
       <label><img class='card' src='img/green-card.png'/><img class='card' src='img/yellow-card.png'/><img class='card' src='img/red-card.png'/>Add Penalty Card</label>
@@ -473,48 +405,18 @@ if ($cardIsOpen || user('admin') || user('umpire') || \Auth::has_access('card.su
     <a class='dropdown-item card-clear'>Clear Cards</a>
     <div class='dropdown-divider'></div>
     <?php
-    }
-?>
+    } ?>
 
     <?php
-    if (!user('umpire')) {
-?>
+    if (!user('Umpires')) {
+        ?>
     <div class='dropdown-item btn-group'>
       <button id='add-goal' class='btn btn-block btn-success'><i class="fas fa-plus"></i> Add Goal</button>
       <button id='clear-goal' style='margin-top:0' class='btn btn-block btn-warn'><i class="fas fa-ban"></i> Clear Goals</button>
     </div>
 
     <?php
-    }
-    if (false) {
-        if (!user('umpire')) {
-?>
-    <li>
-      <!--button id='photograph' class='btn btn-primary' disabled>Take Photo</button-->
-      <h4>Shirt Number</h4>
-      <div class='input-group' id='shirt-number'>
-        <input type='number' name='shirt-number' class='form-control'/>
-        <span class='input-group-btn'>
-          <button class='btn btn-default'>Set</button>
-        </span>
-      </div>
-    </li>
-    <li class='divider'/>
-    <button class='role-captain'>Capt</button>
-    <button class='role-goalkeeper'>GK</button>
-    <button class='role-manager'>Mgr</button>
-    <button class='role-physiotherapist'>Phys</button>
-    <li class='divider'/>
-    <li>
-      <div class='btn-group'>
-        <button id='add-goal' class='btn btn-success'>Add Goal</button>
-        <button id='clear-goal' class='btn btn-success'>Clear Goals</button>
-      </div>
-    </li>
-    <?php
-        }
-    }
-?>
+    } ?>
 
 </div>
 <?php
@@ -572,11 +474,6 @@ if ($cardIsOpen || user('admin') || user('umpire') || \Auth::has_access('card.su
   </div>
 </div>
 
-<!--
-<?php
-print_r($card);
-?>
--->
 <?php //--------------------------------------------------------------
 function render_team($fixture, $team)
 {
@@ -584,76 +481,86 @@ function render_team($fixture, $team)
     
     echo "<table class='team-table' data-club='${fixture['club']}' data-team='${fixture['teamnumber']}' data-score='${fixture['score']}'>
   <thead><tr><th colspan='100'>" . $fixture['team'] . " <div class='scores'><span>${fixture['score']}</span>";
-    if ($team && $team['suggested-score'] != $fixture['score']) echo "<span>" . $team['suggested-score'] . "</span>";
+    if ($team && $team['suggested-score'] != $fixture['score']) {
+        echo "<span>" . $team['suggested-score'] . "</span>";
+    }
     echo "</div></th></tr></thead>
       <tbody>\n";
     
     $ct = 0;
-    if ($team)
-    foreach ($team['players'] as $player => $detail) {
+    if ($team) {
+        foreach ($team['players'] as $player => $detail) {
+            $names = cleanName($player, "[Fn][LN]");
         
-        $names = cleanName($player, "[Fn][LN]");
-        
-        $class = "player";
-        if (isset($detail['deleted']))
-            $class .= " deleted";
-        else {
-            if (isset($detail['ineligible']))
-                $class .= " ineligible";
-            if (isset($detail['late']))
-                $class .= " late";
-            if ($strictProcessing) {
-                if (!isset($detail['number']) or !$detail['number']) {
-                    $class .= " numberless";
+            $class = "player";
+            if (isset($detail['deleted'])) {
+                $class .= " deleted";
+            } else {
+                if (isset($detail['ineligible'])) {
+                    $class .= " ineligible";
+                }
+                if (isset($detail['late'])) {
+                    $class .= " late";
+                }
+                if ($strictProcessing) {
+                    if (!isset($detail['number']) or !$detail['number']) {
+                        $class .= " numberless";
+                    }
                 }
             }
-        }
         
-        $imagekey = createsecurekey("image$player${team['club']}");
-        $url      = "image.php?site=" . site() . "&player=$player&w=200&club=${team['club']}&x=$imagekey";
-        echo "    <tr class='$class' data-timestamp='${detail['datetime']}' data-imageurl='$url' data-name='$player'>
+            $imagekey = createsecurekey("image$player${team['club']}");
+            $url      = "image.php?site=" . site() . "&player=$player&w=200&club=${team['club']}&x=$imagekey";
+            echo "    <tr class='$class' data-timestamp='${detail['datetime']}' data-imageurl='$url' data-name='$player'>
       <th>" . (isset($detail['number']) ? $detail['number'] : "") . "</th>
       <td>${names['Fn']}</td>
       <td>${names['LN']} ";
         
-        echo "<div class='player-annotations'";
-        if (isset($detail['detail'])) {
-            $d = $detail['detail'];
-            echo " data-player='" . htmlspecialchars(json_encode($d), ENT_QUOTES, 'UTF-8') . "'";
-        }
-        echo ">";
-        
-        if ($detail['score'] != 0)
-            echo "<span class='score'>${detail['score']}</span>";
-        if (isset($detail['cards'])) {
-            foreach ($detail['cards'] as $rycard) {
-                $type = "yellow";
-                if ($rycard['type'] == 'Red Card')
-                    $type = "red";
-                echo "<span class='card-penalty card-$type'>${rycard['detail']}</span>";
+            echo "<div class='player-annotations'";
+            if (isset($detail['detail'])) {
+                $d = $detail['detail'];
+                echo " data-player='" . htmlspecialchars(json_encode($d), ENT_QUOTES, 'UTF-8') . "'";
             }
-        }
-        if (isset($detail['detail'])) {
-            $d = $detail['detail'];
-            if ($d) {
-                $roles = $d->roles;
-                if ($roles) {
-                    if (in_array('G', $roles))
-                        echo "<span class='role role-goalkeeper'>GK</span>";
-                    if (in_array('C', $roles))
-                        echo "<span class='role role-captain'>C</span>";
-                    if (in_array('M', $roles))
-                        echo "<span class='role role-manager'>M</span>";
-                    if (in_array('P', $roles))
-                        echo "<span class='role role-physio'>P</span>";
+            echo ">";
+        
+            if ($detail['score'] != 0) {
+                echo "<span class='score'>${detail['score']}</span>";
+            }
+            if (isset($detail['cards'])) {
+                foreach ($detail['cards'] as $rycard) {
+                    $type = "yellow";
+                    if ($rycard['type'] == 'Red Card') {
+                        $type = "red";
+                    }
+                    echo "<span class='card-penalty card-$type'>${rycard['detail']}</span>";
                 }
             }
-        }
-        echo "</div>";
+            if (isset($detail['detail'])) {
+                $d = $detail['detail'];
+                if ($d) {
+                    $roles = $d->roles;
+                    if ($roles) {
+                        if (in_array('G', $roles)) {
+                            echo "<span class='role role-goalkeeper'>GK</span>";
+                        }
+                        if (in_array('C', $roles)) {
+                            echo "<span class='role role-captain'>C</span>";
+                        }
+                        if (in_array('M', $roles)) {
+                            echo "<span class='role role-manager'>M</span>";
+                        }
+                        if (in_array('P', $roles)) {
+                            echo "<span class='role role-physio'>P</span>";
+                        }
+                    }
+                }
+            }
+            echo "</div>";
         
-        echo "</td>
+            echo "</td>
     </tr>\n";
-        $ct++;
+            $ct++;
+        }
     }
     
     for (; $ct < 16; $ct++) {
@@ -668,4 +575,3 @@ function render_team($fixture, $team)
         echo "<dl><dt>Umpire</dt><dd>" . $team['umpire'] . "</dd></dl>";
     }
 }
-

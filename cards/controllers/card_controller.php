@@ -8,10 +8,15 @@ class CardController {
     public function index() {
         checkuser();
 
-        $competitions = array_column(Competition::all(), "name");
+        $competitions = Competition::all();
+        if ($_SESSION['section']) {
+            $competitions = array_filter($competitions, function($a) { return $a['section'] === $_SESSION['section']; });
+        }
+        usort($competitions, function($a, $b) { return strcmp($a['name'], $b['name']); });
+
         $clubs = array_column(Club::all(), "name");
 
-        if ($_SESSION['club'] && !in_array($_SESSION['club'], $clubs)) {
+        if (Arr::get($_SESSION, 'club', null) && !in_array($_SESSION['club'], $clubs)) {
           $clubs[] = $_SESSION['club'];
         }
         sort($clubs);
@@ -58,7 +63,7 @@ class CardController {
             return;
         }
 
-        $club = $_SESSION['club'];
+        $club = Arr::get($_SESSION, 'club', null);
 
         if ($club) {
             if (!isset($fixture['card'])) {

@@ -12,6 +12,10 @@ class Model_Matchcard extends \Orm\Model
         'open',
     );
 
+    public function __toString() {
+        return "Card(${this['fixture_id']}/${this['id']}=".$this['competition']['name'].":".$this['home']['club']['name']."^".$this['away']['club']['name'].")";
+      }
+
     protected static $_table_name = 'matchcard';
 
     protected static $_has_one = array(
@@ -193,10 +197,14 @@ class Model_Matchcard extends \Orm\Model
 
     public static function find_by_fixture($fixtureid, $createAsNeeded = false)
     {
+        $t0 = milliseconds();
+
         $ids = \DB::query("SELECT id FROM matchcard WHERE fixture_id=".$fixtureid)->execute();
 
         foreach ($ids as $id) {
-            return Model_Matchcard::card($id['id']);
+            $c = Model_Matchcard::card($id['id']);
+            Log::debug("fbfTime:".(milliseconds()-$t0));
+            return $c;
         }
 
         if (!$createAsNeeded) {
@@ -258,17 +266,20 @@ class Model_Matchcard extends \Orm\Model
 
     public static function incidents($cardId)
     {		// FIXME: SQL Injection
-        return \DB::query("select i.*, c.name from incident i left join club c on i.club_id = c.id where matchcard_id = $cardId")->execute();
+        return \DB::query("select i.*, c.name, u.username from incident i 
+            left join club c on i.club_id = c.id 
+            left join user u on i.user_id = u.id 
+            where matchcard_id = $cardId")->execute();
     }
 
-    private static function &arr_get(&$arr, $subindex)
-    {
-        if (!isset($arr[$subindex])) {
-            $arr[$subindex] = array();
-        }
+    // private static function &arr_get(&$arr, $subindex)
+    // {
+    //     if (!isset($arr[$subindex])) {
+    //         $arr[$subindex] = array();
+    //     }
 
-        return $arr[$subindex];
-    }
+    //     return $arr[$subindex];
+    // }
 
     private static function arr_add(&$arr, $subindex, $val)
     {
@@ -325,6 +336,10 @@ class Model_Matchcard extends \Orm\Model
             throw new InvalidArgumentException("Card ID must be provided");
         }
 
+        if (!is_numeric($id)) {
+            throw new InvalidArgumentException("Card ID is invalid: $id");
+        }
+
         Log::debug("Requesting card $id");
 
         $cards = \DB::query("select m.id, m.fixture_id, 
@@ -332,9 +347,11 @@ class Model_Matchcard extends \Orm\Model
 				x.name competition, 
 				ch.id home_id, ch.name home_name, th.name home_team, 
 				ca.id away_id, ca.name away_name, ta.name away_team,
-				m.open
+				m.open,
+                s.name as section
 			from matchcard m
 				left join competition x on m.competition_id = x.id
+                left join section s on x.section_id = s.id
 				left join team th on m.home_id = th.id
 				left join club ch on th.club_id = ch.id
 				left join team ta on m.away_id = ta.id
@@ -345,10 +362,51 @@ class Model_Matchcard extends \Orm\Model
         if (count($cards) < 1) {
             return null;
         }
+
         $card = $cards[0];
 
         // Verify that the fixture is still valid
         $fixture = Model_Fixture::get($card['fixture_id']);
+
+        return self::build_card($card, $fixture);
+    }
+
+    public static function cardsFromFixtures($fixtures)
+    {
+        $fixtureIds = array_map(function ($f) { return $f['fixtureID']; }, $fixtures);
+
+        $cards = \DB::query("select m.id, m.fixture_id, 
+				date_format(m.date, '%Y-%m-%d %H:%i:%S') date, 
+				x.name competition, 
+				ch.id home_id, ch.name home_name, th.name home_team, 
+				ca.id away_id, ca.name away_name, ta.name away_team,
+				m.open,
+                s.name as section
+			from matchcard m
+				left join competition x on m.competition_id = x.id
+                left join section s on x.section_id = s.id
+				left join team th on m.home_id = th.id
+				left join club ch on th.club_id = ch.id
+				left join team ta on m.away_id = ta.id
+				left join club ca on ta.club_id = ca.id
+			where m.fixture_id in (".implode(",", $fixtureIds) .")
+				")->execute();
+
+        foreach ($fixtures as &$fixture)  {
+            foreach ($cards as $card) {
+                if ($card['fixture_id'] == $fixture['fixtureID']) {
+                    $fixture['card'] = self::build_card($card, $fixture);
+                }
+            }
+        }
+
+        return $fixtures;
+    }
+
+    private static function build_card($card, $fixture) {
+
+        $t0 = milliseconds();
+
         if ($fixture != null) {
             $card['comment'] = isset($fixture['comment']) ? $fixture['comment'] : "";
         //throw new Exception("Card $id is associated with non-existant fixture (id=".$card['fixture_id'].")");
@@ -356,11 +414,13 @@ class Model_Matchcard extends \Orm\Model
             $card['comment'] = 'No fixture';
         }
 
+        $t2 = milliseconds();
+
         if ($card['date']) {
 
             // Bad date goes to end of season
             if ($card['date'] == '0000-00-00 00:00:00') {
-                $card['date'] = '2019-07-31 07:00:00';
+                $card['date'] = '2050-07-31 07:00:00';
             }
 
             $card['date'] = \Date::create_from_string($card['date'], '%Y-%m-%d %H:%M:%S');
@@ -388,7 +448,9 @@ class Model_Matchcard extends \Orm\Model
         $card['away']['incidents'] = array();
 
         $incidents = \DB::query("select id, player, club_id, type, detail, date, resolved
-			from incident where matchcard_id = $id")->execute();
+			from incident where matchcard_id = ${card['id']}")->execute();
+
+        $t3 = milliseconds();
 
         foreach ($incidents as $incident) {
             if ($incident['club_id'] == $card['home_id']) {
@@ -513,6 +575,9 @@ class Model_Matchcard extends \Orm\Model
             $card['home']['club']." ".$card['home']['team']." v ".
             $card['away']['club']." ".$card['away']['team'];
 
+        $t4 = milliseconds();
+
+        Log::debug("Times: ".($t2-$t0)." ".($t3-$t0)." ".($t4-$t0));
 
         return $card;
     }

@@ -158,7 +158,7 @@ function parse($str) {
 	if ($str == '!') return null;*/
 
 	$matches = array();
-	if (!preg_match('/^([a-z ]*[a-z])(?:\s+([0-9]+))?$/i', trim($str), $matches)) {
+	if (!preg_match('/^([a-z\\/\' ]*[a-z])(?:\s+([0-9]+))?$/i', trim($str), $matches)) {
 		throw new Exception("Cannot match team '$str'");
 	}
 

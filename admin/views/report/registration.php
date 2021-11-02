@@ -11,7 +11,7 @@ $sql = "SELECT matchcard_id, c.name, count(*) ct FROM incident i left join club 
     having count(*) < 11 or count(*) > 16";
 
 foreach (\DB::query($sql)->execute() as $row) {
-	$detail = array("card"=>Model_Card::card($row['matchcard_id']),
+	$detail = array("card"=>Model_Matchcard::card($row['matchcard_id']),
 		"club"=>$row['name']);
 	$ct = $row['ct'];
 	if ($ct < 11) $detail['description'] = "Card has less than normal players ($ct)";
@@ -24,7 +24,7 @@ $sql = "SELECT matchcard_id, c.name, detail FROM incident i left join club c on 
 	WHERE type = 'Other' and detail like '\"%'
     	and date between '$dateFrom' and '$dateTo'";
 foreach (\DB::query($sql)->execute() as $row) {
-	$detail = array("card"=>Model_Card::card($row['matchcard_id']),
+	$detail = array("card"=>Model_Matchcard::card($row['matchcard_id']),
 		"description"=>"Note:".$row['detail'],
 		"club"=>$row['name']);
 
@@ -38,7 +38,7 @@ $sql = "SELECT matchcard_id, c.name, count(*) ct
     	and date between '$dateFrom' and '$dateTo' 
 			group by matchcard_id, c.name";
 foreach (\DB::query($sql)->execute() as $row) {
-	$detail = array("card"=>Model_Card::card($row['matchcard_id']),
+	$detail = array("card"=>Model_Matchcard::card($row['matchcard_id']),
 		"description"=>"Card contains ".$row['ct']." ineligible player(s)",
 		"club"=>$row['name']);
 
@@ -106,7 +106,7 @@ td {
 	<tbody>
 <?php	
 		foreach (Model_Club::find('all') as $club) {
-			$ts = $club->getTeamSizes();
+			$ts = $club->getTeamSizes(null);	// FIXME
 
 			if (!$ts) continue;
 

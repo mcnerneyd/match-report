@@ -107,6 +107,8 @@ class Controller_UserApi extends Controller_RestApi
         }
 
         Log::info("New User: Section: $section, Club: $club");
+        //        Log::info("New User: Section: ".($section ? $section['name'] : "No Section").", Club: $club");
+
 
         $user = new Model_User();
         $user->username = $username;

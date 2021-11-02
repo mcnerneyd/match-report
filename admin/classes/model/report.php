@@ -11,6 +11,6 @@ class Model_Report
 			where type = 'Scored' 
 				and detail > 0
 				and i.date > '".currentSeasonStart()."'
-			group by player, x.id")->execute();
+			group by player, c.name, x.id")->execute();
 	}
 }

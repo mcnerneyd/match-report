@@ -54,8 +54,6 @@
 	<a class='btn btn-warning' href='<?= Uri::create('fixture/repair') ?>'><i class="fas fa-briefcase-medical"></i> Repair Fixtures</a>
 </div>
 
-<!-- <?= print_r($cards, true) ?> -->
-
 <table id='fixtures-table' class='table table-condensed table-striped' style='display:none'>
 	<thead>
 	<tr>
@@ -82,7 +80,7 @@
 
 		if (!isset($fixture['played'])) Log::info("No play: ".print_r($fixture, true));
 		else if ($fixture['played'] == 'yes') $score = "${fixture['home_score']} - ${fixture['away_score']}";
-		echo "<tr data-fixtureid='".$card['fixtureID']."'>
+		echo "<tr ".($fixture['hidden'] ? "class='hidden' ":"")."data-fixtureid='".$card['fixtureID']."'>
 			<td>
 				<a href='".Uri::create("cards/${card['fixtureID']}")."'>#${fixture['fixtureID']}</a>
 			</td>

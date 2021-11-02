@@ -13,8 +13,14 @@ class Controller_User extends Controller_Template
         $data['clubs'] = Model_Club::find('all');
         $data['sections'] = Model_Section::find('all');
 
+        $pins = array();
+        foreach (DB::query("select hash, pin from pins")->execute() as $row) {
+            $pins[$row['hash']] = $row['pin'];
+        }
+
         foreach ($data['users'] as &$user) {
             $user['role'] = Auth::group('Simplegroup')->get_name($user['group']);
+            $user['pin'] = isset($pins[$user['password']]) ? $pins[$user['password']] : "";
         }
 
         $this->template->title = "Users";
@@ -206,7 +212,7 @@ class Controller_User extends Controller_Template
                 Input::param("remember-me", false) ? \Auth::remember_me() : \Auth::dont_remember_me();
                 $username = Session::get('username');
                 $user = Model_User::find_by_username($username);
-                Log::info("Logged in user: ".$username." ".($user ? "User Found:".$user['username'] : "Not User Found"));
+                Log::info("Logged in user: ".$username." ".($user ? "User Found:".$user['username']."/".$user->getName() : "Not User Found"));
 
                 Session::set('user', $user);
                 Session::set('user-title', $user->getName());
@@ -271,7 +277,7 @@ class Controller_User extends Controller_Template
             }
         }
 
-        $roles = array($user['role']);
+        $roles = array(Auth::group('Simplegroup')->get_name($user['group']));
 
         $perms = array();
         foreach (\Config::get('simpleauth.roles', array()) as $role=>$rolev) {
@@ -303,16 +309,19 @@ class Controller_User extends Controller_Template
 
     public function action_switch()
     {
-        Log::debug("User switching: ".\Session::get('username'));
+        $currentUser = \Session::get('username');
+
         if (!\Auth::has_access('user.impersonate')) {
-            throw new HttpNoAccessException;
+            throw new HttpNoAccessException("User not entitled to impersonate: $currentUser");
         }
+
         $username = Input::param('u');
         $user = Model_User::find_by_username($username);
         $success = \Auth::force_login($user['id']);
         $a = \Session::get('login_hash');
         Session::set('user', $user);
-        Log::debug("User switched: $success $username $a ".Session::get('site'));
+        Session::set('user-title', $user->getName());
+        Log::warning("User switched from $currentUser to $username ;$success/$a ".Session::get('site'));
 
         Response::redirect('cards/sso.php?'.base64_encode($this->encode("/cards/index.php")));
     }

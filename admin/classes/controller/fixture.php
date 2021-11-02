@@ -7,17 +7,17 @@ class Controller_Fixture extends Controller_Hybrid
 		if ($flush === 'true') $flush = true;
 
 		$fixtures = Model_Fixture::getAll($flush);
+
+		echo "<!-- Fixtures:\n".print_r($fixtures, true)."\n-->";
 		
 		foreach ($fixtures as &$fixture) {
-			echo "<!-- ".print_r($fixture, true)." -->";
+			//echo "<!-- ".print_r($fixture, true)." -->";
 			$fixture['show'] = true;
 		}
 
 		foreach (Model_Matchcard::query()->where('open','<=','-50')->get() as $card) {
 			$fixtures[$card['fixture_id']]['show'] = false;
 		}
-
-		echo "<!-- Fixtures:\n".print_r($fixtures, true)."\n-->";
 
 		$this->template->title = "Fixtures";
 		$this->template->content = View::forge('fixture/index', array('cards'=>$fixtures));

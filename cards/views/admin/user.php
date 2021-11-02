@@ -36,6 +36,8 @@ foreach ($users as $user) {
 		<button type="button" class="btn btn-primary" onclick="$('#newuser').submit()">Add User</button>
 	</form>
 
+	<!-- <?= print_r($pins,true) ?> -->
+
 	<table class='table'>
 		<tr>
 			<th>User</th>

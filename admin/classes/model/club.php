@@ -18,13 +18,15 @@ class Model_Club extends \Orm\Model
 		'order_by' => array('name'=>'asc'),
 	);
 
-	public function getTeamSizes($stars = true) {
+	public function getTeamSizes($sectionName, $stars = true) {
 		$result = array();
 
 		$carry = 0;
 		foreach ($this->team as $team) {
         Log::debug("Team; ".$team->name);
 			foreach ($team->competition as $competition) {
+				if ($competition->section['name'] != $sectionName) continue;
+
 				$size = $competition['teamsize'];
         Log::debug("Competition; $size ".$competition->name);
 				if ($size) {
@@ -42,23 +44,33 @@ class Model_Club extends \Orm\Model
 		return $result;
 	}
 
+  public function __toString() {
+    return "Club(".$this['name']."/".$this['code'].")";
+  }
+
 	public static function getAnalysis() {
+		// FIXME
 		$results = array();
-		foreach (DB::query("SELECT id, name FROM club c")->execute() as $row) {
+		foreach (DB::query("SELECT DISTINCT c.id, c.name, COALESCE(s.name, s2.name) as sectionName FROM club c 
+				LEFT JOIN team t on c.id = t.club_id 
+				LEFT JOIN section s on t.section_id = s.id, section s2")->execute() as $row) {
 			$club = Model_Club::find_by_id($row['id']);
-			$teams = $club->getTeamSizes();
-			$reg = Model_Registration::find_before_date($row['name'], time());
+			$sectionName = $row['sectionName'];
+			$teams = $club->getTeamSizes($sectionName);
+			$reg = Model_Registration::find_before_date($sectionName, $row['name'], time());
 			$summary = $club->getPlayerHistorySummary();
 			
-			$results[$row['id']] = array('name'=>$row['name'], 'players'=>count($reg), 'teams'=>count($teams), 'reg'=>$reg);
+			$results[$row['id']] = array('name'=>$row['name'], 'section'=>$sectionName, 'players'=>count($reg), 'teams'=>count($teams), 'reg'=>$reg);
 		}
 
-		print_r($results);
+		//print_r($results);
+
+		return $results;
 	}
 
 	public function getPlayerHistorySummary() {
 		$clubId = $this['id'];
-		$req = DB::query("select distinct player, COALESCE(th.team, ta.team) team from incident i 
+		$req = DB::query("select distinct player, COALESCE(th.name, ta.name) team from incident i 
 					join matchcard m on i.matchcard_id = m.id
 					left join team th on m.home_id = th.id and th.club_id = $clubId
 					left join team ta on m.away_id = ta.id and ta.club_id = $clubId

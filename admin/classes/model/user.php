@@ -30,7 +30,7 @@ class Model_User extends \Orm\Model
                 return "Bad name (1/club)";
             }
 
-            return $this->club['name']." (".$this->section['name'].")";
+            return $this->club['name'].($this->section ? " (".$this->section['name'].")" : "");
           case 2:
             return $this->username;
           case 25:

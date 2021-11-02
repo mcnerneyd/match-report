@@ -120,10 +120,8 @@
 		if (isset($title)) echo "<h1>$title</h1>"; 
 
 		$flash = Session::get_flash("message");
-		if ($flash) {
-			$level = isset($flash['level']) ? $flash['level'] : 'success';
-			?>
-			<div class='alert alert-<?= $level ?>'>
+		if ($flash) { ?>
+			<div class='alert alert-<?= \Arr::get($flash, 'level', 'success') ?>'>
 				<?= $flash['message'] ?>
 			</div>
 		<?php }

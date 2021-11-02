@@ -19,7 +19,7 @@
 <?php 
 foreach ($mismatches as $card) {
 	$date = date('Y-m-d', $card['date']->get_timestamp());
-	$cardUrl = 'http://cards.leinsterhockey.ie/card/index.php?site='.Session::get('site').'&controller=card&action=get&fid='.$card['fixture_id'];
+	$cardUrl = 'http://cards.leinsterhockey.ie/card/n'.$card['id'];
 
 	$opscore = (isset($card['away-opposition-score']) ? $card['away-opposition-score'] : "?");
 	$opscore .= " v ";

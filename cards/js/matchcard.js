@@ -94,23 +94,27 @@ $(document).ready(function() {
     $('#submit-matchcard a.btn-success').click(function(e) {
         var score = $('#submit-matchcard input[name=opposition-score]').val();
 
-        $('#submit-matchcard input[name=opposition-score]')[0].setCustomValidity('');
+        if ($('#submit-matchcard input[name=opposition-score]')[0]) {
+            $('#submit-matchcard input[name=opposition-score]')[0].setCustomValidity('');
+        }
         $('#submit-matchcard input[name=opposition-score]+.invalid-feedback').text('You must provide the opposition score');
 
         if ($('#competition').data('format') == 'cup') {
           var myscore = $('#teams .ours table').data('score');
           if (myscore == score) {
             console.log("Tied: "+ myscore + "=" + score);
-            $('#submit-matchcard input[name=opposition-score]')[0].setCustomValidity('Cup matches cannot be tied');
+            if ($('#submit-matchcard input[name=opposition-score]')[0]) {
+                $('#submit-matchcard input[name=opposition-score]')[0].setCustomValidity('Cup matches cannot be tied');
+            }
             $('#submit-matchcard input[name=opposition-score]+.invalid-feedback').text('Cup matches cannot be tied (make sure to include tie-break score)');
           }
         }
 
         var form = $('#submit-matchcard form')[0];
 
-        if (form.checkValidity() === false) {
-          event.preventDefault();
-          event.stopPropagation();
+        if (form && form.checkValidity() === false) {
+          e.preventDefault();
+          e.stopPropagation();
           form.classList.add('was-validated');
           return;
         }
@@ -425,6 +429,7 @@ function triggerMessage() {
   msgBox.data('index', index+1);
   setTimeout(triggerMessage, 8000);
 }
+
 function flashSubmit() {
   var starttime = $('#match-card').data('starttime');
   var now = new Date();

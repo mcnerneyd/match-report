@@ -39,33 +39,44 @@ return array(
          -1   => array('name' => 'Banned', 'roles' => array('banned')),
          0    => array('name' => 'Guests', 'roles' => array()),
          1    => array('name' => 'Users', 'roles' => array('user', 'signer')),
-         2    => array('name' => 'Umpires', 'roles' => array('umpire', 'signer')),
+         2    => array('name' => 'Umpires', 'roles' => array('user', 'umpire', 'signer')),
          25   => array('name' => 'Secretaries', 'roles' => array('user', 'secretary', 'signer')),
          50   => array('name' => 'Moderators', 'roles' => array('user', 'moderator')),
-         99  => array('name' => 'Administrators', 'roles' => array('user', 'moderator', 'admin', 'secretary', 'registration', 'manager', 'user_manager')),
+         99  => array('name' => 'Administrators', 'roles' => array('user', 'moderator', 'admin', 'secretary', 'registration', 'manager', 'user_manager', 'umpire')),
          100  => array('name' => 'Superusers', 'roles' => array('super', 'user_manager')),
     ),
 
     'roles' => array(
-        'user_manager' => array('users'=>array('view','create','delete')),
+         'user_manager' => array('users'=>array('view','create','delete')),
+         
          'admin'  => array('configuration'=>array('view','edit'),
-		 							'data'=>array('export'),
-                                    'card'=>array('superedit'),
-                                    'registration'=>array('impersonate','status','delete'),
-                                    'competition'=>array('view','edit'),
-                                    'user'=>array('create')),
+		 				   'data'=>array('export','log'),
+                           'card'=>array('addcards'),
+                           'registration'=>array('impersonate','status','delete'),
+                           'competition'=>array('view','edit'),
+                           'user'=>array('create','impersonate')),
+
          'secretary' => array('registration' => array('view', 'post'),
-                                    'user'=> array('refreshpin'),
-                                    'registrationapi'=>array('view', 'edit')),
-         'umpire'  => array('umpire_reports' => array('view'), 'card'=>array('addcards')),
+                              'user'=> array('refreshpin'),
+                              'registrationapi'=>array('view', 'edit')),
+
+         'umpire'  => array('umpire_reports' => array('view'), 
+                            'card'=>array('addcards')),
+
          'signer' => array('card_signature' => array('create')),
+
          'user'  => array('comments' => array('create', 'read')),
+
          'manager'  => array('system_reports' => array('view'), 'incident'=>array('delete')),
-         '#'  => array('website' => array('read'),
-                                    'card'=> array('view'), 'card_note'=>array('create','view')),
+
+         '#'  => array('website' => array('read'), 
+                       'card'=> array('view'), 
+                       'card_note'=>array('create','view')),
+
          'banned' => false,
+
          'super' => array('super'=>array('edit'),
-                                    'data'=>array('archive','clean','export'),
+                                    'data'=>array('archive','clean','export','log'),
                                     'user'=>array('impersonate'),
                                     'registration'=>array('touch')),
     ),

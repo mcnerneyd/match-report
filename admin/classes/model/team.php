@@ -33,21 +33,24 @@ class Model_Team extends \Orm\Model
         $matches = array();
         if (preg_match("/(.*) ([0-9]+)/i", $name, $matches)) {
             $rows = DB::query("SELECT t.id FROM team t JOIN club c ON t.club_id = c.id
-				WHERE c.name = '${matches[1]}' AND t.name = ${matches[2]} AND t.section_id = ${section['id']}")->execute();
+				WHERE c.name = :clubname AND t.name = :teamname AND t.section_id = ${section['id']}")
+                ->bind('clubname', $matches[1])
+                ->bind('teamname', $matches[2])
+                ->execute();
 
             foreach ($rows as $row) {
                 return Model_Team::find($row['id']);
             }
         }
 
-        \Log::warning("Unable to locate team: $name");
+        \Log::warning("Unable to locate team: $name/$section");
 
         return null;
     }
 
     public static function parse($section, $str)
     {
-        $config = Config::get("$section.pattern.team", []);
+        $config = Config::get("section.pattern.team", []);
 
         $patterns = array();
         $replacements = array();
@@ -70,7 +73,7 @@ class Model_Team extends \Orm\Model
         }
 
         $matches = array();
-        if (!preg_match('/^([a-z ]*[a-z])(?:\s+([0-9]+))?$/i', trim($str), $matches)) {
+        if (!preg_match('/^([a-z\\/\' ]*[a-z])(?:\s+([0-9]+)[^0-9]*)?$/i', trim($str), $matches)) {
             Log::warning("Cannot match team '$str'");
             return null;
         }

@@ -157,12 +157,12 @@
     }
 
     echo "<tr data-user='".$user['username']."'>
-			<td>${user['username']}</td>
+			<td><a href='User/switch?u=".$user['username']."' class='btn btn-secondary btn-sm'><i class='fas fa-user-secret'></i></a> ${user['username']}</td>
 			<td>".($user->section ? $user->section['name'] : "-")."</td>
 			<td>".($user['club'] ? $user['club']['name'] : "-")."</td>
 			<td>";
     if ($user['role'] == 'Users' || $user['role'] == 'Umpires') {
-        echo "${user['pin']} <a href='refresh'> <i class='fas fa-sync-alt'></i> </a>";
+    	echo "${user['pin']} <a href='refresh'> <i class='fas fa-sync-alt'></i> </a>";
     }
     echo "</td>
 			<td>${user['role']}</td>

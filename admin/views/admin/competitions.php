@@ -2,13 +2,13 @@
 	$(document).ready(function() {
 		$('#competitions-table').dataTable({
 			"columns": [
+				{ "width": "15%" },
 				{ "width": "20%" },
-				{ "width": "20%" },
-				{ "width": "10%" },
-				{ "width": "10%", "orderable": false },
-				{ "width": "10%", "orderable": false, "className":"dt-center" },
-				{ "orderable": false },
-				{ "orderable": false },
+				{ "width": "10%"},
+				{ "width": "5%", "orderable": false, "className":"number"},
+				{ "width": "5%", "orderable": false, "className":"number" },
+				{ "width": "40%", "orderable": false },
+				{ "width": "0", "orderable": false },
 			]
 		});
 		$('#competitions-table tbody').show();
@@ -74,11 +74,11 @@
 			<td>${competition['code']}</td>
 			<td>${competition['teamsize']}</td>
 			<td>${competition['teamstars']}</td>
-			<td class='label-list'>";
+			<td class='label-list'><div>";
 		foreach ($competition->team as $team) {
 			echo "<span class='badge label-team'>".$team['club']['code'].$team['team']."</span>";
 		}
-		echo "</td>
+		echo "</div></td>
 				<td class='command-group'>
 					<a class='btn btn-xs btn-sm btn-warning' rel='edit'><i class='fas fa-edit'></i></a>
 					<a class='btn btn-xs btn-sm btn-danger' rel='delete'><i class='fas fa-trash-alt'></i></a>

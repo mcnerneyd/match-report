@@ -33,7 +33,9 @@ try {
 	Log::debug("Transferring: $username");
 	echo "Transferring: $username";
 
-	$user = Db::getInstance()->query("SELECT * FROM user WHERE username = '$username'")->fetch();
+	$sth = Db::getInstance()->prepare("SELECT * FROM user WHERE username = ?");
+	$sth->execute([$username]);
+	$user = $sth->fetch();
 	if (!$user) {
 		echo "\n\n403 Unknown user";
 		header($_SERVER['SERVER_PROTOCOL']." 403 Unknown user");
@@ -56,9 +58,14 @@ try {
 		//echo "(Session:".print_r($session,true).")\n";
 		session_start();
 		$_SESSION['site'] = $site;
+		$_SESSION['section'] = $site;
 		$_SESSION['user'] = $session['user'];
 		$_SESSION['user-title'] = $session['user-title'];
-		$_SESSION['club'] = $session['club'];
+		if (isset($session['club'])) {
+			$_SESSION['club'] = $session['club'];
+		} else {
+			unset($_SESSION['club']);
+		}
 		$_SESSION['roles'] = $session['roles'];
 		$_SESSION['perms'] = $session['perms'];
     Log::debug("Session transferred:".print_r($_SESSION, true));

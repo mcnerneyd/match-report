@@ -110,12 +110,14 @@ class Controller_Card extends Controller_Template
 
 		$data['lastteam'] = false;
 
+		/* FIXME
 		if (isset($user['club'])) {
 			$sizes = $user['club']->getTeamSizes();
 			$sizes = array_keys($sizes);
 			$team = $user['club']['name']." ".(end($sizes)+1);
 			$data['lastteam'] = $team === $fixture['home'] || $team === $fixture['away'];
 		}
+		*/
 
 		$msg = Input::post('message', null);
 

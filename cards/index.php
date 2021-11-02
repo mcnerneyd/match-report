@@ -3,8 +3,6 @@
 require_once('util.php');
 require_once('fuel.php');
 
-Log::info("Entry cards:".$_SESSION['qwerty']);
-
 /* Raven/Sentry */
 require_once PKGPATH.'/Raven/Autoloader.php';
 Raven_Autoloader::register();
@@ -235,6 +233,6 @@ $(document).ready(function() {
 </script>
 	<?php }
 
-	echo "<!-- Site=$site Controller=$controller Action=$action User=".user()." Club=".$_SESSION['club']." Roles=".join($_SESSION['roles'])."-->";
+	echo "<!-- Site=$site Controller=$controller Action=$action User=".user()." Club=".\Arr::get($_SESSION, 'club', 'No club')." Roles=".join($_SESSION['roles'])."-->";
 	echo "<!-- ".print_r($_SESSION, true)." -->";
 ?>

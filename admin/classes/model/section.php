@@ -11,6 +11,10 @@ class Model_Section extends \Orm\Model
 
 	protected static $_table_name = 'section';
 
+  public function __toString() {
+    return "Section(".$this['name'].")";
+  }
+
   public function getProperty($propertyname) {
     $name = $this['name'];
     \Config::load(DATAPATH."/sections/".$name."/config.json", $name);

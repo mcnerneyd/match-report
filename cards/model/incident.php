@@ -1,5 +1,6 @@
 <?php 
 class Incident {
+
 	public static function cards($startDate, $endDate) {
 		$db = Db::getInstance();
 

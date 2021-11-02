@@ -1,6 +1,6 @@
 <div class='row'>
 
-<div class='col-4'>
+<div class='col-md-4 col-12'>
 <div class='card bg-warning'>
   <div class='card-header'>Impersonate</div>
   <div class='card-body'>
@@ -11,8 +11,8 @@
         <div class='input-group col'>
           <select class='form-control' name='u'>
           <?php foreach ($users as $user) {
-            echo "<option value='".$user['username']."'>".$user->getName()."</option>"; 
-          } ?>
+    echo "<option value='".$user['username']."'>".$user->getName()."</option>";
+} ?>
           </select>
         </div>
       </div>
@@ -27,7 +27,7 @@
 </div>
 </div>
 
-<div class='col-4'>
+<div class='col-md-4 col-12'>
 <div class='card'>
   <div class='card-header'>View Logs</div>
   <div class='card-body'>
@@ -42,7 +42,7 @@
 </div>
 </div>
 
-<div class='col-4'>
+<div class='col-md-4 col-12'>
 <div class='card'>
   <div class='card-header'>User Management</div>
   <div class='card-body'>
@@ -73,7 +73,7 @@
 </div>
 </div-->
 
-<div class='col-4'>
+<div class='col-md-4 col-12'>
 <div class='card'>
   <div class='card-header'>Archive Data Files</div>
   <div class='card-body'>
@@ -89,7 +89,7 @@
 </div>
 </div>
 
-<div class='col-4'>
+<div class='col-md-4 col-12'>
 <div class='card bg-warning'>
   <div class='card-header'>Clean Data Files</div>
   <div class='card-body'>
@@ -109,7 +109,7 @@
 </div>
 </div>
 
-<div class='col-4'>
+<div class='col-md-4 col-12'>
 <div class='card bg-warning'>
   <div class='card-header'>Import</div>
   <div class='card-body'>

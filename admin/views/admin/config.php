@@ -53,6 +53,10 @@ $(document).ready(function(event) {
 		});
 
 	$('.radio [name=resultsubmit][value=<?= $resultsubmit ?>]').prop('checked', true);
+
+	<?php if ($section) { ?>
+	$('#section-select option[value="<?= $section ?>"]').prop('selected', true);
+	<?php } ?>
 });
 </script>
 
@@ -77,7 +81,7 @@ $(document).ready(function(event) {
 	<div class='command-group'>
         <select class='form-control' id='section-select'>
             <option>Select Section...</option>
-            <?php foreach ($sections as $s) echo "<option>".$s['name']."</option>"; ?>
+            <?php foreach ($sections as $s) echo "<option value='${s['name']}'>".$s['name']."</option>"; ?>
         </select>
 		<button class='btn btn-success'>Save</button>
 		<a href='<?= Uri::current() ?>' class='btn btn-warning'>Cancel</a>

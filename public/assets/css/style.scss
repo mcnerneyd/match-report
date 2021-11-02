@@ -1,5 +1,7 @@
 @import url("https://fonts.googleapis.com/css?family=Montserrat");
 
+$gap: 5px;
+
 html {
     overflow-y: scroll;
 }
@@ -59,6 +61,10 @@ footer div {
     padding: 0.5rem 0.25rem 0.15rem;
 }
 
+td.number {
+    text-align: center
+}
+
 /* ---------- General Styles ----------------------------------- */
 td,
 th {
@@ -67,7 +73,13 @@ th {
 
 div.command-group {
     margin-top: -50px;
+    margin-bottom: 0;
     float: right;
+    display: inline-flex;
+
+    * {
+        margin-left: $gap;
+    }
 }
 
 td.command-group {
@@ -102,6 +114,7 @@ td.command-group {
     border: 1px solid #7ab733;
     padding: 5px 5px 3px;
     margin-right: 2px;
+    display: inline-block!important;
 }
 
 .label-league {
@@ -120,7 +133,7 @@ td.command-group {
 }
 
 .label-list {
-    white-space: wrap;
+    white-space: normal;
 }
 
 /* ---------- Matchcard Formatting ------------------------------ */
@@ -377,6 +390,79 @@ td.command-group {
     button.add-player {
         margin-top: 5px;
     }
+
+    .flash {
+        background-color: white !important;
+        color: green;
+      }
+      .spacer {
+        height: 80px;
+      }
+      
+      .alert-small {
+        font-size: 90% !important;
+        text-align: center !important;
+        padding: 2px 5px !important;
+        margin-bottom: 10px !important;
+      }
+      
+      #context-menu {
+        padding-top: 0px;
+      }
+      
+      #context-menu form {
+        padding: 0 1.5em;
+      }
+      
+      #context-menu .modal-header {
+        margin-bottom: 7px;
+      }
+      
+      #card-addx {
+        max-width: 80%;
+      }
+      
+      #submit-card a.float-right {
+          margin-left: 10px;
+        }
+      h2 { margin-top: 0.5rem; font-size: 0.75em !important; font-style: italic; }
+      .role {
+        font-size: 0.7em;
+        font-weight: bold;
+        padding: 0 4px;
+        width:30px;
+        text-align:center;
+        color:white;
+        border-radius: 2px;
+        margin-left: 3px;
+        margin-top: 3px;
+      }
+      #select-role {
+        xdisplay:none;
+      }
+      #select-role label {
+        color:white;
+        border:0;
+        border-radius:0;
+        padding: 2px 4px;
+        font-size: 80%;
+      }
+      .role-goalkeeper {
+        background: green;
+      }
+      .role-captain {
+        background:black;
+      }
+      div.role-captain {
+        border-radius: 0;
+      }
+      .role-manager {
+        background: blue;
+      }
+      .role-physio {
+        background: red;
+      }
+     
 }
 
 .waiting {
@@ -718,3 +804,13 @@ header {
 
 #users-select { padding-left: 20px; float:left; }
 
+#fixtures-table {
+    tr.hidden {
+        color: darkgray;
+        text-decoration: line-through;
+    }
+}
+
+#fixtures {
+    .date { padding-right: 4px; }
+}

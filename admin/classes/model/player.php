@@ -4,16 +4,20 @@ class Model_Player extends \Model
 {
 
 	public static function getHistory($club, $beforeDate = null) {
-		$sql = "select distinct i.player, x.code, x.name, m.date, t.name, m.id, m.fixture_id, i.date
+		$sql = "select distinct i.player, x.code, x.name, m.date, t.name team, m.id, m.fixture_id, i.date, ch.name home_name, ca.name away_name, c.name club_name
 					from incident i join matchcard m on i.matchcard_id = m.id
 					join competition x on m.competition_id = x.id
-						join club c on i.club_id = c.id
-						left join team__competition e on e.competition_id = x.id
-						left join team t on e.team_id = t.id and c.id = t.club_id
+					join club c on i.club_id = c.id
+					left join team__competition e on e.competition_id = x.id
+					left join team t on e.team_id = t.id and c.id = t.club_id
+					left join team th on th.id = m.home_id
+					left join club ch on ch.id = th.club_id
+					left join team ta on ta.id = m.away_id
+					left join club ca on ca.id = ta.club_id
 				where resolved = 0
 				and t.name is not null
 				and i.type = 'Played'
-				and c.name = '$club'";
+				and c.name = :club ";
 				if ($beforeDate) {
 					$sql .= " and i.date > '".date("Y-m-d", seasonStart($beforeDate)->get_timestamp())."'
 						 and i.date < '".date("Y-m-d", $beforeDate)."' ";
@@ -25,8 +29,10 @@ class Model_Player extends \Model
 
 				$result = array();
 
-				foreach (\DB::query($sql)->execute() as $row) {
+				foreach (\DB::query($sql)->bind('club', $club)->execute() as $row) {
 					$player = cleanName($row['player']);
+					if ($row['club_name'] == $row['home_name']) $row['opposition'] = $row['away_name'];
+					else $row['opposition'] = $row['home_name'];
 					if (!isset($result[$player])) $result[$player] = array();
 					$result[$player][] = $row;
 				}

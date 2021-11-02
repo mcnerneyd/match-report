@@ -7,7 +7,7 @@
 			columns:[
 				{width:"2em"},
 				{width:"30%"},
-				{orderable: false},
+				{width:"60%", orderable: false},
 				{orderable: false, width:"1em"},
 			]
 			});
@@ -58,11 +58,10 @@
 
 	<tbody style='display:none'>
 <?php foreach ($clubs as $club) {
-		$club->getTeamSizes();
 		echo "\t\t<tr data-id='${club['id']}' data-code='${club['code']}'>
 			<td>${club['code']}</td>
 			<td>${club['name']}</td>
-			<td>";
+			<td class='label-list'>";
 		$comps = array();
 		foreach ($club['team'] as $team) {
 			$comps = array_merge($comps, $team['competition']);
@@ -75,8 +74,8 @@
 			return $ret; 
 		});
 		foreach ($comps as $teamComp) {
-			echo "<span class='d-none d-md-inline badge label-".($teamComp['teamsize']?'league':'cup')."'>${teamComp['name']}</span>";
-			echo "<span class='d-md-none badge label-".($teamComp['teamsize']?'league':'cup')."'>${teamComp['code']}</span>";
+			echo "<span class='d-none d-md-inline'><span class='badge label-".($teamComp['teamsize']?'league':'cup')."'>${teamComp['name']}</span></span>";
+			echo "<span class='d-inline d-md-none'><span class='badge label-".($teamComp['teamsize']?'league':'cup')."'>${teamComp['code']}</span></span>";
 		}
 		echo "</td>
 			<td class='command-group'>

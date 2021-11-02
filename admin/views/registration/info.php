@@ -24,14 +24,12 @@ tr { border-bottom: 1px solid gray; }
 $pinZ = DB::query("select max(pin) pin from pins")->execute();
 $pinZ = $pinZ[0]['pin'];
 if (!$pinZ) $pin = 0;
-else $pin = intval($pinZ);
+else $pin = intval($pinZ) + 1;
 Log::info("No pin found - building from $pin / $pinZ");
 
-$goal = min($pin + 500, 10000);
-for (;$pin<$goal;$pin++) {
-	$hash = \Auth::hash_password($pin);
-	$pinZ = "0000$pin";
-	$pinZ = substr($pinZ, strlen($pinZ - 4), 4);
+for (;$pin<10000;$pin++) {
+	$pinZ = strrev(substr(strrev("000000$pin"), 0, 4));
+	$hash = \Auth::hash_password($pinZ);
 	DB::query("insert into pins (pin, hash) values ('$pinZ', '$hash')")->execute();
 }
 ?>
@@ -43,7 +41,7 @@ foreach ($users as $user) {
 	$pinZ = $pinZ[0]['pin'];
 		echo "<tr>
 		<td>".$user['username']."</td>
-		<td>".$user->section['name']."</td>
+		<td>".($user->section?$user->section['name']:"All Sections")."</td>
 		<td class='pin'>".$pinZ."</td>
 		<td><button disabled class='btn btn-warning' type='reset'>Reset PIN <i class='fas fa-sync-alt'></i></button></td>
 	</tr>\n";

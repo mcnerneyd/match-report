@@ -28,6 +28,9 @@ tr td:nth-child(4) .label { width: 0; padding: 2px 5px; display: inline !importa
 	text-align: center;
 	border: none;
 }
+#toggle-buttons .btn-block {
+	margin-top: 0;
+}
 </style>
 
 <script>
@@ -71,12 +74,13 @@ function loadPage(row) {
 				var dt = moment(item['datetimeZ']);
 				var title = `#${fixtureID}:${item['competition']} - ${item['home']['name']} v ${item['away']['name']}`;
 				var key = `${item['section']}.${item['competition']}.${item['home']['name']}.${item['away']['name']}`;
-        key = key.replaceAll(" ", "").toLowerCase();
+        if (key) key = key.replace(/ /g, "").toLowerCase();
 
+				const rowStr = `<tr id="${fixtureID}" title="${title}" data-key='${key}' data-result='${item['played']}'></tr>`
 				if (page < 0) {
-					row.after(`<tr id="${fixtureID}" title="${title}" data-key='${key}'></tr>`);
+					row.after(rowStr);
 				} else {
-					row.before(`<tr id="${fixtureID}" title="${title} data-key='${key}'"></tr>`);
+					row.before(rowStr);
 				}
 
 				var current = $('#' + fixtureID);
@@ -89,9 +93,11 @@ function loadPage(row) {
 				filter(current);
 
 				var tds = `<td data-value="${dt.format()}" class="date">${dt.format('D')}</td>
-					<td class="d-none d-md-table-cell time">${dt.format('h:mm')}</td>
-					<td class="d-none d-md-table-cell"><span>${item['section']}</span></td>
-					<td class="d-none d-md-table-cell"><span class="badge label-league">${item['competition']}</span></td>
+					<td class="d-none d-md-table-cell time">${dt.format('h:mm')}</td>";
+
+					<?php if (!$_SESSION['section']) { ?> tds += "<td class="d-none d-md-table-cell"><span>${item['section']}</span></td>"; <?php } ?>
+
+					tds += "<td class="d-none d-md-table-cell"><span class="badge label-league">${item['competition']}</span></td>
 					<td class="d-table-cell d-md-none"><span class="badge label-league">${item['competition-code']}</span></td>
 					<td class="d-none d-md-table-cell">${item['home']['name']}`;
 
@@ -230,7 +236,7 @@ const resetTable = () => {
 }
 
 $(document).ready(function() {
-  $("#pills-club").val('<?= $_SESSION['club'] ?>');
+  $("#pills-club").val('<?= addslashes(\Arr::get($_SESSION, 'club', '')) ?>');
 
 	// Load initial dataset
   resetTable();
@@ -257,29 +263,47 @@ $(document).ready(function() {
   $("#fixtures").on("click", "tr.fixture", function() {
     window.document.location = "<?= url(null, 'get','card') ?>&fid="+$(this).attr("id");
 	});
+
+	$("#toggle-buttons").on("change", "input", function(evt) {
+		if ($("#toggle-buttons input[name='view-results']").is(':checked')) {
+			$("#fixtures tr[data-result='yes']").show();
+		} else {
+			$("#fixtures tr[data-result='yes']").hide();
+		}
+
+		if ($("#toggle-buttons input[name='view-fixtures']").is(':checked')) {
+			$("#fixtures tr[data-result='no']").show();
+		} else {
+			$("#fixtures tr[data-result='no']").hide();
+		}
+	})
 });
 </script>
 
 <form id='fixtures-tab' style='flex: 0 1 auto'>
   <div class='form-row'>
-    <div class='col'>
+    <div class='col-12 col-md-5'>
     <select id='pills-club' class='custom-select'>
       <option selected value=''>All Clubs</option>
-      <?php foreach ($clubs as $club) echo "<option value='$club'>$club</option>\n" ?>
+      <?php foreach ($clubs as $club) echo "<option value=\"$club\">$club</option>\n" ?>
     </select>
     </div>
-    <div class='col'>
+    <div class='col-12 col-md-5'>
     <select id='pills-competition' class='filter custom-select'>
       <option selected value="">All Competitions</option>
-      <?php foreach ($competitions as $competition) echo "<option>$competition</option>\n" ?>
+      <?php foreach ($competitions as $competition) {
+				$name = $competition['name'];
+				if (!$_SESSION['section']) $name .= " (".$competition['section'].")";
+				echo "<option value='".$competition['name']."'>$name</option>\n";
+			 } ?>
     </select>
     </div>
-    <div class="btn-group btn-group-toggle col-auto" data-toggle="buttons">
-      <label class="btn btn-secondary active">
-        <input type="checkbox" checked autocomplete="off"> Results
+    <div id='toggle-buttons' class="btn-group btn-group-toggle col-12 col-md-2" data-toggle="buttons">
+      <label class="btn btn-secondary active btn-block">
+        <input type="checkbox" name='view-results' checked autocomplete="off"> Results
       </label>
-      <label class="btn btn-secondary active">
-        <input type="checkbox" checked autocomplete="off"> Fixtures
+      <label class="btn btn-secondary active btn-block">
+        <input type="checkbox" name='view-fixtures' checked autocomplete="off"> Fixtures
       </label>
     </div>
   </div>

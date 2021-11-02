@@ -6,8 +6,12 @@ class Controller_Registration extends Controller_Template
 			throw new HttpNoAccessException;
 		}
 
+
     $section = Input::param('s');
+		Log::info("Rai: section=$section");
     if ($section) loadSectionConfig($section);
+
+		Log::info("Rai:". print_r(Config::get("section"),true));
 
 		if (Auth::has_access("registration.impersonate")) {
 			$club = Input::param("c");
@@ -121,7 +125,19 @@ class Controller_Registration extends Controller_Template
 
 		if ($userObj->section) {
 			$sectionName = $userObj->section['name'];
-			$clubUsers = array_filter($clubUsers, function($a) use ($sectionName) { return $a->section['name'] === $sectionName; });
+			$clubUsers = array_filter($clubUsers, function($a) use ($sectionName) { 
+				if ($a->section == null) {
+					return true;
+				} else {
+					return $sectionName === null or $a->section['name'] === $sectionName; 
+				}
+			});
+		}
+
+		foreach ($clubUsers as $clubUser) {
+			if ($clubUser->section) {
+				echo "<!-- ".print_r($clubUser->club->getTeamSizes($clubUser->section['name']), true). " -->";
+			}
 		}
 
 		$this->template->title = "Club Info";

@@ -18,9 +18,6 @@
       case 'player':
         $controllerObj = new PlayerController();
 				break;
-			case 'report':
-				$controllerObj = new ReportController();
-				break;
       case 'page':
         $controllerObj = new PageController();
 				break;
@@ -55,7 +52,6 @@
 		'card' => array('index', 'get',  'search', 'searchAJAX', 'lock'),
 		'page' => array('home', 'error'),
 		'player' => array('profile', 'image', 'number', 'update', 'unplay'),
-		'report' => array('index', 'cards', 'scorers', 'resultsMismatch')
 	);
 
 	if (!isset($controller)) { $keys = array_keys($controllers); $controller = $keys[0]; }

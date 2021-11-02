@@ -1,12 +1,36 @@
 <?php
 /* Raven/Sentry */
-require_once PKGPATH.'Raven/Autoloader.php';
-Raven_Autoloader::register();
-$sentry_client = new Raven_Client('https://0e648f1a6af5407985c427afb086e5bb:37b68176201d451a849bbbb4c81ec6f6@sentry.io/1242091');
-$error_handler = new Raven_ErrorHandler($sentry_client);
-$error_handler->registerExceptionHandler();
-$error_handler->registerErrorHandler();
-$error_handler->registerShutdownFunction();
+#require_once PKGPATH.'Raven/Autoloader.php';
+#Raven_Autoloader::register();
+#$sentry_client = new Raven_Client('https://0e648f1a6af5407985c427afb086e5bb:37b68176201d451a849bbbb4c81ec6f6@sentry.io/1242091');
+#$error_handler = new Raven_ErrorHandler($sentry_client);
+#$error_handler->registerExceptionHandler();
+#$error_handler->registerErrorHandler();
+#$error_handler->registerShutdownFunction();
+
+// Bootstrap the framework DO NOT edit this
+require COREPATH.'bootstrap.php';
+
+\Autoloader::add_classes(array(
+    // Add classes you want to override here
+    // Example: 'View' => APPPATH.'classes/view.php',
+));
+
+// Register the autoloader
+\Autoloader::register();
+
+require APPPATH.'vendor/autoload.php';
+
+\Sentry\init(['dsn' => 'https://773a5c2c3fc64be3961a669bf217015c@o48105.ingest.sentry.io/103038' ,
+    'before_send' => function (\Sentry\Event $event, ?\Sentry\EventHint $hint): ?\Sentry\Event {
+        // Ignore the event if the original exception is an instance of MyException
+        if ($hint !== null && $hint->exception instanceof HttpNotFoundException) {
+        return null;
+        }
+        
+        return $event;
+    }]);
+\Sentry\captureLastError();
 
 function ensurePath($path, $file = "")
 {
@@ -21,19 +45,6 @@ define('DATAPATH', DOCROOT.'/data/');
 ensurePath(DATAPATH);
 ensurePath(DATAPATH."logs/");
 ensurePath(DATAPATH."sections/");
-
-// Bootstrap the framework DO NOT edit this
-require COREPATH.'bootstrap.php';
-
-\Autoloader::add_classes(array(
-    // Add classes you want to override here
-    // Example: 'View' => APPPATH.'classes/view.php',
-));
-
-// Register the autoloader
-\Autoloader::register();
-
-require APPPATH.'vendor/autoload.php';
 
 /**
  * Your environment.  Can be set to any of the following:
@@ -53,7 +64,7 @@ $route = \Router::process(\Request::forge(), true);
 $route = $route ? " (".$route->controller."/".$route->action.")" : "";
 
 Log::info("*****************\nRequest: ".$_SERVER['REQUEST_METHOD']." ".$_SERVER['REQUEST_URI']." ->".$_SERVER['PHP_SELF'].
-  "$route ua=".$_SERVER['HTTP_USER_AGENT']);
+  "$route ua=".\Arr::get($_SERVER, 'HTTP_USER_AGENT', ''));
 
 Model_User::initialize();
 
@@ -63,8 +74,17 @@ require APPPATH.'classes/lib/util.php';
 Config::load(DATAPATH."config.json", 'config');
 Config::set('cache_dir', ensurePath(DATAPATH."/cache"));
 
+$firstPass = null;
+
+function milliseconds() {
+    $mt = explode(' ', microtime());
+    return ((int)$mt[1]) * 1000 + ((int)round($mt[0] * 1000));
+}
+
 function loadSectionConfig($section, $global = true)
 {
+    global $firstPass;
+
     $sectionConfig = ensurePath(DATAPATH."sections/$section", "config.json");
     if (!file_exists($sectionConfig)) {
         Log::info("Initializing config file $sectionConfig");
@@ -73,9 +93,11 @@ function loadSectionConfig($section, $global = true)
 
     $root = $global ? "section" : $section;
 
-    Config::load($sectionConfig, $root);
+    Config::delete($root);
+    Config::load($sectionConfig, $root, $reload=true);
     Config::set("$root.name", $section);
-    Log::info("Section Config: $section/$root=".print_r(Config::get($root, array()), true));
+    if (!$firstPass) Log::info("Section Config from $sectionConfig: $section/$root=".print_r(Config::get($root, array()), true));
+    $firstPass = $section;
 }
 
 $user = Session::get('user', null);

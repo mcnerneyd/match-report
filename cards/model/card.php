@@ -77,7 +77,8 @@ class Card {
 
 		$allfixtures = array();
 
-        $allfixtures = json_decode(file_get_contents(DATAPATH."/fixtures.json"));
+    $allfixtures = json_decode(file_get_contents(DATAPATH."/fixtures.json"));
+		$allfixtures = array_filter($allfixtures, function($a) { return $a->status == 'active'; });
 
 		return $allfixtures;
 	}
@@ -121,7 +122,7 @@ class Card {
 						$result[] = $card;
 					}
 				} catch (Exception $e) {
-					debug("Exception:".print_r($e, true));
+					debug("Stack Trace:".$e->getTraceAsString());
 					warn($e->getMessage());
 				}
 
@@ -203,7 +204,7 @@ class Card {
 			if ($recomps[$competition]['groups']) {
 				foreach (explode(',', $recomps[$competition]['groups']) as $group) $result['groups'][] = trim($group);
 			}
-		} else {
+		} else {    
 			throw new Exception("Unknown competition: $competition");
 		}
 
@@ -232,16 +233,22 @@ class Card {
 			throw new Exception("Matchcard already exists for fixture ${fixture['id']}");
 		}
 
-		$req = $db->query("SELECT t.id FROM team t JOIN club c ON t.club_id = c.id WHERE 
-					t.name =".$fixture['home']['teamnumber']."
-					AND c.name ='".$fixture['home']['club']."'");
+		$req = $db->prepare("SELECT t.id FROM team t JOIN club c ON t.club_id = c.id WHERE 
+					t.name = :teamname
+					AND c.name = :clubname");
+		$req->bindParam(':teamname', $fixture['home']['teamnumber']);
+		$req->bindParam(':clubname', $fixture['home']['club']);
+		$req->execute();
 
 		$homeId = "null";
 		if ($row = $req->fetch()) $homeId = $row[0];
 
-		$req = $db->query("SELECT t.id FROM team t JOIN club c ON t.club_id = c.id WHERE 
-					t.name =".$fixture['away']['teamnumber']."
-					AND c.name ='".$fixture['away']['club']."'");
+		$req = $db->prepare("SELECT t.id FROM team t JOIN club c ON t.club_id = c.id WHERE 
+					t.name = :teamname
+					AND c.name = :clubname");
+		$req->bindParam(':teamname', $fixture['away']['teamnumber']);
+		$req->bindParam(':clubname', $fixture['away']['club']);
+		$req->execute();
 
 		$awayId = "null";
 		if ($row = $req->fetch()) $awayId = $row[0];
@@ -524,12 +531,13 @@ class Card {
 			$card['away']['closed'] = true;
 		}
 
-    $sql = "select player, detail, c.name club from incident i
-      left join club c on c.id = i.club_id
-              where type = 'Number' and detail is not null 
-              and c.name in ('".$card['home']['club']."','".$card['away']['club']."')";
-
-    $req = $db->query($sql);
+    $req = $db->prepare("SELECT player, detail, c.name club from incident i
+						left join club c on c.id = i.club_id
+						where type = 'Number' and detail is not null 
+						and c.name in (:homeclub, :awayclub)");
+		$req->bindParam(':homeclub', $card['home']['club']);
+		$req->bindParam(':awayclub', $card['away']['club']);
+		$req->execute();
 
     foreach ($req->fetchAll() as $row) {
       if ($row['club'] == $card['home']['club']) {

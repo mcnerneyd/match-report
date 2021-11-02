@@ -11,8 +11,9 @@
 			$list = array();
 			$db = Db::getInstance();
 
-			$req = $db->query("select distinct c.name, c.teamsize, c.teamstars, c.code, c.groups, c.format, c.sequence
+			$req = $db->query("select distinct c.name, c.teamsize, c.teamstars, c.code, c.groups, c.format, c.sequence, s.name as section
 				from competition c join team__competition e on c.id = e.competition_id
+					left join section s on c.section_id = s.id
 				order by sequence, name");
 
 			return $req->fetchAll();

@@ -50,7 +50,7 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
 			var row = $(this).closest("tr");
 			$.ajax('<?= Uri::create("RegistrationApi") ?>', {
 					method:"DELETE",
-					data:{"f":row.data("filename"), "c":row.data("club")},
+					data:{"f":row.data("filename"), "c":row.data("club"), "s":"<?= $section ?>"},
 			} ).done(function(data) { window.location.reload(); });
 		});
 
@@ -156,12 +156,15 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
 
   <?php 
       $currentDate = time();
-      $restrictionDate = strtotime(Config::get('section.date.restrict'));
+      $restrictionDate = Config::get('section.date.restrict', null);
+      if ($restrictionDate) {
+        $restrictionDate = strtotime($restrictionDate);
 
-      if ($currentDate > $restrictionDate) {
-        echo "<div class='alert alert-danger'>Full Registration Rules Apply (Since ".strftime("%A %e, %B %G", $restrictionDate).")</div>";
-      } else {
-        echo "<div class='alert alert-success'>Full Registration Rules Suspended (Until ".strftime("%A %e, %B %G", $restrictionDate).")</div>";
+        if ($currentDate > $restrictionDate) {
+          echo "<div class='alert alert-danger'>Full Registration Rules Apply (Since ".strftime("%A %e, %B %G", $restrictionDate).")</div>";
+        } else {
+          echo "<div class='alert alert-success'>Full Registration Rules Suspended (Until ".strftime("%A %e, %B %G", $restrictionDate).")</div>";
+        }
       }
   ?>
 

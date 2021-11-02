@@ -34,7 +34,9 @@ class Controller_FixtureApi extends Controller_RestApi
         }
 
         $fixtures = Model_Fixture::getAll(false);
-        $fixtures = array_filter($fixtures, function($a) { return !$a['hidden']; });
+        $fixtures = array_filter($fixtures, function($a) use ($section) { 
+          return !$a['hidden'] and $a['status'] === 'active' and ($section === null or $a['section'] === $section); }
+        );
     
         if ($club) {
             Log::debug("Filtering by club");
@@ -111,7 +113,15 @@ class Controller_FixtureApi extends Controller_RestApi
         $fixtures = array_slice($fixtures, $start, $size);
 
         foreach ($fixtures as &$fixture) {
-          $card = Model_Matchcard::find_by_fixture($fixture['fixtureID']);
+          if (isset($compCodes[$fixture['competition']])) {
+            $fixture['competition-code'] = $compCodes[$fixture['competition']];
+          } else {
+            $fixture['competition-code'] = '??';
+          }
+          $fixture['datetimeZ'] = $fixture['datetime']->format('%Y-%m-%dT%H:%M:%S');
+          /*$card = Model_Matchcard::find_by_fixture($fixture['fixtureID']);
+          $fixturesA = Model_Matchcard::cardsFromFixtures(array($fixture));
+          $card = count($fixturesA) > 0 ? Arr::get($fixturesA[0],'card',null) : null;
           if (!$card) continue;
           if ($card['open'] < 0) {
             $fixture['state'] = 'invalid';
@@ -126,15 +136,9 @@ class Controller_FixtureApi extends Controller_RestApi
             if ($us_info['locked'] === true) $fixture['state'] = 'locked';
             if ($fixture['datetime']->get_timestamp() < $ts) $fixture['state'] = 'late';
           }
-          $fixture['us_info'] = $us_info;
+          $fixture['us_info'] = $us_info;*/
           //$fixture['card'] = $card;
-          $fixture['datetimeZ'] = $fixture['datetime']->format('%Y-%m-%dT%H:%M:%S');
           if ($fixture['played'] === 'yes') $fixture['state'] = 'result';
-          if (isset($compCodes[$fixture['competition']])) {
-            $fixture['competition-code'] = $compCodes[$fixture['competition']];
-          } else {
-            $fixture['competition-code'] = '??';
-          }
         }
 
         Log::debug("Fixtures ready: ".count($fixtures));
@@ -144,6 +148,7 @@ class Controller_FixtureApi extends Controller_RestApi
             "datetimeZ"=>$f['datetime']->format('iso8601'),
             "section"=>$f['section'],
             "competition"=>$f['competition'],
+            "competition-code"=>$f['competition-code'],
             "played"=>$f['played'],
             "home"=>array(
               "name"=>$f['home'],

@@ -17,7 +17,7 @@ $(document).ready(function() {
 		$.ajax({url:"<?= Uri::create('CardApi/Incident') ?>",
 			data:{"incident_id":id},
 			method:"delete"})
-			.done(function() { location.reload(); });
+			.done(function() { window.location.reload(); });
 	});
 });
 </script>
@@ -76,8 +76,9 @@ $(document).ready(function() {
 	echo "<td>".$incident['type']."</td>";
 	echo "<td>".$incident['player']."</td>";
 	echo "<td>".$incident['name']."</td>";
-	echo "<td>".$incident['detail']."</td>";
+	echo "<td>".$incident['username']."</td>";
 	echo "<td>".$incident['resolved']."</td>";
+	echo "<td>".$incident['detail']."</td>";
 	echo "</tr>";
 } ?>
 </table>

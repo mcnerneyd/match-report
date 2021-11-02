@@ -59,6 +59,10 @@ footer div {
   padding: 0.5rem 0.25rem 0.15rem;
 }
 
+td.number {
+  text-align: center;
+}
+
 /* ---------- General Styles ----------------------------------- */
 td,
 th {
@@ -67,7 +71,12 @@ th {
 
 div.command-group {
   margin-top: -50px;
+  margin-bottom: 0;
   float: right;
+  display: inline-flex;
+}
+div.command-group * {
+  margin-left: 5px;
 }
 
 td.command-group {
@@ -102,6 +111,7 @@ td.command-group {
   border: 1px solid #7ab733;
   padding: 5px 5px 3px;
   margin-right: 2px;
+  display: inline-block !important;
 }
 
 .label-league {
@@ -120,7 +130,7 @@ td.command-group {
 }
 
 .label-list {
-  white-space: wrap;
+  white-space: normal;
 }
 
 /* ---------- Matchcard Formatting ------------------------------ */
@@ -368,6 +378,75 @@ td.command-group {
 }
 #match-card button.add-player {
   margin-top: 5px;
+}
+#match-card .flash {
+  background-color: white !important;
+  color: green;
+}
+#match-card .spacer {
+  height: 80px;
+}
+#match-card .alert-small {
+  font-size: 90% !important;
+  text-align: center !important;
+  padding: 2px 5px !important;
+  margin-bottom: 10px !important;
+}
+#match-card #context-menu {
+  padding-top: 0px;
+}
+#match-card #context-menu form {
+  padding: 0 1.5em;
+}
+#match-card #context-menu .modal-header {
+  margin-bottom: 7px;
+}
+#match-card #card-addx {
+  max-width: 80%;
+}
+#match-card #submit-card a.float-right {
+  margin-left: 10px;
+}
+#match-card h2 {
+  margin-top: 0.5rem;
+  font-size: 0.75em !important;
+  font-style: italic;
+}
+#match-card .role {
+  font-size: 0.7em;
+  font-weight: bold;
+  padding: 0 4px;
+  width: 30px;
+  text-align: center;
+  color: white;
+  border-radius: 2px;
+  margin-left: 3px;
+  margin-top: 3px;
+}
+#match-card #select-role {
+  xdisplay: none;
+}
+#match-card #select-role label {
+  color: white;
+  border: 0;
+  border-radius: 0;
+  padding: 2px 4px;
+  font-size: 80%;
+}
+#match-card .role-goalkeeper {
+  background: green;
+}
+#match-card .role-captain {
+  background: black;
+}
+#match-card div.role-captain {
+  border-radius: 0;
+}
+#match-card .role-manager {
+  background: blue;
+}
+#match-card .role-physio {
+  background: red;
 }
 
 .waiting {
@@ -694,6 +773,15 @@ header {
 #users-select {
   padding-left: 20px;
   float: left;
+}
+
+#fixtures-table tr.hidden {
+  color: darkgray;
+  text-decoration: line-through;
+}
+
+#fixtures .date {
+  padding-right: 4px;
 }
 
 /*# sourceMappingURL=style.css.map */

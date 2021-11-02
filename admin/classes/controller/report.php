@@ -150,7 +150,16 @@ class Controller_Report extends Controller_Template
 
 	// --------------------------------------------------------------------------
 	public function action_clubs() {
-		Model_Club::getAnalysis();
+		echo "<h2>Club Analysis</h2>";
+		foreach (Model_Club::getAnalysis() as $c) {
+			echo "<table>";
+			echo "<tr><th colspan=4>${c['name']}/${c['section']}  -- ${c['teams']} teams, ${c['players']} players</th><tr>";
+			foreach ($c['reg'] as $player) {
+				echo "<tr><td>${player['lastname']}</td><td>${player['firstname']}</td><td>${player['team']}</td><td>${player['membershipid']}</td></tr>";
+			}
+			echo "</table>";
+		}
+
 
 		return new Response("Report sent", 200);
 	}
@@ -455,6 +464,8 @@ class Controller_Report extends Controller_Template
       }
     }
 
+		$card['section'] = $fixture['section'];
+
 		$incidents = array();
 		$card2 = array();
 
@@ -497,11 +508,23 @@ class Controller_Report extends Controller_Template
 	}
 
 	public function action_parsing() {
+
+		$section = \Input::param("s", null);
+		if ($section == null) return;
+		loadSectionConfig($section);
+
+		//echo "<pre>";
+
+		print_r(Config::get($section));
+
 		$dbComps = array();
-		foreach (Model_Competition::find('all') as $comp) $dbComps[] = $comp['name'];
+		foreach (Model_Competition::find('all') as $comp) {
+			if ($comp->section['name'] !== $section) continue;
+			$dbComps[] = $comp['name'];
+		}
 		$dbClubs = array();
 		foreach (Model_Club::find('all') as $comp) {
-			echo "${comp['name']} ".self::strToHex($comp['name'])."\n";
+			//echo "${comp['name']} ".self::strToHex($comp['name'])."\n";
 			$dbClubs[] = $comp['name'];
 			}
 
@@ -515,15 +538,19 @@ class Controller_Report extends Controller_Template
 		}
 
 		foreach ($competitions as $competition=>$x) {
-			$comp = Model_Competition::parse($competition);
-			echo "$competition -> $comp\n";
+			$comp = Model_Competition::parse($section, $competition);
+			//echo "$competition -> $comp\n";
 			$competitions[$competition] = array('valid'=>in_array($comp, $dbComps), 'name'=>$comp);
 		}
 
 		foreach ($teams as $team=>$x) {
-			$tm = Model_Club::parse($team);
-			$tm['valid'] = in_array($tm['club'], $dbClubs);
-			echo "$team -> ${tm['club']} =${tm['valid']}".self::strToHex($tm['club'])."\n";
+			$tm = Model_Team::parse($section, $team);
+			if ($tm == null) {
+				$tm['valid'] = false;
+			} else {
+				$tm['valid'] = in_array($tm['club'], $dbClubs);
+			}
+			//echo "$team -> ${tm['club']} =${tm['valid']}".self::strToHex($tm['club'])."\n";
 			$teams[$team] = $tm;
 		}
 
@@ -536,21 +563,65 @@ class Controller_Report extends Controller_Template
 	}
 
 	public function action_mismatch() {
+		
+		$sectionName = \Input::param("s", null);
+
+		Log::info("Mismatch report: $sectionName");
+
+		$t0 = milliseconds();
+		
 		$mismatches = array();
 
+		$cards = array();
+		foreach (DB::query("SELECT fixture_id, id FROM matchcard")->execute() as $row) {
+			$cards[$row['fixture_id']] = $row['id'];
+		}
+
+		Log::info("Fetching");
+		$t1 = milliseconds();
+
+
+		$fixtures = array();
+
 		foreach (Model_Fixture::getAll() as $fixture) {
-			$card = Model_Matchcard::find_by_fixture($fixture['fixtureID']);
+			if ($fixture['status'] !== 'active') continue;
+
+			if ($sectionName) {
+				if ($fixture['section'] != $sectionName) continue;
+			}
+
+			$cardId = $cards[$fixture['fixtureID']] ?? null;
+
+			if (!$cardId) continue;
+
+			$fixture['card_id'] = $cardId;
+			$fixtures[] = $fixture;
+		}
+
+		$cards = array();
+		
+		foreach (Model_Matchcard::cardsFromFixtures($fixtures) as $card) {
+			$cards[$card['card_id']] = $card['card'];
+		}
+
+		foreach ($fixtures as $fixture) {
+			$t1 = milliseconds();
+
+			$card = $cards[$fixture['card_id']];
+
+			if (!$card) continue;
+
+			echo "<!-- Card ".$fixture['fixtureID']." ".$fixture['card_id'].": ".(milliseconds() - $t1)." -->";
+
 			if (!$card) continue;		// If the fixture has no card, there's no mismatch
 			if (!$card['away_id'] || !$card['home_id']) continue;		// Don't card about EHYL etc
 
 			if (($card['home']['goals'] == $fixture['home_score'])
 					and ($card['away']['goals'] == $fixture['away_score'])) continue;
 
-			echo "<!-- ".print_r($card,true)." -->\n";
-
-			$card['home_score'] = $fixture['home_score'];
+			$card['home_score'] = $fixture['home_score'] || 0;
 			$card['home_team'] = $card['home']['club'].' '.$card['home']['team'];
-			$card['away_score'] = $fixture['away_score'];
+			$card['away_score'] = $fixture['away_score'] || 0;
 			$card['away_team'] = $card['away']['club'].' '.$card['away']['team'];
 
 			$outcomeAffected = false;
@@ -571,6 +642,10 @@ class Controller_Report extends Controller_Template
 
 			$mismatches[] = $card;
 		}
+
+		$t2 = milliseconds();
+
+		echo "<!-- Timing: " . ($t1-$t0)." ".($t2-$t0)." -->";
 
 		$this->template->title = "Mismatch Results";
 		$this->template->content = View::forge('report/mismatch', array('mismatches'=>$mismatches));
@@ -730,6 +805,8 @@ class Controller_Report extends Controller_Template
 			if (isset($clubcard['umpire'])) return false;
 			if (!$clubcard['players']) return false;
 
+			loadSectionConfig($card['section']);
+
 			$value = \Config::get('section.fine', 10);
 
 			$newfine = new Model_Fine();
@@ -770,6 +847,7 @@ class Controller_Report extends Controller_Template
 			if ($onTimePlayerCount >= 7) return false;
 			$fCardTime = date("Y.m.d G:i", $cardTime);
 
+			loadSectionConfig($card['section']);
 			$value = \Config::get('section.fine', 10);
 
 			$newfine = new Model_Fine();

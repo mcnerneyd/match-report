@@ -7,6 +7,7 @@ return array(
 	'Login' => 'user/login',
 	'cards' => 'card',
 	'cards/:id' => 'card',
+	'card/:id' => 'card',
 
 	'fixtures' => 'fixture',
 	'fines' => 'fine',

@@ -1,9 +1,11 @@
+<!-- <?php print_r($registration) ?> -->
+
 <script>
 $(document).ready(function() {
   const club = "<?= $club ?>";
   const section = "<?= $section ?>";
 
-	$('#registration-table').DataTable({
+	var table = $('#registration-table').DataTable({
 		paging: false,
 		ordering: false,
 	});
@@ -23,7 +25,24 @@ $(document).ready(function() {
 				window.location = `./Registration/Registration?c=${club}&s=${section}&d=${d}`;
 			}
 		});
+
+  $('#registration-table tbody').on('click', 'tr', function() {
+    var tr = $(this)
+    var row = table.row(tr)
+    if (row.child.isShown()) {
+      row.child.hide()
+    } else {
+      row.child(format(tr.data('history'))).show()
+    }
+  })
 });
+
+const format = (d) => {
+  return "<table>" + d.map(x => "<tr><td>" + x.name + "</td><td>" + x.date + "</td><td>" + x.opposition + "</td></tr>").join("") + "</table>";
+}
+
+
+
 </script>
 <div id='registration'>
 
@@ -33,11 +52,11 @@ $(document).ready(function() {
 
   <table id='registration-table' class='table'>
     <thead>
-      <th/>
-      <th/>
+      <th></th>
+      <th></th>
       <th>Player</th>
       <th>Team</th>
-      <th></th>
+      <?= ($section === 'lha-men' ? '<th></th>' : '') ?>
     </thead>
     <tbody display='none'>
   <?php
@@ -47,11 +66,11 @@ $(document).ready(function() {
     $class = "player";
     if (isset($player['status'])) $class .= " ${player['status']}";
 
-    echo "<tr>
+    echo "<tr data-history='".json_encode($player['history'])."'>
       <td>$ct</td>
       <td>";
       if (isset($player['membershipid']) && $player['membershipid']) {
-        echo "<img class='membership' src='http://cards.leinsterhockey.ie/public/assets/img/hockeyireland-icon.png'/>";
+        echo \Asset::img('hockeyireland-icon.png', array('class'=>'membership'));
       }
     echo "</td>
     <td class='$class'>${player['name']}</td>";
@@ -60,16 +79,14 @@ $(document).ready(function() {
     echo "<td>";
     foreach ($player['history'] as $match) {
       $date = date('d.n', strtotime($match['date']));
-      if ($match['code'][0] == 'D') $cls = 'match-pill-league';
-      else $cls = 'match-pill-cup';
-      echo "<a class='match-pill $cls' href='#'><span>${match['code']}</span><span>$date</span></a>";
+      echo "<a class='match-pill' href='#'><span>${match['code']}</span><span>$date</span></a>";
     }
 
     echo "</td>";
     */
 
     echo "<td>${player['team']}</td>";
-    echo "<td>${player['score']}</td>";
+    if ($section === 'lha-men') echo "<td>".($player['score'] != 99 ? $player['score'] : "")."</td>";
     echo "</tr>";
 
     $ct++;

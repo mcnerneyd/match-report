@@ -421,6 +421,10 @@ class Controller_Admin extends Controller_Hybrid
      */
     public function action_log()
     {
+        if (!Auth::has_access("data.log")) {
+            throw new HttpNoAccessException;
+        }
+
         $date = \Input::param('d', Date::forge()->format("%Y%m%d"));
         $page = \Input::param('p', 1);
         $site = \Input::get('site', Session::get('site', 'none'));
@@ -441,6 +445,7 @@ class Controller_Admin extends Controller_Hybrid
 
         fseek($fp, -512000 * $page, SEEK_END);
         $src = fread($fp, 512000);
+        //$src = fread($fp);
 
         echo "<head><title>Log</title><style>code { white-space: nowrap; }</style></head>";
         $previous = 'Admin/Log?d=' . Date::forge(strtotime("-1 day", strtotime($date)))->format("%Y%m%d");
@@ -463,7 +468,7 @@ class Controller_Admin extends Controller_Hybrid
 
             switch ($match[1]) {
                 case "ERROR":
-                    echo "<code style='color:red'>" . $match[2] . " <strong>" . $match[1] . "</strong> " . $match[3] . "</code><br>";
+                    echo "<code style='color:red'>" . $match[2] . " <strong>" . $match[1] . "</strong> " . $match[3] . "</code><br>".print_r($line, true);
                     break;
                 case "WARNING":
                     echo "<code style='color:orange'>" . $match[2] . " <strong>" . $match[1] . "</strong> " . $match[3] . "</code><br>";
@@ -622,6 +627,10 @@ class Controller_Admin extends Controller_Hybrid
                 continue;
             }
 
+            if ($fixture['hidden']) {
+                continue;
+            }
+
             if (!isset($fixture['home_club'])) {
                 $unknowns[$fixture['home']] = true;
                 continue;
@@ -646,7 +655,7 @@ class Controller_Admin extends Controller_Hybrid
             }
         }
 
-        Log::warning("Unknown teams: ".join(',', array_keys($unknowns)));
+        if ($unknowns) Log::warning("Unknown teams: ".join(',', array_keys($unknowns)));
 
         Log::debug("Fixtures loaded and parsed: xt=" . count($competitionTeams) . " ct=" . count($clubTeams) . " tl=" . count($teamLookup));
 
@@ -709,11 +718,13 @@ class Controller_Admin extends Controller_Hybrid
 
                     if (!$card['home_id']) {
                         $t = Model_Team::find_by_name($fixture['home'], $section);
-                        $card['home_id'] = $t['id'];
+                        if ($t) $card['home_id'] = $t['id'];
+                        else Log::warning("Unknown home team: ".$fixture['home']."/$section");
                     }
                     if (!$card['away_id']) {
                         $t = Model_Team::find_by_name($fixture['away'], $section);
-                        $card['away_id'] = $t['id'];
+                        if ($t) $card['away_id'] = $t['id'];
+                        else Log::warning("Unknown away team: ".$fixture['away']."/$section");
                     }
                     $card->save();
                 }
@@ -923,12 +934,13 @@ class Controller_Admin extends Controller_Hybrid
         }
 
         // Process Competitions
-        $dbComps = array_column(Model_Competition::find('all'), 'name');
+        $dbComps = array_filter(Model_Competition::find('all'), function($a) use ($section) { return $a->section['name'] == $section; });
+        $dbComps = array_column($dbComps, 'name');
 
         foreach ($competitions as $competition => $x) {
             $comp = Model_Competition::parse($section, $competition);
             if ($comp === null) {
-                Log::warning("Cannot parse C: $competition");
+                Log::warning("Cannot find competition: $competition");
             }
             $competitions[$competition] = array('valid' => in_array($comp, $dbComps), 'name' => $comp);
         }
@@ -941,9 +953,14 @@ class Controller_Admin extends Controller_Hybrid
         foreach ($teams as $team => $x) {
             $tm = Model_Team::parse($section, $team);
             if ($tm === null) {
+                Log::debug("Cannot find team $section .. $team");
                 continue;
             }
-            $tm['valid'] = in_array($tm['club'], $dbClubs);
+            $valid = in_array($tm['club'], $dbClubs);
+            $tm['valid'] = $valid;
+            if (!$valid) {
+                Log::info("Club [".$tm['club']."] is not valid");
+            }
             $teams[$team] = $tm;
         }
 

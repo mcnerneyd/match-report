@@ -4,13 +4,16 @@
 	ini_set('max_execution_time', 300); 
 	error_reporting(E_ALL);
 
-function debug($msg) { }
-
+require_once('util.php');
+require_once('fuel.php');
+	
 require_once('model/connection.php');
 require_once('secure.php');
 
 require_once('model/player.php');
 require_once('model/card.php');
+
+return;
 
 if (isset($_GET['player'])) {
 

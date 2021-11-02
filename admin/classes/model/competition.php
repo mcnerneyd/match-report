@@ -39,7 +39,7 @@ class Model_Competition extends \Orm\Model
     {
         $str=$rawstr;
         try {
-            $config = Config::get("$section.pattern.competition", []);
+            $config = Config::get("section.pattern.competition", []);
 
             $patterns = array();
             $replacements = array();
@@ -63,6 +63,7 @@ class Model_Competition extends \Orm\Model
 
             return $str;
         } catch (Exception $e) {
+            Log::error("Failed to parse: ".$e->getMessage());
             return $rawstr;
         }
     }

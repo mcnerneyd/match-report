@@ -16,7 +16,7 @@ $(document).ready(function() {
 	$('#results-table').show();
 	$('#results-table tbody').on('click', 'tr', function(e) {
 		e.preventDefault();
-		window.location.href = '<?= Uri::create('cards') ?>/'+$(this).data('id');
+		window.location.href = '<?= Uri::create('card') ?>/'+$(this).data('id');
 	});
 });
 </script>

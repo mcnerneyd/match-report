@@ -36,6 +36,15 @@ class Model_Incident extends \Orm\Model
 		),*/
 	);
 
+	public function delete($cascade = NULL, $use_transaction = false) {
+		$this->resolved = 1;
+		return $this->save(false);
+	}
+
+	protected static $_soft_delete = array(
+		'deleted_field' => 'resolved',
+	);
+
 	protected static $_table_name = 'incident';
 
 	public static function clearCards($cardId, $player, $clubId) {
