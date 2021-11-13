@@ -294,6 +294,11 @@ class Controller_CardApi extends Controller_RestApi
 
         try {
             $id = $this->param('id');
+            if (!$id) {
+                $id = \Input::param('matchcardid', null);
+                if (!$id) throw new Exception("No card provided");
+            }
+
             $club = \Input::param('club');
             $club = self::getClub($club);
 
@@ -301,10 +306,6 @@ class Controller_CardApi extends Controller_RestApi
             $name = cleanName($name);
 
             Log::debug("Processing $key: $id =$name ". ($club ? $club['name']:"No Club"));
-
-            if (!$id) {
-                throw new Exception("No card provided");
-            }
 
             $card = Model_Matchcard::card($id);
             

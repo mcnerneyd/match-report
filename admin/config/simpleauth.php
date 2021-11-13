@@ -76,6 +76,7 @@ return array(
          'banned' => false,
 
          'super' => array('super'=>array('edit'),
+                                    'card'=>array('addcards'),
                                     'data'=>array('archive','clean','export','log'),
                                     'user'=>array('impersonate'),
                                     'registration'=>array('touch')),

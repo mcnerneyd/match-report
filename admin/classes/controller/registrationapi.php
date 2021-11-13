@@ -8,6 +8,9 @@ class Controller_RegistrationApi extends Controller_Rest
         $clubId = \Auth::get('club_id');
         Log::debug("Club ID:$clubId");
         $club = Model_Club::find_by_id($clubId);
+        if ($club === null) {
+            Log::error("Unable to find club for id: $clubId");
+        }
         $club = $club['name'];
         $team = \Input::param('t', 1);
         $section = \Input::param('s', 1);

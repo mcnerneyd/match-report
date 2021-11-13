@@ -436,7 +436,7 @@ if ($cardIsOpen || \Auth::has_access('card.addcards')) {
       <div class="modal-body">
         <label for='player-name'>Player Name</label>
         <select id='player-name'>
-          <option></option>
+          <option>Select from list or type name...</option>
         </select>
       </div>
       <div class="modal-footer">

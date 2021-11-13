@@ -27,6 +27,64 @@
 </div>
 </div>
 
+<div class='col-md-8 col-12'>
+<div class='card'>
+  <div class='card-header'>Create Incident</div>
+  <div class='card-body'>
+    <div class='row'>
+      <div class='col'>
+      <form method='POST' action='<?= Uri::create('api/1.0/cards') ?>'>
+
+          <div class="form-group row">
+            <label for="matchcardid" class="col-4 col-form-label">Matchcard ID</label> 
+            <div class="col-8">
+              <input id="matchcardid" name="matchcardid" type="number" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <label for="player" class="col-4 col-form-label">Player Name</label> 
+            <div class="col-8">
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">
+                  <i class="fas fa-running"></i>
+                  </div>
+                </div> 
+                <input id="player" name="player" type="text" class="form-control">
+              </div>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="club" class="col-4 col-form-label">Club</label> 
+            <div class="col-8">
+              <input id="club" name="club" type="text" class="form-control">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="type" class="col-4 col-form-label">Type</label> 
+            <div class="col-8">
+              <select id="type" name="t" required="required" class="custom-select">
+                <?php foreach (['Played','Red Card','Yellow Card','Ineligible','Scored','Missing','Postponed','Other','Locked','Reversed','Signed','Number','Late'] as $t) {
+                    echo "<option name='key' value='".strtolower($t)."'>$t</option>";
+                }?>
+              </select>
+            </div>
+          </div> 
+          <div class="form-group row">
+            <div class="offset-4 col-8">
+              <button name="submit" type="submit" class="btn btn-primary">Create</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+
+
 <div class='col-md-4 col-12'>
 <div class='card'>
   <div class='card-header'>View Logs</div>
