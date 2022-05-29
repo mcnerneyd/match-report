@@ -1,0 +1,206 @@
+* {
+    color: black;
+}
+
+button, input, select {
+    border-radius: 5px;
+    border: 0px;
+    padding: 8px 8px;
+    background-color: white;
+}
+
+button {
+    color: white;
+    width: 100%;
+    font-weight: 600;
+    font-size: 105%;
+    background-color: rgb(16, 16, 128);
+    &.danger {
+        background-color: rgb(128, 16, 16);
+    }
+    &.success {
+        background-color: rgb(16, 128, 16);
+    }
+}
+
+#player-select {
+    width: 100%;
+    thead td {
+        display: flex;
+        gap: 1px;
+        button:not(:first-child) {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+        button:not(:last-child) {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+    }    
+}
+
+.matchcard {
+    div.detail {
+        dl {
+            display: inline-block;
+            font-size: 11pt;
+            margin-bottom: 10px;
+            margin-right: 20px;
+            dt {
+                font-weight: 800;
+            }
+            dd {
+                margin: 0;
+            }
+        }
+    }
+    span.detail {
+        * {
+            display: inline-block;
+        }
+        ol {
+            margin: 0;
+            padding: 0;
+        }
+        .roles {
+            li {
+                list-style-type: none;
+                display: inline-block;
+                padding: 0 5px;
+                border-radius: 3px;
+                margin-right: 3px;
+                font-size: 80%;
+                font-weight: normal;
+                }
+        }
+    }
+
+    caption {
+        position:relative;
+        width: 100%;
+        text-align: left;
+        font-size: 20px;
+        font-weight: 800;
+        color: black;
+        border-top: 1px solid black;
+        padding: 10px 0;
+    }
+
+    .teams {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 2rem;
+
+        .penalties img {
+            width: 20px;
+            margin-bottom: -12px;
+        }
+
+        table {
+            border-spacing: 0;
+            flex-grow: 1;
+            width: 100%;
+            caption-side: top;
+
+            tr {
+                width:100%;
+                td {
+                    position:relative;
+                    width:auto;
+                    font-size: 14px;    
+                    border-top: 1px solid #ddd;
+                    padding: 5px 0;
+                }
+
+                td:nth-child(1) {
+                    width:25px;
+                }
+                td:nth-child(3) {
+                    width:60%;
+                }
+            }
+            .selected {
+                table {
+                    border-spacing:0;
+                }
+                background-color: rgba(221, 194, 141, 0.3);
+                tr:first-child {
+                    background-color: rgba(221, 194, 141, 0.8);
+                }
+                &>td {
+                    padding: 0;
+                    border-radius: 5px;
+                    border: 3px solid rgba(221, 194, 141, 0.8);
+                }
+                
+                tr:not(:first-child) td {
+                    padding: 10px 25px
+                }
+                td td {
+                    text-align: left;
+                    border: 0px;
+                }
+                .goals {
+                    float: right;
+                    font-size: 120%;
+                    svg {
+                        color: white;
+                        background: #484;
+                        border-radius: 0 5px 5px 0;
+                        &:first-child {
+                            border-radius: 5px 0 0 5px;
+                        }
+                        height: 20px;
+                        padding: 3px;
+                        border: 1px solid #484;
+                    }
+                    span {
+                        padding: 2px 3px 4px 3px;
+                        height: 20px;
+                        display: inline-block;
+                        color: #484;
+                        background-color: white;
+                        width: 1.8rem;
+                        font-weight: bold;
+                        text-align: center;
+                        border: 1px solid #484;
+                        vertical-align: top;
+                    }
+                }
+                .roles {
+                    button {
+                        width: 4rem;
+                        font-weight: normal;
+                        font-size: 100%;
+                    }
+                    td span {
+                        display: flex;
+                        gap: 10px;
+                        align-content: space-between  ;
+                        button {
+                            width: 20px;
+                            flex-grow: 1;
+                        }
+                    }
+                }
+            }
+
+        }
+
+        .detail {
+            position: absolute;
+            right: 0;
+            color: #484;
+            font-weight: bold;
+        }
+    }
+
+    @media screen and (min-width: 48em) {
+        .teams {
+            flex-direction: row;
+        }
+    }
+}
