@@ -60,7 +60,7 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
 			var newName = $(this).find('[name=newname]').val();
 			debugger;
 			$.post('<?= Uri::create('registrationapi/rename') ?>',
-				{'c':'<?= $club ?>', 'o':oldName, 'n':newName }
+				{"c":"<?= $club ?>", "o":oldName, "n":newName }
 				).done(function(data) { window.location.reload(); });
 		});
 
@@ -69,7 +69,7 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
       const club = $('#registration-club select').val();
       const section = $('#registration-section select').val();
       console.log('Registration params:', club, section);
-      if (club !== undefined && (!club || club == '<?= $club ?>')) return;
+      if (club !== undefined && (!club || club == "<?= $club ?>")) return;
       if (!section || section == '<?= $section ?>') return;
 			window.location.href=`<?= Uri::create('Registration') ?>?c=${club}&s=${section}`;
     }
@@ -82,10 +82,10 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
 		$('#registration-section select').val('<?= $section ?>');
 		<?php } ?>
 		<?php if ($club) { ?>
-		$('#registration-club select').val('<?= $club ?>');
+		$('#registration-club select').val("<?= $club ?>");
 		<?php } ?>
 
-		$.get('<?= Uri::create('registrationapi/errors.json') ?>?c=<?= $club ?>')
+		$.get("<?= Uri::create('registrationapi/errors.json') ?>?c=<?= $club ?>")
 			.done(function(data) {
 				if (typeof data !== 'undefined') {
 					for (var i=0;i<data.length;i++) {
@@ -104,7 +104,7 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
 			$.ajax('<?= Uri::create('registrationapi/errors') ?>',
 				{
 					method:'DELETE',
-					data:{'club':'<?= $club ?>'},
+					data:{'club':"<?= $club ?>"},
 				}).done(function(data) { window.location.reload(); });
 		});
 	});
@@ -255,7 +255,7 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
             <input type='hidden' name='section' value='<?= $section ?>'/>
             <div class='form-group'>
               <label>Club</label>
-              <input class='form-control' type='text' name='club' readonly value='<?= $club ?>'/>
+              <input class='form-control' type='text' name='club' readonly value="<?= $club ?>"/>
             </div>
             <div class='form-group'>
               <label>File</label>

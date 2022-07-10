@@ -1,5 +1,4 @@
 <?php
-
 class Controller_Admin extends Controller_Hybrid
 {
     public function action_index()
@@ -661,7 +660,7 @@ class Controller_Admin extends Controller_Hybrid
 
         try {
             DB::start_transaction();
-            DB::query("DELETE tc FROM team__competition tc 
+            DB::query("DELETE tc FROM team__competition tc
               JOIN competition c ON c.id = tc.competition_id
               JOIN section s on s.id = c.section_id
             WHERE s.name = '${section['name']}'")->execute();  // Delete all entrys

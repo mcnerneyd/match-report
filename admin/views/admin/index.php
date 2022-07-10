@@ -36,33 +36,33 @@
       <form method='POST' action='<?= Uri::create('api/1.0/cards') ?>'>
 
           <div class="form-group row">
-            <label for="matchcardid" class="col-4 col-form-label">Matchcard ID</label> 
+            <label for="matchcardid" class="col-4 col-form-label">Matchcard ID</label>
             <div class="col-8">
               <input id="matchcardid" name="matchcardid" type="number" class="form-control">
             </div>
           </div>
 
           <div class="form-group row">
-            <label for="player" class="col-4 col-form-label">Player Name</label> 
+            <label for="player" class="col-4 col-form-label">Player Name</label>
             <div class="col-8">
               <div class="input-group">
                 <div class="input-group-prepend">
                   <div class="input-group-text">
                   <i class="fas fa-running"></i>
                   </div>
-                </div> 
+                </div>
                 <input id="player" name="player" type="text" class="form-control">
               </div>
             </div>
           </div>
           <div class="form-group row">
-            <label for="club" class="col-4 col-form-label">Club</label> 
+            <label for="club" class="col-4 col-form-label">Club</label>
             <div class="col-8">
               <input id="club" name="club" type="text" class="form-control">
             </div>
           </div>
           <div class="form-group row">
-            <label for="type" class="col-4 col-form-label">Type</label> 
+            <label for="type" class="col-4 col-form-label">Type</label>
             <div class="col-8">
               <select id="type" name="t" required="required" class="custom-select">
                 <?php foreach (['Played','Red Card','Yellow Card','Ineligible','Scored','Missing','Postponed','Other','Locked','Reversed','Signed','Number','Late'] as $t) {
@@ -70,7 +70,7 @@
                 }?>
               </select>
             </div>
-          </div> 
+          </div>
           <div class="form-group row">
             <div class="offset-4 col-8">
               <button name="submit" type="submit" class="btn btn-primary">Create</button>
@@ -108,7 +108,7 @@
 
     <div class='row'>
       <div class='col'>
-          <a href='<?= Uri::create('User') ?>' class='btn btn-primary btn-block'>Users</a> 
+          <a href='<?= Uri::create('User') ?>' class='btn btn-primary btn-block'>Users</a>
       </div>
     </div>
   </div>
@@ -151,10 +151,10 @@
 <div class='card bg-warning'>
   <div class='card-header'>Clean Data Files</div>
   <div class='card-body'>
-    <p>Delete all incidents and matchcards from before <?= currentSeasonStart() ?>. 
-      Also deletes all registration files that are older that this date (leaving 
+    <p>Delete all incidents and matchcards from before <?= currentSeasonStart() ?>.
+      Also deletes all registration files that are older that this date (leaving
       at least one for each club).
-      <i>Please note this is not easily reversed. You are strongly recommended 
+      <i>Please note this is not easily reversed. You are strongly recommended
       to run Archive first.</i>
     </p>
 
@@ -189,5 +189,5 @@
   </div>
 </div>
 </div>
-</div>   <!-- row --> 
 
+</div>   <!-- row -->

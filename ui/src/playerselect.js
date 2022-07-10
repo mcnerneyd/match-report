@@ -1,57 +1,76 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
+import { UserContext } from './App'
 import './App.scss';
-import './matchcard.scss';
-
-const players = [
-{ "name": "Perice Eagger", "id": "ME400351" },
-{ "name": "Lethia Ledwith", "id": "ME416436" },
-{ "name": "Lark Jendrich", "id": "ME627859" },
-{ "name": "Udell Knoble", "id": "ME962246" },
-{ "name": "Yuri Billows", "id": "ME828678" },
-{ "name": "Boonie Noseworthy", "id": "ME966842" },
-{ "name": "Phillipp Mulliss", "id": "ME545758" },
-{ "name": "Lynde Kingsnoad", "id": "ME265303" },
-{ "name": "Edlin Elsey", "id": "ME956506" },
-{ "name": "Gabbie Slyford", "id": "ME871026" },
-{ "name": "Idette Trundle", "id": "ME935803" },
-{ "name": "Claudelle Pankethman", "id": "ME682495" },
-{ "name": "Belia Moneti", "id": "ME132196" },
-{ "name": "Reynold Tegeller", "id": "ME380781" },
-{ "name": "Mab Dane", "id": "ME182697" },
-{ "name": "Marcelline Dumphrey", "id": "ME692309" },
-{ "name": "Rudiger Spancock", "id": "ME477818" },
-{ "name": "Deonne Vince", "id": "ME619245" },
-{ "name": "Mace Orcas", "id": "ME641004" },
-{ "name": "Gran Camelin", "id": "ME962372" },
-{ "name": "Ailina Chadderton", "id": "ME000610" },
-{ "name": "Eulalie Lacky", "id": "ME033058" },
-{ "name": "Vanni Ailsbury", "id": "ME518392" },
-{ "name": "Tommy Plain", "id": "ME794787" },
-{ "name": "Blaire Ioselevich", "id": "ME809775" },
-{ "name": "Cozmo Okroy", "id": "ME980549" },
-{ "name": "Ted Hawney", "id": "ME124188" },
-{ "name": "Tiffany Stickells", "id": "ME185575" },
-{ "name": "Leah Tomaello", "id": "ME325735" },
-{ "name": "Karissa O'Lagen", "id": "ME977629" }]
+import './playerselect.scss';
+import moment from 'moment';
 
 const PlayerSelect = (props) => {
 
-    return <React.Fragment>
-        <table id='player-select'>
-            <thead>
-                <tr><td>
-                    <button>All</button>
-                    <button>Recent</button>
-                    <button>Free</button>
-                </td></tr>
-            </thead>
-            <tbody>
-            { players.map( p => <tr key={p.id}>
-                <td>{p.name}</td>
-            </tr>)}
-            </tbody>
-        </table>
-    </React.Fragment>
+    const user = useContext(UserContext)
+
+    const [viewState, setViewState] = useState('all')
+    const [allPlayers, setAllPlayers] = useState([])
+    const [selectedPlayers, setSelectedPlayers] = useState([])
+
+    useEffect(() => fetch(`http://cards.leinsterhockey.ie/api/registration/list.json?s=${user.section}&t=${props.team}`,{
+            headers: {'X-Auth-Token': `${sessionStorage.getItem("jwtToken")}`}})
+        .then((res) => res.json())
+        .then((data) => {
+            const players = data.map(x => {
+                const dates = x.history.map(y => moment(y.date))
+                x['lastDate'] = Math.min(...dates)
+                return x
+            })
+            setAllPlayers(players)
+        }), [])
+    
+
+    const players = [...allPlayers]
+
+    if (viewState == 'all') {
+        players.sort((a,b) =>{return a.name.localeCompare(b.name)})
+    } else if (viewState == 'recent') {
+        players.sort((a,b) => {return a.lastDate ? (a.lastDate - b.lastDate) : 1})
+    }
+
+    const addPlayersText = () => {
+        if (selectedPlayers.length == 0) return "Add players"
+        if (selectedPlayers.length == 1) return "Add 1 player"
+        return "Add " + selectedPlayers.length + " players"
+    }
+
+    return <div id='player-select'>
+        <div className='buttons-bar'>
+            <button className='success' disabled={!selectedPlayers}>{addPlayersText()}</button>
+            <button className='warning' onClick={() => props.setKicker(false)}>Cancel</button>
+        </div>
+
+        <div className='buttons-bar'>
+            <button onClick={() => setViewState('all')}>All (A-Z)</button>
+            <button onClick={() => setViewState('recent')}>Recent</button>
+        </div>
+
+        <div className='players'>
+        { viewState == 'free' 
+            ? <>
+                <label>Player Name <input type='text'/></label>
+                <button>Add Player</button>
+            </>
+            : <table>
+                <tbody>
+                    { players.map( (p,i) => <tr key={p.name}>
+                    <td className={selectedPlayers.includes(p.name) ? 'selected' : ''}
+                        onClick={() => {
+                            if (selectedPlayers.includes(p.name)) 
+                                setSelectedPlayers(selectedPlayers.filter(x => x != p.name))
+                            else setSelectedPlayers([...selectedPlayers, p.name])
+                        }}>{p.name}</td>
+                </tr>)}
+                </tbody>
+            </table>
+        }
+        </div>
+    </div>
 }
 
 export default PlayerSelect

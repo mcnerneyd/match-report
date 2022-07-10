@@ -1,10 +1,9 @@
-<<<<<<< HEAD
 .attic
 test/**/selenium*
 test/**/output.xml
 test/**/log.html
 test/**/report.html
 /nbproject/private/
-=======
 **/selenium-screenshot*
->>>>>>> dc91207d842780fef03967f1ec0b3b0063e7342d
+dist
+node_modules

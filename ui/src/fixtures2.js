@@ -1,120 +1,115 @@
-import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import moment from "moment";
+import { useNavigate } from "react-router-dom";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from './db'
+import './fixtures.scss'
 
 const Fixtures = () => {
-    const pageSize = 5
 
-    const containerRef = useRef(null)
-    const topRef = useRef(null)
-    const bottomRef = useRef(null)
+    const [section, setSection] = useState('all')
+    const [club, setClub] = useState('all')
+    const [competition, setCompetition] = useState('all')
+    const [team, setTeam] = useState('all')
 
-    const [nextPage, setNextPage] = useState(0)
-    const [items, setItems] = useState([])
-    const [range, setRange] = useState(null)
-    const [visibles, setVisibles] = useState(true)
+    const navigate = useNavigate()
+    const fixtures = useLiveQuery(() => db.fixtures.orderBy('datetimeZ').toArray());
 
-    console.log("Loop np=", nextPage, range, items.length)
+    const sections = [...new Set(fixtures?.map(x => x.section))]
+    sections.sort()
+    const clubs = [...new Set(fixtures?.filter(x => section == 'all' || section == x.section).map(x => x.home.club))]
+    clubs.sort()
+    const competitions = [...new Set(fixtures?.filter(x => section == 'all' || section == x.section).map(x => x.competition))]
+    competitions.sort()
+    const teams = [...new Set(fixtures?.filter(x => section == 'all' || section == x.section)
+        .filter(x => club == 'all' || club == x.home.club)
+        .map(x => x.home.club + " " + x.home.team))]
+    teams.sort()
 
-    useEffect(() => {
-        const observer = new IntersectionObserver(callback, { 
-            root: containerRef.current, rootMargin: "0px", threshold: 0.0 })
-        observer.observe(topRef.current)
-        observer.observe(bottomRef.current)
-        console.log("  useEffect", items.length, nextPage, "tb", topRef.current.visible, bottomRef.current.visible)
+    const selectedFixtures = fixtures?.filter(x => {
+        if (club != 'all' && !(x.home.club == club || x.away.club == club)) return false;
+        if (section != 'all' && x.section != section) return false;
+        if (competition != 'all' && x.competition != competition) return false;
+        return true;
+    })
 
-        if (range) {
-            const allItems = [].slice.call(containerRef.current.firstChild.firstChild.children)
-            if (nextPage != null) {
-                const h = containerRef.current.clientHeight - allItems.slice(1,-1)
-                    .map(x => x.clientHeight).reduce((a,b)=>a+b, 0)
-                bottomRef.current.firstChild.height = Math.max(20, h - 5)
-                // if (bottomRef.current.visible) {
-                //     setNextPage(range.lastPage + 1)
-                // } else if (topRef.current.visible) {
-                //     setNextPage(range.firstPage - 1)
-                // }
-                if (bottomRef.current.visible) {
-                    setNextPage(np => range.lastPage + 1)
-                }
+    selectedFixtures?.forEach((v, i, a) => {
+        v.date = moment(v.datetimeZ)
+        if (i>0) {
+            const prev = a[i-1]
+            v.prev = prev
+            if (prev.date.month() != v.date.month()) {
+                v.daybreak = true
+                v.monthbreak = true
+                prev.nextdaybreak = true
+                prev.nextmonthbreak = true
+            } else if (prev.date.date() != v.date.date()) {
+                v.daybreak = true
+                prev.nextdaybreak = true
             }
         } else {
-            console.log("  Empty", nextPage)
-            bottomRef.current.firstChild.height = containerRef.current.clientHeight + 10
+            v.monthbreak = true
+            v.daybreak = true
         }
+    })
 
-        containerRef.current.scrollTop = topRef.current.offsetHeight + 1
-        console.log("  useEffect done")
+    selectedFixtures?.forEach(x => console.log(x))
 
-    }, [nextPage, items, range, visibles])
+    return <>
+        <h1>Fixtures</h1>
+        <header className='fixtures'>
+            <select onChange={e => setSection(e.target.value)}>
+                <option value='all'>All Sections</option>
+                {sections.map(x => <option key={'section:' + x}>{x}</option>)}
+            </select>
+            <select onChange={e => setClub(e.target.value)}>
+                <option value='all'>All Clubs</option>
+                {clubs.map(x => <option key={'club:' + x}>{x}</option>)}
+            </select>
+            <select onChange={e => setCompetition(e.target.value)}>
+                <option value='all'>All Competitions</option>
+                {competitions.map(x => <option key={'comp:' + x}>{x}</option>)}
+            </select>
+            <select onChange={e => setTeam(e.target.value)}>
+                <option value='all'>All Teams</option>
+                {teams.map(x => <option key={'team:' + x}>{x}</option>)}
+            </select>
+        </header>
+        <ol>
+        {selectedFixtures?.map(item => {
+            return <>
+                {item.monthbreak
+                ? <h2 className='month-break' key={'m' + item.id}>
+                    <time dateTime={item.date.format('YYYY-MM')}>{item.date.format('MMMM YYYY')}</time>
+                  </h2>
+                : null}
 
-    if (items.length < 30)
-    if (range == null || (nextPage == range.lastPage + 1 || nextPage == range.firstPage - 1)) {
-        console.log("  Fetch", nextPage)
-        fetch(`http://cards.leinsterhockey.ie/api/fixtures?p=${nextPage}&n=${pageSize}`)
-        .then((res) => res.json())
-        .then((list) => {
-            console.log("  Resultsx:", nextPage, list.fixtures)
-            const newFixtures = list.fixtures
-            for (let i=0;i<newFixtures.length;i++) newFixtures[i].date = i + (nextPage*pageSize)
+                {item.daybreak
+                ? <h3 className='day-break' key={'d' + item.id}>
+                    <time dateTime={item.date.format('YYYY-MM-DD')}>
+                        <span className='sm day-date'>{item.date.format('dddd D')}</span>
+                        <span className='lg date'>{item.date.format('D')}</span>
+                        <span className='lg day'>{item.date.format('dddd')}</span>
+                    </time>
+                  </h3>
+                : null}
 
-            let fp = 0, lp = 0
-            if (range) {
-                fp = range.firstPage
-                lp = range.lastPage
-            }
+                { item.daybreak || item.date.format('HH:mm') != item.prev?.date.format('HH:mm')
+                ? <h4 className='time-break'><time dateTime={item.date.format('HH:mm')}>{item.date.format('h:mm')}</time></h4>
+                : null}
 
-            if (newFixtures.length > 0) {
-                if (nextPage < 0) {
-                    fp = nextPage - 1
-                    setItems(f => [...newFixtures, ...f])
-                    console.log("   A")
-                } else {
-                    lp = nextPage + 1
-                    setItems(f => [...f, ...newFixtures])
-                    console.log("   B")
-                }
-            } else {
-                console.log("   C")
-                if (nextPage < 0) fp = null
-                if (nextPage > 0) lp = null
-            }
-
-            console.log("   End:", nextPage, range)
-            setRange({firstPage: fp, lastPage: lp})
-        })
-    }
-
-    function callback(entries) {
-        entries.forEach(entry => { entry.target.visible = entry.isIntersecting })
-        if (visibles.top != topRef.current.visible || visibles.bottom != bottomRef.current.visible) {
-            console.log("tb", visibles, topRef.current.visible, bottomRef.current.visible)
-            //setVisibles({top: topRef.current.visible, bottom: bottomRef.current.visible})
-        }
-    }
-
-    return <div>
-        <p>Page: {nextPage} n={items.length} f={range?.firstPage} l={range?.lastPage}</p>
-    <div ref={containerRef} style={{height:'300px',overflowY:'auto'}}>
-    <table style={{width:'100%',borderSpacing:0}}>
-    <tbody>
-        <tr ref={topRef} key='top' style={{backgroundColor:"green"}}>
-            <td colSpan='5'>Top</td>
-        </tr>
-    {items.map(fixture => {
-        return <tr key={fixture.id}>
-            <td>{fixture.date}</td>
-            <td>{fixture.competition}</td>
-            <td>{fixture.home.name}</td>
-            <td>{fixture.home.score + "v" + fixture.away.score}</td>
-            <td>{fixture.away.name}</td>
-        </tr>
-    })}
-        <tr ref={bottomRef} key='bottom'>
-            <td colSpan='5'></td>
-        </tr>
-    </tbody>
-</table>
-</div></div>;
-
+            <li className={'fixture' + (item.nextdaybreak ? ' day-break-after' : '')} key={item.id} onClick={() => { navigate(`/${item.id}`)}}>
+                <div className='lg'>{item.competition}</div>
+                <div className='sm'>{item['competition-code']}</div>
+                <div className='lg'>{item.home.name}</div>
+                <div className='lg'>{item.played == 'yes' 
+                    ? item.home.score + "v" + item.away.score
+                    : null}</div>
+                <div className='lg'>{item.away.name}</div>
+                <div className='sm'>{item.home.name} <strong>v</strong> {item.away.name}</div>
+            </li></>})}
+        </ol>
+    </>
 }
 
 export default Fixtures;

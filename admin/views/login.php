@@ -5,6 +5,7 @@
 		{ target: "#login button[type=submit]", message: "Then click the 'Sign in' button", dir:"top" },
 		{ target: "#login .switch-login", message: "If you are trying to login as a club/registration secretary, click here to switch to 'Secretary Login'", dir:"bottom" },
 		];
+
 </script>
 
 <?php 
@@ -36,6 +37,7 @@
 	<button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
 
 </form>
+
 <script>
 $(document).ready(function() {
 	$('#user-select').change(function() {

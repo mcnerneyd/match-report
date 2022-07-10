@@ -14,3 +14,8 @@
 		RewriteRule ^api/1.0/(.*)$ api/$1 [DPI]
 		RewriteRule ^(.*)$ index.php/$1
 </IfModule>
+
+#<IfModule mod_headers.c>
+#  Header set Access-Control-Allow-Origin "http://localhost:3000"
+#  Header set Access-Control-Allow-Credentials "true"
+#</IfModule>

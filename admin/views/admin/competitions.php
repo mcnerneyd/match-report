@@ -108,7 +108,7 @@
 
 						<div class='form-group col-md-12'>
 							<label for='competitionname'>Competition Name</label>
-							<input type='text' class='form-control' id='competitionname' name='competitionname'/>
+							<input type='text' class='form-control' id='competitionname' name='competitionname'  pattern='[A-Z][A-Za-z0-9 ]*'/>
 						</div>
 						<div class='col-md-12'>
 							<label>
@@ -123,7 +123,7 @@
 
 						<div class='form-group col-md-6'>
 							<label for='competitioncode'>Code</label>
-							<input type='text' class='form-control' id='competitioncode' name='competitioncode'/>
+							<input type='text' class='form-control' id='competitioncode' name='competitioncode' pattern='[A-Z]+'/>
 						</div>
 						<div class='form-group col-md-12'>
 							<label>Age Group(s)</label>
@@ -133,11 +133,11 @@
 
 						<div class='form-group col-md-6'>
 							<label for='competition-teamsize'>Team Size</label>
-							<input type='text' class='form-control' id='competition-teamsize' name='competition-teamsize'/>
+							<input type='number' class='form-control' id='competition-teamsize' name='competition-teamsize'/>
 						</div>
 						<div class='form-group col-md-6'>
 							<label for='competition-teamstars'>Team Stars</label>
-							<input type='text' class='form-control' id='competition-teamstars' name='competition-teamstars'/>
+							<input type='number' class='form-control' id='competition-teamstars' name='competition-teamstars'/>
 						</div>
 						</div>
 				</form>

@@ -2,6 +2,10 @@
 class Controller_RegistrationApi extends Controller_Rest
 {
     // --------------------------------------------------------------------------
+    public function options_list() {
+        return new Response("OK", 200);
+    }
+    
     public function get_list()
     {
         $dateS = \Input::param('d', Date::forge()->format("%Y%m%d"));

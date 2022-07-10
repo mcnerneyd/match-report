@@ -1,4 +1,7 @@
 <?php
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+
 class Controller_UserApi extends Controller_RestApi
 {
     // --------------------------------------------------------------------------
@@ -16,12 +19,42 @@ class Controller_UserApi extends Controller_RestApi
             }
         }
 
-        if (Session::get('username', null) != null) {
-            return new Response("User session valid", 200);
+        $token = $this->generateJwt();
+
+        if ($token) {
+            return new Response(json_encode($token), 200);
         } else {
             return new Response("User session expired", 401);
         }
     }
+
+    public function options_index() {
+        return new Response("OK", 200);
+    }
+
+    function generateJwt() 
+    {
+        $username = Session::get('username');
+    
+        if ($username) {
+            $user = Model_User::find_by_username($username);
+            $userData = array(
+                'id' => $user['id'],
+                'section' => $user->section ? $user->section['name'] : null,
+                'user' => $user->username,
+                'title' => $user->getName(),
+                'role' => $user['role'],
+                'club' => $user->club ? $user->club['name'] : null
+            );
+    
+            $userData['jwt-token'] = JWT::encode($userData, JWT_KEY, 'HS256');
+            return $userData;
+        } else {
+            return false;
+        }
+    }
+    
+    
 
     // --------------------------------------------------------------------------
     public function get_refresh() {

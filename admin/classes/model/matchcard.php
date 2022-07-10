@@ -109,9 +109,11 @@ class Model_Matchcard extends \Orm\Model
                         continue;
                     }
 
+//                    $q = mysql_real_escape_string($q);
+
                     $match = false;
 
-                    $sql .= "\n/* Q:$q */ ";		// FIXME SQL Injection
+                    $sql .= "\n/* Q:$q */ ";
                     $matches = \DB::query("select id 
 						from club
 						where name like '%$q%' or code='$q'")->execute();
@@ -179,6 +181,8 @@ class Model_Matchcard extends \Orm\Model
                 }, $q)
             );
         }
+
+        Log::info("Search query2: $sql");
 
         if ($limit < 0) {
             $sql = "SELECT COUNT(*) as count FROM $sql";
@@ -373,7 +377,11 @@ class Model_Matchcard extends \Orm\Model
 
     public static function cardsFromFixtures($fixtures)
     {
-        $fixtureIds = array_map(function ($f) { return $f['fixtureID']; }, $fixtures);
+        $fixtureIds = array();
+
+        foreach ($fixtures as $fixture) {
+            $fixtureIds[$fixture['fixtureID']] = $fixture;
+        }
 
         $cards = \DB::query("select m.id, m.fixture_id, 
 				date_format(m.date, '%Y-%m-%d %H:%i:%S') date, 
@@ -381,7 +389,9 @@ class Model_Matchcard extends \Orm\Model
 				ch.id home_id, ch.name home_name, th.name home_team, 
 				ca.id away_id, ca.name away_name, ta.name away_team,
 				m.open,
-                s.name as section
+                s.name as section,
+                sum(case when i.club_id = th.club_id then i.detail else 0 end) home_score,
+                sum(case when i.club_id = ta.club_id then i.detail else 0 end) away_score
 			from matchcard m
 				left join competition x on m.competition_id = x.id
                 left join section s on x.section_id = s.id
@@ -389,15 +399,20 @@ class Model_Matchcard extends \Orm\Model
 				left join club ch on th.club_id = ch.id
 				left join team ta on m.away_id = ta.id
 				left join club ca on ta.club_id = ca.id
-			where m.fixture_id in (".implode(",", $fixtureIds) .")
-				")->execute();
+                left join incident i on i.matchcard_id = m.id and i.type = 'Scored' and i.resolved = false
+			where m.fixture_id in (".implode(",", array_keys($fixtureIds)).")
+            group by m.id")->execute();
 
-        foreach ($fixtures as &$fixture)  {
-            foreach ($cards as $card) {
-                if ($card['fixture_id'] == $fixture['fixtureID']) {
-                    $fixture['card'] = self::build_card($card, $fixture);
-                }
-            }
+        $fixtures = array();
+
+        foreach ($cards as $card) {
+            $fixture = $fixtureIds[$card['fixture_id']];
+            if (($card['home_score'] == $fixture['home_score']) &&
+                ($card['away_score'] == $fixture['away_score'])) continue;
+            Log::debug("Score: ".$card['home_score']." ".$card['away_score'].
+                " == ".$fixture["home_score"]." ".$fixture["away_score"]);
+            $fixture['card'] = self::build_card($card, $fixture);
+            $fixtures[] = $fixture;
         }
 
         return $fixtures;

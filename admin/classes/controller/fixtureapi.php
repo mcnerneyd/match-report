@@ -5,6 +5,17 @@ class Controller_FixtureApi extends Controller_RestApi
     public function get_index() {
         header('Access-Control-Allow-Origin: *');
 
+        $id = $this->param('id');
+
+        if ($id) {
+            $card = Model_Matchcard::find_by_fixture($id);
+            if (!$card) {
+                return new Response("No such card", 404);
+            }
+
+            return array('data' => $this->simplify($card));
+        }
+
         $page = \Input::param('p', 0);
         $pagesize = \Input::param('n', 10);
         $section = \Input::param('s', null);

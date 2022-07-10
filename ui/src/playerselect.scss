@@ -1,0 +1,30 @@
+#player-select {
+    width: 100%;
+
+    div.players {
+        overflow: auto;
+        position: absolute;
+        bottom: 20px;
+        left: 10px;
+        right: 10px;
+        top: 0;
+        margin-top: 8rem;
+
+        table {
+            height: 100%;
+            width: 100%;
+        }
+
+        tr td {
+            border-radius: 5px;
+            border: 1px solid rgb(230, 230, 220);
+            padding: 5px 15px;
+            width: 100%;
+            position: sticky;    
+        }
+
+        td.selected {
+            background-color: rgb(120, 180, 120);
+        }
+   }
+}

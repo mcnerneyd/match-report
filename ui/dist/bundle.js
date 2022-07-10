@@ -5,6 +5,21 @@
 
 	var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
+	function getAugmentedNamespace(n) {
+		if (n.__esModule) return n;
+		var a = Object.defineProperty({}, '__esModule', {value: true});
+		Object.keys(n).forEach(function (k) {
+			var d = Object.getOwnPropertyDescriptor(n, k);
+			Object.defineProperty(a, k, d.get ? d : {
+				enumerable: true,
+				get: function () {
+					return n[k];
+				}
+			});
+		});
+		return a;
+	}
+
 	function commonjsRequire (path) {
 		throw new Error('Could not dynamically require "' + path + '". Please configure the dynamicRequireTargets or/and ignoreDynamicRequires option of @rollup/plugin-commonjs appropriately for this require call to work.');
 	}
@@ -9107,1262 +9122,6 @@
 	  }, [location, navigate, path, replaceProp, state, target, to]);
 	}
 
-	var jsxRuntime = {exports: {}};
-
-	var reactJsxRuntime_development = {};
-
-	/** @license React v17.0.2
-	 * react-jsx-runtime.development.js
-	 *
-	 * Copyright (c) Facebook, Inc. and its affiliates.
-	 *
-	 * This source code is licensed under the MIT license found in the
-	 * LICENSE file in the root directory of this source tree.
-	 */
-
-	(function (exports) {
-
-	{
-	  (function () {
-
-	    var React = react.exports;
-
-	    var _assign = objectAssign; // ATTENTION
-	    // When adding new symbols to this file,
-	    // Please consider also adding to 'react-devtools-shared/src/backend/ReactSymbols'
-	    // The Symbol used to tag the ReactElement-like types. If there is no native Symbol
-	    // nor polyfill, then a plain number is used for performance.
-
-
-	    var REACT_ELEMENT_TYPE = 0xeac7;
-	    var REACT_PORTAL_TYPE = 0xeaca;
-	    exports.Fragment = 0xeacb;
-	    var REACT_STRICT_MODE_TYPE = 0xeacc;
-	    var REACT_PROFILER_TYPE = 0xead2;
-	    var REACT_PROVIDER_TYPE = 0xeacd;
-	    var REACT_CONTEXT_TYPE = 0xeace;
-	    var REACT_FORWARD_REF_TYPE = 0xead0;
-	    var REACT_SUSPENSE_TYPE = 0xead1;
-	    var REACT_SUSPENSE_LIST_TYPE = 0xead8;
-	    var REACT_MEMO_TYPE = 0xead3;
-	    var REACT_LAZY_TYPE = 0xead4;
-	    var REACT_BLOCK_TYPE = 0xead9;
-	    var REACT_SERVER_BLOCK_TYPE = 0xeada;
-	    var REACT_FUNDAMENTAL_TYPE = 0xead5;
-	    var REACT_DEBUG_TRACING_MODE_TYPE = 0xeae1;
-	    var REACT_LEGACY_HIDDEN_TYPE = 0xeae3;
-
-	    if (typeof Symbol === 'function' && Symbol.for) {
-	      var symbolFor = Symbol.for;
-	      REACT_ELEMENT_TYPE = symbolFor('react.element');
-	      REACT_PORTAL_TYPE = symbolFor('react.portal');
-	      exports.Fragment = symbolFor('react.fragment');
-	      REACT_STRICT_MODE_TYPE = symbolFor('react.strict_mode');
-	      REACT_PROFILER_TYPE = symbolFor('react.profiler');
-	      REACT_PROVIDER_TYPE = symbolFor('react.provider');
-	      REACT_CONTEXT_TYPE = symbolFor('react.context');
-	      REACT_FORWARD_REF_TYPE = symbolFor('react.forward_ref');
-	      REACT_SUSPENSE_TYPE = symbolFor('react.suspense');
-	      REACT_SUSPENSE_LIST_TYPE = symbolFor('react.suspense_list');
-	      REACT_MEMO_TYPE = symbolFor('react.memo');
-	      REACT_LAZY_TYPE = symbolFor('react.lazy');
-	      REACT_BLOCK_TYPE = symbolFor('react.block');
-	      REACT_SERVER_BLOCK_TYPE = symbolFor('react.server.block');
-	      REACT_FUNDAMENTAL_TYPE = symbolFor('react.fundamental');
-	      symbolFor('react.scope');
-	      symbolFor('react.opaque.id');
-	      REACT_DEBUG_TRACING_MODE_TYPE = symbolFor('react.debug_trace_mode');
-	      symbolFor('react.offscreen');
-	      REACT_LEGACY_HIDDEN_TYPE = symbolFor('react.legacy_hidden');
-	    }
-
-	    var MAYBE_ITERATOR_SYMBOL = typeof Symbol === 'function' && Symbol.iterator;
-	    var FAUX_ITERATOR_SYMBOL = '@@iterator';
-
-	    function getIteratorFn(maybeIterable) {
-	      if (maybeIterable === null || typeof maybeIterable !== 'object') {
-	        return null;
-	      }
-
-	      var maybeIterator = MAYBE_ITERATOR_SYMBOL && maybeIterable[MAYBE_ITERATOR_SYMBOL] || maybeIterable[FAUX_ITERATOR_SYMBOL];
-
-	      if (typeof maybeIterator === 'function') {
-	        return maybeIterator;
-	      }
-
-	      return null;
-	    }
-
-	    var ReactSharedInternals = React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
-
-	    function error(format) {
-	      {
-	        for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-	          args[_key2 - 1] = arguments[_key2];
-	        }
-
-	        printWarning('error', format, args);
-	      }
-	    }
-
-	    function printWarning(level, format, args) {
-	      // When changing this logic, you might want to also
-	      // update consoleWithStackDev.www.js as well.
-	      {
-	        var ReactDebugCurrentFrame = ReactSharedInternals.ReactDebugCurrentFrame;
-	        var stack = ReactDebugCurrentFrame.getStackAddendum();
-
-	        if (stack !== '') {
-	          format += '%s';
-	          args = args.concat([stack]);
-	        }
-
-	        var argsWithFormat = args.map(function (item) {
-	          return '' + item;
-	        }); // Careful: RN currently depends on this prefix
-
-	        argsWithFormat.unshift('Warning: ' + format); // We intentionally don't use spread (or .apply) directly because it
-	        // breaks IE9: https://github.com/facebook/react/issues/13610
-	        // eslint-disable-next-line react-internal/no-production-logging
-
-	        Function.prototype.apply.call(console[level], console, argsWithFormat);
-	      }
-	    } // Filter certain DOM attributes (e.g. src, href) if their values are empty strings.
-
-
-	    var enableScopeAPI = false; // Experimental Create Event Handle API.
-
-	    function isValidElementType(type) {
-	      if (typeof type === 'string' || typeof type === 'function') {
-	        return true;
-	      } // Note: typeof might be other than 'symbol' or 'number' (e.g. if it's a polyfill).
-
-
-	      if (type === exports.Fragment || type === REACT_PROFILER_TYPE || type === REACT_DEBUG_TRACING_MODE_TYPE || type === REACT_STRICT_MODE_TYPE || type === REACT_SUSPENSE_TYPE || type === REACT_SUSPENSE_LIST_TYPE || type === REACT_LEGACY_HIDDEN_TYPE || enableScopeAPI) {
-	        return true;
-	      }
-
-	      if (typeof type === 'object' && type !== null) {
-	        if (type.$$typeof === REACT_LAZY_TYPE || type.$$typeof === REACT_MEMO_TYPE || type.$$typeof === REACT_PROVIDER_TYPE || type.$$typeof === REACT_CONTEXT_TYPE || type.$$typeof === REACT_FORWARD_REF_TYPE || type.$$typeof === REACT_FUNDAMENTAL_TYPE || type.$$typeof === REACT_BLOCK_TYPE || type[0] === REACT_SERVER_BLOCK_TYPE) {
-	          return true;
-	        }
-	      }
-
-	      return false;
-	    }
-
-	    function getWrappedName(outerType, innerType, wrapperName) {
-	      var functionName = innerType.displayName || innerType.name || '';
-	      return outerType.displayName || (functionName !== '' ? wrapperName + "(" + functionName + ")" : wrapperName);
-	    }
-
-	    function getContextName(type) {
-	      return type.displayName || 'Context';
-	    }
-
-	    function getComponentName(type) {
-	      if (type == null) {
-	        // Host root, text node or just invalid type.
-	        return null;
-	      }
-
-	      {
-	        if (typeof type.tag === 'number') {
-	          error('Received an unexpected object in getComponentName(). ' + 'This is likely a bug in React. Please file an issue.');
-	        }
-	      }
-
-	      if (typeof type === 'function') {
-	        return type.displayName || type.name || null;
-	      }
-
-	      if (typeof type === 'string') {
-	        return type;
-	      }
-
-	      switch (type) {
-	        case exports.Fragment:
-	          return 'Fragment';
-
-	        case REACT_PORTAL_TYPE:
-	          return 'Portal';
-
-	        case REACT_PROFILER_TYPE:
-	          return 'Profiler';
-
-	        case REACT_STRICT_MODE_TYPE:
-	          return 'StrictMode';
-
-	        case REACT_SUSPENSE_TYPE:
-	          return 'Suspense';
-
-	        case REACT_SUSPENSE_LIST_TYPE:
-	          return 'SuspenseList';
-	      }
-
-	      if (typeof type === 'object') {
-	        switch (type.$$typeof) {
-	          case REACT_CONTEXT_TYPE:
-	            var context = type;
-	            return getContextName(context) + '.Consumer';
-
-	          case REACT_PROVIDER_TYPE:
-	            var provider = type;
-	            return getContextName(provider._context) + '.Provider';
-
-	          case REACT_FORWARD_REF_TYPE:
-	            return getWrappedName(type, type.render, 'ForwardRef');
-
-	          case REACT_MEMO_TYPE:
-	            return getComponentName(type.type);
-
-	          case REACT_BLOCK_TYPE:
-	            return getComponentName(type._render);
-
-	          case REACT_LAZY_TYPE:
-	            {
-	              var lazyComponent = type;
-	              var payload = lazyComponent._payload;
-	              var init = lazyComponent._init;
-
-	              try {
-	                return getComponentName(init(payload));
-	              } catch (x) {
-	                return null;
-	              }
-	            }
-	        }
-	      }
-
-	      return null;
-	    } // Helpers to patch console.logs to avoid logging during side-effect free
-	    // replaying on render function. This currently only patches the object
-	    // lazily which won't cover if the log function was extracted eagerly.
-	    // We could also eagerly patch the method.
-
-
-	    var disabledDepth = 0;
-	    var prevLog;
-	    var prevInfo;
-	    var prevWarn;
-	    var prevError;
-	    var prevGroup;
-	    var prevGroupCollapsed;
-	    var prevGroupEnd;
-
-	    function disabledLog() {}
-
-	    disabledLog.__reactDisabledLog = true;
-
-	    function disableLogs() {
-	      {
-	        if (disabledDepth === 0) {
-	          /* eslint-disable react-internal/no-production-logging */
-	          prevLog = console.log;
-	          prevInfo = console.info;
-	          prevWarn = console.warn;
-	          prevError = console.error;
-	          prevGroup = console.group;
-	          prevGroupCollapsed = console.groupCollapsed;
-	          prevGroupEnd = console.groupEnd; // https://github.com/facebook/react/issues/19099
-
-	          var props = {
-	            configurable: true,
-	            enumerable: true,
-	            value: disabledLog,
-	            writable: true
-	          }; // $FlowFixMe Flow thinks console is immutable.
-
-	          Object.defineProperties(console, {
-	            info: props,
-	            log: props,
-	            warn: props,
-	            error: props,
-	            group: props,
-	            groupCollapsed: props,
-	            groupEnd: props
-	          });
-	          /* eslint-enable react-internal/no-production-logging */
-	        }
-
-	        disabledDepth++;
-	      }
-	    }
-
-	    function reenableLogs() {
-	      {
-	        disabledDepth--;
-
-	        if (disabledDepth === 0) {
-	          /* eslint-disable react-internal/no-production-logging */
-	          var props = {
-	            configurable: true,
-	            enumerable: true,
-	            writable: true
-	          }; // $FlowFixMe Flow thinks console is immutable.
-
-	          Object.defineProperties(console, {
-	            log: _assign({}, props, {
-	              value: prevLog
-	            }),
-	            info: _assign({}, props, {
-	              value: prevInfo
-	            }),
-	            warn: _assign({}, props, {
-	              value: prevWarn
-	            }),
-	            error: _assign({}, props, {
-	              value: prevError
-	            }),
-	            group: _assign({}, props, {
-	              value: prevGroup
-	            }),
-	            groupCollapsed: _assign({}, props, {
-	              value: prevGroupCollapsed
-	            }),
-	            groupEnd: _assign({}, props, {
-	              value: prevGroupEnd
-	            })
-	          });
-	          /* eslint-enable react-internal/no-production-logging */
-	        }
-
-	        if (disabledDepth < 0) {
-	          error('disabledDepth fell below zero. ' + 'This is a bug in React. Please file an issue.');
-	        }
-	      }
-	    }
-
-	    var ReactCurrentDispatcher = ReactSharedInternals.ReactCurrentDispatcher;
-	    var prefix;
-
-	    function describeBuiltInComponentFrame(name, source, ownerFn) {
-	      {
-	        if (prefix === undefined) {
-	          // Extract the VM specific prefix used by each line.
-	          try {
-	            throw Error();
-	          } catch (x) {
-	            var match = x.stack.trim().match(/\n( *(at )?)/);
-	            prefix = match && match[1] || '';
-	          }
-	        } // We use the prefix to ensure our stacks line up with native stack frames.
-
-
-	        return '\n' + prefix + name;
-	      }
-	    }
-
-	    var reentry = false;
-	    var componentFrameCache;
-	    {
-	      var PossiblyWeakMap = typeof WeakMap === 'function' ? WeakMap : Map;
-	      componentFrameCache = new PossiblyWeakMap();
-	    }
-
-	    function describeNativeComponentFrame(fn, construct) {
-	      // If something asked for a stack inside a fake render, it should get ignored.
-	      if (!fn || reentry) {
-	        return '';
-	      }
-
-	      {
-	        var frame = componentFrameCache.get(fn);
-
-	        if (frame !== undefined) {
-	          return frame;
-	        }
-	      }
-	      var control;
-	      reentry = true;
-	      var previousPrepareStackTrace = Error.prepareStackTrace; // $FlowFixMe It does accept undefined.
-
-	      Error.prepareStackTrace = undefined;
-	      var previousDispatcher;
-	      {
-	        previousDispatcher = ReactCurrentDispatcher.current; // Set the dispatcher in DEV because this might be call in the render function
-	        // for warnings.
-
-	        ReactCurrentDispatcher.current = null;
-	        disableLogs();
-	      }
-
-	      try {
-	        // This should throw.
-	        if (construct) {
-	          // Something should be setting the props in the constructor.
-	          var Fake = function () {
-	            throw Error();
-	          }; // $FlowFixMe
-
-
-	          Object.defineProperty(Fake.prototype, 'props', {
-	            set: function () {
-	              // We use a throwing setter instead of frozen or non-writable props
-	              // because that won't throw in a non-strict mode function.
-	              throw Error();
-	            }
-	          });
-
-	          if (typeof Reflect === 'object' && Reflect.construct) {
-	            // We construct a different control for this case to include any extra
-	            // frames added by the construct call.
-	            try {
-	              Reflect.construct(Fake, []);
-	            } catch (x) {
-	              control = x;
-	            }
-
-	            Reflect.construct(fn, [], Fake);
-	          } else {
-	            try {
-	              Fake.call();
-	            } catch (x) {
-	              control = x;
-	            }
-
-	            fn.call(Fake.prototype);
-	          }
-	        } else {
-	          try {
-	            throw Error();
-	          } catch (x) {
-	            control = x;
-	          }
-
-	          fn();
-	        }
-	      } catch (sample) {
-	        // This is inlined manually because closure doesn't do it for us.
-	        if (sample && control && typeof sample.stack === 'string') {
-	          // This extracts the first frame from the sample that isn't also in the control.
-	          // Skipping one frame that we assume is the frame that calls the two.
-	          var sampleLines = sample.stack.split('\n');
-	          var controlLines = control.stack.split('\n');
-	          var s = sampleLines.length - 1;
-	          var c = controlLines.length - 1;
-
-	          while (s >= 1 && c >= 0 && sampleLines[s] !== controlLines[c]) {
-	            // We expect at least one stack frame to be shared.
-	            // Typically this will be the root most one. However, stack frames may be
-	            // cut off due to maximum stack limits. In this case, one maybe cut off
-	            // earlier than the other. We assume that the sample is longer or the same
-	            // and there for cut off earlier. So we should find the root most frame in
-	            // the sample somewhere in the control.
-	            c--;
-	          }
-
-	          for (; s >= 1 && c >= 0; s--, c--) {
-	            // Next we find the first one that isn't the same which should be the
-	            // frame that called our sample function and the control.
-	            if (sampleLines[s] !== controlLines[c]) {
-	              // In V8, the first line is describing the message but other VMs don't.
-	              // If we're about to return the first line, and the control is also on the same
-	              // line, that's a pretty good indicator that our sample threw at same line as
-	              // the control. I.e. before we entered the sample frame. So we ignore this result.
-	              // This can happen if you passed a class to function component, or non-function.
-	              if (s !== 1 || c !== 1) {
-	                do {
-	                  s--;
-	                  c--; // We may still have similar intermediate frames from the construct call.
-	                  // The next one that isn't the same should be our match though.
-
-	                  if (c < 0 || sampleLines[s] !== controlLines[c]) {
-	                    // V8 adds a "new" prefix for native classes. Let's remove it to make it prettier.
-	                    var _frame = '\n' + sampleLines[s].replace(' at new ', ' at ');
-
-	                    {
-	                      if (typeof fn === 'function') {
-	                        componentFrameCache.set(fn, _frame);
-	                      }
-	                    } // Return the line we found.
-
-	                    return _frame;
-	                  }
-	                } while (s >= 1 && c >= 0);
-	              }
-
-	              break;
-	            }
-	          }
-	        }
-	      } finally {
-	        reentry = false;
-	        {
-	          ReactCurrentDispatcher.current = previousDispatcher;
-	          reenableLogs();
-	        }
-	        Error.prepareStackTrace = previousPrepareStackTrace;
-	      } // Fallback to just using the name if we couldn't make it throw.
-
-
-	      var name = fn ? fn.displayName || fn.name : '';
-	      var syntheticFrame = name ? describeBuiltInComponentFrame(name) : '';
-	      {
-	        if (typeof fn === 'function') {
-	          componentFrameCache.set(fn, syntheticFrame);
-	        }
-	      }
-	      return syntheticFrame;
-	    }
-
-	    function describeFunctionComponentFrame(fn, source, ownerFn) {
-	      {
-	        return describeNativeComponentFrame(fn, false);
-	      }
-	    }
-
-	    function shouldConstruct(Component) {
-	      var prototype = Component.prototype;
-	      return !!(prototype && prototype.isReactComponent);
-	    }
-
-	    function describeUnknownElementTypeFrameInDEV(type, source, ownerFn) {
-	      if (type == null) {
-	        return '';
-	      }
-
-	      if (typeof type === 'function') {
-	        {
-	          return describeNativeComponentFrame(type, shouldConstruct(type));
-	        }
-	      }
-
-	      if (typeof type === 'string') {
-	        return describeBuiltInComponentFrame(type);
-	      }
-
-	      switch (type) {
-	        case REACT_SUSPENSE_TYPE:
-	          return describeBuiltInComponentFrame('Suspense');
-
-	        case REACT_SUSPENSE_LIST_TYPE:
-	          return describeBuiltInComponentFrame('SuspenseList');
-	      }
-
-	      if (typeof type === 'object') {
-	        switch (type.$$typeof) {
-	          case REACT_FORWARD_REF_TYPE:
-	            return describeFunctionComponentFrame(type.render);
-
-	          case REACT_MEMO_TYPE:
-	            // Memo may contain any component type so we recursively resolve it.
-	            return describeUnknownElementTypeFrameInDEV(type.type, source, ownerFn);
-
-	          case REACT_BLOCK_TYPE:
-	            return describeFunctionComponentFrame(type._render);
-
-	          case REACT_LAZY_TYPE:
-	            {
-	              var lazyComponent = type;
-	              var payload = lazyComponent._payload;
-	              var init = lazyComponent._init;
-
-	              try {
-	                // Lazy may contain any component type so we recursively resolve it.
-	                return describeUnknownElementTypeFrameInDEV(init(payload), source, ownerFn);
-	              } catch (x) {}
-	            }
-	        }
-	      }
-
-	      return '';
-	    }
-
-	    var loggedTypeFailures = {};
-	    var ReactDebugCurrentFrame = ReactSharedInternals.ReactDebugCurrentFrame;
-
-	    function setCurrentlyValidatingElement(element) {
-	      {
-	        if (element) {
-	          var owner = element._owner;
-	          var stack = describeUnknownElementTypeFrameInDEV(element.type, element._source, owner ? owner.type : null);
-	          ReactDebugCurrentFrame.setExtraStackFrame(stack);
-	        } else {
-	          ReactDebugCurrentFrame.setExtraStackFrame(null);
-	        }
-	      }
-	    }
-
-	    function checkPropTypes(typeSpecs, values, location, componentName, element) {
-	      {
-	        // $FlowFixMe This is okay but Flow doesn't know it.
-	        var has = Function.call.bind(Object.prototype.hasOwnProperty);
-
-	        for (var typeSpecName in typeSpecs) {
-	          if (has(typeSpecs, typeSpecName)) {
-	            var error$1 = void 0; // Prop type validation may throw. In case they do, we don't want to
-	            // fail the render phase where it didn't fail before. So we log it.
-	            // After these have been cleaned up, we'll let them throw.
-
-	            try {
-	              // This is intentionally an invariant that gets caught. It's the same
-	              // behavior as without this statement except with a better message.
-	              if (typeof typeSpecs[typeSpecName] !== 'function') {
-	                var err = Error((componentName || 'React class') + ': ' + location + ' type `' + typeSpecName + '` is invalid; ' + 'it must be a function, usually from the `prop-types` package, but received `' + typeof typeSpecs[typeSpecName] + '`.' + 'This often happens because of typos such as `PropTypes.function` instead of `PropTypes.func`.');
-	                err.name = 'Invariant Violation';
-	                throw err;
-	              }
-
-	              error$1 = typeSpecs[typeSpecName](values, typeSpecName, componentName, location, null, 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED');
-	            } catch (ex) {
-	              error$1 = ex;
-	            }
-
-	            if (error$1 && !(error$1 instanceof Error)) {
-	              setCurrentlyValidatingElement(element);
-	              error('%s: type specification of %s' + ' `%s` is invalid; the type checker ' + 'function must return `null` or an `Error` but returned a %s. ' + 'You may have forgotten to pass an argument to the type checker ' + 'creator (arrayOf, instanceOf, objectOf, oneOf, oneOfType, and ' + 'shape all require an argument).', componentName || 'React class', location, typeSpecName, typeof error$1);
-	              setCurrentlyValidatingElement(null);
-	            }
-
-	            if (error$1 instanceof Error && !(error$1.message in loggedTypeFailures)) {
-	              // Only monitor this failure once because there tends to be a lot of the
-	              // same error.
-	              loggedTypeFailures[error$1.message] = true;
-	              setCurrentlyValidatingElement(element);
-	              error('Failed %s type: %s', location, error$1.message);
-	              setCurrentlyValidatingElement(null);
-	            }
-	          }
-	        }
-	      }
-	    }
-
-	    var ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
-	    var hasOwnProperty = Object.prototype.hasOwnProperty;
-	    var RESERVED_PROPS = {
-	      key: true,
-	      ref: true,
-	      __self: true,
-	      __source: true
-	    };
-	    var specialPropKeyWarningShown;
-	    var specialPropRefWarningShown;
-	    var didWarnAboutStringRefs;
-	    {
-	      didWarnAboutStringRefs = {};
-	    }
-
-	    function hasValidRef(config) {
-	      {
-	        if (hasOwnProperty.call(config, 'ref')) {
-	          var getter = Object.getOwnPropertyDescriptor(config, 'ref').get;
-
-	          if (getter && getter.isReactWarning) {
-	            return false;
-	          }
-	        }
-	      }
-	      return config.ref !== undefined;
-	    }
-
-	    function hasValidKey(config) {
-	      {
-	        if (hasOwnProperty.call(config, 'key')) {
-	          var getter = Object.getOwnPropertyDescriptor(config, 'key').get;
-
-	          if (getter && getter.isReactWarning) {
-	            return false;
-	          }
-	        }
-	      }
-	      return config.key !== undefined;
-	    }
-
-	    function warnIfStringRefCannotBeAutoConverted(config, self) {
-	      {
-	        if (typeof config.ref === 'string' && ReactCurrentOwner.current && self && ReactCurrentOwner.current.stateNode !== self) {
-	          var componentName = getComponentName(ReactCurrentOwner.current.type);
-
-	          if (!didWarnAboutStringRefs[componentName]) {
-	            error('Component "%s" contains the string ref "%s". ' + 'Support for string refs will be removed in a future major release. ' + 'This case cannot be automatically converted to an arrow function. ' + 'We ask you to manually fix this case by using useRef() or createRef() instead. ' + 'Learn more about using refs safely here: ' + 'https://reactjs.org/link/strict-mode-string-ref', getComponentName(ReactCurrentOwner.current.type), config.ref);
-	            didWarnAboutStringRefs[componentName] = true;
-	          }
-	        }
-	      }
-	    }
-
-	    function defineKeyPropWarningGetter(props, displayName) {
-	      {
-	        var warnAboutAccessingKey = function () {
-	          if (!specialPropKeyWarningShown) {
-	            specialPropKeyWarningShown = true;
-	            error('%s: `key` is not a prop. Trying to access it will result ' + 'in `undefined` being returned. If you need to access the same ' + 'value within the child component, you should pass it as a different ' + 'prop. (https://reactjs.org/link/special-props)', displayName);
-	          }
-	        };
-
-	        warnAboutAccessingKey.isReactWarning = true;
-	        Object.defineProperty(props, 'key', {
-	          get: warnAboutAccessingKey,
-	          configurable: true
-	        });
-	      }
-	    }
-
-	    function defineRefPropWarningGetter(props, displayName) {
-	      {
-	        var warnAboutAccessingRef = function () {
-	          if (!specialPropRefWarningShown) {
-	            specialPropRefWarningShown = true;
-	            error('%s: `ref` is not a prop. Trying to access it will result ' + 'in `undefined` being returned. If you need to access the same ' + 'value within the child component, you should pass it as a different ' + 'prop. (https://reactjs.org/link/special-props)', displayName);
-	          }
-	        };
-
-	        warnAboutAccessingRef.isReactWarning = true;
-	        Object.defineProperty(props, 'ref', {
-	          get: warnAboutAccessingRef,
-	          configurable: true
-	        });
-	      }
-	    }
-	    /**
-	     * Factory method to create a new React element. This no longer adheres to
-	     * the class pattern, so do not use new to call it. Also, instanceof check
-	     * will not work. Instead test $$typeof field against Symbol.for('react.element') to check
-	     * if something is a React Element.
-	     *
-	     * @param {*} type
-	     * @param {*} props
-	     * @param {*} key
-	     * @param {string|object} ref
-	     * @param {*} owner
-	     * @param {*} self A *temporary* helper to detect places where `this` is
-	     * different from the `owner` when React.createElement is called, so that we
-	     * can warn. We want to get rid of owner and replace string `ref`s with arrow
-	     * functions, and as long as `this` and owner are the same, there will be no
-	     * change in behavior.
-	     * @param {*} source An annotation object (added by a transpiler or otherwise)
-	     * indicating filename, line number, and/or other information.
-	     * @internal
-	     */
-
-
-	    var ReactElement = function (type, key, ref, self, source, owner, props) {
-	      var element = {
-	        // This tag allows us to uniquely identify this as a React Element
-	        $$typeof: REACT_ELEMENT_TYPE,
-	        // Built-in properties that belong on the element
-	        type: type,
-	        key: key,
-	        ref: ref,
-	        props: props,
-	        // Record the component responsible for creating this element.
-	        _owner: owner
-	      };
-	      {
-	        // The validation flag is currently mutative. We put it on
-	        // an external backing store so that we can freeze the whole object.
-	        // This can be replaced with a WeakMap once they are implemented in
-	        // commonly used development environments.
-	        element._store = {}; // To make comparing ReactElements easier for testing purposes, we make
-	        // the validation flag non-enumerable (where possible, which should
-	        // include every environment we run tests in), so the test framework
-	        // ignores it.
-
-	        Object.defineProperty(element._store, 'validated', {
-	          configurable: false,
-	          enumerable: false,
-	          writable: true,
-	          value: false
-	        }); // self and source are DEV only properties.
-
-	        Object.defineProperty(element, '_self', {
-	          configurable: false,
-	          enumerable: false,
-	          writable: false,
-	          value: self
-	        }); // Two elements created in two different places should be considered
-	        // equal for testing purposes and therefore we hide it from enumeration.
-
-	        Object.defineProperty(element, '_source', {
-	          configurable: false,
-	          enumerable: false,
-	          writable: false,
-	          value: source
-	        });
-
-	        if (Object.freeze) {
-	          Object.freeze(element.props);
-	          Object.freeze(element);
-	        }
-	      }
-	      return element;
-	    };
-	    /**
-	     * https://github.com/reactjs/rfcs/pull/107
-	     * @param {*} type
-	     * @param {object} props
-	     * @param {string} key
-	     */
-
-
-	    function jsxDEV(type, config, maybeKey, source, self) {
-	      {
-	        var propName; // Reserved names are extracted
-
-	        var props = {};
-	        var key = null;
-	        var ref = null; // Currently, key can be spread in as a prop. This causes a potential
-	        // issue if key is also explicitly declared (ie. <div {...props} key="Hi" />
-	        // or <div key="Hi" {...props} /> ). We want to deprecate key spread,
-	        // but as an intermediary step, we will use jsxDEV for everything except
-	        // <div {...props} key="Hi" />, because we aren't currently able to tell if
-	        // key is explicitly declared to be undefined or not.
-
-	        if (maybeKey !== undefined) {
-	          key = '' + maybeKey;
-	        }
-
-	        if (hasValidKey(config)) {
-	          key = '' + config.key;
-	        }
-
-	        if (hasValidRef(config)) {
-	          ref = config.ref;
-	          warnIfStringRefCannotBeAutoConverted(config, self);
-	        } // Remaining properties are added to a new props object
-
-
-	        for (propName in config) {
-	          if (hasOwnProperty.call(config, propName) && !RESERVED_PROPS.hasOwnProperty(propName)) {
-	            props[propName] = config[propName];
-	          }
-	        } // Resolve default props
-
-
-	        if (type && type.defaultProps) {
-	          var defaultProps = type.defaultProps;
-
-	          for (propName in defaultProps) {
-	            if (props[propName] === undefined) {
-	              props[propName] = defaultProps[propName];
-	            }
-	          }
-	        }
-
-	        if (key || ref) {
-	          var displayName = typeof type === 'function' ? type.displayName || type.name || 'Unknown' : type;
-
-	          if (key) {
-	            defineKeyPropWarningGetter(props, displayName);
-	          }
-
-	          if (ref) {
-	            defineRefPropWarningGetter(props, displayName);
-	          }
-	        }
-
-	        return ReactElement(type, key, ref, self, source, ReactCurrentOwner.current, props);
-	      }
-	    }
-
-	    var ReactCurrentOwner$1 = ReactSharedInternals.ReactCurrentOwner;
-	    var ReactDebugCurrentFrame$1 = ReactSharedInternals.ReactDebugCurrentFrame;
-
-	    function setCurrentlyValidatingElement$1(element) {
-	      {
-	        if (element) {
-	          var owner = element._owner;
-	          var stack = describeUnknownElementTypeFrameInDEV(element.type, element._source, owner ? owner.type : null);
-	          ReactDebugCurrentFrame$1.setExtraStackFrame(stack);
-	        } else {
-	          ReactDebugCurrentFrame$1.setExtraStackFrame(null);
-	        }
-	      }
-	    }
-
-	    var propTypesMisspellWarningShown;
-	    {
-	      propTypesMisspellWarningShown = false;
-	    }
-	    /**
-	     * Verifies the object is a ReactElement.
-	     * See https://reactjs.org/docs/react-api.html#isvalidelement
-	     * @param {?object} object
-	     * @return {boolean} True if `object` is a ReactElement.
-	     * @final
-	     */
-
-	    function isValidElement(object) {
-	      {
-	        return typeof object === 'object' && object !== null && object.$$typeof === REACT_ELEMENT_TYPE;
-	      }
-	    }
-
-	    function getDeclarationErrorAddendum() {
-	      {
-	        if (ReactCurrentOwner$1.current) {
-	          var name = getComponentName(ReactCurrentOwner$1.current.type);
-
-	          if (name) {
-	            return '\n\nCheck the render method of `' + name + '`.';
-	          }
-	        }
-
-	        return '';
-	      }
-	    }
-
-	    function getSourceInfoErrorAddendum(source) {
-	      {
-	        if (source !== undefined) {
-	          var fileName = source.fileName.replace(/^.*[\\\/]/, '');
-	          var lineNumber = source.lineNumber;
-	          return '\n\nCheck your code at ' + fileName + ':' + lineNumber + '.';
-	        }
-
-	        return '';
-	      }
-	    }
-	    /**
-	     * Warn if there's no key explicitly set on dynamic arrays of children or
-	     * object keys are not valid. This allows us to keep track of children between
-	     * updates.
-	     */
-
-
-	    var ownerHasKeyUseWarning = {};
-
-	    function getCurrentComponentErrorInfo(parentType) {
-	      {
-	        var info = getDeclarationErrorAddendum();
-
-	        if (!info) {
-	          var parentName = typeof parentType === 'string' ? parentType : parentType.displayName || parentType.name;
-
-	          if (parentName) {
-	            info = "\n\nCheck the top-level render call using <" + parentName + ">.";
-	          }
-	        }
-
-	        return info;
-	      }
-	    }
-	    /**
-	     * Warn if the element doesn't have an explicit key assigned to it.
-	     * This element is in an array. The array could grow and shrink or be
-	     * reordered. All children that haven't already been validated are required to
-	     * have a "key" property assigned to it. Error statuses are cached so a warning
-	     * will only be shown once.
-	     *
-	     * @internal
-	     * @param {ReactElement} element Element that requires a key.
-	     * @param {*} parentType element's parent's type.
-	     */
-
-
-	    function validateExplicitKey(element, parentType) {
-	      {
-	        if (!element._store || element._store.validated || element.key != null) {
-	          return;
-	        }
-
-	        element._store.validated = true;
-	        var currentComponentErrorInfo = getCurrentComponentErrorInfo(parentType);
-
-	        if (ownerHasKeyUseWarning[currentComponentErrorInfo]) {
-	          return;
-	        }
-
-	        ownerHasKeyUseWarning[currentComponentErrorInfo] = true; // Usually the current owner is the offender, but if it accepts children as a
-	        // property, it may be the creator of the child that's responsible for
-	        // assigning it a key.
-
-	        var childOwner = '';
-
-	        if (element && element._owner && element._owner !== ReactCurrentOwner$1.current) {
-	          // Give the component that originally created this child.
-	          childOwner = " It was passed a child from " + getComponentName(element._owner.type) + ".";
-	        }
-
-	        setCurrentlyValidatingElement$1(element);
-	        error('Each child in a list should have a unique "key" prop.' + '%s%s See https://reactjs.org/link/warning-keys for more information.', currentComponentErrorInfo, childOwner);
-	        setCurrentlyValidatingElement$1(null);
-	      }
-	    }
-	    /**
-	     * Ensure that every element either is passed in a static location, in an
-	     * array with an explicit keys property defined, or in an object literal
-	     * with valid key property.
-	     *
-	     * @internal
-	     * @param {ReactNode} node Statically passed child of any type.
-	     * @param {*} parentType node's parent's type.
-	     */
-
-
-	    function validateChildKeys(node, parentType) {
-	      {
-	        if (typeof node !== 'object') {
-	          return;
-	        }
-
-	        if (Array.isArray(node)) {
-	          for (var i = 0; i < node.length; i++) {
-	            var child = node[i];
-
-	            if (isValidElement(child)) {
-	              validateExplicitKey(child, parentType);
-	            }
-	          }
-	        } else if (isValidElement(node)) {
-	          // This element was passed in a valid location.
-	          if (node._store) {
-	            node._store.validated = true;
-	          }
-	        } else if (node) {
-	          var iteratorFn = getIteratorFn(node);
-
-	          if (typeof iteratorFn === 'function') {
-	            // Entry iterators used to provide implicit keys,
-	            // but now we print a separate warning for them later.
-	            if (iteratorFn !== node.entries) {
-	              var iterator = iteratorFn.call(node);
-	              var step;
-
-	              while (!(step = iterator.next()).done) {
-	                if (isValidElement(step.value)) {
-	                  validateExplicitKey(step.value, parentType);
-	                }
-	              }
-	            }
-	          }
-	        }
-	      }
-	    }
-	    /**
-	     * Given an element, validate that its props follow the propTypes definition,
-	     * provided by the type.
-	     *
-	     * @param {ReactElement} element
-	     */
-
-
-	    function validatePropTypes(element) {
-	      {
-	        var type = element.type;
-
-	        if (type === null || type === undefined || typeof type === 'string') {
-	          return;
-	        }
-
-	        var propTypes;
-
-	        if (typeof type === 'function') {
-	          propTypes = type.propTypes;
-	        } else if (typeof type === 'object' && (type.$$typeof === REACT_FORWARD_REF_TYPE || // Note: Memo only checks outer props here.
-	        // Inner props are checked in the reconciler.
-	        type.$$typeof === REACT_MEMO_TYPE)) {
-	          propTypes = type.propTypes;
-	        } else {
-	          return;
-	        }
-
-	        if (propTypes) {
-	          // Intentionally inside to avoid triggering lazy initializers:
-	          var name = getComponentName(type);
-	          checkPropTypes(propTypes, element.props, 'prop', name, element);
-	        } else if (type.PropTypes !== undefined && !propTypesMisspellWarningShown) {
-	          propTypesMisspellWarningShown = true; // Intentionally inside to avoid triggering lazy initializers:
-
-	          var _name = getComponentName(type);
-
-	          error('Component %s declared `PropTypes` instead of `propTypes`. Did you misspell the property assignment?', _name || 'Unknown');
-	        }
-
-	        if (typeof type.getDefaultProps === 'function' && !type.getDefaultProps.isReactClassApproved) {
-	          error('getDefaultProps is only used on classic React.createClass ' + 'definitions. Use a static property named `defaultProps` instead.');
-	        }
-	      }
-	    }
-	    /**
-	     * Given a fragment, validate that it can only be provided with fragment props
-	     * @param {ReactElement} fragment
-	     */
-
-
-	    function validateFragmentProps(fragment) {
-	      {
-	        var keys = Object.keys(fragment.props);
-
-	        for (var i = 0; i < keys.length; i++) {
-	          var key = keys[i];
-
-	          if (key !== 'children' && key !== 'key') {
-	            setCurrentlyValidatingElement$1(fragment);
-	            error('Invalid prop `%s` supplied to `React.Fragment`. ' + 'React.Fragment can only have `key` and `children` props.', key);
-	            setCurrentlyValidatingElement$1(null);
-	            break;
-	          }
-	        }
-
-	        if (fragment.ref !== null) {
-	          setCurrentlyValidatingElement$1(fragment);
-	          error('Invalid attribute `ref` supplied to `React.Fragment`.');
-	          setCurrentlyValidatingElement$1(null);
-	        }
-	      }
-	    }
-
-	    function jsxWithValidation(type, props, key, isStaticChildren, source, self) {
-	      {
-	        var validType = isValidElementType(type); // We warn in this case but don't throw. We expect the element creation to
-	        // succeed and there will likely be errors in render.
-
-	        if (!validType) {
-	          var info = '';
-
-	          if (type === undefined || typeof type === 'object' && type !== null && Object.keys(type).length === 0) {
-	            info += ' You likely forgot to export your component from the file ' + "it's defined in, or you might have mixed up default and named imports.";
-	          }
-
-	          var sourceInfo = getSourceInfoErrorAddendum(source);
-
-	          if (sourceInfo) {
-	            info += sourceInfo;
-	          } else {
-	            info += getDeclarationErrorAddendum();
-	          }
-
-	          var typeString;
-
-	          if (type === null) {
-	            typeString = 'null';
-	          } else if (Array.isArray(type)) {
-	            typeString = 'array';
-	          } else if (type !== undefined && type.$$typeof === REACT_ELEMENT_TYPE) {
-	            typeString = "<" + (getComponentName(type.type) || 'Unknown') + " />";
-	            info = ' Did you accidentally export a JSX literal instead of a component?';
-	          } else {
-	            typeString = typeof type;
-	          }
-
-	          error('React.jsx: type is invalid -- expected a string (for ' + 'built-in components) or a class/function (for composite ' + 'components) but got: %s.%s', typeString, info);
-	        }
-
-	        var element = jsxDEV(type, props, key, source, self); // The result can be nullish if a mock or a custom function is used.
-	        // TODO: Drop this when these are no longer allowed as the type argument.
-
-	        if (element == null) {
-	          return element;
-	        } // Skip key warning if the type isn't valid since our key validation logic
-	        // doesn't expect a non-string/function type and can throw confusing errors.
-	        // We don't want exception behavior to differ between dev and prod.
-	        // (Rendering will throw with a helpful message and as soon as the type is
-	        // fixed, the key warnings will appear.)
-
-
-	        if (validType) {
-	          var children = props.children;
-
-	          if (children !== undefined) {
-	            if (isStaticChildren) {
-	              if (Array.isArray(children)) {
-	                for (var i = 0; i < children.length; i++) {
-	                  validateChildKeys(children[i], type);
-	                }
-
-	                if (Object.freeze) {
-	                  Object.freeze(children);
-	                }
-	              } else {
-	                error('React.jsx: Static children should always be an array. ' + 'You are likely explicitly calling React.jsxs or React.jsxDEV. ' + 'Use the Babel transform instead.');
-	              }
-	            } else {
-	              validateChildKeys(children, type);
-	            }
-	          }
-	        }
-
-	        if (type === exports.Fragment) {
-	          validateFragmentProps(element);
-	        } else {
-	          validatePropTypes(element);
-	        }
-
-	        return element;
-	      }
-	    } // These two functions exist to still get child warnings in dev
-	    // even with the prod transform. This means that jsxDEV is purely
-	    // opt-in behavior for better messages but that we won't stop
-	    // giving you warnings if you use production apis.
-
-
-	    function jsxWithValidationStatic(type, props, key) {
-	      {
-	        return jsxWithValidation(type, props, key, true);
-	      }
-	    }
-
-	    function jsxWithValidationDynamic(type, props, key) {
-	      {
-	        return jsxWithValidation(type, props, key, false);
-	      }
-	    }
-
-	    var jsx = jsxWithValidationDynamic; // we may want to special case jsxs internally to take advantage of static children.
-	    // for now we can ship identical prod functions
-
-	    var jsxs = jsxWithValidationStatic;
-	    exports.jsx = jsx;
-	    exports.jsxs = jsxs;
-	  })();
-	}
-	}(reactJsxRuntime_development));
-
-	{
-	  jsxRuntime.exports = reactJsxRuntime_development;
-	}
-
-	var $140a52bee44a6d3e$export$31a76fba2315ab58;
-	var $140a52bee44a6d3e$export$e5383273bc7bedd;
-	var $140a52bee44a6d3e$export$94132a0e348806d4;
-	var $140a52bee44a6d3e$export$e189116d13f2853d;
-	$140a52bee44a6d3e$export$31a76fba2315ab58 = "_index__dotsWrapper";
-	$140a52bee44a6d3e$export$e5383273bc7bedd = "_index__dots";
-	$140a52bee44a6d3e$export$94132a0e348806d4 = "_index__dot";
-	$140a52bee44a6d3e$export$e189116d13f2853d = "_index__dotsText";
-
-	function $f2353fd21d89f897$export$8da50d3722682be0({
-	  dotColors = ['blue', 'violet', 'red', 'orange', 'yellow', 'green'],
-	  text = 'Loading...',
-	  id = '',
-	  className = ''
-	}) {
-	  // Setup newColors array
-	  const newColors = [];
-	  let dotColorsIndex = 0;
-	  let newColorsIndex = 0;
-
-	  while (newColorsIndex <= 5) if (dotColors[dotColorsIndex]) {
-	    newColors.push(dotColors[dotColorsIndex]);
-	    newColorsIndex += 1;
-	    dotColorsIndex += 1;
-	  } else dotColorsIndex = 0; // Setup array of dot elements
-
-
-	  let dots = new Array(6).fill('').map((e, index) => {
-	    return /*#__PURE__*/jsxRuntime.exports.jsx("div", {
-	      className: $140a52bee44a6d3e$export$94132a0e348806d4,
-	      style: {
-	        backgroundColor: newColors[index],
-	        animationDelay: `0.${index}s`
-	      }
-	    }, index);
-	  });
-	  return /*#__PURE__*/jsxRuntime.exports.jsxs("div", {
-	    id: id,
-	    className: `${$140a52bee44a6d3e$export$31a76fba2315ab58} ${className}`,
-	    children: [/*#__PURE__*/jsxRuntime.exports.jsx("div", {
-	      className: $140a52bee44a6d3e$export$e5383273bc7bedd,
-	      children: dots
-	    }), /*#__PURE__*/jsxRuntime.exports.jsx("div", {
-	      className: $140a52bee44a6d3e$export$e189116d13f2853d,
-	      children: text
-	    })]
-	  });
-	}
-
 	var moment$1 = {exports: {}};
 
 	(function (module, exports) {
@@ -12586,7 +11345,7 @@
 
 	  function preprocessRFC2822(s) {
 	    // Remove comments and folding whitespace and replace multiple-spaces with a single space
-	    return s.replace(/\([^)]*\)|[\n\t]/g, ' ').replace(/(\s\s+)/g, ' ').replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+	    return s.replace(/\([^()]*\)|[\n\t]/g, ' ').replace(/(\s\s+)/g, ' ').replace(/^\s\s*/, '').replace(/\s\s*$/, '');
 	  }
 
 	  function checkWeekday(weekdayStr, parsedInput, config) {
@@ -15434,7 +14193,7 @@
 	    config._d = new Date(toInt(input));
 	  }); //! moment.js
 
-	  hooks.version = '2.29.3';
+	  hooks.version = '2.29.4';
 	  setHookCallback(createLocal);
 	  hooks.fn = proto;
 	  hooks.min = min;
@@ -15490,189 +14249,5979 @@
 
 	var moment = moment$1.exports;
 
-	const Fixtures = () => {
-	  const pageSize = 10;
-	  const navigate = useNavigate();
-	  const containerRef = react.exports.useRef(null);
-	  const topRef = react.exports.useRef(null);
-	  const bottomRef = react.exports.useRef(null);
-	  const items = react.exports.useRef([]);
-	  const [range, setRange] = react.exports.useState(null);
-	  const [visible, setVisible] = react.exports.useState({
-	    top: true,
-	    bottom: true
-	  }); //console.log("Loop ", range, items.current.length, visible)
+	var dexieReactHooks = {exports: {}};
 
-	  react.exports.useEffect(() => {
-	    const observer = new IntersectionObserver(callback, {
-	      root: containerRef.current,
-	      rootMargin: "0px",
-	      threshold: 0.0
-	    });
-	    observer.observe(topRef.current);
-	    observer.observe(bottomRef.current);
+	/*
+	 * Dexie.js - a minimalistic wrapper for IndexedDB
+	 * ===============================================
+	 *
+	 * By David Fahlander, david.fahlander@gmail.com
+	 *
+	 * Version 3.2.2, Wed Apr 27 2022
+	 *
+	 * https://dexie.org
+	 *
+	 * Apache License Version 2.0, January 2004, http://www.apache.org/licenses/
+	 */
+	const _global = typeof globalThis !== 'undefined' ? globalThis : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : global;
 
-	    if (!range) {
-	      //console.debug("  Empty", nextPage)
-	      bottomRef.current.firstChild.height = containerRef.current.clientHeight + 10;
+	const keys = Object.keys;
+	const isArray = Array.isArray;
+
+	if (typeof Promise !== 'undefined' && !_global.Promise) {
+	  _global.Promise = Promise;
+	}
+
+	function extend(obj, extension) {
+	  if (typeof extension !== 'object') return obj;
+	  keys(extension).forEach(function (key) {
+	    obj[key] = extension[key];
+	  });
+	  return obj;
+	}
+
+	const getProto = Object.getPrototypeOf;
+	const _hasOwn = {}.hasOwnProperty;
+
+	function hasOwn(obj, prop) {
+	  return _hasOwn.call(obj, prop);
+	}
+
+	function props(proto, extension) {
+	  if (typeof extension === 'function') extension = extension(getProto(proto));
+	  (typeof Reflect === "undefined" ? keys : Reflect.ownKeys)(extension).forEach(key => {
+	    setProp(proto, key, extension[key]);
+	  });
+	}
+
+	const defineProperty = Object.defineProperty;
+
+	function setProp(obj, prop, functionOrGetSet, options) {
+	  defineProperty(obj, prop, extend(functionOrGetSet && hasOwn(functionOrGetSet, "get") && typeof functionOrGetSet.get === 'function' ? {
+	    get: functionOrGetSet.get,
+	    set: functionOrGetSet.set,
+	    configurable: true
+	  } : {
+	    value: functionOrGetSet,
+	    configurable: true,
+	    writable: true
+	  }, options));
+	}
+
+	function derive(Child) {
+	  return {
+	    from: function (Parent) {
+	      Child.prototype = Object.create(Parent.prototype);
+	      setProp(Child.prototype, "constructor", Child);
+	      return {
+	        extend: props.bind(null, Child.prototype)
+	      };
+	    }
+	  };
+	}
+
+	const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+
+	function getPropertyDescriptor(obj, prop) {
+	  const pd = getOwnPropertyDescriptor(obj, prop);
+	  let proto;
+	  return pd || (proto = getProto(obj)) && getPropertyDescriptor(proto, prop);
+	}
+
+	const _slice = [].slice;
+
+	function slice(args, start, end) {
+	  return _slice.call(args, start, end);
+	}
+
+	function override(origFunc, overridedFactory) {
+	  return overridedFactory(origFunc);
+	}
+
+	function assert(b) {
+	  if (!b) throw new Error("Assertion Failed");
+	}
+
+	function asap$1(fn) {
+	  if (_global.setImmediate) setImmediate(fn);else setTimeout(fn, 0);
+	}
+
+	function arrayToObject(array, extractor) {
+	  return array.reduce((result, item, i) => {
+	    var nameAndValue = extractor(item, i);
+	    if (nameAndValue) result[nameAndValue[0]] = nameAndValue[1];
+	    return result;
+	  }, {});
+	}
+
+	function tryCatch(fn, onerror, args) {
+	  try {
+	    fn.apply(null, args);
+	  } catch (ex) {
+	    onerror && onerror(ex);
+	  }
+	}
+
+	function getByKeyPath(obj, keyPath) {
+	  if (hasOwn(obj, keyPath)) return obj[keyPath];
+	  if (!keyPath) return obj;
+
+	  if (typeof keyPath !== 'string') {
+	    var rv = [];
+
+	    for (var i = 0, l = keyPath.length; i < l; ++i) {
+	      var val = getByKeyPath(obj, keyPath[i]);
+	      rv.push(val);
+	    }
+
+	    return rv;
+	  }
+
+	  var period = keyPath.indexOf('.');
+
+	  if (period !== -1) {
+	    var innerObj = obj[keyPath.substr(0, period)];
+	    return innerObj === undefined ? undefined : getByKeyPath(innerObj, keyPath.substr(period + 1));
+	  }
+
+	  return undefined;
+	}
+
+	function setByKeyPath(obj, keyPath, value) {
+	  if (!obj || keyPath === undefined) return;
+	  if ('isFrozen' in Object && Object.isFrozen(obj)) return;
+
+	  if (typeof keyPath !== 'string' && 'length' in keyPath) {
+	    assert(typeof value !== 'string' && 'length' in value);
+
+	    for (var i = 0, l = keyPath.length; i < l; ++i) {
+	      setByKeyPath(obj, keyPath[i], value[i]);
+	    }
+	  } else {
+	    var period = keyPath.indexOf('.');
+
+	    if (period !== -1) {
+	      var currentKeyPath = keyPath.substr(0, period);
+	      var remainingKeyPath = keyPath.substr(period + 1);
+	      if (remainingKeyPath === "") {
+	        if (value === undefined) {
+	          if (isArray(obj) && !isNaN(parseInt(currentKeyPath))) obj.splice(currentKeyPath, 1);else delete obj[currentKeyPath];
+	        } else obj[currentKeyPath] = value;
+	      } else {
+	        var innerObj = obj[currentKeyPath];
+	        if (!innerObj || !hasOwn(obj, currentKeyPath)) innerObj = obj[currentKeyPath] = {};
+	        setByKeyPath(innerObj, remainingKeyPath, value);
+	      }
 	    } else {
-	      const allItems = [].slice.call(containerRef.current.firstChild.firstChild.children);
+	      if (value === undefined) {
+	        if (isArray(obj) && !isNaN(parseInt(keyPath))) obj.splice(keyPath, 1);else delete obj[keyPath];
+	      } else obj[keyPath] = value;
+	    }
+	  }
+	}
 
-	      if (range.firstPage == 0) {
-	        // Initialization
-	        const topHeight = topRef.current.firstChild.clientHeight;
-	        const h = containerRef.current.clientHeight - allItems.slice(1, -1).map(x => x.clientHeight).reduce((a, b) => a + b, 0);
-	        bottomRef.current.firstChild.height = Math.max(topHeight, h);
+	function delByKeyPath(obj, keyPath) {
+	  if (typeof keyPath === 'string') setByKeyPath(obj, keyPath, undefined);else if ('length' in keyPath) [].map.call(keyPath, function (kp) {
+	    setByKeyPath(obj, kp, undefined);
+	  });
+	}
+
+	function shallowClone(obj) {
+	  var rv = {};
+
+	  for (var m in obj) {
+	    if (hasOwn(obj, m)) rv[m] = obj[m];
+	  }
+
+	  return rv;
+	}
+
+	const concat = [].concat;
+
+	function flatten(a) {
+	  return concat.apply([], a);
+	}
+
+	const intrinsicTypeNames = "Boolean,String,Date,RegExp,Blob,File,FileList,FileSystemFileHandle,ArrayBuffer,DataView,Uint8ClampedArray,ImageBitmap,ImageData,Map,Set,CryptoKey".split(',').concat(flatten([8, 16, 32, 64].map(num => ["Int", "Uint", "Float"].map(t => t + num + "Array")))).filter(t => _global[t]);
+	const intrinsicTypes = intrinsicTypeNames.map(t => _global[t]);
+	arrayToObject(intrinsicTypeNames, x => [x, true]);
+	let circularRefs = null;
+
+	function deepClone(any) {
+	  circularRefs = typeof WeakMap !== 'undefined' && new WeakMap();
+	  const rv = innerDeepClone(any);
+	  circularRefs = null;
+	  return rv;
+	}
+
+	function innerDeepClone(any) {
+	  if (!any || typeof any !== 'object') return any;
+	  let rv = circularRefs && circularRefs.get(any);
+	  if (rv) return rv;
+
+	  if (isArray(any)) {
+	    rv = [];
+	    circularRefs && circularRefs.set(any, rv);
+
+	    for (var i = 0, l = any.length; i < l; ++i) {
+	      rv.push(innerDeepClone(any[i]));
+	    }
+	  } else if (intrinsicTypes.indexOf(any.constructor) >= 0) {
+	    rv = any;
+	  } else {
+	    const proto = getProto(any);
+	    rv = proto === Object.prototype ? {} : Object.create(proto);
+	    circularRefs && circularRefs.set(any, rv);
+
+	    for (var prop in any) {
+	      if (hasOwn(any, prop)) {
+	        rv[prop] = innerDeepClone(any[prop]);
 	      }
 	    }
+	  }
 
-	    containerRef.current.scrollTop = topRef.current.clientHeight + 5;
-	  }, [range]);
+	  return rv;
+	}
 
-	  const calcNextPage = () => {
-	    if (range == null) return 0;
-	    if (range.currentPage != null) return null;
+	const {
+	  toString
+	} = {};
 
-	    if (visible.bottom && range.lastPage != null) {
-	      return range.lastPage + 1;
+	function toStringTag(o) {
+	  return toString.call(o).slice(8, -1);
+	}
+
+	const iteratorSymbol = typeof Symbol !== 'undefined' ? Symbol.iterator : '@@iterator';
+	const getIteratorOf = typeof iteratorSymbol === "symbol" ? function (x) {
+	  var i;
+	  return x != null && (i = x[iteratorSymbol]) && i.apply(x);
+	} : function () {
+	  return null;
+	};
+	const NO_CHAR_ARRAY = {};
+
+	function getArrayOf(arrayLike) {
+	  var i, a, x, it;
+
+	  if (arguments.length === 1) {
+	    if (isArray(arrayLike)) return arrayLike.slice();
+	    if (this === NO_CHAR_ARRAY && typeof arrayLike === 'string') return [arrayLike];
+
+	    if (it = getIteratorOf(arrayLike)) {
+	      a = [];
+
+	      while (x = it.next(), !x.done) a.push(x.value);
+
+	      return a;
 	    }
 
-	    if (visible.top && range.firstPage != null) {
-	      return range.firstPage - 1;
+	    if (arrayLike == null) return [arrayLike];
+	    i = arrayLike.length;
+
+	    if (typeof i === 'number') {
+	      a = new Array(i);
+
+	      while (i--) a[i] = arrayLike[i];
+
+	      return a;
 	    }
 
-	    return null;
+	    return [arrayLike];
+	  }
+
+	  i = arguments.length;
+	  a = new Array(i);
+
+	  while (i--) a[i] = arguments[i];
+
+	  return a;
+	}
+
+	const isAsyncFunction = typeof Symbol !== 'undefined' ? fn => fn[Symbol.toStringTag] === 'AsyncFunction' : () => false;
+	var debug = typeof location !== 'undefined' && /^(http|https):\/\/(localhost|127\.0\.0\.1)/.test(location.href);
+
+	function setDebug(value, filter) {
+	  debug = value;
+	  libraryFilter = filter;
+	}
+
+	var libraryFilter = () => true;
+
+	const NEEDS_THROW_FOR_STACK = !new Error("").stack;
+
+	function getErrorWithStack() {
+	  if (NEEDS_THROW_FOR_STACK) try {
+	    getErrorWithStack.arguments;
+	    throw new Error();
+	  } catch (e) {
+	    return e;
+	  }
+	  return new Error();
+	}
+
+	function prettyStack(exception, numIgnoredFrames) {
+	  var stack = exception.stack;
+	  if (!stack) return "";
+	  numIgnoredFrames = numIgnoredFrames || 0;
+	  if (stack.indexOf(exception.name) === 0) numIgnoredFrames += (exception.name + exception.message).split('\n').length;
+	  return stack.split('\n').slice(numIgnoredFrames).filter(libraryFilter).map(frame => "\n" + frame).join('');
+	}
+
+	var dexieErrorNames = ['Modify', 'Bulk', 'OpenFailed', 'VersionChange', 'Schema', 'Upgrade', 'InvalidTable', 'MissingAPI', 'NoSuchDatabase', 'InvalidArgument', 'SubTransaction', 'Unsupported', 'Internal', 'DatabaseClosed', 'PrematureCommit', 'ForeignAwait'];
+	var idbDomErrorNames = ['Unknown', 'Constraint', 'Data', 'TransactionInactive', 'ReadOnly', 'Version', 'NotFound', 'InvalidState', 'InvalidAccess', 'Abort', 'Timeout', 'QuotaExceeded', 'Syntax', 'DataClone'];
+	var errorList = dexieErrorNames.concat(idbDomErrorNames);
+	var defaultTexts = {
+	  VersionChanged: "Database version changed by other database connection",
+	  DatabaseClosed: "Database has been closed",
+	  Abort: "Transaction aborted",
+	  TransactionInactive: "Transaction has already completed or failed",
+	  MissingAPI: "IndexedDB API missing. Please visit https://tinyurl.com/y2uuvskb"
+	};
+
+	function DexieError(name, msg) {
+	  this._e = getErrorWithStack();
+	  this.name = name;
+	  this.message = msg;
+	}
+
+	derive(DexieError).from(Error).extend({
+	  stack: {
+	    get: function () {
+	      return this._stack || (this._stack = this.name + ": " + this.message + prettyStack(this._e, 2));
+	    }
+	  },
+	  toString: function () {
+	    return this.name + ": " + this.message;
+	  }
+	});
+
+	function getMultiErrorMessage(msg, failures) {
+	  return msg + ". Errors: " + Object.keys(failures).map(key => failures[key].toString()).filter((v, i, s) => s.indexOf(v) === i).join('\n');
+	}
+
+	function ModifyError(msg, failures, successCount, failedKeys) {
+	  this._e = getErrorWithStack();
+	  this.failures = failures;
+	  this.failedKeys = failedKeys;
+	  this.successCount = successCount;
+	  this.message = getMultiErrorMessage(msg, failures);
+	}
+
+	derive(ModifyError).from(DexieError);
+
+	function BulkError(msg, failures) {
+	  this._e = getErrorWithStack();
+	  this.name = "BulkError";
+	  this.failures = Object.keys(failures).map(pos => failures[pos]);
+	  this.failuresByPos = failures;
+	  this.message = getMultiErrorMessage(msg, failures);
+	}
+
+	derive(BulkError).from(DexieError);
+	var errnames = errorList.reduce((obj, name) => (obj[name] = name + "Error", obj), {});
+	const BaseException = DexieError;
+	var exceptions = errorList.reduce((obj, name) => {
+	  var fullName = name + "Error";
+
+	  function DexieError(msgOrInner, inner) {
+	    this._e = getErrorWithStack();
+	    this.name = fullName;
+
+	    if (!msgOrInner) {
+	      this.message = defaultTexts[name] || fullName;
+	      this.inner = null;
+	    } else if (typeof msgOrInner === 'string') {
+	      this.message = `${msgOrInner}${!inner ? '' : '\n ' + inner}`;
+	      this.inner = inner || null;
+	    } else if (typeof msgOrInner === 'object') {
+	      this.message = `${msgOrInner.name} ${msgOrInner.message}`;
+	      this.inner = msgOrInner;
+	    }
+	  }
+
+	  derive(DexieError).from(BaseException);
+	  obj[name] = DexieError;
+	  return obj;
+	}, {});
+	exceptions.Syntax = SyntaxError;
+	exceptions.Type = TypeError;
+	exceptions.Range = RangeError;
+	var exceptionMap = idbDomErrorNames.reduce((obj, name) => {
+	  obj[name + "Error"] = exceptions[name];
+	  return obj;
+	}, {});
+
+	function mapError(domError, message) {
+	  if (!domError || domError instanceof DexieError || domError instanceof TypeError || domError instanceof SyntaxError || !domError.name || !exceptionMap[domError.name]) return domError;
+	  var rv = new exceptionMap[domError.name](message || domError.message, domError);
+
+	  if ("stack" in domError) {
+	    setProp(rv, "stack", {
+	      get: function () {
+	        return this.inner.stack;
+	      }
+	    });
+	  }
+
+	  return rv;
+	}
+
+	var fullNameExceptions = errorList.reduce((obj, name) => {
+	  if (["Syntax", "Type", "Range"].indexOf(name) === -1) obj[name + "Error"] = exceptions[name];
+	  return obj;
+	}, {});
+	fullNameExceptions.ModifyError = ModifyError;
+	fullNameExceptions.DexieError = DexieError;
+	fullNameExceptions.BulkError = BulkError;
+
+	function nop() {}
+
+	function mirror(val) {
+	  return val;
+	}
+
+	function pureFunctionChain(f1, f2) {
+	  if (f1 == null || f1 === mirror) return f2;
+	  return function (val) {
+	    return f2(f1(val));
+	  };
+	}
+
+	function callBoth(on1, on2) {
+	  return function () {
+	    on1.apply(this, arguments);
+	    on2.apply(this, arguments);
+	  };
+	}
+
+	function hookCreatingChain(f1, f2) {
+	  if (f1 === nop) return f2;
+	  return function () {
+	    var res = f1.apply(this, arguments);
+	    if (res !== undefined) arguments[0] = res;
+	    var onsuccess = this.onsuccess,
+	        onerror = this.onerror;
+	    this.onsuccess = null;
+	    this.onerror = null;
+	    var res2 = f2.apply(this, arguments);
+	    if (onsuccess) this.onsuccess = this.onsuccess ? callBoth(onsuccess, this.onsuccess) : onsuccess;
+	    if (onerror) this.onerror = this.onerror ? callBoth(onerror, this.onerror) : onerror;
+	    return res2 !== undefined ? res2 : res;
+	  };
+	}
+
+	function hookDeletingChain(f1, f2) {
+	  if (f1 === nop) return f2;
+	  return function () {
+	    f1.apply(this, arguments);
+	    var onsuccess = this.onsuccess,
+	        onerror = this.onerror;
+	    this.onsuccess = this.onerror = null;
+	    f2.apply(this, arguments);
+	    if (onsuccess) this.onsuccess = this.onsuccess ? callBoth(onsuccess, this.onsuccess) : onsuccess;
+	    if (onerror) this.onerror = this.onerror ? callBoth(onerror, this.onerror) : onerror;
+	  };
+	}
+
+	function hookUpdatingChain(f1, f2) {
+	  if (f1 === nop) return f2;
+	  return function (modifications) {
+	    var res = f1.apply(this, arguments);
+	    extend(modifications, res);
+	    var onsuccess = this.onsuccess,
+	        onerror = this.onerror;
+	    this.onsuccess = null;
+	    this.onerror = null;
+	    var res2 = f2.apply(this, arguments);
+	    if (onsuccess) this.onsuccess = this.onsuccess ? callBoth(onsuccess, this.onsuccess) : onsuccess;
+	    if (onerror) this.onerror = this.onerror ? callBoth(onerror, this.onerror) : onerror;
+	    return res === undefined ? res2 === undefined ? undefined : res2 : extend(res, res2);
+	  };
+	}
+
+	function reverseStoppableEventChain(f1, f2) {
+	  if (f1 === nop) return f2;
+	  return function () {
+	    if (f2.apply(this, arguments) === false) return false;
+	    return f1.apply(this, arguments);
+	  };
+	}
+
+	function promisableChain(f1, f2) {
+	  if (f1 === nop) return f2;
+	  return function () {
+	    var res = f1.apply(this, arguments);
+
+	    if (res && typeof res.then === 'function') {
+	      var thiz = this,
+	          i = arguments.length,
+	          args = new Array(i);
+
+	      while (i--) args[i] = arguments[i];
+
+	      return res.then(function () {
+	        return f2.apply(thiz, args);
+	      });
+	    }
+
+	    return f2.apply(this, arguments);
+	  };
+	}
+
+	var INTERNAL = {};
+	const LONG_STACKS_CLIP_LIMIT = 100,
+	      MAX_LONG_STACKS = 20,
+	      ZONE_ECHO_LIMIT = 100,
+	      [resolvedNativePromise, nativePromiseProto, resolvedGlobalPromise] = typeof Promise === 'undefined' ? [] : (() => {
+	  let globalP = Promise.resolve();
+	  if (typeof crypto === 'undefined' || !crypto.subtle) return [globalP, getProto(globalP), globalP];
+	  const nativeP = crypto.subtle.digest("SHA-512", new Uint8Array([0]));
+	  return [nativeP, getProto(nativeP), globalP];
+	})(),
+	      nativePromiseThen = nativePromiseProto && nativePromiseProto.then;
+	const NativePromise = resolvedNativePromise && resolvedNativePromise.constructor;
+	const patchGlobalPromise = !!resolvedGlobalPromise;
+	var stack_being_generated = false;
+	var schedulePhysicalTick = resolvedGlobalPromise ? () => {
+	  resolvedGlobalPromise.then(physicalTick);
+	} : _global.setImmediate ? setImmediate.bind(null, physicalTick) : _global.MutationObserver ? () => {
+	  var hiddenDiv = document.createElement("div");
+	  new MutationObserver(() => {
+	    physicalTick();
+	    hiddenDiv = null;
+	  }).observe(hiddenDiv, {
+	    attributes: true
+	  });
+	  hiddenDiv.setAttribute('i', '1');
+	} : () => {
+	  setTimeout(physicalTick, 0);
+	};
+
+	var asap = function (callback, args) {
+	  microtickQueue.push([callback, args]);
+
+	  if (needsNewPhysicalTick) {
+	    schedulePhysicalTick();
+	    needsNewPhysicalTick = false;
+	  }
+	};
+
+	var isOutsideMicroTick = true,
+	    needsNewPhysicalTick = true,
+	    unhandledErrors = [],
+	    rejectingErrors = [],
+	    currentFulfiller = null,
+	    rejectionMapper = mirror;
+	var globalPSD = {
+	  id: 'global',
+	  global: true,
+	  ref: 0,
+	  unhandleds: [],
+	  onunhandled: globalError,
+	  pgp: false,
+	  env: {},
+	  finalize: function () {
+	    this.unhandleds.forEach(uh => {
+	      try {
+	        globalError(uh[0], uh[1]);
+	      } catch (e) {}
+	    });
+	  }
+	};
+	var PSD = globalPSD;
+	var microtickQueue = [];
+	var numScheduledCalls = 0;
+	var tickFinalizers = [];
+
+	function DexiePromise(fn) {
+	  if (typeof this !== 'object') throw new TypeError('Promises must be constructed via new');
+	  this._listeners = [];
+	  this.onuncatched = nop;
+	  this._lib = false;
+	  var psd = this._PSD = PSD;
+
+	  if (debug) {
+	    this._stackHolder = getErrorWithStack();
+	    this._prev = null;
+	    this._numPrev = 0;
+	  }
+
+	  if (typeof fn !== 'function') {
+	    if (fn !== INTERNAL) throw new TypeError('Not a function');
+	    this._state = arguments[1];
+	    this._value = arguments[2];
+	    if (this._state === false) handleRejection(this, this._value);
+	    return;
+	  }
+
+	  this._state = null;
+	  this._value = null;
+	  ++psd.ref;
+	  executePromiseTask(this, fn);
+	}
+
+	const thenProp = {
+	  get: function () {
+	    var psd = PSD,
+	        microTaskId = totalEchoes;
+
+	    function then(onFulfilled, onRejected) {
+	      var possibleAwait = !psd.global && (psd !== PSD || microTaskId !== totalEchoes);
+	      const cleanup = possibleAwait && !decrementExpectedAwaits();
+	      var rv = new DexiePromise((resolve, reject) => {
+	        propagateToListener(this, new Listener(nativeAwaitCompatibleWrap(onFulfilled, psd, possibleAwait, cleanup), nativeAwaitCompatibleWrap(onRejected, psd, possibleAwait, cleanup), resolve, reject, psd));
+	      });
+	      debug && linkToPreviousPromise(rv, this);
+	      return rv;
+	    }
+
+	    then.prototype = INTERNAL;
+	    return then;
+	  },
+	  set: function (value) {
+	    setProp(this, 'then', value && value.prototype === INTERNAL ? thenProp : {
+	      get: function () {
+	        return value;
+	      },
+	      set: thenProp.set
+	    });
+	  }
+	};
+	props(DexiePromise.prototype, {
+	  then: thenProp,
+	  _then: function (onFulfilled, onRejected) {
+	    propagateToListener(this, new Listener(null, null, onFulfilled, onRejected, PSD));
+	  },
+	  catch: function (onRejected) {
+	    if (arguments.length === 1) return this.then(null, onRejected);
+	    var type = arguments[0],
+	        handler = arguments[1];
+	    return typeof type === 'function' ? this.then(null, err => err instanceof type ? handler(err) : PromiseReject(err)) : this.then(null, err => err && err.name === type ? handler(err) : PromiseReject(err));
+	  },
+	  finally: function (onFinally) {
+	    return this.then(value => {
+	      onFinally();
+	      return value;
+	    }, err => {
+	      onFinally();
+	      return PromiseReject(err);
+	    });
+	  },
+	  stack: {
+	    get: function () {
+	      if (this._stack) return this._stack;
+
+	      try {
+	        stack_being_generated = true;
+	        var stacks = getStack(this, [], MAX_LONG_STACKS);
+	        var stack = stacks.join("\nFrom previous: ");
+	        if (this._state !== null) this._stack = stack;
+	        return stack;
+	      } finally {
+	        stack_being_generated = false;
+	      }
+	    }
+	  },
+	  timeout: function (ms, msg) {
+	    return ms < Infinity ? new DexiePromise((resolve, reject) => {
+	      var handle = setTimeout(() => reject(new exceptions.Timeout(msg)), ms);
+	      this.then(resolve, reject).finally(clearTimeout.bind(null, handle));
+	    }) : this;
+	  }
+	});
+	if (typeof Symbol !== 'undefined' && Symbol.toStringTag) setProp(DexiePromise.prototype, Symbol.toStringTag, 'Dexie.Promise');
+	globalPSD.env = snapShot();
+
+	function Listener(onFulfilled, onRejected, resolve, reject, zone) {
+	  this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
+	  this.onRejected = typeof onRejected === 'function' ? onRejected : null;
+	  this.resolve = resolve;
+	  this.reject = reject;
+	  this.psd = zone;
+	}
+
+	props(DexiePromise, {
+	  all: function () {
+	    var values = getArrayOf.apply(null, arguments).map(onPossibleParallellAsync);
+	    return new DexiePromise(function (resolve, reject) {
+	      if (values.length === 0) resolve([]);
+	      var remaining = values.length;
+	      values.forEach((a, i) => DexiePromise.resolve(a).then(x => {
+	        values[i] = x;
+	        if (! --remaining) resolve(values);
+	      }, reject));
+	    });
+	  },
+	  resolve: value => {
+	    if (value instanceof DexiePromise) return value;
+	    if (value && typeof value.then === 'function') return new DexiePromise((resolve, reject) => {
+	      value.then(resolve, reject);
+	    });
+	    var rv = new DexiePromise(INTERNAL, true, value);
+	    linkToPreviousPromise(rv, currentFulfiller);
+	    return rv;
+	  },
+	  reject: PromiseReject,
+	  race: function () {
+	    var values = getArrayOf.apply(null, arguments).map(onPossibleParallellAsync);
+	    return new DexiePromise((resolve, reject) => {
+	      values.map(value => DexiePromise.resolve(value).then(resolve, reject));
+	    });
+	  },
+	  PSD: {
+	    get: () => PSD,
+	    set: value => PSD = value
+	  },
+	  totalEchoes: {
+	    get: () => totalEchoes
+	  },
+	  newPSD: newScope,
+	  usePSD: usePSD,
+	  scheduler: {
+	    get: () => asap,
+	    set: value => {
+	      asap = value;
+	    }
+	  },
+	  rejectionMapper: {
+	    get: () => rejectionMapper,
+	    set: value => {
+	      rejectionMapper = value;
+	    }
+	  },
+	  follow: (fn, zoneProps) => {
+	    return new DexiePromise((resolve, reject) => {
+	      return newScope((resolve, reject) => {
+	        var psd = PSD;
+	        psd.unhandleds = [];
+	        psd.onunhandled = reject;
+	        psd.finalize = callBoth(function () {
+	          run_at_end_of_this_or_next_physical_tick(() => {
+	            this.unhandleds.length === 0 ? resolve() : reject(this.unhandleds[0]);
+	          });
+	        }, psd.finalize);
+	        fn();
+	      }, zoneProps, resolve, reject);
+	    });
+	  }
+	});
+
+	if (NativePromise) {
+	  if (NativePromise.allSettled) setProp(DexiePromise, "allSettled", function () {
+	    const possiblePromises = getArrayOf.apply(null, arguments).map(onPossibleParallellAsync);
+	    return new DexiePromise(resolve => {
+	      if (possiblePromises.length === 0) resolve([]);
+	      let remaining = possiblePromises.length;
+	      const results = new Array(remaining);
+	      possiblePromises.forEach((p, i) => DexiePromise.resolve(p).then(value => results[i] = {
+	        status: "fulfilled",
+	        value
+	      }, reason => results[i] = {
+	        status: "rejected",
+	        reason
+	      }).then(() => --remaining || resolve(results)));
+	    });
+	  });
+	  if (NativePromise.any && typeof AggregateError !== 'undefined') setProp(DexiePromise, "any", function () {
+	    const possiblePromises = getArrayOf.apply(null, arguments).map(onPossibleParallellAsync);
+	    return new DexiePromise((resolve, reject) => {
+	      if (possiblePromises.length === 0) reject(new AggregateError([]));
+	      let remaining = possiblePromises.length;
+	      const failures = new Array(remaining);
+	      possiblePromises.forEach((p, i) => DexiePromise.resolve(p).then(value => resolve(value), failure => {
+	        failures[i] = failure;
+	        if (! --remaining) reject(new AggregateError(failures));
+	      }));
+	    });
+	  });
+	}
+
+	function executePromiseTask(promise, fn) {
+	  try {
+	    fn(value => {
+	      if (promise._state !== null) return;
+	      if (value === promise) throw new TypeError('A promise cannot be resolved with itself.');
+	      var shouldExecuteTick = promise._lib && beginMicroTickScope();
+
+	      if (value && typeof value.then === 'function') {
+	        executePromiseTask(promise, (resolve, reject) => {
+	          value instanceof DexiePromise ? value._then(resolve, reject) : value.then(resolve, reject);
+	        });
+	      } else {
+	        promise._state = true;
+	        promise._value = value;
+	        propagateAllListeners(promise);
+	      }
+
+	      if (shouldExecuteTick) endMicroTickScope();
+	    }, handleRejection.bind(null, promise));
+	  } catch (ex) {
+	    handleRejection(promise, ex);
+	  }
+	}
+
+	function handleRejection(promise, reason) {
+	  rejectingErrors.push(reason);
+	  if (promise._state !== null) return;
+	  var shouldExecuteTick = promise._lib && beginMicroTickScope();
+	  reason = rejectionMapper(reason);
+	  promise._state = false;
+	  promise._value = reason;
+	  debug && reason !== null && typeof reason === 'object' && !reason._promise && tryCatch(() => {
+	    var origProp = getPropertyDescriptor(reason, "stack");
+	    reason._promise = promise;
+	    setProp(reason, "stack", {
+	      get: () => stack_being_generated ? origProp && (origProp.get ? origProp.get.apply(reason) : origProp.value) : promise.stack
+	    });
+	  });
+	  addPossiblyUnhandledError(promise);
+	  propagateAllListeners(promise);
+	  if (shouldExecuteTick) endMicroTickScope();
+	}
+
+	function propagateAllListeners(promise) {
+	  var listeners = promise._listeners;
+	  promise._listeners = [];
+
+	  for (var i = 0, len = listeners.length; i < len; ++i) {
+	    propagateToListener(promise, listeners[i]);
+	  }
+
+	  var psd = promise._PSD;
+	  --psd.ref || psd.finalize();
+
+	  if (numScheduledCalls === 0) {
+	    ++numScheduledCalls;
+	    asap(() => {
+	      if (--numScheduledCalls === 0) finalizePhysicalTick();
+	    }, []);
+	  }
+	}
+
+	function propagateToListener(promise, listener) {
+	  if (promise._state === null) {
+	    promise._listeners.push(listener);
+
+	    return;
+	  }
+
+	  var cb = promise._state ? listener.onFulfilled : listener.onRejected;
+
+	  if (cb === null) {
+	    return (promise._state ? listener.resolve : listener.reject)(promise._value);
+	  }
+
+	  ++listener.psd.ref;
+	  ++numScheduledCalls;
+	  asap(callListener, [cb, promise, listener]);
+	}
+
+	function callListener(cb, promise, listener) {
+	  try {
+	    currentFulfiller = promise;
+	    var ret,
+	        value = promise._value;
+
+	    if (promise._state) {
+	      ret = cb(value);
+	    } else {
+	      if (rejectingErrors.length) rejectingErrors = [];
+	      ret = cb(value);
+	      if (rejectingErrors.indexOf(value) === -1) markErrorAsHandled(promise);
+	    }
+
+	    listener.resolve(ret);
+	  } catch (e) {
+	    listener.reject(e);
+	  } finally {
+	    currentFulfiller = null;
+	    if (--numScheduledCalls === 0) finalizePhysicalTick();
+	    --listener.psd.ref || listener.psd.finalize();
+	  }
+	}
+
+	function getStack(promise, stacks, limit) {
+	  if (stacks.length === limit) return stacks;
+	  var stack = "";
+
+	  if (promise._state === false) {
+	    var failure = promise._value,
+	        errorName,
+	        message;
+
+	    if (failure != null) {
+	      errorName = failure.name || "Error";
+	      message = failure.message || failure;
+	      stack = prettyStack(failure, 0);
+	    } else {
+	      errorName = failure;
+	      message = "";
+	    }
+
+	    stacks.push(errorName + (message ? ": " + message : "") + stack);
+	  }
+
+	  if (debug) {
+	    stack = prettyStack(promise._stackHolder, 2);
+	    if (stack && stacks.indexOf(stack) === -1) stacks.push(stack);
+	    if (promise._prev) getStack(promise._prev, stacks, limit);
+	  }
+
+	  return stacks;
+	}
+
+	function linkToPreviousPromise(promise, prev) {
+	  var numPrev = prev ? prev._numPrev + 1 : 0;
+
+	  if (numPrev < LONG_STACKS_CLIP_LIMIT) {
+	    promise._prev = prev;
+	    promise._numPrev = numPrev;
+	  }
+	}
+
+	function physicalTick() {
+	  beginMicroTickScope() && endMicroTickScope();
+	}
+
+	function beginMicroTickScope() {
+	  var wasRootExec = isOutsideMicroTick;
+	  isOutsideMicroTick = false;
+	  needsNewPhysicalTick = false;
+	  return wasRootExec;
+	}
+
+	function endMicroTickScope() {
+	  var callbacks, i, l;
+
+	  do {
+	    while (microtickQueue.length > 0) {
+	      callbacks = microtickQueue;
+	      microtickQueue = [];
+	      l = callbacks.length;
+
+	      for (i = 0; i < l; ++i) {
+	        var item = callbacks[i];
+	        item[0].apply(null, item[1]);
+	      }
+	    }
+	  } while (microtickQueue.length > 0);
+
+	  isOutsideMicroTick = true;
+	  needsNewPhysicalTick = true;
+	}
+
+	function finalizePhysicalTick() {
+	  var unhandledErrs = unhandledErrors;
+	  unhandledErrors = [];
+	  unhandledErrs.forEach(p => {
+	    p._PSD.onunhandled.call(null, p._value, p);
+	  });
+	  var finalizers = tickFinalizers.slice(0);
+	  var i = finalizers.length;
+
+	  while (i) finalizers[--i]();
+	}
+
+	function run_at_end_of_this_or_next_physical_tick(fn) {
+	  function finalizer() {
+	    fn();
+	    tickFinalizers.splice(tickFinalizers.indexOf(finalizer), 1);
+	  }
+
+	  tickFinalizers.push(finalizer);
+	  ++numScheduledCalls;
+	  asap(() => {
+	    if (--numScheduledCalls === 0) finalizePhysicalTick();
+	  }, []);
+	}
+
+	function addPossiblyUnhandledError(promise) {
+	  if (!unhandledErrors.some(p => p._value === promise._value)) unhandledErrors.push(promise);
+	}
+
+	function markErrorAsHandled(promise) {
+	  var i = unhandledErrors.length;
+
+	  while (i) if (unhandledErrors[--i]._value === promise._value) {
+	    unhandledErrors.splice(i, 1);
+	    return;
+	  }
+	}
+
+	function PromiseReject(reason) {
+	  return new DexiePromise(INTERNAL, false, reason);
+	}
+
+	function wrap(fn, errorCatcher) {
+	  var psd = PSD;
+	  return function () {
+	    var wasRootExec = beginMicroTickScope(),
+	        outerScope = PSD;
+
+	    try {
+	      switchToZone(psd, true);
+	      return fn.apply(this, arguments);
+	    } catch (e) {
+	      errorCatcher && errorCatcher(e);
+	    } finally {
+	      switchToZone(outerScope, false);
+	      if (wasRootExec) endMicroTickScope();
+	    }
+	  };
+	}
+
+	const task = {
+	  awaits: 0,
+	  echoes: 0,
+	  id: 0
+	};
+	var taskCounter = 0;
+	var zoneStack = [];
+	var zoneEchoes = 0;
+	var totalEchoes = 0;
+	var zone_id_counter = 0;
+
+	function newScope(fn, props, a1, a2) {
+	  var parent = PSD,
+	      psd = Object.create(parent);
+	  psd.parent = parent;
+	  psd.ref = 0;
+	  psd.global = false;
+	  psd.id = ++zone_id_counter;
+	  var globalEnv = globalPSD.env;
+	  psd.env = patchGlobalPromise ? {
+	    Promise: DexiePromise,
+	    PromiseProp: {
+	      value: DexiePromise,
+	      configurable: true,
+	      writable: true
+	    },
+	    all: DexiePromise.all,
+	    race: DexiePromise.race,
+	    allSettled: DexiePromise.allSettled,
+	    any: DexiePromise.any,
+	    resolve: DexiePromise.resolve,
+	    reject: DexiePromise.reject,
+	    nthen: getPatchedPromiseThen(globalEnv.nthen, psd),
+	    gthen: getPatchedPromiseThen(globalEnv.gthen, psd)
+	  } : {};
+	  if (props) extend(psd, props);
+	  ++parent.ref;
+
+	  psd.finalize = function () {
+	    --this.parent.ref || this.parent.finalize();
 	  };
 
-	  const nextPage = calcNextPage();
+	  var rv = usePSD(psd, fn, a1, a2);
+	  if (psd.ref === 0) psd.finalize();
+	  return rv;
+	}
 
-	  if (nextPage != null) {
-	    if (range != null) range.currentPage = nextPage; //console.debug("  Fetch", nextPage)
+	function incrementExpectedAwaits() {
+	  if (!task.id) task.id = ++taskCounter;
+	  ++task.awaits;
+	  task.echoes += ZONE_ECHO_LIMIT;
+	  return task.id;
+	}
 
-	    fetch(`http://cards.leinsterhockey.ie/api/fixtures?p=${nextPage}&n=${pageSize}`).then(res => res.json()).then(list => {
-	      //console.debug("Page", nextPage, list.fixtures)
-	      const newFixtures = list.fixtures;
-	      newFixtures.forEach(f => {
-	        f.date = moment(f.datetimeZ);
-	      });
-	      let fp = 0,
-	          lp = 0;
+	function decrementExpectedAwaits() {
+	  if (!task.awaits) return false;
+	  if (--task.awaits === 0) task.id = 0;
+	  task.echoes = task.awaits * ZONE_ECHO_LIMIT;
+	  return true;
+	}
 
-	      if (range) {
-	        fp = range.firstPage;
-	        lp = range.lastPage;
-	      }
+	if (('' + nativePromiseThen).indexOf('[native code]') === -1) {
+	  incrementExpectedAwaits = decrementExpectedAwaits = nop;
+	}
 
-	      if (newFixtures.length > 0) {
-	        if (nextPage < 0) {
-	          fp = nextPage;
-	          items.current = [...newFixtures, ...items.current];
-	        } else {
-	          lp = nextPage;
-	          items.current = [...items.current, ...newFixtures];
-	        }
-	      } else {
-	        if (nextPage < 0) fp = null;
-	        if (nextPage > 0) lp = null;
-	      }
-
-	      let d = null;
-	      items.current.forEach(f => {
-	        f.previous = d;
-	        d = f.date;
-	      });
-	      const newRange = {
-	        firstPage: fp,
-	        lastPage: lp,
-	        currentPage: null
-	      }; //console.debug("   End:", nextPage, range, "->", newRange)
-
-	      setRange(newRange);
+	function onPossibleParallellAsync(possiblePromise) {
+	  if (task.echoes && possiblePromise && possiblePromise.constructor === NativePromise) {
+	    incrementExpectedAwaits();
+	    return possiblePromise.then(x => {
+	      decrementExpectedAwaits();
+	      return x;
+	    }, e => {
+	      decrementExpectedAwaits();
+	      return rejection(e);
 	    });
 	  }
 
-	  function callback(entries) {
-	    entries.forEach(entry => entry.target.visible = entry.isIntersecting);
-	    const newVisible = {
-	      top: topRef.current.visible,
-	      bottom: bottomRef.current.visible
-	    }; //console.trace("  0 Visible Callback", visible)
-	    // only rerender if something is now visible
+	  return possiblePromise;
+	}
 
-	    if (!visible.top && newVisible.top || !visible.bottom && newVisible.bottom) {
-	      setVisible(newVisible); //console.trace("  + Visible Callback", newVisible)
-	    } else {
-	      visible.top = newVisible.top;
-	      visible.bottom = newVisible.bottom; //console.trace("  - Visible Callback", newVisible)
+	function zoneEnterEcho(targetZone) {
+	  ++totalEchoes;
+
+	  if (!task.echoes || --task.echoes === 0) {
+	    task.echoes = task.id = 0;
+	  }
+
+	  zoneStack.push(PSD);
+	  switchToZone(targetZone, true);
+	}
+
+	function zoneLeaveEcho() {
+	  var zone = zoneStack[zoneStack.length - 1];
+	  zoneStack.pop();
+	  switchToZone(zone, false);
+	}
+
+	function switchToZone(targetZone, bEnteringZone) {
+	  var currentZone = PSD;
+
+	  if (bEnteringZone ? task.echoes && (!zoneEchoes++ || targetZone !== PSD) : zoneEchoes && (! --zoneEchoes || targetZone !== PSD)) {
+	    enqueueNativeMicroTask(bEnteringZone ? zoneEnterEcho.bind(null, targetZone) : zoneLeaveEcho);
+	  }
+
+	  if (targetZone === PSD) return;
+	  PSD = targetZone;
+	  if (currentZone === globalPSD) globalPSD.env = snapShot();
+
+	  if (patchGlobalPromise) {
+	    var GlobalPromise = globalPSD.env.Promise;
+	    var targetEnv = targetZone.env;
+	    nativePromiseProto.then = targetEnv.nthen;
+	    GlobalPromise.prototype.then = targetEnv.gthen;
+
+	    if (currentZone.global || targetZone.global) {
+	      Object.defineProperty(_global, 'Promise', targetEnv.PromiseProp);
+	      GlobalPromise.all = targetEnv.all;
+	      GlobalPromise.race = targetEnv.race;
+	      GlobalPromise.resolve = targetEnv.resolve;
+	      GlobalPromise.reject = targetEnv.reject;
+	      if (targetEnv.allSettled) GlobalPromise.allSettled = targetEnv.allSettled;
+	      if (targetEnv.any) GlobalPromise.any = targetEnv.any;
+	    }
+	  }
+	}
+
+	function snapShot() {
+	  var GlobalPromise = _global.Promise;
+	  return patchGlobalPromise ? {
+	    Promise: GlobalPromise,
+	    PromiseProp: Object.getOwnPropertyDescriptor(_global, "Promise"),
+	    all: GlobalPromise.all,
+	    race: GlobalPromise.race,
+	    allSettled: GlobalPromise.allSettled,
+	    any: GlobalPromise.any,
+	    resolve: GlobalPromise.resolve,
+	    reject: GlobalPromise.reject,
+	    nthen: nativePromiseProto.then,
+	    gthen: GlobalPromise.prototype.then
+	  } : {};
+	}
+
+	function usePSD(psd, fn, a1, a2, a3) {
+	  var outerScope = PSD;
+
+	  try {
+	    switchToZone(psd, true);
+	    return fn(a1, a2, a3);
+	  } finally {
+	    switchToZone(outerScope, false);
+	  }
+	}
+
+	function enqueueNativeMicroTask(job) {
+	  nativePromiseThen.call(resolvedNativePromise, job);
+	}
+
+	function nativeAwaitCompatibleWrap(fn, zone, possibleAwait, cleanup) {
+	  return typeof fn !== 'function' ? fn : function () {
+	    var outerZone = PSD;
+	    if (possibleAwait) incrementExpectedAwaits();
+	    switchToZone(zone, true);
+
+	    try {
+	      return fn.apply(this, arguments);
+	    } finally {
+	      switchToZone(outerZone, false);
+	      if (cleanup) enqueueNativeMicroTask(decrementExpectedAwaits);
+	    }
+	  };
+	}
+
+	function getPatchedPromiseThen(origThen, zone) {
+	  return function (onResolved, onRejected) {
+	    return origThen.call(this, nativeAwaitCompatibleWrap(onResolved, zone), nativeAwaitCompatibleWrap(onRejected, zone));
+	  };
+	}
+
+	const UNHANDLEDREJECTION = "unhandledrejection";
+
+	function globalError(err, promise) {
+	  var rv;
+
+	  try {
+	    rv = promise.onuncatched(err);
+	  } catch (e) {}
+
+	  if (rv !== false) try {
+	    var event,
+	        eventData = {
+	      promise: promise,
+	      reason: err
+	    };
+
+	    if (_global.document && document.createEvent) {
+	      event = document.createEvent('Event');
+	      event.initEvent(UNHANDLEDREJECTION, true, true);
+	      extend(event, eventData);
+	    } else if (_global.CustomEvent) {
+	      event = new CustomEvent(UNHANDLEDREJECTION, {
+	        detail: eventData
+	      });
+	      extend(event, eventData);
+	    }
+
+	    if (event && _global.dispatchEvent) {
+	      dispatchEvent(event);
+	      if (!_global.PromiseRejectionEvent && _global.onunhandledrejection) try {
+	        _global.onunhandledrejection(event);
+	      } catch (_) {}
+	    }
+
+	    if (debug && event && !event.defaultPrevented) {
+	      console.warn(`Unhandled rejection: ${err.stack || err}`);
+	    }
+	  } catch (e) {}
+	}
+
+	var rejection = DexiePromise.reject;
+
+	function tempTransaction(db, mode, storeNames, fn) {
+	  if (!db.idbdb || !db._state.openComplete && !PSD.letThrough && !db._vip) {
+	    if (db._state.openComplete) {
+	      return rejection(new exceptions.DatabaseClosed(db._state.dbOpenError));
+	    }
+
+	    if (!db._state.isBeingOpened) {
+	      if (!db._options.autoOpen) return rejection(new exceptions.DatabaseClosed());
+	      db.open().catch(nop);
+	    }
+
+	    return db._state.dbReadyPromise.then(() => tempTransaction(db, mode, storeNames, fn));
+	  } else {
+	    var trans = db._createTransaction(mode, storeNames, db._dbSchema);
+
+	    try {
+	      trans.create();
+	      db._state.PR1398_maxLoop = 3;
+	    } catch (ex) {
+	      if (ex.name === errnames.InvalidState && db.isOpen() && --db._state.PR1398_maxLoop > 0) {
+	        console.warn('Dexie: Need to reopen db');
+
+	        db._close();
+
+	        return db.open().then(() => tempTransaction(db, mode, storeNames, fn));
+	      }
+
+	      return rejection(ex);
+	    }
+
+	    return trans._promise(mode, (resolve, reject) => {
+	      return newScope(() => {
+	        PSD.trans = trans;
+	        return fn(resolve, reject, trans);
+	      });
+	    }).then(result => {
+	      return trans._completion.then(() => result);
+	    });
+	  }
+	}
+
+	const DEXIE_VERSION = '3.2.2';
+	const maxString = String.fromCharCode(65535);
+	const minKey = -Infinity;
+	const INVALID_KEY_ARGUMENT = "Invalid key provided. Keys must be of type string, number, Date or Array<string | number | Date>.";
+	const STRING_EXPECTED = "String expected.";
+	const connections = [];
+	const isIEOrEdge = typeof navigator !== 'undefined' && /(MSIE|Trident|Edge)/.test(navigator.userAgent);
+	const hasIEDeleteObjectStoreBug = isIEOrEdge;
+	const hangsOnDeleteLargeKeyRange = isIEOrEdge;
+
+	const dexieStackFrameFilter = frame => !/(dexie\.js|dexie\.min\.js)/.test(frame);
+
+	const DBNAMES_DB = '__dbnames';
+	const READONLY = 'readonly';
+	const READWRITE = 'readwrite';
+
+	function combine(filter1, filter2) {
+	  return filter1 ? filter2 ? function () {
+	    return filter1.apply(this, arguments) && filter2.apply(this, arguments);
+	  } : filter1 : filter2;
+	}
+
+	const AnyRange = {
+	  type: 3,
+	  lower: -Infinity,
+	  lowerOpen: false,
+	  upper: [[]],
+	  upperOpen: false
+	};
+
+	function workaroundForUndefinedPrimKey(keyPath) {
+	  return typeof keyPath === "string" && !/\./.test(keyPath) ? obj => {
+	    if (obj[keyPath] === undefined && keyPath in obj) {
+	      obj = deepClone(obj);
+	      delete obj[keyPath];
+	    }
+
+	    return obj;
+	  } : obj => obj;
+	}
+
+	class Table {
+	  _trans(mode, fn, writeLocked) {
+	    const trans = this._tx || PSD.trans;
+	    const tableName = this.name;
+
+	    function checkTableInTransaction(resolve, reject, trans) {
+	      if (!trans.schema[tableName]) throw new exceptions.NotFound("Table " + tableName + " not part of transaction");
+	      return fn(trans.idbtrans, trans);
+	    }
+
+	    const wasRootExec = beginMicroTickScope();
+
+	    try {
+	      return trans && trans.db === this.db ? trans === PSD.trans ? trans._promise(mode, checkTableInTransaction, writeLocked) : newScope(() => trans._promise(mode, checkTableInTransaction, writeLocked), {
+	        trans: trans,
+	        transless: PSD.transless || PSD
+	      }) : tempTransaction(this.db, mode, [this.name], checkTableInTransaction);
+	    } finally {
+	      if (wasRootExec) endMicroTickScope();
 	    }
 	  }
 
-	  const dots = condition => {
-	    if (condition) {
-	      return /*#__PURE__*/React.createElement("div", {
-	        style: {
-	          width: "8rem",
-	          padding: "3px 0"
+	  get(keyOrCrit, cb) {
+	    if (keyOrCrit && keyOrCrit.constructor === Object) return this.where(keyOrCrit).first(cb);
+	    return this._trans('readonly', trans => {
+	      return this.core.get({
+	        trans,
+	        key: keyOrCrit
+	      }).then(res => this.hook.reading.fire(res));
+	    }).then(cb);
+	  }
+
+	  where(indexOrCrit) {
+	    if (typeof indexOrCrit === 'string') return new this.db.WhereClause(this, indexOrCrit);
+	    if (isArray(indexOrCrit)) return new this.db.WhereClause(this, `[${indexOrCrit.join('+')}]`);
+	    const keyPaths = keys(indexOrCrit);
+	    if (keyPaths.length === 1) return this.where(keyPaths[0]).equals(indexOrCrit[keyPaths[0]]);
+	    const compoundIndex = this.schema.indexes.concat(this.schema.primKey).filter(ix => ix.compound && keyPaths.every(keyPath => ix.keyPath.indexOf(keyPath) >= 0) && ix.keyPath.every(keyPath => keyPaths.indexOf(keyPath) >= 0))[0];
+	    if (compoundIndex && this.db._maxKey !== maxString) return this.where(compoundIndex.name).equals(compoundIndex.keyPath.map(kp => indexOrCrit[kp]));
+	    if (!compoundIndex && debug) console.warn(`The query ${JSON.stringify(indexOrCrit)} on ${this.name} would benefit of a ` + `compound index [${keyPaths.join('+')}]`);
+	    const {
+	      idxByName
+	    } = this.schema;
+	    const idb = this.db._deps.indexedDB;
+
+	    function equals(a, b) {
+	      try {
+	        return idb.cmp(a, b) === 0;
+	      } catch (e) {
+	        return false;
+	      }
+	    }
+
+	    const [idx, filterFunction] = keyPaths.reduce(([prevIndex, prevFilterFn], keyPath) => {
+	      const index = idxByName[keyPath];
+	      const value = indexOrCrit[keyPath];
+	      return [prevIndex || index, prevIndex || !index ? combine(prevFilterFn, index && index.multi ? x => {
+	        const prop = getByKeyPath(x, keyPath);
+	        return isArray(prop) && prop.some(item => equals(value, item));
+	      } : x => equals(value, getByKeyPath(x, keyPath))) : prevFilterFn];
+	    }, [null, null]);
+	    return idx ? this.where(idx.name).equals(indexOrCrit[idx.keyPath]).filter(filterFunction) : compoundIndex ? this.filter(filterFunction) : this.where(keyPaths).equals('');
+	  }
+
+	  filter(filterFunction) {
+	    return this.toCollection().and(filterFunction);
+	  }
+
+	  count(thenShortcut) {
+	    return this.toCollection().count(thenShortcut);
+	  }
+
+	  offset(offset) {
+	    return this.toCollection().offset(offset);
+	  }
+
+	  limit(numRows) {
+	    return this.toCollection().limit(numRows);
+	  }
+
+	  each(callback) {
+	    return this.toCollection().each(callback);
+	  }
+
+	  toArray(thenShortcut) {
+	    return this.toCollection().toArray(thenShortcut);
+	  }
+
+	  toCollection() {
+	    return new this.db.Collection(new this.db.WhereClause(this));
+	  }
+
+	  orderBy(index) {
+	    return new this.db.Collection(new this.db.WhereClause(this, isArray(index) ? `[${index.join('+')}]` : index));
+	  }
+
+	  reverse() {
+	    return this.toCollection().reverse();
+	  }
+
+	  mapToClass(constructor) {
+	    this.schema.mappedClass = constructor;
+
+	    const readHook = obj => {
+	      if (!obj) return obj;
+	      const res = Object.create(constructor.prototype);
+
+	      for (var m in obj) if (hasOwn(obj, m)) try {
+	        res[m] = obj[m];
+	      } catch (_) {}
+
+	      return res;
+	    };
+
+	    if (this.schema.readHook) {
+	      this.hook.reading.unsubscribe(this.schema.readHook);
+	    }
+
+	    this.schema.readHook = readHook;
+	    this.hook("reading", readHook);
+	    return constructor;
+	  }
+
+	  defineClass() {
+	    function Class(content) {
+	      extend(this, content);
+	    }
+
+	    return this.mapToClass(Class);
+	  }
+
+	  add(obj, key) {
+	    const {
+	      auto,
+	      keyPath
+	    } = this.schema.primKey;
+	    let objToAdd = obj;
+
+	    if (keyPath && auto) {
+	      objToAdd = workaroundForUndefinedPrimKey(keyPath)(obj);
+	    }
+
+	    return this._trans('readwrite', trans => {
+	      return this.core.mutate({
+	        trans,
+	        type: 'add',
+	        keys: key != null ? [key] : null,
+	        values: [objToAdd]
+	      });
+	    }).then(res => res.numFailures ? DexiePromise.reject(res.failures[0]) : res.lastResult).then(lastResult => {
+	      if (keyPath) {
+	        try {
+	          setByKeyPath(obj, keyPath, lastResult);
+	        } catch (_) {}
+	      }
+
+	      return lastResult;
+	    });
+	  }
+
+	  update(keyOrObject, modifications) {
+	    if (typeof keyOrObject === 'object' && !isArray(keyOrObject)) {
+	      const key = getByKeyPath(keyOrObject, this.schema.primKey.keyPath);
+	      if (key === undefined) return rejection(new exceptions.InvalidArgument("Given object does not contain its primary key"));
+
+	      try {
+	        if (typeof modifications !== "function") {
+	          keys(modifications).forEach(keyPath => {
+	            setByKeyPath(keyOrObject, keyPath, modifications[keyPath]);
+	          });
+	        } else {
+	          modifications(keyOrObject, {
+	            value: keyOrObject,
+	            primKey: key
+	          });
 	        }
-	      }, /*#__PURE__*/React.createElement($f2353fd21d89f897$export$8da50d3722682be0, {
-	        text: "",
-	        dotColors: ['#000', '#333', '#666', '#999', '#ccc', '#fff']
-	      }));
+	      } catch (_a) {}
+
+	      return this.where(":id").equals(key).modify(modifications);
 	    } else {
+	      return this.where(":id").equals(keyOrObject).modify(modifications);
+	    }
+	  }
+
+	  put(obj, key) {
+	    const {
+	      auto,
+	      keyPath
+	    } = this.schema.primKey;
+	    let objToAdd = obj;
+
+	    if (keyPath && auto) {
+	      objToAdd = workaroundForUndefinedPrimKey(keyPath)(obj);
+	    }
+
+	    return this._trans('readwrite', trans => this.core.mutate({
+	      trans,
+	      type: 'put',
+	      values: [objToAdd],
+	      keys: key != null ? [key] : null
+	    })).then(res => res.numFailures ? DexiePromise.reject(res.failures[0]) : res.lastResult).then(lastResult => {
+	      if (keyPath) {
+	        try {
+	          setByKeyPath(obj, keyPath, lastResult);
+	        } catch (_) {}
+	      }
+
+	      return lastResult;
+	    });
+	  }
+
+	  delete(key) {
+	    return this._trans('readwrite', trans => this.core.mutate({
+	      trans,
+	      type: 'delete',
+	      keys: [key]
+	    })).then(res => res.numFailures ? DexiePromise.reject(res.failures[0]) : undefined);
+	  }
+
+	  clear() {
+	    return this._trans('readwrite', trans => this.core.mutate({
+	      trans,
+	      type: 'deleteRange',
+	      range: AnyRange
+	    })).then(res => res.numFailures ? DexiePromise.reject(res.failures[0]) : undefined);
+	  }
+
+	  bulkGet(keys) {
+	    return this._trans('readonly', trans => {
+	      return this.core.getMany({
+	        keys,
+	        trans
+	      }).then(result => result.map(res => this.hook.reading.fire(res)));
+	    });
+	  }
+
+	  bulkAdd(objects, keysOrOptions, options) {
+	    const keys = Array.isArray(keysOrOptions) ? keysOrOptions : undefined;
+	    options = options || (keys ? undefined : keysOrOptions);
+	    const wantResults = options ? options.allKeys : undefined;
+	    return this._trans('readwrite', trans => {
+	      const {
+	        auto,
+	        keyPath
+	      } = this.schema.primKey;
+	      if (keyPath && keys) throw new exceptions.InvalidArgument("bulkAdd(): keys argument invalid on tables with inbound keys");
+	      if (keys && keys.length !== objects.length) throw new exceptions.InvalidArgument("Arguments objects and keys must have the same length");
+	      const numObjects = objects.length;
+	      let objectsToAdd = keyPath && auto ? objects.map(workaroundForUndefinedPrimKey(keyPath)) : objects;
+	      return this.core.mutate({
+	        trans,
+	        type: 'add',
+	        keys: keys,
+	        values: objectsToAdd,
+	        wantResults
+	      }).then(({
+	        numFailures,
+	        results,
+	        lastResult,
+	        failures
+	      }) => {
+	        const result = wantResults ? results : lastResult;
+	        if (numFailures === 0) return result;
+	        throw new BulkError(`${this.name}.bulkAdd(): ${numFailures} of ${numObjects} operations failed`, failures);
+	      });
+	    });
+	  }
+
+	  bulkPut(objects, keysOrOptions, options) {
+	    const keys = Array.isArray(keysOrOptions) ? keysOrOptions : undefined;
+	    options = options || (keys ? undefined : keysOrOptions);
+	    const wantResults = options ? options.allKeys : undefined;
+	    return this._trans('readwrite', trans => {
+	      const {
+	        auto,
+	        keyPath
+	      } = this.schema.primKey;
+	      if (keyPath && keys) throw new exceptions.InvalidArgument("bulkPut(): keys argument invalid on tables with inbound keys");
+	      if (keys && keys.length !== objects.length) throw new exceptions.InvalidArgument("Arguments objects and keys must have the same length");
+	      const numObjects = objects.length;
+	      let objectsToPut = keyPath && auto ? objects.map(workaroundForUndefinedPrimKey(keyPath)) : objects;
+	      return this.core.mutate({
+	        trans,
+	        type: 'put',
+	        keys: keys,
+	        values: objectsToPut,
+	        wantResults
+	      }).then(({
+	        numFailures,
+	        results,
+	        lastResult,
+	        failures
+	      }) => {
+	        const result = wantResults ? results : lastResult;
+	        if (numFailures === 0) return result;
+	        throw new BulkError(`${this.name}.bulkPut(): ${numFailures} of ${numObjects} operations failed`, failures);
+	      });
+	    });
+	  }
+
+	  bulkDelete(keys) {
+	    const numKeys = keys.length;
+	    return this._trans('readwrite', trans => {
+	      return this.core.mutate({
+	        trans,
+	        type: 'delete',
+	        keys: keys
+	      });
+	    }).then(({
+	      numFailures,
+	      lastResult,
+	      failures
+	    }) => {
+	      if (numFailures === 0) return lastResult;
+	      throw new BulkError(`${this.name}.bulkDelete(): ${numFailures} of ${numKeys} operations failed`, failures);
+	    });
+	  }
+
+	}
+
+	function Events(ctx) {
+	  var evs = {};
+
+	  var rv = function (eventName, subscriber) {
+	    if (subscriber) {
+	      var i = arguments.length,
+	          args = new Array(i - 1);
+
+	      while (--i) args[i - 1] = arguments[i];
+
+	      evs[eventName].subscribe.apply(null, args);
+	      return ctx;
+	    } else if (typeof eventName === 'string') {
+	      return evs[eventName];
+	    }
+	  };
+
+	  rv.addEventType = add;
+
+	  for (var i = 1, l = arguments.length; i < l; ++i) {
+	    add(arguments[i]);
+	  }
+
+	  return rv;
+
+	  function add(eventName, chainFunction, defaultFunction) {
+	    if (typeof eventName === 'object') return addConfiguredEvents(eventName);
+	    if (!chainFunction) chainFunction = reverseStoppableEventChain;
+	    if (!defaultFunction) defaultFunction = nop;
+	    var context = {
+	      subscribers: [],
+	      fire: defaultFunction,
+	      subscribe: function (cb) {
+	        if (context.subscribers.indexOf(cb) === -1) {
+	          context.subscribers.push(cb);
+	          context.fire = chainFunction(context.fire, cb);
+	        }
+	      },
+	      unsubscribe: function (cb) {
+	        context.subscribers = context.subscribers.filter(function (fn) {
+	          return fn !== cb;
+	        });
+	        context.fire = context.subscribers.reduce(chainFunction, defaultFunction);
+	      }
+	    };
+	    evs[eventName] = rv[eventName] = context;
+	    return context;
+	  }
+
+	  function addConfiguredEvents(cfg) {
+	    keys(cfg).forEach(function (eventName) {
+	      var args = cfg[eventName];
+
+	      if (isArray(args)) {
+	        add(eventName, cfg[eventName][0], cfg[eventName][1]);
+	      } else if (args === 'asap') {
+	        var context = add(eventName, mirror, function fire() {
+	          var i = arguments.length,
+	              args = new Array(i);
+
+	          while (i--) args[i] = arguments[i];
+
+	          context.subscribers.forEach(function (fn) {
+	            asap$1(function fireEvent() {
+	              fn.apply(null, args);
+	            });
+	          });
+	        });
+	      } else throw new exceptions.InvalidArgument("Invalid event config");
+	    });
+	  }
+	}
+
+	function makeClassConstructor(prototype, constructor) {
+	  derive(constructor).from({
+	    prototype
+	  });
+	  return constructor;
+	}
+
+	function createTableConstructor(db) {
+	  return makeClassConstructor(Table.prototype, function Table(name, tableSchema, trans) {
+	    this.db = db;
+	    this._tx = trans;
+	    this.name = name;
+	    this.schema = tableSchema;
+	    this.hook = db._allTables[name] ? db._allTables[name].hook : Events(null, {
+	      "creating": [hookCreatingChain, nop],
+	      "reading": [pureFunctionChain, mirror],
+	      "updating": [hookUpdatingChain, nop],
+	      "deleting": [hookDeletingChain, nop]
+	    });
+	  });
+	}
+
+	function isPlainKeyRange(ctx, ignoreLimitFilter) {
+	  return !(ctx.filter || ctx.algorithm || ctx.or) && (ignoreLimitFilter ? ctx.justLimit : !ctx.replayFilter);
+	}
+
+	function addFilter(ctx, fn) {
+	  ctx.filter = combine(ctx.filter, fn);
+	}
+
+	function addReplayFilter(ctx, factory, isLimitFilter) {
+	  var curr = ctx.replayFilter;
+	  ctx.replayFilter = curr ? () => combine(curr(), factory()) : factory;
+	  ctx.justLimit = isLimitFilter && !curr;
+	}
+
+	function addMatchFilter(ctx, fn) {
+	  ctx.isMatch = combine(ctx.isMatch, fn);
+	}
+
+	function getIndexOrStore(ctx, coreSchema) {
+	  if (ctx.isPrimKey) return coreSchema.primaryKey;
+	  const index = coreSchema.getIndexByKeyPath(ctx.index);
+	  if (!index) throw new exceptions.Schema("KeyPath " + ctx.index + " on object store " + coreSchema.name + " is not indexed");
+	  return index;
+	}
+
+	function openCursor(ctx, coreTable, trans) {
+	  const index = getIndexOrStore(ctx, coreTable.schema);
+	  return coreTable.openCursor({
+	    trans,
+	    values: !ctx.keysOnly,
+	    reverse: ctx.dir === 'prev',
+	    unique: !!ctx.unique,
+	    query: {
+	      index,
+	      range: ctx.range
+	    }
+	  });
+	}
+
+	function iter(ctx, fn, coreTrans, coreTable) {
+	  const filter = ctx.replayFilter ? combine(ctx.filter, ctx.replayFilter()) : ctx.filter;
+
+	  if (!ctx.or) {
+	    return iterate(openCursor(ctx, coreTable, coreTrans), combine(ctx.algorithm, filter), fn, !ctx.keysOnly && ctx.valueMapper);
+	  } else {
+	    const set = {};
+
+	    const union = (item, cursor, advance) => {
+	      if (!filter || filter(cursor, advance, result => cursor.stop(result), err => cursor.fail(err))) {
+	        var primaryKey = cursor.primaryKey;
+	        var key = '' + primaryKey;
+	        if (key === '[object ArrayBuffer]') key = '' + new Uint8Array(primaryKey);
+
+	        if (!hasOwn(set, key)) {
+	          set[key] = true;
+	          fn(item, cursor, advance);
+	        }
+	      }
+	    };
+
+	    return Promise.all([ctx.or._iterate(union, coreTrans), iterate(openCursor(ctx, coreTable, coreTrans), ctx.algorithm, union, !ctx.keysOnly && ctx.valueMapper)]);
+	  }
+	}
+
+	function iterate(cursorPromise, filter, fn, valueMapper) {
+	  var mappedFn = valueMapper ? (x, c, a) => fn(valueMapper(x), c, a) : fn;
+	  var wrappedFn = wrap(mappedFn);
+	  return cursorPromise.then(cursor => {
+	    if (cursor) {
+	      return cursor.start(() => {
+	        var c = () => cursor.continue();
+
+	        if (!filter || filter(cursor, advancer => c = advancer, val => {
+	          cursor.stop(val);
+	          c = nop;
+	        }, e => {
+	          cursor.fail(e);
+	          c = nop;
+	        })) wrappedFn(cursor.value, cursor, advancer => c = advancer);
+	        c();
+	      });
+	    }
+	  });
+	}
+
+	function cmp(a, b) {
+	  try {
+	    const ta = type(a);
+	    const tb = type(b);
+
+	    if (ta !== tb) {
+	      if (ta === 'Array') return 1;
+	      if (tb === 'Array') return -1;
+	      if (ta === 'binary') return 1;
+	      if (tb === 'binary') return -1;
+	      if (ta === 'string') return 1;
+	      if (tb === 'string') return -1;
+	      if (ta === 'Date') return 1;
+	      if (tb !== 'Date') return NaN;
+	      return -1;
+	    }
+
+	    switch (ta) {
+	      case 'number':
+	      case 'Date':
+	      case 'string':
+	        return a > b ? 1 : a < b ? -1 : 0;
+
+	      case 'binary':
+	        {
+	          return compareUint8Arrays(getUint8Array(a), getUint8Array(b));
+	        }
+
+	      case 'Array':
+	        return compareArrays(a, b);
+	    }
+	  } catch (_a) {}
+
+	  return NaN;
+	}
+
+	function compareArrays(a, b) {
+	  const al = a.length;
+	  const bl = b.length;
+	  const l = al < bl ? al : bl;
+
+	  for (let i = 0; i < l; ++i) {
+	    const res = cmp(a[i], b[i]);
+	    if (res !== 0) return res;
+	  }
+
+	  return al === bl ? 0 : al < bl ? -1 : 1;
+	}
+
+	function compareUint8Arrays(a, b) {
+	  const al = a.length;
+	  const bl = b.length;
+	  const l = al < bl ? al : bl;
+
+	  for (let i = 0; i < l; ++i) {
+	    if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1;
+	  }
+
+	  return al === bl ? 0 : al < bl ? -1 : 1;
+	}
+
+	function type(x) {
+	  const t = typeof x;
+	  if (t !== 'object') return t;
+	  if (ArrayBuffer.isView(x)) return 'binary';
+	  const tsTag = toStringTag(x);
+	  return tsTag === 'ArrayBuffer' ? 'binary' : tsTag;
+	}
+
+	function getUint8Array(a) {
+	  if (a instanceof Uint8Array) return a;
+	  if (ArrayBuffer.isView(a)) return new Uint8Array(a.buffer, a.byteOffset, a.byteLength);
+	  return new Uint8Array(a);
+	}
+
+	class Collection {
+	  _read(fn, cb) {
+	    var ctx = this._ctx;
+	    return ctx.error ? ctx.table._trans(null, rejection.bind(null, ctx.error)) : ctx.table._trans('readonly', fn).then(cb);
+	  }
+
+	  _write(fn) {
+	    var ctx = this._ctx;
+	    return ctx.error ? ctx.table._trans(null, rejection.bind(null, ctx.error)) : ctx.table._trans('readwrite', fn, "locked");
+	  }
+
+	  _addAlgorithm(fn) {
+	    var ctx = this._ctx;
+	    ctx.algorithm = combine(ctx.algorithm, fn);
+	  }
+
+	  _iterate(fn, coreTrans) {
+	    return iter(this._ctx, fn, coreTrans, this._ctx.table.core);
+	  }
+
+	  clone(props) {
+	    var rv = Object.create(this.constructor.prototype),
+	        ctx = Object.create(this._ctx);
+	    if (props) extend(ctx, props);
+	    rv._ctx = ctx;
+	    return rv;
+	  }
+
+	  raw() {
+	    this._ctx.valueMapper = null;
+	    return this;
+	  }
+
+	  each(fn) {
+	    var ctx = this._ctx;
+	    return this._read(trans => iter(ctx, fn, trans, ctx.table.core));
+	  }
+
+	  count(cb) {
+	    return this._read(trans => {
+	      const ctx = this._ctx;
+	      const coreTable = ctx.table.core;
+
+	      if (isPlainKeyRange(ctx, true)) {
+	        return coreTable.count({
+	          trans,
+	          query: {
+	            index: getIndexOrStore(ctx, coreTable.schema),
+	            range: ctx.range
+	          }
+	        }).then(count => Math.min(count, ctx.limit));
+	      } else {
+	        var count = 0;
+	        return iter(ctx, () => {
+	          ++count;
+	          return false;
+	        }, trans, coreTable).then(() => count);
+	      }
+	    }).then(cb);
+	  }
+
+	  sortBy(keyPath, cb) {
+	    const parts = keyPath.split('.').reverse(),
+	          lastPart = parts[0],
+	          lastIndex = parts.length - 1;
+
+	    function getval(obj, i) {
+	      if (i) return getval(obj[parts[i]], i - 1);
+	      return obj[lastPart];
+	    }
+
+	    var order = this._ctx.dir === "next" ? 1 : -1;
+
+	    function sorter(a, b) {
+	      var aVal = getval(a, lastIndex),
+	          bVal = getval(b, lastIndex);
+	      return aVal < bVal ? -order : aVal > bVal ? order : 0;
+	    }
+
+	    return this.toArray(function (a) {
+	      return a.sort(sorter);
+	    }).then(cb);
+	  }
+
+	  toArray(cb) {
+	    return this._read(trans => {
+	      var ctx = this._ctx;
+
+	      if (ctx.dir === 'next' && isPlainKeyRange(ctx, true) && ctx.limit > 0) {
+	        const {
+	          valueMapper
+	        } = ctx;
+	        const index = getIndexOrStore(ctx, ctx.table.core.schema);
+	        return ctx.table.core.query({
+	          trans,
+	          limit: ctx.limit,
+	          values: true,
+	          query: {
+	            index,
+	            range: ctx.range
+	          }
+	        }).then(({
+	          result
+	        }) => valueMapper ? result.map(valueMapper) : result);
+	      } else {
+	        const a = [];
+	        return iter(ctx, item => a.push(item), trans, ctx.table.core).then(() => a);
+	      }
+	    }, cb);
+	  }
+
+	  offset(offset) {
+	    var ctx = this._ctx;
+	    if (offset <= 0) return this;
+	    ctx.offset += offset;
+
+	    if (isPlainKeyRange(ctx)) {
+	      addReplayFilter(ctx, () => {
+	        var offsetLeft = offset;
+	        return (cursor, advance) => {
+	          if (offsetLeft === 0) return true;
+
+	          if (offsetLeft === 1) {
+	            --offsetLeft;
+	            return false;
+	          }
+
+	          advance(() => {
+	            cursor.advance(offsetLeft);
+	            offsetLeft = 0;
+	          });
+	          return false;
+	        };
+	      });
+	    } else {
+	      addReplayFilter(ctx, () => {
+	        var offsetLeft = offset;
+	        return () => --offsetLeft < 0;
+	      });
+	    }
+
+	    return this;
+	  }
+
+	  limit(numRows) {
+	    this._ctx.limit = Math.min(this._ctx.limit, numRows);
+	    addReplayFilter(this._ctx, () => {
+	      var rowsLeft = numRows;
+	      return function (cursor, advance, resolve) {
+	        if (--rowsLeft <= 0) advance(resolve);
+	        return rowsLeft >= 0;
+	      };
+	    }, true);
+	    return this;
+	  }
+
+	  until(filterFunction, bIncludeStopEntry) {
+	    addFilter(this._ctx, function (cursor, advance, resolve) {
+	      if (filterFunction(cursor.value)) {
+	        advance(resolve);
+	        return bIncludeStopEntry;
+	      } else {
+	        return true;
+	      }
+	    });
+	    return this;
+	  }
+
+	  first(cb) {
+	    return this.limit(1).toArray(function (a) {
+	      return a[0];
+	    }).then(cb);
+	  }
+
+	  last(cb) {
+	    return this.reverse().first(cb);
+	  }
+
+	  filter(filterFunction) {
+	    addFilter(this._ctx, function (cursor) {
+	      return filterFunction(cursor.value);
+	    });
+	    addMatchFilter(this._ctx, filterFunction);
+	    return this;
+	  }
+
+	  and(filter) {
+	    return this.filter(filter);
+	  }
+
+	  or(indexName) {
+	    return new this.db.WhereClause(this._ctx.table, indexName, this);
+	  }
+
+	  reverse() {
+	    this._ctx.dir = this._ctx.dir === "prev" ? "next" : "prev";
+	    if (this._ondirectionchange) this._ondirectionchange(this._ctx.dir);
+	    return this;
+	  }
+
+	  desc() {
+	    return this.reverse();
+	  }
+
+	  eachKey(cb) {
+	    var ctx = this._ctx;
+	    ctx.keysOnly = !ctx.isMatch;
+	    return this.each(function (val, cursor) {
+	      cb(cursor.key, cursor);
+	    });
+	  }
+
+	  eachUniqueKey(cb) {
+	    this._ctx.unique = "unique";
+	    return this.eachKey(cb);
+	  }
+
+	  eachPrimaryKey(cb) {
+	    var ctx = this._ctx;
+	    ctx.keysOnly = !ctx.isMatch;
+	    return this.each(function (val, cursor) {
+	      cb(cursor.primaryKey, cursor);
+	    });
+	  }
+
+	  keys(cb) {
+	    var ctx = this._ctx;
+	    ctx.keysOnly = !ctx.isMatch;
+	    var a = [];
+	    return this.each(function (item, cursor) {
+	      a.push(cursor.key);
+	    }).then(function () {
+	      return a;
+	    }).then(cb);
+	  }
+
+	  primaryKeys(cb) {
+	    var ctx = this._ctx;
+
+	    if (ctx.dir === 'next' && isPlainKeyRange(ctx, true) && ctx.limit > 0) {
+	      return this._read(trans => {
+	        var index = getIndexOrStore(ctx, ctx.table.core.schema);
+	        return ctx.table.core.query({
+	          trans,
+	          values: false,
+	          limit: ctx.limit,
+	          query: {
+	            index,
+	            range: ctx.range
+	          }
+	        });
+	      }).then(({
+	        result
+	      }) => result).then(cb);
+	    }
+
+	    ctx.keysOnly = !ctx.isMatch;
+	    var a = [];
+	    return this.each(function (item, cursor) {
+	      a.push(cursor.primaryKey);
+	    }).then(function () {
+	      return a;
+	    }).then(cb);
+	  }
+
+	  uniqueKeys(cb) {
+	    this._ctx.unique = "unique";
+	    return this.keys(cb);
+	  }
+
+	  firstKey(cb) {
+	    return this.limit(1).keys(function (a) {
+	      return a[0];
+	    }).then(cb);
+	  }
+
+	  lastKey(cb) {
+	    return this.reverse().firstKey(cb);
+	  }
+
+	  distinct() {
+	    var ctx = this._ctx,
+	        idx = ctx.index && ctx.table.schema.idxByName[ctx.index];
+	    if (!idx || !idx.multi) return this;
+	    var set = {};
+	    addFilter(this._ctx, function (cursor) {
+	      var strKey = cursor.primaryKey.toString();
+	      var found = hasOwn(set, strKey);
+	      set[strKey] = true;
+	      return !found;
+	    });
+	    return this;
+	  }
+
+	  modify(changes) {
+	    var ctx = this._ctx;
+	    return this._write(trans => {
+	      var modifyer;
+
+	      if (typeof changes === 'function') {
+	        modifyer = changes;
+	      } else {
+	        var keyPaths = keys(changes);
+	        var numKeys = keyPaths.length;
+
+	        modifyer = function (item) {
+	          var anythingModified = false;
+
+	          for (var i = 0; i < numKeys; ++i) {
+	            var keyPath = keyPaths[i],
+	                val = changes[keyPath];
+
+	            if (getByKeyPath(item, keyPath) !== val) {
+	              setByKeyPath(item, keyPath, val);
+	              anythingModified = true;
+	            }
+	          }
+
+	          return anythingModified;
+	        };
+	      }
+
+	      const coreTable = ctx.table.core;
+	      const {
+	        outbound,
+	        extractKey
+	      } = coreTable.schema.primaryKey;
+	      const limit = this.db._options.modifyChunkSize || 200;
+	      const totalFailures = [];
+	      let successCount = 0;
+	      const failedKeys = [];
+
+	      const applyMutateResult = (expectedCount, res) => {
+	        const {
+	          failures,
+	          numFailures
+	        } = res;
+	        successCount += expectedCount - numFailures;
+
+	        for (let pos of keys(failures)) {
+	          totalFailures.push(failures[pos]);
+	        }
+	      };
+
+	      return this.clone().primaryKeys().then(keys => {
+	        const nextChunk = offset => {
+	          const count = Math.min(limit, keys.length - offset);
+	          return coreTable.getMany({
+	            trans,
+	            keys: keys.slice(offset, offset + count),
+	            cache: "immutable"
+	          }).then(values => {
+	            const addValues = [];
+	            const putValues = [];
+	            const putKeys = outbound ? [] : null;
+	            const deleteKeys = [];
+
+	            for (let i = 0; i < count; ++i) {
+	              const origValue = values[i];
+	              const ctx = {
+	                value: deepClone(origValue),
+	                primKey: keys[offset + i]
+	              };
+
+	              if (modifyer.call(ctx, ctx.value, ctx) !== false) {
+	                if (ctx.value == null) {
+	                  deleteKeys.push(keys[offset + i]);
+	                } else if (!outbound && cmp(extractKey(origValue), extractKey(ctx.value)) !== 0) {
+	                  deleteKeys.push(keys[offset + i]);
+	                  addValues.push(ctx.value);
+	                } else {
+	                  putValues.push(ctx.value);
+	                  if (outbound) putKeys.push(keys[offset + i]);
+	                }
+	              }
+	            }
+
+	            const criteria = isPlainKeyRange(ctx) && ctx.limit === Infinity && (typeof changes !== 'function' || changes === deleteCallback) && {
+	              index: ctx.index,
+	              range: ctx.range
+	            };
+	            return Promise.resolve(addValues.length > 0 && coreTable.mutate({
+	              trans,
+	              type: 'add',
+	              values: addValues
+	            }).then(res => {
+	              for (let pos in res.failures) {
+	                deleteKeys.splice(parseInt(pos), 1);
+	              }
+
+	              applyMutateResult(addValues.length, res);
+	            })).then(() => (putValues.length > 0 || criteria && typeof changes === 'object') && coreTable.mutate({
+	              trans,
+	              type: 'put',
+	              keys: putKeys,
+	              values: putValues,
+	              criteria,
+	              changeSpec: typeof changes !== 'function' && changes
+	            }).then(res => applyMutateResult(putValues.length, res))).then(() => (deleteKeys.length > 0 || criteria && changes === deleteCallback) && coreTable.mutate({
+	              trans,
+	              type: 'delete',
+	              keys: deleteKeys,
+	              criteria
+	            }).then(res => applyMutateResult(deleteKeys.length, res))).then(() => {
+	              return keys.length > offset + count && nextChunk(offset + limit);
+	            });
+	          });
+	        };
+
+	        return nextChunk(0).then(() => {
+	          if (totalFailures.length > 0) throw new ModifyError("Error modifying one or more objects", totalFailures, successCount, failedKeys);
+	          return keys.length;
+	        });
+	      });
+	    });
+	  }
+
+	  delete() {
+	    var ctx = this._ctx,
+	        range = ctx.range;
+
+	    if (isPlainKeyRange(ctx) && (ctx.isPrimKey && !hangsOnDeleteLargeKeyRange || range.type === 3)) {
+	      return this._write(trans => {
+	        const {
+	          primaryKey
+	        } = ctx.table.core.schema;
+	        const coreRange = range;
+	        return ctx.table.core.count({
+	          trans,
+	          query: {
+	            index: primaryKey,
+	            range: coreRange
+	          }
+	        }).then(count => {
+	          return ctx.table.core.mutate({
+	            trans,
+	            type: 'deleteRange',
+	            range: coreRange
+	          }).then(({
+	            failures,
+	            lastResult,
+	            results,
+	            numFailures
+	          }) => {
+	            if (numFailures) throw new ModifyError("Could not delete some values", Object.keys(failures).map(pos => failures[pos]), count - numFailures);
+	            return count - numFailures;
+	          });
+	        });
+	      });
+	    }
+
+	    return this.modify(deleteCallback);
+	  }
+
+	}
+
+	const deleteCallback = (value, ctx) => ctx.value = null;
+
+	function createCollectionConstructor(db) {
+	  return makeClassConstructor(Collection.prototype, function Collection(whereClause, keyRangeGenerator) {
+	    this.db = db;
+	    let keyRange = AnyRange,
+	        error = null;
+	    if (keyRangeGenerator) try {
+	      keyRange = keyRangeGenerator();
+	    } catch (ex) {
+	      error = ex;
+	    }
+	    const whereCtx = whereClause._ctx;
+	    const table = whereCtx.table;
+	    const readingHook = table.hook.reading.fire;
+	    this._ctx = {
+	      table: table,
+	      index: whereCtx.index,
+	      isPrimKey: !whereCtx.index || table.schema.primKey.keyPath && whereCtx.index === table.schema.primKey.name,
+	      range: keyRange,
+	      keysOnly: false,
+	      dir: "next",
+	      unique: "",
+	      algorithm: null,
+	      filter: null,
+	      replayFilter: null,
+	      justLimit: true,
+	      isMatch: null,
+	      offset: 0,
+	      limit: Infinity,
+	      error: error,
+	      or: whereCtx.or,
+	      valueMapper: readingHook !== mirror ? readingHook : null
+	    };
+	  });
+	}
+
+	function simpleCompare(a, b) {
+	  return a < b ? -1 : a === b ? 0 : 1;
+	}
+
+	function simpleCompareReverse(a, b) {
+	  return a > b ? -1 : a === b ? 0 : 1;
+	}
+
+	function fail(collectionOrWhereClause, err, T) {
+	  var collection = collectionOrWhereClause instanceof WhereClause ? new collectionOrWhereClause.Collection(collectionOrWhereClause) : collectionOrWhereClause;
+	  collection._ctx.error = T ? new T(err) : new TypeError(err);
+	  return collection;
+	}
+
+	function emptyCollection(whereClause) {
+	  return new whereClause.Collection(whereClause, () => rangeEqual("")).limit(0);
+	}
+
+	function upperFactory(dir) {
+	  return dir === "next" ? s => s.toUpperCase() : s => s.toLowerCase();
+	}
+
+	function lowerFactory(dir) {
+	  return dir === "next" ? s => s.toLowerCase() : s => s.toUpperCase();
+	}
+
+	function nextCasing(key, lowerKey, upperNeedle, lowerNeedle, cmp, dir) {
+	  var length = Math.min(key.length, lowerNeedle.length);
+	  var llp = -1;
+
+	  for (var i = 0; i < length; ++i) {
+	    var lwrKeyChar = lowerKey[i];
+
+	    if (lwrKeyChar !== lowerNeedle[i]) {
+	      if (cmp(key[i], upperNeedle[i]) < 0) return key.substr(0, i) + upperNeedle[i] + upperNeedle.substr(i + 1);
+	      if (cmp(key[i], lowerNeedle[i]) < 0) return key.substr(0, i) + lowerNeedle[i] + upperNeedle.substr(i + 1);
+	      if (llp >= 0) return key.substr(0, llp) + lowerKey[llp] + upperNeedle.substr(llp + 1);
 	      return null;
 	    }
+
+	    if (cmp(key[i], lwrKeyChar) < 0) llp = i;
+	  }
+
+	  if (length < lowerNeedle.length && dir === "next") return key + upperNeedle.substr(key.length);
+	  if (length < key.length && dir === "prev") return key.substr(0, upperNeedle.length);
+	  return llp < 0 ? null : key.substr(0, llp) + lowerNeedle[llp] + upperNeedle.substr(llp + 1);
+	}
+
+	function addIgnoreCaseAlgorithm(whereClause, match, needles, suffix) {
+	  var upper,
+	      lower,
+	      compare,
+	      upperNeedles,
+	      lowerNeedles,
+	      direction,
+	      nextKeySuffix,
+	      needlesLen = needles.length;
+
+	  if (!needles.every(s => typeof s === 'string')) {
+	    return fail(whereClause, STRING_EXPECTED);
+	  }
+
+	  function initDirection(dir) {
+	    upper = upperFactory(dir);
+	    lower = lowerFactory(dir);
+	    compare = dir === "next" ? simpleCompare : simpleCompareReverse;
+	    var needleBounds = needles.map(function (needle) {
+	      return {
+	        lower: lower(needle),
+	        upper: upper(needle)
+	      };
+	    }).sort(function (a, b) {
+	      return compare(a.lower, b.lower);
+	    });
+	    upperNeedles = needleBounds.map(function (nb) {
+	      return nb.upper;
+	    });
+	    lowerNeedles = needleBounds.map(function (nb) {
+	      return nb.lower;
+	    });
+	    direction = dir;
+	    nextKeySuffix = dir === "next" ? "" : suffix;
+	  }
+
+	  initDirection("next");
+	  var c = new whereClause.Collection(whereClause, () => createRange(upperNeedles[0], lowerNeedles[needlesLen - 1] + suffix));
+
+	  c._ondirectionchange = function (direction) {
+	    initDirection(direction);
 	  };
 
-	  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+	  var firstPossibleNeedle = 0;
 
-	  const getTime = d => {
-	    return d.format('HH:mm');
+	  c._addAlgorithm(function (cursor, advance, resolve) {
+	    var key = cursor.key;
+	    if (typeof key !== 'string') return false;
+	    var lowerKey = lower(key);
+
+	    if (match(lowerKey, lowerNeedles, firstPossibleNeedle)) {
+	      return true;
+	    } else {
+	      var lowestPossibleCasing = null;
+
+	      for (var i = firstPossibleNeedle; i < needlesLen; ++i) {
+	        var casing = nextCasing(key, lowerKey, upperNeedles[i], lowerNeedles[i], compare, direction);
+	        if (casing === null && lowestPossibleCasing === null) firstPossibleNeedle = i + 1;else if (lowestPossibleCasing === null || compare(lowestPossibleCasing, casing) > 0) {
+	          lowestPossibleCasing = casing;
+	        }
+	      }
+
+	      if (lowestPossibleCasing !== null) {
+	        advance(function () {
+	          cursor.continue(lowestPossibleCasing + nextKeySuffix);
+	        });
+	      } else {
+	        advance(resolve);
+	      }
+
+	      return false;
+	    }
+	  });
+
+	  return c;
+	}
+
+	function createRange(lower, upper, lowerOpen, upperOpen) {
+	  return {
+	    type: 2,
+	    lower,
+	    upper,
+	    lowerOpen,
+	    upperOpen
 	  };
+	}
 
-	  const formatRow = item => {
-	    return /*#__PURE__*/React.createElement(React.Fragment, {
-	      key: item.id
-	    }, item.date?.month() != item.previous?.month() ? /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-	      colSpan: "5",
-	      className: "month-break"
-	    }, monthNames[item.date.month()], " ", item.date.year())) : null, /*#__PURE__*/React.createElement("tr", {
+	function rangeEqual(value) {
+	  return {
+	    type: 1,
+	    lower: value,
+	    upper: value
+	  };
+	}
+
+	class WhereClause {
+	  get Collection() {
+	    return this._ctx.table.db.Collection;
+	  }
+
+	  between(lower, upper, includeLower, includeUpper) {
+	    includeLower = includeLower !== false;
+	    includeUpper = includeUpper === true;
+
+	    try {
+	      if (this._cmp(lower, upper) > 0 || this._cmp(lower, upper) === 0 && (includeLower || includeUpper) && !(includeLower && includeUpper)) return emptyCollection(this);
+	      return new this.Collection(this, () => createRange(lower, upper, !includeLower, !includeUpper));
+	    } catch (e) {
+	      return fail(this, INVALID_KEY_ARGUMENT);
+	    }
+	  }
+
+	  equals(value) {
+	    if (value == null) return fail(this, INVALID_KEY_ARGUMENT);
+	    return new this.Collection(this, () => rangeEqual(value));
+	  }
+
+	  above(value) {
+	    if (value == null) return fail(this, INVALID_KEY_ARGUMENT);
+	    return new this.Collection(this, () => createRange(value, undefined, true));
+	  }
+
+	  aboveOrEqual(value) {
+	    if (value == null) return fail(this, INVALID_KEY_ARGUMENT);
+	    return new this.Collection(this, () => createRange(value, undefined, false));
+	  }
+
+	  below(value) {
+	    if (value == null) return fail(this, INVALID_KEY_ARGUMENT);
+	    return new this.Collection(this, () => createRange(undefined, value, false, true));
+	  }
+
+	  belowOrEqual(value) {
+	    if (value == null) return fail(this, INVALID_KEY_ARGUMENT);
+	    return new this.Collection(this, () => createRange(undefined, value));
+	  }
+
+	  startsWith(str) {
+	    if (typeof str !== 'string') return fail(this, STRING_EXPECTED);
+	    return this.between(str, str + maxString, true, true);
+	  }
+
+	  startsWithIgnoreCase(str) {
+	    if (str === "") return this.startsWith(str);
+	    return addIgnoreCaseAlgorithm(this, (x, a) => x.indexOf(a[0]) === 0, [str], maxString);
+	  }
+
+	  equalsIgnoreCase(str) {
+	    return addIgnoreCaseAlgorithm(this, (x, a) => x === a[0], [str], "");
+	  }
+
+	  anyOfIgnoreCase() {
+	    var set = getArrayOf.apply(NO_CHAR_ARRAY, arguments);
+	    if (set.length === 0) return emptyCollection(this);
+	    return addIgnoreCaseAlgorithm(this, (x, a) => a.indexOf(x) !== -1, set, "");
+	  }
+
+	  startsWithAnyOfIgnoreCase() {
+	    var set = getArrayOf.apply(NO_CHAR_ARRAY, arguments);
+	    if (set.length === 0) return emptyCollection(this);
+	    return addIgnoreCaseAlgorithm(this, (x, a) => a.some(n => x.indexOf(n) === 0), set, maxString);
+	  }
+
+	  anyOf() {
+	    const set = getArrayOf.apply(NO_CHAR_ARRAY, arguments);
+	    let compare = this._cmp;
+
+	    try {
+	      set.sort(compare);
+	    } catch (e) {
+	      return fail(this, INVALID_KEY_ARGUMENT);
+	    }
+
+	    if (set.length === 0) return emptyCollection(this);
+	    const c = new this.Collection(this, () => createRange(set[0], set[set.length - 1]));
+
+	    c._ondirectionchange = direction => {
+	      compare = direction === "next" ? this._ascending : this._descending;
+	      set.sort(compare);
+	    };
+
+	    let i = 0;
+
+	    c._addAlgorithm((cursor, advance, resolve) => {
+	      const key = cursor.key;
+
+	      while (compare(key, set[i]) > 0) {
+	        ++i;
+
+	        if (i === set.length) {
+	          advance(resolve);
+	          return false;
+	        }
+	      }
+
+	      if (compare(key, set[i]) === 0) {
+	        return true;
+	      } else {
+	        advance(() => {
+	          cursor.continue(set[i]);
+	        });
+	        return false;
+	      }
+	    });
+
+	    return c;
+	  }
+
+	  notEqual(value) {
+	    return this.inAnyRange([[minKey, value], [value, this.db._maxKey]], {
+	      includeLowers: false,
+	      includeUppers: false
+	    });
+	  }
+
+	  noneOf() {
+	    const set = getArrayOf.apply(NO_CHAR_ARRAY, arguments);
+	    if (set.length === 0) return new this.Collection(this);
+
+	    try {
+	      set.sort(this._ascending);
+	    } catch (e) {
+	      return fail(this, INVALID_KEY_ARGUMENT);
+	    }
+
+	    const ranges = set.reduce((res, val) => res ? res.concat([[res[res.length - 1][1], val]]) : [[minKey, val]], null);
+	    ranges.push([set[set.length - 1], this.db._maxKey]);
+	    return this.inAnyRange(ranges, {
+	      includeLowers: false,
+	      includeUppers: false
+	    });
+	  }
+
+	  inAnyRange(ranges, options) {
+	    const cmp = this._cmp,
+	          ascending = this._ascending,
+	          descending = this._descending,
+	          min = this._min,
+	          max = this._max;
+	    if (ranges.length === 0) return emptyCollection(this);
+
+	    if (!ranges.every(range => range[0] !== undefined && range[1] !== undefined && ascending(range[0], range[1]) <= 0)) {
+	      return fail(this, "First argument to inAnyRange() must be an Array of two-value Arrays [lower,upper] where upper must not be lower than lower", exceptions.InvalidArgument);
+	    }
+
+	    const includeLowers = !options || options.includeLowers !== false;
+	    const includeUppers = options && options.includeUppers === true;
+
+	    function addRange(ranges, newRange) {
+	      let i = 0,
+	          l = ranges.length;
+
+	      for (; i < l; ++i) {
+	        const range = ranges[i];
+
+	        if (cmp(newRange[0], range[1]) < 0 && cmp(newRange[1], range[0]) > 0) {
+	          range[0] = min(range[0], newRange[0]);
+	          range[1] = max(range[1], newRange[1]);
+	          break;
+	        }
+	      }
+
+	      if (i === l) ranges.push(newRange);
+	      return ranges;
+	    }
+
+	    let sortDirection = ascending;
+
+	    function rangeSorter(a, b) {
+	      return sortDirection(a[0], b[0]);
+	    }
+
+	    let set;
+
+	    try {
+	      set = ranges.reduce(addRange, []);
+	      set.sort(rangeSorter);
+	    } catch (ex) {
+	      return fail(this, INVALID_KEY_ARGUMENT);
+	    }
+
+	    let rangePos = 0;
+	    const keyIsBeyondCurrentEntry = includeUppers ? key => ascending(key, set[rangePos][1]) > 0 : key => ascending(key, set[rangePos][1]) >= 0;
+	    const keyIsBeforeCurrentEntry = includeLowers ? key => descending(key, set[rangePos][0]) > 0 : key => descending(key, set[rangePos][0]) >= 0;
+
+	    function keyWithinCurrentRange(key) {
+	      return !keyIsBeyondCurrentEntry(key) && !keyIsBeforeCurrentEntry(key);
+	    }
+
+	    let checkKey = keyIsBeyondCurrentEntry;
+	    const c = new this.Collection(this, () => createRange(set[0][0], set[set.length - 1][1], !includeLowers, !includeUppers));
+
+	    c._ondirectionchange = direction => {
+	      if (direction === "next") {
+	        checkKey = keyIsBeyondCurrentEntry;
+	        sortDirection = ascending;
+	      } else {
+	        checkKey = keyIsBeforeCurrentEntry;
+	        sortDirection = descending;
+	      }
+
+	      set.sort(rangeSorter);
+	    };
+
+	    c._addAlgorithm((cursor, advance, resolve) => {
+	      var key = cursor.key;
+
+	      while (checkKey(key)) {
+	        ++rangePos;
+
+	        if (rangePos === set.length) {
+	          advance(resolve);
+	          return false;
+	        }
+	      }
+
+	      if (keyWithinCurrentRange(key)) {
+	        return true;
+	      } else if (this._cmp(key, set[rangePos][1]) === 0 || this._cmp(key, set[rangePos][0]) === 0) {
+	        return false;
+	      } else {
+	        advance(() => {
+	          if (sortDirection === ascending) cursor.continue(set[rangePos][0]);else cursor.continue(set[rangePos][1]);
+	        });
+	        return false;
+	      }
+	    });
+
+	    return c;
+	  }
+
+	  startsWithAnyOf() {
+	    const set = getArrayOf.apply(NO_CHAR_ARRAY, arguments);
+
+	    if (!set.every(s => typeof s === 'string')) {
+	      return fail(this, "startsWithAnyOf() only works with strings");
+	    }
+
+	    if (set.length === 0) return emptyCollection(this);
+	    return this.inAnyRange(set.map(str => [str, str + maxString]));
+	  }
+
+	}
+
+	function createWhereClauseConstructor(db) {
+	  return makeClassConstructor(WhereClause.prototype, function WhereClause(table, index, orCollection) {
+	    this.db = db;
+	    this._ctx = {
+	      table: table,
+	      index: index === ":id" ? null : index,
+	      or: orCollection
+	    };
+	    const indexedDB = db._deps.indexedDB;
+	    if (!indexedDB) throw new exceptions.MissingAPI();
+	    this._cmp = this._ascending = indexedDB.cmp.bind(indexedDB);
+
+	    this._descending = (a, b) => indexedDB.cmp(b, a);
+
+	    this._max = (a, b) => indexedDB.cmp(a, b) > 0 ? a : b;
+
+	    this._min = (a, b) => indexedDB.cmp(a, b) < 0 ? a : b;
+
+	    this._IDBKeyRange = db._deps.IDBKeyRange;
+	  });
+	}
+
+	function eventRejectHandler(reject) {
+	  return wrap(function (event) {
+	    preventDefault(event);
+	    reject(event.target.error);
+	    return false;
+	  });
+	}
+
+	function preventDefault(event) {
+	  if (event.stopPropagation) event.stopPropagation();
+	  if (event.preventDefault) event.preventDefault();
+	}
+
+	const DEXIE_STORAGE_MUTATED_EVENT_NAME = 'storagemutated';
+	const STORAGE_MUTATED_DOM_EVENT_NAME = 'x-storagemutated-1';
+	const globalEvents = Events(null, DEXIE_STORAGE_MUTATED_EVENT_NAME);
+
+	class Transaction {
+	  _lock() {
+	    assert(!PSD.global);
+	    ++this._reculock;
+	    if (this._reculock === 1 && !PSD.global) PSD.lockOwnerFor = this;
+	    return this;
+	  }
+
+	  _unlock() {
+	    assert(!PSD.global);
+
+	    if (--this._reculock === 0) {
+	      if (!PSD.global) PSD.lockOwnerFor = null;
+
+	      while (this._blockedFuncs.length > 0 && !this._locked()) {
+	        var fnAndPSD = this._blockedFuncs.shift();
+
+	        try {
+	          usePSD(fnAndPSD[1], fnAndPSD[0]);
+	        } catch (e) {}
+	      }
+	    }
+
+	    return this;
+	  }
+
+	  _locked() {
+	    return this._reculock && PSD.lockOwnerFor !== this;
+	  }
+
+	  create(idbtrans) {
+	    if (!this.mode) return this;
+	    const idbdb = this.db.idbdb;
+	    const dbOpenError = this.db._state.dbOpenError;
+	    assert(!this.idbtrans);
+
+	    if (!idbtrans && !idbdb) {
+	      switch (dbOpenError && dbOpenError.name) {
+	        case "DatabaseClosedError":
+	          throw new exceptions.DatabaseClosed(dbOpenError);
+
+	        case "MissingAPIError":
+	          throw new exceptions.MissingAPI(dbOpenError.message, dbOpenError);
+
+	        default:
+	          throw new exceptions.OpenFailed(dbOpenError);
+	      }
+	    }
+
+	    if (!this.active) throw new exceptions.TransactionInactive();
+	    assert(this._completion._state === null);
+	    idbtrans = this.idbtrans = idbtrans || (this.db.core ? this.db.core.transaction(this.storeNames, this.mode, {
+	      durability: this.chromeTransactionDurability
+	    }) : idbdb.transaction(this.storeNames, this.mode, {
+	      durability: this.chromeTransactionDurability
+	    }));
+	    idbtrans.onerror = wrap(ev => {
+	      preventDefault(ev);
+
+	      this._reject(idbtrans.error);
+	    });
+	    idbtrans.onabort = wrap(ev => {
+	      preventDefault(ev);
+	      this.active && this._reject(new exceptions.Abort(idbtrans.error));
+	      this.active = false;
+	      this.on("abort").fire(ev);
+	    });
+	    idbtrans.oncomplete = wrap(() => {
+	      this.active = false;
+
+	      this._resolve();
+
+	      if ('mutatedParts' in idbtrans) {
+	        globalEvents.storagemutated.fire(idbtrans["mutatedParts"]);
+	      }
+	    });
+	    return this;
+	  }
+
+	  _promise(mode, fn, bWriteLock) {
+	    if (mode === 'readwrite' && this.mode !== 'readwrite') return rejection(new exceptions.ReadOnly("Transaction is readonly"));
+	    if (!this.active) return rejection(new exceptions.TransactionInactive());
+
+	    if (this._locked()) {
+	      return new DexiePromise((resolve, reject) => {
+	        this._blockedFuncs.push([() => {
+	          this._promise(mode, fn, bWriteLock).then(resolve, reject);
+	        }, PSD]);
+	      });
+	    } else if (bWriteLock) {
+	      return newScope(() => {
+	        var p = new DexiePromise((resolve, reject) => {
+	          this._lock();
+
+	          const rv = fn(resolve, reject, this);
+	          if (rv && rv.then) rv.then(resolve, reject);
+	        });
+	        p.finally(() => this._unlock());
+	        p._lib = true;
+	        return p;
+	      });
+	    } else {
+	      var p = new DexiePromise((resolve, reject) => {
+	        var rv = fn(resolve, reject, this);
+	        if (rv && rv.then) rv.then(resolve, reject);
+	      });
+	      p._lib = true;
+	      return p;
+	    }
+	  }
+
+	  _root() {
+	    return this.parent ? this.parent._root() : this;
+	  }
+
+	  waitFor(promiseLike) {
+	    var root = this._root();
+
+	    const promise = DexiePromise.resolve(promiseLike);
+
+	    if (root._waitingFor) {
+	      root._waitingFor = root._waitingFor.then(() => promise);
+	    } else {
+	      root._waitingFor = promise;
+	      root._waitingQueue = [];
+	      var store = root.idbtrans.objectStore(root.storeNames[0]);
+
+	      (function spin() {
+	        ++root._spinCount;
+
+	        while (root._waitingQueue.length) root._waitingQueue.shift()();
+
+	        if (root._waitingFor) store.get(-Infinity).onsuccess = spin;
+	      })();
+	    }
+
+	    var currentWaitPromise = root._waitingFor;
+	    return new DexiePromise((resolve, reject) => {
+	      promise.then(res => root._waitingQueue.push(wrap(resolve.bind(null, res))), err => root._waitingQueue.push(wrap(reject.bind(null, err)))).finally(() => {
+	        if (root._waitingFor === currentWaitPromise) {
+	          root._waitingFor = null;
+	        }
+	      });
+	    });
+	  }
+
+	  abort() {
+	    if (this.active) {
+	      this.active = false;
+	      if (this.idbtrans) this.idbtrans.abort();
+
+	      this._reject(new exceptions.Abort());
+	    }
+	  }
+
+	  table(tableName) {
+	    const memoizedTables = this._memoizedTables || (this._memoizedTables = {});
+	    if (hasOwn(memoizedTables, tableName)) return memoizedTables[tableName];
+	    const tableSchema = this.schema[tableName];
+
+	    if (!tableSchema) {
+	      throw new exceptions.NotFound("Table " + tableName + " not part of transaction");
+	    }
+
+	    const transactionBoundTable = new this.db.Table(tableName, tableSchema, this);
+	    transactionBoundTable.core = this.db.core.table(tableName);
+	    memoizedTables[tableName] = transactionBoundTable;
+	    return transactionBoundTable;
+	  }
+
+	}
+
+	function createTransactionConstructor(db) {
+	  return makeClassConstructor(Transaction.prototype, function Transaction(mode, storeNames, dbschema, chromeTransactionDurability, parent) {
+	    this.db = db;
+	    this.mode = mode;
+	    this.storeNames = storeNames;
+	    this.schema = dbschema;
+	    this.chromeTransactionDurability = chromeTransactionDurability;
+	    this.idbtrans = null;
+	    this.on = Events(this, "complete", "error", "abort");
+	    this.parent = parent || null;
+	    this.active = true;
+	    this._reculock = 0;
+	    this._blockedFuncs = [];
+	    this._resolve = null;
+	    this._reject = null;
+	    this._waitingFor = null;
+	    this._waitingQueue = null;
+	    this._spinCount = 0;
+	    this._completion = new DexiePromise((resolve, reject) => {
+	      this._resolve = resolve;
+	      this._reject = reject;
+	    });
+
+	    this._completion.then(() => {
+	      this.active = false;
+	      this.on.complete.fire();
+	    }, e => {
+	      var wasActive = this.active;
+	      this.active = false;
+	      this.on.error.fire(e);
+	      this.parent ? this.parent._reject(e) : wasActive && this.idbtrans && this.idbtrans.abort();
+	      return rejection(e);
+	    });
+	  });
+	}
+
+	function createIndexSpec(name, keyPath, unique, multi, auto, compound, isPrimKey) {
+	  return {
+	    name,
+	    keyPath,
+	    unique,
+	    multi,
+	    auto,
+	    compound,
+	    src: (unique && !isPrimKey ? '&' : '') + (multi ? '*' : '') + (auto ? "++" : "") + nameFromKeyPath(keyPath)
+	  };
+	}
+
+	function nameFromKeyPath(keyPath) {
+	  return typeof keyPath === 'string' ? keyPath : keyPath ? '[' + [].join.call(keyPath, '+') + ']' : "";
+	}
+
+	function createTableSchema(name, primKey, indexes) {
+	  return {
+	    name,
+	    primKey,
+	    indexes,
+	    mappedClass: null,
+	    idxByName: arrayToObject(indexes, index => [index.name, index])
+	  };
+	}
+
+	function safariMultiStoreFix(storeNames) {
+	  return storeNames.length === 1 ? storeNames[0] : storeNames;
+	}
+
+	let getMaxKey = IdbKeyRange => {
+	  try {
+	    IdbKeyRange.only([[]]);
+
+	    getMaxKey = () => [[]];
+
+	    return [[]];
+	  } catch (e) {
+	    getMaxKey = () => maxString;
+
+	    return maxString;
+	  }
+	};
+
+	function getKeyExtractor(keyPath) {
+	  if (keyPath == null) {
+	    return () => undefined;
+	  } else if (typeof keyPath === 'string') {
+	    return getSinglePathKeyExtractor(keyPath);
+	  } else {
+	    return obj => getByKeyPath(obj, keyPath);
+	  }
+	}
+
+	function getSinglePathKeyExtractor(keyPath) {
+	  const split = keyPath.split('.');
+
+	  if (split.length === 1) {
+	    return obj => obj[keyPath];
+	  } else {
+	    return obj => getByKeyPath(obj, keyPath);
+	  }
+	}
+
+	function arrayify(arrayLike) {
+	  return [].slice.call(arrayLike);
+	}
+
+	let _id_counter = 0;
+
+	function getKeyPathAlias(keyPath) {
+	  return keyPath == null ? ":id" : typeof keyPath === 'string' ? keyPath : `[${keyPath.join('+')}]`;
+	}
+
+	function createDBCore(db, IdbKeyRange, tmpTrans) {
+	  function extractSchema(db, trans) {
+	    const tables = arrayify(db.objectStoreNames);
+	    return {
+	      schema: {
+	        name: db.name,
+	        tables: tables.map(table => trans.objectStore(table)).map(store => {
+	          const {
+	            keyPath,
+	            autoIncrement
+	          } = store;
+	          const compound = isArray(keyPath);
+	          const outbound = keyPath == null;
+	          const indexByKeyPath = {};
+	          const result = {
+	            name: store.name,
+	            primaryKey: {
+	              name: null,
+	              isPrimaryKey: true,
+	              outbound,
+	              compound,
+	              keyPath,
+	              autoIncrement,
+	              unique: true,
+	              extractKey: getKeyExtractor(keyPath)
+	            },
+	            indexes: arrayify(store.indexNames).map(indexName => store.index(indexName)).map(index => {
+	              const {
+	                name,
+	                unique,
+	                multiEntry,
+	                keyPath
+	              } = index;
+	              const compound = isArray(keyPath);
+	              const result = {
+	                name,
+	                compound,
+	                keyPath,
+	                unique,
+	                multiEntry,
+	                extractKey: getKeyExtractor(keyPath)
+	              };
+	              indexByKeyPath[getKeyPathAlias(keyPath)] = result;
+	              return result;
+	            }),
+	            getIndexByKeyPath: keyPath => indexByKeyPath[getKeyPathAlias(keyPath)]
+	          };
+	          indexByKeyPath[":id"] = result.primaryKey;
+
+	          if (keyPath != null) {
+	            indexByKeyPath[getKeyPathAlias(keyPath)] = result.primaryKey;
+	          }
+
+	          return result;
+	        })
+	      },
+	      hasGetAll: tables.length > 0 && 'getAll' in trans.objectStore(tables[0]) && !(typeof navigator !== 'undefined' && /Safari/.test(navigator.userAgent) && !/(Chrome\/|Edge\/)/.test(navigator.userAgent) && [].concat(navigator.userAgent.match(/Safari\/(\d*)/))[1] < 604)
+	    };
+	  }
+
+	  function makeIDBKeyRange(range) {
+	    if (range.type === 3) return null;
+	    if (range.type === 4) throw new Error("Cannot convert never type to IDBKeyRange");
+	    const {
+	      lower,
+	      upper,
+	      lowerOpen,
+	      upperOpen
+	    } = range;
+	    const idbRange = lower === undefined ? upper === undefined ? null : IdbKeyRange.upperBound(upper, !!upperOpen) : upper === undefined ? IdbKeyRange.lowerBound(lower, !!lowerOpen) : IdbKeyRange.bound(lower, upper, !!lowerOpen, !!upperOpen);
+	    return idbRange;
+	  }
+
+	  function createDbCoreTable(tableSchema) {
+	    const tableName = tableSchema.name;
+
+	    function mutate({
+	      trans,
+	      type,
+	      keys,
+	      values,
+	      range
+	    }) {
+	      return new Promise((resolve, reject) => {
+	        resolve = wrap(resolve);
+	        const store = trans.objectStore(tableName);
+	        const outbound = store.keyPath == null;
+	        const isAddOrPut = type === "put" || type === "add";
+	        if (!isAddOrPut && type !== 'delete' && type !== 'deleteRange') throw new Error("Invalid operation type: " + type);
+	        const {
+	          length
+	        } = keys || values || {
+	          length: 1
+	        };
+
+	        if (keys && values && keys.length !== values.length) {
+	          throw new Error("Given keys array must have same length as given values array.");
+	        }
+
+	        if (length === 0) return resolve({
+	          numFailures: 0,
+	          failures: {},
+	          results: [],
+	          lastResult: undefined
+	        });
+	        let req;
+	        const reqs = [];
+	        const failures = [];
+	        let numFailures = 0;
+
+	        const errorHandler = event => {
+	          ++numFailures;
+	          preventDefault(event);
+	        };
+
+	        if (type === 'deleteRange') {
+	          if (range.type === 4) return resolve({
+	            numFailures,
+	            failures,
+	            results: [],
+	            lastResult: undefined
+	          });
+	          if (range.type === 3) reqs.push(req = store.clear());else reqs.push(req = store.delete(makeIDBKeyRange(range)));
+	        } else {
+	          const [args1, args2] = isAddOrPut ? outbound ? [values, keys] : [values, null] : [keys, null];
+
+	          if (isAddOrPut) {
+	            for (let i = 0; i < length; ++i) {
+	              reqs.push(req = args2 && args2[i] !== undefined ? store[type](args1[i], args2[i]) : store[type](args1[i]));
+	              req.onerror = errorHandler;
+	            }
+	          } else {
+	            for (let i = 0; i < length; ++i) {
+	              reqs.push(req = store[type](args1[i]));
+	              req.onerror = errorHandler;
+	            }
+	          }
+	        }
+
+	        const done = event => {
+	          const lastResult = event.target.result;
+	          reqs.forEach((req, i) => req.error != null && (failures[i] = req.error));
+	          resolve({
+	            numFailures,
+	            failures,
+	            results: type === "delete" ? keys : reqs.map(req => req.result),
+	            lastResult
+	          });
+	        };
+
+	        req.onerror = event => {
+	          errorHandler(event);
+	          done(event);
+	        };
+
+	        req.onsuccess = done;
+	      });
+	    }
+
+	    function openCursor({
+	      trans,
+	      values,
+	      query,
+	      reverse,
+	      unique
+	    }) {
+	      return new Promise((resolve, reject) => {
+	        resolve = wrap(resolve);
+	        const {
+	          index,
+	          range
+	        } = query;
+	        const store = trans.objectStore(tableName);
+	        const source = index.isPrimaryKey ? store : store.index(index.name);
+	        const direction = reverse ? unique ? "prevunique" : "prev" : unique ? "nextunique" : "next";
+	        const req = values || !('openKeyCursor' in source) ? source.openCursor(makeIDBKeyRange(range), direction) : source.openKeyCursor(makeIDBKeyRange(range), direction);
+	        req.onerror = eventRejectHandler(reject);
+	        req.onsuccess = wrap(ev => {
+	          const cursor = req.result;
+
+	          if (!cursor) {
+	            resolve(null);
+	            return;
+	          }
+
+	          cursor.___id = ++_id_counter;
+	          cursor.done = false;
+
+	          const _cursorContinue = cursor.continue.bind(cursor);
+
+	          let _cursorContinuePrimaryKey = cursor.continuePrimaryKey;
+	          if (_cursorContinuePrimaryKey) _cursorContinuePrimaryKey = _cursorContinuePrimaryKey.bind(cursor);
+
+	          const _cursorAdvance = cursor.advance.bind(cursor);
+
+	          const doThrowCursorIsNotStarted = () => {
+	            throw new Error("Cursor not started");
+	          };
+
+	          const doThrowCursorIsStopped = () => {
+	            throw new Error("Cursor not stopped");
+	          };
+
+	          cursor.trans = trans;
+	          cursor.stop = cursor.continue = cursor.continuePrimaryKey = cursor.advance = doThrowCursorIsNotStarted;
+	          cursor.fail = wrap(reject);
+
+	          cursor.next = function () {
+	            let gotOne = 1;
+	            return this.start(() => gotOne-- ? this.continue() : this.stop()).then(() => this);
+	          };
+
+	          cursor.start = callback => {
+	            const iterationPromise = new Promise((resolveIteration, rejectIteration) => {
+	              resolveIteration = wrap(resolveIteration);
+	              req.onerror = eventRejectHandler(rejectIteration);
+	              cursor.fail = rejectIteration;
+
+	              cursor.stop = value => {
+	                cursor.stop = cursor.continue = cursor.continuePrimaryKey = cursor.advance = doThrowCursorIsStopped;
+	                resolveIteration(value);
+	              };
+	            });
+
+	            const guardedCallback = () => {
+	              if (req.result) {
+	                try {
+	                  callback();
+	                } catch (err) {
+	                  cursor.fail(err);
+	                }
+	              } else {
+	                cursor.done = true;
+
+	                cursor.start = () => {
+	                  throw new Error("Cursor behind last entry");
+	                };
+
+	                cursor.stop();
+	              }
+	            };
+
+	            req.onsuccess = wrap(ev => {
+	              req.onsuccess = guardedCallback;
+	              guardedCallback();
+	            });
+	            cursor.continue = _cursorContinue;
+	            cursor.continuePrimaryKey = _cursorContinuePrimaryKey;
+	            cursor.advance = _cursorAdvance;
+	            guardedCallback();
+	            return iterationPromise;
+	          };
+
+	          resolve(cursor);
+	        }, reject);
+	      });
+	    }
+
+	    function query(hasGetAll) {
+	      return request => {
+	        return new Promise((resolve, reject) => {
+	          resolve = wrap(resolve);
+	          const {
+	            trans,
+	            values,
+	            limit,
+	            query
+	          } = request;
+	          const nonInfinitLimit = limit === Infinity ? undefined : limit;
+	          const {
+	            index,
+	            range
+	          } = query;
+	          const store = trans.objectStore(tableName);
+	          const source = index.isPrimaryKey ? store : store.index(index.name);
+	          const idbKeyRange = makeIDBKeyRange(range);
+	          if (limit === 0) return resolve({
+	            result: []
+	          });
+
+	          if (hasGetAll) {
+	            const req = values ? source.getAll(idbKeyRange, nonInfinitLimit) : source.getAllKeys(idbKeyRange, nonInfinitLimit);
+
+	            req.onsuccess = event => resolve({
+	              result: event.target.result
+	            });
+
+	            req.onerror = eventRejectHandler(reject);
+	          } else {
+	            let count = 0;
+	            const req = values || !('openKeyCursor' in source) ? source.openCursor(idbKeyRange) : source.openKeyCursor(idbKeyRange);
+	            const result = [];
+
+	            req.onsuccess = event => {
+	              const cursor = req.result;
+	              if (!cursor) return resolve({
+	                result
+	              });
+	              result.push(values ? cursor.value : cursor.primaryKey);
+	              if (++count === limit) return resolve({
+	                result
+	              });
+	              cursor.continue();
+	            };
+
+	            req.onerror = eventRejectHandler(reject);
+	          }
+	        });
+	      };
+	    }
+
+	    return {
+	      name: tableName,
+	      schema: tableSchema,
+	      mutate,
+
+	      getMany({
+	        trans,
+	        keys
+	      }) {
+	        return new Promise((resolve, reject) => {
+	          resolve = wrap(resolve);
+	          const store = trans.objectStore(tableName);
+	          const length = keys.length;
+	          const result = new Array(length);
+	          let keyCount = 0;
+	          let callbackCount = 0;
+	          let req;
+
+	          const successHandler = event => {
+	            const req = event.target;
+	            if ((result[req._pos] = req.result) != null) ;
+	            if (++callbackCount === keyCount) resolve(result);
+	          };
+
+	          const errorHandler = eventRejectHandler(reject);
+
+	          for (let i = 0; i < length; ++i) {
+	            const key = keys[i];
+
+	            if (key != null) {
+	              req = store.get(keys[i]);
+	              req._pos = i;
+	              req.onsuccess = successHandler;
+	              req.onerror = errorHandler;
+	              ++keyCount;
+	            }
+	          }
+
+	          if (keyCount === 0) resolve(result);
+	        });
+	      },
+
+	      get({
+	        trans,
+	        key
+	      }) {
+	        return new Promise((resolve, reject) => {
+	          resolve = wrap(resolve);
+	          const store = trans.objectStore(tableName);
+	          const req = store.get(key);
+
+	          req.onsuccess = event => resolve(event.target.result);
+
+	          req.onerror = eventRejectHandler(reject);
+	        });
+	      },
+
+	      query: query(hasGetAll),
+	      openCursor,
+
+	      count({
+	        query,
+	        trans
+	      }) {
+	        const {
+	          index,
+	          range
+	        } = query;
+	        return new Promise((resolve, reject) => {
+	          const store = trans.objectStore(tableName);
+	          const source = index.isPrimaryKey ? store : store.index(index.name);
+	          const idbKeyRange = makeIDBKeyRange(range);
+	          const req = idbKeyRange ? source.count(idbKeyRange) : source.count();
+	          req.onsuccess = wrap(ev => resolve(ev.target.result));
+	          req.onerror = eventRejectHandler(reject);
+	        });
+	      }
+
+	    };
+	  }
+
+	  const {
+	    schema,
+	    hasGetAll
+	  } = extractSchema(db, tmpTrans);
+	  const tables = schema.tables.map(tableSchema => createDbCoreTable(tableSchema));
+	  const tableMap = {};
+	  tables.forEach(table => tableMap[table.name] = table);
+	  return {
+	    stack: "dbcore",
+	    transaction: db.transaction.bind(db),
+
+	    table(name) {
+	      const result = tableMap[name];
+	      if (!result) throw new Error(`Table '${name}' not found`);
+	      return tableMap[name];
+	    },
+
+	    MIN_KEY: -Infinity,
+	    MAX_KEY: getMaxKey(IdbKeyRange),
+	    schema
+	  };
+	}
+
+	function createMiddlewareStack(stackImpl, middlewares) {
+	  return middlewares.reduce((down, {
+	    create
+	  }) => ({ ...down,
+	    ...create(down)
+	  }), stackImpl);
+	}
+
+	function createMiddlewareStacks(middlewares, idbdb, {
+	  IDBKeyRange,
+	  indexedDB
+	}, tmpTrans) {
+	  const dbcore = createMiddlewareStack(createDBCore(idbdb, IDBKeyRange, tmpTrans), middlewares.dbcore);
+	  return {
+	    dbcore
+	  };
+	}
+
+	function generateMiddlewareStacks({
+	  _novip: db
+	}, tmpTrans) {
+	  const idbdb = tmpTrans.db;
+	  const stacks = createMiddlewareStacks(db._middlewares, idbdb, db._deps, tmpTrans);
+	  db.core = stacks.dbcore;
+	  db.tables.forEach(table => {
+	    const tableName = table.name;
+
+	    if (db.core.schema.tables.some(tbl => tbl.name === tableName)) {
+	      table.core = db.core.table(tableName);
+
+	      if (db[tableName] instanceof db.Table) {
+	        db[tableName].core = table.core;
+	      }
+	    }
+	  });
+	}
+
+	function setApiOnPlace({
+	  _novip: db
+	}, objs, tableNames, dbschema) {
+	  tableNames.forEach(tableName => {
+	    const schema = dbschema[tableName];
+	    objs.forEach(obj => {
+	      const propDesc = getPropertyDescriptor(obj, tableName);
+
+	      if (!propDesc || "value" in propDesc && propDesc.value === undefined) {
+	        if (obj === db.Transaction.prototype || obj instanceof db.Transaction) {
+	          setProp(obj, tableName, {
+	            get() {
+	              return this.table(tableName);
+	            },
+
+	            set(value) {
+	              defineProperty(this, tableName, {
+	                value,
+	                writable: true,
+	                configurable: true,
+	                enumerable: true
+	              });
+	            }
+
+	          });
+	        } else {
+	          obj[tableName] = new db.Table(tableName, schema);
+	        }
+	      }
+	    });
+	  });
+	}
+
+	function removeTablesApi({
+	  _novip: db
+	}, objs) {
+	  objs.forEach(obj => {
+	    for (let key in obj) {
+	      if (obj[key] instanceof db.Table) delete obj[key];
+	    }
+	  });
+	}
+
+	function lowerVersionFirst(a, b) {
+	  return a._cfg.version - b._cfg.version;
+	}
+
+	function runUpgraders(db, oldVersion, idbUpgradeTrans, reject) {
+	  const globalSchema = db._dbSchema;
+
+	  const trans = db._createTransaction('readwrite', db._storeNames, globalSchema);
+
+	  trans.create(idbUpgradeTrans);
+
+	  trans._completion.catch(reject);
+
+	  const rejectTransaction = trans._reject.bind(trans);
+
+	  const transless = PSD.transless || PSD;
+	  newScope(() => {
+	    PSD.trans = trans;
+	    PSD.transless = transless;
+
+	    if (oldVersion === 0) {
+	      keys(globalSchema).forEach(tableName => {
+	        createTable(idbUpgradeTrans, tableName, globalSchema[tableName].primKey, globalSchema[tableName].indexes);
+	      });
+	      generateMiddlewareStacks(db, idbUpgradeTrans);
+	      DexiePromise.follow(() => db.on.populate.fire(trans)).catch(rejectTransaction);
+	    } else updateTablesAndIndexes(db, oldVersion, trans, idbUpgradeTrans).catch(rejectTransaction);
+	  });
+	}
+
+	function updateTablesAndIndexes({
+	  _novip: db
+	}, oldVersion, trans, idbUpgradeTrans) {
+	  const queue = [];
+	  const versions = db._versions;
+	  let globalSchema = db._dbSchema = buildGlobalSchema(db, db.idbdb, idbUpgradeTrans);
+	  let anyContentUpgraderHasRun = false;
+	  const versToRun = versions.filter(v => v._cfg.version >= oldVersion);
+	  versToRun.forEach(version => {
+	    queue.push(() => {
+	      const oldSchema = globalSchema;
+	      const newSchema = version._cfg.dbschema;
+	      adjustToExistingIndexNames(db, oldSchema, idbUpgradeTrans);
+	      adjustToExistingIndexNames(db, newSchema, idbUpgradeTrans);
+	      globalSchema = db._dbSchema = newSchema;
+	      const diff = getSchemaDiff(oldSchema, newSchema);
+	      diff.add.forEach(tuple => {
+	        createTable(idbUpgradeTrans, tuple[0], tuple[1].primKey, tuple[1].indexes);
+	      });
+	      diff.change.forEach(change => {
+	        if (change.recreate) {
+	          throw new exceptions.Upgrade("Not yet support for changing primary key");
+	        } else {
+	          const store = idbUpgradeTrans.objectStore(change.name);
+	          change.add.forEach(idx => addIndex(store, idx));
+	          change.change.forEach(idx => {
+	            store.deleteIndex(idx.name);
+	            addIndex(store, idx);
+	          });
+	          change.del.forEach(idxName => store.deleteIndex(idxName));
+	        }
+	      });
+	      const contentUpgrade = version._cfg.contentUpgrade;
+
+	      if (contentUpgrade && version._cfg.version > oldVersion) {
+	        generateMiddlewareStacks(db, idbUpgradeTrans);
+	        trans._memoizedTables = {};
+	        anyContentUpgraderHasRun = true;
+	        let upgradeSchema = shallowClone(newSchema);
+	        diff.del.forEach(table => {
+	          upgradeSchema[table] = oldSchema[table];
+	        });
+	        removeTablesApi(db, [db.Transaction.prototype]);
+	        setApiOnPlace(db, [db.Transaction.prototype], keys(upgradeSchema), upgradeSchema);
+	        trans.schema = upgradeSchema;
+	        const contentUpgradeIsAsync = isAsyncFunction(contentUpgrade);
+
+	        if (contentUpgradeIsAsync) {
+	          incrementExpectedAwaits();
+	        }
+
+	        let returnValue;
+	        const promiseFollowed = DexiePromise.follow(() => {
+	          returnValue = contentUpgrade(trans);
+
+	          if (returnValue) {
+	            if (contentUpgradeIsAsync) {
+	              var decrementor = decrementExpectedAwaits.bind(null, null);
+	              returnValue.then(decrementor, decrementor);
+	            }
+	          }
+	        });
+	        return returnValue && typeof returnValue.then === 'function' ? DexiePromise.resolve(returnValue) : promiseFollowed.then(() => returnValue);
+	      }
+	    });
+	    queue.push(idbtrans => {
+	      if (!anyContentUpgraderHasRun || !hasIEDeleteObjectStoreBug) {
+	        const newSchema = version._cfg.dbschema;
+	        deleteRemovedTables(newSchema, idbtrans);
+	      }
+
+	      removeTablesApi(db, [db.Transaction.prototype]);
+	      setApiOnPlace(db, [db.Transaction.prototype], db._storeNames, db._dbSchema);
+	      trans.schema = db._dbSchema;
+	    });
+	  });
+
+	  function runQueue() {
+	    return queue.length ? DexiePromise.resolve(queue.shift()(trans.idbtrans)).then(runQueue) : DexiePromise.resolve();
+	  }
+
+	  return runQueue().then(() => {
+	    createMissingTables(globalSchema, idbUpgradeTrans);
+	  });
+	}
+
+	function getSchemaDiff(oldSchema, newSchema) {
+	  const diff = {
+	    del: [],
+	    add: [],
+	    change: []
+	  };
+	  let table;
+
+	  for (table in oldSchema) {
+	    if (!newSchema[table]) diff.del.push(table);
+	  }
+
+	  for (table in newSchema) {
+	    const oldDef = oldSchema[table],
+	          newDef = newSchema[table];
+
+	    if (!oldDef) {
+	      diff.add.push([table, newDef]);
+	    } else {
+	      const change = {
+	        name: table,
+	        def: newDef,
+	        recreate: false,
+	        del: [],
+	        add: [],
+	        change: []
+	      };
+
+	      if ('' + (oldDef.primKey.keyPath || '') !== '' + (newDef.primKey.keyPath || '') || oldDef.primKey.auto !== newDef.primKey.auto && !isIEOrEdge) {
+	        change.recreate = true;
+	        diff.change.push(change);
+	      } else {
+	        const oldIndexes = oldDef.idxByName;
+	        const newIndexes = newDef.idxByName;
+	        let idxName;
+
+	        for (idxName in oldIndexes) {
+	          if (!newIndexes[idxName]) change.del.push(idxName);
+	        }
+
+	        for (idxName in newIndexes) {
+	          const oldIdx = oldIndexes[idxName],
+	                newIdx = newIndexes[idxName];
+	          if (!oldIdx) change.add.push(newIdx);else if (oldIdx.src !== newIdx.src) change.change.push(newIdx);
+	        }
+
+	        if (change.del.length > 0 || change.add.length > 0 || change.change.length > 0) {
+	          diff.change.push(change);
+	        }
+	      }
+	    }
+	  }
+
+	  return diff;
+	}
+
+	function createTable(idbtrans, tableName, primKey, indexes) {
+	  const store = idbtrans.db.createObjectStore(tableName, primKey.keyPath ? {
+	    keyPath: primKey.keyPath,
+	    autoIncrement: primKey.auto
+	  } : {
+	    autoIncrement: primKey.auto
+	  });
+	  indexes.forEach(idx => addIndex(store, idx));
+	  return store;
+	}
+
+	function createMissingTables(newSchema, idbtrans) {
+	  keys(newSchema).forEach(tableName => {
+	    if (!idbtrans.db.objectStoreNames.contains(tableName)) {
+	      createTable(idbtrans, tableName, newSchema[tableName].primKey, newSchema[tableName].indexes);
+	    }
+	  });
+	}
+
+	function deleteRemovedTables(newSchema, idbtrans) {
+	  [].slice.call(idbtrans.db.objectStoreNames).forEach(storeName => newSchema[storeName] == null && idbtrans.db.deleteObjectStore(storeName));
+	}
+
+	function addIndex(store, idx) {
+	  store.createIndex(idx.name, idx.keyPath, {
+	    unique: idx.unique,
+	    multiEntry: idx.multi
+	  });
+	}
+
+	function buildGlobalSchema(db, idbdb, tmpTrans) {
+	  const globalSchema = {};
+	  const dbStoreNames = slice(idbdb.objectStoreNames, 0);
+	  dbStoreNames.forEach(storeName => {
+	    const store = tmpTrans.objectStore(storeName);
+	    let keyPath = store.keyPath;
+	    const primKey = createIndexSpec(nameFromKeyPath(keyPath), keyPath || "", false, false, !!store.autoIncrement, keyPath && typeof keyPath !== "string", true);
+	    const indexes = [];
+
+	    for (let j = 0; j < store.indexNames.length; ++j) {
+	      const idbindex = store.index(store.indexNames[j]);
+	      keyPath = idbindex.keyPath;
+	      var index = createIndexSpec(idbindex.name, keyPath, !!idbindex.unique, !!idbindex.multiEntry, false, keyPath && typeof keyPath !== "string", false);
+	      indexes.push(index);
+	    }
+
+	    globalSchema[storeName] = createTableSchema(storeName, primKey, indexes);
+	  });
+	  return globalSchema;
+	}
+
+	function readGlobalSchema({
+	  _novip: db
+	}, idbdb, tmpTrans) {
+	  db.verno = idbdb.version / 10;
+	  const globalSchema = db._dbSchema = buildGlobalSchema(db, idbdb, tmpTrans);
+	  db._storeNames = slice(idbdb.objectStoreNames, 0);
+	  setApiOnPlace(db, [db._allTables], keys(globalSchema), globalSchema);
+	}
+
+	function verifyInstalledSchema(db, tmpTrans) {
+	  const installedSchema = buildGlobalSchema(db, db.idbdb, tmpTrans);
+	  const diff = getSchemaDiff(installedSchema, db._dbSchema);
+	  return !(diff.add.length || diff.change.some(ch => ch.add.length || ch.change.length));
+	}
+
+	function adjustToExistingIndexNames({
+	  _novip: db
+	}, schema, idbtrans) {
+	  const storeNames = idbtrans.db.objectStoreNames;
+
+	  for (let i = 0; i < storeNames.length; ++i) {
+	    const storeName = storeNames[i];
+	    const store = idbtrans.objectStore(storeName);
+	    db._hasGetAll = 'getAll' in store;
+
+	    for (let j = 0; j < store.indexNames.length; ++j) {
+	      const indexName = store.indexNames[j];
+	      const keyPath = store.index(indexName).keyPath;
+	      const dexieName = typeof keyPath === 'string' ? keyPath : "[" + slice(keyPath).join('+') + "]";
+
+	      if (schema[storeName]) {
+	        const indexSpec = schema[storeName].idxByName[dexieName];
+
+	        if (indexSpec) {
+	          indexSpec.name = indexName;
+	          delete schema[storeName].idxByName[dexieName];
+	          schema[storeName].idxByName[indexName] = indexSpec;
+	        }
+	      }
+	    }
+	  }
+
+	  if (typeof navigator !== 'undefined' && /Safari/.test(navigator.userAgent) && !/(Chrome\/|Edge\/)/.test(navigator.userAgent) && _global.WorkerGlobalScope && _global instanceof _global.WorkerGlobalScope && [].concat(navigator.userAgent.match(/Safari\/(\d*)/))[1] < 604) {
+	    db._hasGetAll = false;
+	  }
+	}
+
+	function parseIndexSyntax(primKeyAndIndexes) {
+	  return primKeyAndIndexes.split(',').map((index, indexNum) => {
+	    index = index.trim();
+	    const name = index.replace(/([&*]|\+\+)/g, "");
+	    const keyPath = /^\[/.test(name) ? name.match(/^\[(.*)\]$/)[1].split('+') : name;
+	    return createIndexSpec(name, keyPath || null, /\&/.test(index), /\*/.test(index), /\+\+/.test(index), isArray(keyPath), indexNum === 0);
+	  });
+	}
+
+	class Version {
+	  _parseStoresSpec(stores, outSchema) {
+	    keys(stores).forEach(tableName => {
+	      if (stores[tableName] !== null) {
+	        var indexes = parseIndexSyntax(stores[tableName]);
+	        var primKey = indexes.shift();
+	        if (primKey.multi) throw new exceptions.Schema("Primary key cannot be multi-valued");
+	        indexes.forEach(idx => {
+	          if (idx.auto) throw new exceptions.Schema("Only primary key can be marked as autoIncrement (++)");
+	          if (!idx.keyPath) throw new exceptions.Schema("Index must have a name and cannot be an empty string");
+	        });
+	        outSchema[tableName] = createTableSchema(tableName, primKey, indexes);
+	      }
+	    });
+	  }
+
+	  stores(stores) {
+	    const db = this.db;
+	    this._cfg.storesSource = this._cfg.storesSource ? extend(this._cfg.storesSource, stores) : stores;
+	    const versions = db._versions;
+	    const storesSpec = {};
+	    let dbschema = {};
+	    versions.forEach(version => {
+	      extend(storesSpec, version._cfg.storesSource);
+	      dbschema = version._cfg.dbschema = {};
+
+	      version._parseStoresSpec(storesSpec, dbschema);
+	    });
+	    db._dbSchema = dbschema;
+	    removeTablesApi(db, [db._allTables, db, db.Transaction.prototype]);
+	    setApiOnPlace(db, [db._allTables, db, db.Transaction.prototype, this._cfg.tables], keys(dbschema), dbschema);
+	    db._storeNames = keys(dbschema);
+	    return this;
+	  }
+
+	  upgrade(upgradeFunction) {
+	    this._cfg.contentUpgrade = promisableChain(this._cfg.contentUpgrade || nop, upgradeFunction);
+	    return this;
+	  }
+
+	}
+
+	function createVersionConstructor(db) {
+	  return makeClassConstructor(Version.prototype, function Version(versionNumber) {
+	    this.db = db;
+	    this._cfg = {
+	      version: versionNumber,
+	      storesSource: null,
+	      dbschema: {},
+	      tables: {},
+	      contentUpgrade: null
+	    };
+	  });
+	}
+
+	function getDbNamesTable(indexedDB, IDBKeyRange) {
+	  let dbNamesDB = indexedDB["_dbNamesDB"];
+
+	  if (!dbNamesDB) {
+	    dbNamesDB = indexedDB["_dbNamesDB"] = new Dexie$1(DBNAMES_DB, {
+	      addons: [],
+	      indexedDB,
+	      IDBKeyRange
+	    });
+	    dbNamesDB.version(1).stores({
+	      dbnames: "name"
+	    });
+	  }
+
+	  return dbNamesDB.table("dbnames");
+	}
+
+	function hasDatabasesNative(indexedDB) {
+	  return indexedDB && typeof indexedDB.databases === "function";
+	}
+
+	function getDatabaseNames({
+	  indexedDB,
+	  IDBKeyRange
+	}) {
+	  return hasDatabasesNative(indexedDB) ? Promise.resolve(indexedDB.databases()).then(infos => infos.map(info => info.name).filter(name => name !== DBNAMES_DB)) : getDbNamesTable(indexedDB, IDBKeyRange).toCollection().primaryKeys();
+	}
+
+	function _onDatabaseCreated({
+	  indexedDB,
+	  IDBKeyRange
+	}, name) {
+	  !hasDatabasesNative(indexedDB) && name !== DBNAMES_DB && getDbNamesTable(indexedDB, IDBKeyRange).put({
+	    name
+	  }).catch(nop);
+	}
+
+	function _onDatabaseDeleted({
+	  indexedDB,
+	  IDBKeyRange
+	}, name) {
+	  !hasDatabasesNative(indexedDB) && name !== DBNAMES_DB && getDbNamesTable(indexedDB, IDBKeyRange).delete(name).catch(nop);
+	}
+
+	function vip(fn) {
+	  return newScope(function () {
+	    PSD.letThrough = true;
+	    return fn();
+	  });
+	}
+
+	function idbReady() {
+	  var isSafari = !navigator.userAgentData && /Safari\//.test(navigator.userAgent) && !/Chrom(e|ium)\//.test(navigator.userAgent);
+	  if (!isSafari || !indexedDB.databases) return Promise.resolve();
+	  var intervalId;
+	  return new Promise(function (resolve) {
+	    var tryIdb = function () {
+	      return indexedDB.databases().finally(resolve);
+	    };
+
+	    intervalId = setInterval(tryIdb, 100);
+	    tryIdb();
+	  }).finally(function () {
+	    return clearInterval(intervalId);
+	  });
+	}
+
+	function dexieOpen(db) {
+	  const state = db._state;
+	  const {
+	    indexedDB
+	  } = db._deps;
+	  if (state.isBeingOpened || db.idbdb) return state.dbReadyPromise.then(() => state.dbOpenError ? rejection(state.dbOpenError) : db);
+	  debug && (state.openCanceller._stackHolder = getErrorWithStack());
+	  state.isBeingOpened = true;
+	  state.dbOpenError = null;
+	  state.openComplete = false;
+	  const openCanceller = state.openCanceller;
+
+	  function throwIfCancelled() {
+	    if (state.openCanceller !== openCanceller) throw new exceptions.DatabaseClosed('db.open() was cancelled');
+	  }
+
+	  let resolveDbReady = state.dbReadyResolve,
+	      upgradeTransaction = null,
+	      wasCreated = false;
+	  return DexiePromise.race([openCanceller, (typeof navigator === 'undefined' ? DexiePromise.resolve() : idbReady()).then(() => new DexiePromise((resolve, reject) => {
+	    throwIfCancelled();
+	    if (!indexedDB) throw new exceptions.MissingAPI();
+	    const dbName = db.name;
+	    const req = state.autoSchema ? indexedDB.open(dbName) : indexedDB.open(dbName, Math.round(db.verno * 10));
+	    if (!req) throw new exceptions.MissingAPI();
+	    req.onerror = eventRejectHandler(reject);
+	    req.onblocked = wrap(db._fireOnBlocked);
+	    req.onupgradeneeded = wrap(e => {
+	      upgradeTransaction = req.transaction;
+
+	      if (state.autoSchema && !db._options.allowEmptyDB) {
+	        req.onerror = preventDefault;
+	        upgradeTransaction.abort();
+	        req.result.close();
+	        const delreq = indexedDB.deleteDatabase(dbName);
+	        delreq.onsuccess = delreq.onerror = wrap(() => {
+	          reject(new exceptions.NoSuchDatabase(`Database ${dbName} doesnt exist`));
+	        });
+	      } else {
+	        upgradeTransaction.onerror = eventRejectHandler(reject);
+	        var oldVer = e.oldVersion > Math.pow(2, 62) ? 0 : e.oldVersion;
+	        wasCreated = oldVer < 1;
+	        db._novip.idbdb = req.result;
+	        runUpgraders(db, oldVer / 10, upgradeTransaction, reject);
+	      }
+	    }, reject);
+	    req.onsuccess = wrap(() => {
+	      upgradeTransaction = null;
+	      const idbdb = db._novip.idbdb = req.result;
+	      const objectStoreNames = slice(idbdb.objectStoreNames);
+	      if (objectStoreNames.length > 0) try {
+	        const tmpTrans = idbdb.transaction(safariMultiStoreFix(objectStoreNames), 'readonly');
+	        if (state.autoSchema) readGlobalSchema(db, idbdb, tmpTrans);else {
+	          adjustToExistingIndexNames(db, db._dbSchema, tmpTrans);
+
+	          if (!verifyInstalledSchema(db, tmpTrans)) {
+	            console.warn(`Dexie SchemaDiff: Schema was extended without increasing the number passed to db.version(). Some queries may fail.`);
+	          }
+	        }
+	        generateMiddlewareStacks(db, tmpTrans);
+	      } catch (e) {}
+	      connections.push(db);
+	      idbdb.onversionchange = wrap(ev => {
+	        state.vcFired = true;
+	        db.on("versionchange").fire(ev);
+	      });
+	      idbdb.onclose = wrap(ev => {
+	        db.on("close").fire(ev);
+	      });
+	      if (wasCreated) _onDatabaseCreated(db._deps, dbName);
+	      resolve();
+	    }, reject);
+	  }))]).then(() => {
+	    throwIfCancelled();
+	    state.onReadyBeingFired = [];
+	    return DexiePromise.resolve(vip(() => db.on.ready.fire(db.vip))).then(function fireRemainders() {
+	      if (state.onReadyBeingFired.length > 0) {
+	        let remainders = state.onReadyBeingFired.reduce(promisableChain, nop);
+	        state.onReadyBeingFired = [];
+	        return DexiePromise.resolve(vip(() => remainders(db.vip))).then(fireRemainders);
+	      }
+	    });
+	  }).finally(() => {
+	    state.onReadyBeingFired = null;
+	    state.isBeingOpened = false;
+	  }).then(() => {
+	    return db;
+	  }).catch(err => {
+	    state.dbOpenError = err;
+
+	    try {
+	      upgradeTransaction && upgradeTransaction.abort();
+	    } catch (_a) {}
+
+	    if (openCanceller === state.openCanceller) {
+	      db._close();
+	    }
+
+	    return rejection(err);
+	  }).finally(() => {
+	    state.openComplete = true;
+	    resolveDbReady();
+	  });
+	}
+
+	function awaitIterator(iterator) {
+	  var callNext = result => iterator.next(result),
+	      doThrow = error => iterator.throw(error),
+	      onSuccess = step(callNext),
+	      onError = step(doThrow);
+
+	  function step(getNext) {
+	    return val => {
+	      var next = getNext(val),
+	          value = next.value;
+	      return next.done ? value : !value || typeof value.then !== 'function' ? isArray(value) ? Promise.all(value).then(onSuccess, onError) : onSuccess(value) : value.then(onSuccess, onError);
+	    };
+	  }
+
+	  return step(callNext)();
+	}
+
+	function extractTransactionArgs(mode, _tableArgs_, scopeFunc) {
+	  var i = arguments.length;
+	  if (i < 2) throw new exceptions.InvalidArgument("Too few arguments");
+	  var args = new Array(i - 1);
+
+	  while (--i) args[i - 1] = arguments[i];
+
+	  scopeFunc = args.pop();
+	  var tables = flatten(args);
+	  return [mode, tables, scopeFunc];
+	}
+
+	function enterTransactionScope(db, mode, storeNames, parentTransaction, scopeFunc) {
+	  return DexiePromise.resolve().then(() => {
+	    const transless = PSD.transless || PSD;
+
+	    const trans = db._createTransaction(mode, storeNames, db._dbSchema, parentTransaction);
+
+	    const zoneProps = {
+	      trans: trans,
+	      transless: transless
+	    };
+
+	    if (parentTransaction) {
+	      trans.idbtrans = parentTransaction.idbtrans;
+	    } else {
+	      try {
+	        trans.create();
+	        db._state.PR1398_maxLoop = 3;
+	      } catch (ex) {
+	        if (ex.name === errnames.InvalidState && db.isOpen() && --db._state.PR1398_maxLoop > 0) {
+	          console.warn('Dexie: Need to reopen db');
+
+	          db._close();
+
+	          return db.open().then(() => enterTransactionScope(db, mode, storeNames, null, scopeFunc));
+	        }
+
+	        return rejection(ex);
+	      }
+	    }
+
+	    const scopeFuncIsAsync = isAsyncFunction(scopeFunc);
+
+	    if (scopeFuncIsAsync) {
+	      incrementExpectedAwaits();
+	    }
+
+	    let returnValue;
+	    const promiseFollowed = DexiePromise.follow(() => {
+	      returnValue = scopeFunc.call(trans, trans);
+
+	      if (returnValue) {
+	        if (scopeFuncIsAsync) {
+	          var decrementor = decrementExpectedAwaits.bind(null, null);
+	          returnValue.then(decrementor, decrementor);
+	        } else if (typeof returnValue.next === 'function' && typeof returnValue.throw === 'function') {
+	          returnValue = awaitIterator(returnValue);
+	        }
+	      }
+	    }, zoneProps);
+	    return (returnValue && typeof returnValue.then === 'function' ? DexiePromise.resolve(returnValue).then(x => trans.active ? x : rejection(new exceptions.PrematureCommit("Transaction committed too early. See http://bit.ly/2kdckMn"))) : promiseFollowed.then(() => returnValue)).then(x => {
+	      if (parentTransaction) trans._resolve();
+	      return trans._completion.then(() => x);
+	    }).catch(e => {
+	      trans._reject(e);
+
+	      return rejection(e);
+	    });
+	  });
+	}
+
+	function pad(a, value, count) {
+	  const result = isArray(a) ? a.slice() : [a];
+
+	  for (let i = 0; i < count; ++i) result.push(value);
+
+	  return result;
+	}
+
+	function createVirtualIndexMiddleware(down) {
+	  return { ...down,
+
+	    table(tableName) {
+	      const table = down.table(tableName);
+	      const {
+	        schema
+	      } = table;
+	      const indexLookup = {};
+	      const allVirtualIndexes = [];
+
+	      function addVirtualIndexes(keyPath, keyTail, lowLevelIndex) {
+	        const keyPathAlias = getKeyPathAlias(keyPath);
+	        const indexList = indexLookup[keyPathAlias] = indexLookup[keyPathAlias] || [];
+	        const keyLength = keyPath == null ? 0 : typeof keyPath === 'string' ? 1 : keyPath.length;
+	        const isVirtual = keyTail > 0;
+	        const virtualIndex = { ...lowLevelIndex,
+	          isVirtual,
+	          keyTail,
+	          keyLength,
+	          extractKey: getKeyExtractor(keyPath),
+	          unique: !isVirtual && lowLevelIndex.unique
+	        };
+	        indexList.push(virtualIndex);
+
+	        if (!virtualIndex.isPrimaryKey) {
+	          allVirtualIndexes.push(virtualIndex);
+	        }
+
+	        if (keyLength > 1) {
+	          const virtualKeyPath = keyLength === 2 ? keyPath[0] : keyPath.slice(0, keyLength - 1);
+	          addVirtualIndexes(virtualKeyPath, keyTail + 1, lowLevelIndex);
+	        }
+
+	        indexList.sort((a, b) => a.keyTail - b.keyTail);
+	        return virtualIndex;
+	      }
+
+	      const primaryKey = addVirtualIndexes(schema.primaryKey.keyPath, 0, schema.primaryKey);
+	      indexLookup[":id"] = [primaryKey];
+
+	      for (const index of schema.indexes) {
+	        addVirtualIndexes(index.keyPath, 0, index);
+	      }
+
+	      function findBestIndex(keyPath) {
+	        const result = indexLookup[getKeyPathAlias(keyPath)];
+	        return result && result[0];
+	      }
+
+	      function translateRange(range, keyTail) {
+	        return {
+	          type: range.type === 1 ? 2 : range.type,
+	          lower: pad(range.lower, range.lowerOpen ? down.MAX_KEY : down.MIN_KEY, keyTail),
+	          lowerOpen: true,
+	          upper: pad(range.upper, range.upperOpen ? down.MIN_KEY : down.MAX_KEY, keyTail),
+	          upperOpen: true
+	        };
+	      }
+
+	      function translateRequest(req) {
+	        const index = req.query.index;
+	        return index.isVirtual ? { ...req,
+	          query: {
+	            index,
+	            range: translateRange(req.query.range, index.keyTail)
+	          }
+	        } : req;
+	      }
+
+	      const result = { ...table,
+	        schema: { ...schema,
+	          primaryKey,
+	          indexes: allVirtualIndexes,
+	          getIndexByKeyPath: findBestIndex
+	        },
+
+	        count(req) {
+	          return table.count(translateRequest(req));
+	        },
+
+	        query(req) {
+	          return table.query(translateRequest(req));
+	        },
+
+	        openCursor(req) {
+	          const {
+	            keyTail,
+	            isVirtual,
+	            keyLength
+	          } = req.query.index;
+	          if (!isVirtual) return table.openCursor(req);
+
+	          function createVirtualCursor(cursor) {
+	            function _continue(key) {
+	              key != null ? cursor.continue(pad(key, req.reverse ? down.MAX_KEY : down.MIN_KEY, keyTail)) : req.unique ? cursor.continue(cursor.key.slice(0, keyLength).concat(req.reverse ? down.MIN_KEY : down.MAX_KEY, keyTail)) : cursor.continue();
+	            }
+
+	            const virtualCursor = Object.create(cursor, {
+	              continue: {
+	                value: _continue
+	              },
+	              continuePrimaryKey: {
+	                value(key, primaryKey) {
+	                  cursor.continuePrimaryKey(pad(key, down.MAX_KEY, keyTail), primaryKey);
+	                }
+
+	              },
+	              primaryKey: {
+	                get() {
+	                  return cursor.primaryKey;
+	                }
+
+	              },
+	              key: {
+	                get() {
+	                  const key = cursor.key;
+	                  return keyLength === 1 ? key[0] : key.slice(0, keyLength);
+	                }
+
+	              },
+	              value: {
+	                get() {
+	                  return cursor.value;
+	                }
+
+	              }
+	            });
+	            return virtualCursor;
+	          }
+
+	          return table.openCursor(translateRequest(req)).then(cursor => cursor && createVirtualCursor(cursor));
+	        }
+
+	      };
+	      return result;
+	    }
+
+	  };
+	}
+
+	const virtualIndexMiddleware = {
+	  stack: "dbcore",
+	  name: "VirtualIndexMiddleware",
+	  level: 1,
+	  create: createVirtualIndexMiddleware
+	};
+
+	function getObjectDiff(a, b, rv, prfx) {
+	  rv = rv || {};
+	  prfx = prfx || '';
+	  keys(a).forEach(prop => {
+	    if (!hasOwn(b, prop)) {
+	      rv[prfx + prop] = undefined;
+	    } else {
+	      var ap = a[prop],
+	          bp = b[prop];
+
+	      if (typeof ap === 'object' && typeof bp === 'object' && ap && bp) {
+	        const apTypeName = toStringTag(ap);
+	        const bpTypeName = toStringTag(bp);
+
+	        if (apTypeName !== bpTypeName) {
+	          rv[prfx + prop] = b[prop];
+	        } else if (apTypeName === 'Object') {
+	          getObjectDiff(ap, bp, rv, prfx + prop + '.');
+	        } else if (ap !== bp) {
+	          rv[prfx + prop] = b[prop];
+	        }
+	      } else if (ap !== bp) rv[prfx + prop] = b[prop];
+	    }
+	  });
+	  keys(b).forEach(prop => {
+	    if (!hasOwn(a, prop)) {
+	      rv[prfx + prop] = b[prop];
+	    }
+	  });
+	  return rv;
+	}
+
+	function getEffectiveKeys(primaryKey, req) {
+	  if (req.type === 'delete') return req.keys;
+	  return req.keys || req.values.map(primaryKey.extractKey);
+	}
+
+	const hooksMiddleware = {
+	  stack: "dbcore",
+	  name: "HooksMiddleware",
+	  level: 2,
+	  create: downCore => ({ ...downCore,
+
+	    table(tableName) {
+	      const downTable = downCore.table(tableName);
+	      const {
+	        primaryKey
+	      } = downTable.schema;
+	      const tableMiddleware = { ...downTable,
+
+	        mutate(req) {
+	          const dxTrans = PSD.trans;
+	          const {
+	            deleting,
+	            creating,
+	            updating
+	          } = dxTrans.table(tableName).hook;
+
+	          switch (req.type) {
+	            case 'add':
+	              if (creating.fire === nop) break;
+	              return dxTrans._promise('readwrite', () => addPutOrDelete(req), true);
+
+	            case 'put':
+	              if (creating.fire === nop && updating.fire === nop) break;
+	              return dxTrans._promise('readwrite', () => addPutOrDelete(req), true);
+
+	            case 'delete':
+	              if (deleting.fire === nop) break;
+	              return dxTrans._promise('readwrite', () => addPutOrDelete(req), true);
+
+	            case 'deleteRange':
+	              if (deleting.fire === nop) break;
+	              return dxTrans._promise('readwrite', () => deleteRange(req), true);
+	          }
+
+	          return downTable.mutate(req);
+
+	          function addPutOrDelete(req) {
+	            const dxTrans = PSD.trans;
+	            const keys = req.keys || getEffectiveKeys(primaryKey, req);
+	            if (!keys) throw new Error("Keys missing");
+	            req = req.type === 'add' || req.type === 'put' ? { ...req,
+	              keys
+	            } : { ...req
+	            };
+	            if (req.type !== 'delete') req.values = [...req.values];
+	            if (req.keys) req.keys = [...req.keys];
+	            return getExistingValues(downTable, req, keys).then(existingValues => {
+	              const contexts = keys.map((key, i) => {
+	                const existingValue = existingValues[i];
+	                const ctx = {
+	                  onerror: null,
+	                  onsuccess: null
+	                };
+
+	                if (req.type === 'delete') {
+	                  deleting.fire.call(ctx, key, existingValue, dxTrans);
+	                } else if (req.type === 'add' || existingValue === undefined) {
+	                  const generatedPrimaryKey = creating.fire.call(ctx, key, req.values[i], dxTrans);
+
+	                  if (key == null && generatedPrimaryKey != null) {
+	                    key = generatedPrimaryKey;
+	                    req.keys[i] = key;
+
+	                    if (!primaryKey.outbound) {
+	                      setByKeyPath(req.values[i], primaryKey.keyPath, key);
+	                    }
+	                  }
+	                } else {
+	                  const objectDiff = getObjectDiff(existingValue, req.values[i]);
+	                  const additionalChanges = updating.fire.call(ctx, objectDiff, key, existingValue, dxTrans);
+
+	                  if (additionalChanges) {
+	                    const requestedValue = req.values[i];
+	                    Object.keys(additionalChanges).forEach(keyPath => {
+	                      if (hasOwn(requestedValue, keyPath)) {
+	                        requestedValue[keyPath] = additionalChanges[keyPath];
+	                      } else {
+	                        setByKeyPath(requestedValue, keyPath, additionalChanges[keyPath]);
+	                      }
+	                    });
+	                  }
+	                }
+
+	                return ctx;
+	              });
+	              return downTable.mutate(req).then(({
+	                failures,
+	                results,
+	                numFailures,
+	                lastResult
+	              }) => {
+	                for (let i = 0; i < keys.length; ++i) {
+	                  const primKey = results ? results[i] : keys[i];
+	                  const ctx = contexts[i];
+
+	                  if (primKey == null) {
+	                    ctx.onerror && ctx.onerror(failures[i]);
+	                  } else {
+	                    ctx.onsuccess && ctx.onsuccess(req.type === 'put' && existingValues[i] ? req.values[i] : primKey);
+	                  }
+	                }
+
+	                return {
+	                  failures,
+	                  results,
+	                  numFailures,
+	                  lastResult
+	                };
+	              }).catch(error => {
+	                contexts.forEach(ctx => ctx.onerror && ctx.onerror(error));
+	                return Promise.reject(error);
+	              });
+	            });
+	          }
+
+	          function deleteRange(req) {
+	            return deleteNextChunk(req.trans, req.range, 10000);
+	          }
+
+	          function deleteNextChunk(trans, range, limit) {
+	            return downTable.query({
+	              trans,
+	              values: false,
+	              query: {
+	                index: primaryKey,
+	                range
+	              },
+	              limit
+	            }).then(({
+	              result
+	            }) => {
+	              return addPutOrDelete({
+	                type: 'delete',
+	                keys: result,
+	                trans
+	              }).then(res => {
+	                if (res.numFailures > 0) return Promise.reject(res.failures[0]);
+
+	                if (result.length < limit) {
+	                  return {
+	                    failures: [],
+	                    numFailures: 0,
+	                    lastResult: undefined
+	                  };
+	                } else {
+	                  return deleteNextChunk(trans, { ...range,
+	                    lower: result[result.length - 1],
+	                    lowerOpen: true
+	                  }, limit);
+	                }
+	              });
+	            });
+	          }
+	        }
+
+	      };
+	      return tableMiddleware;
+	    }
+
+	  })
+	};
+
+	function getExistingValues(table, req, effectiveKeys) {
+	  return req.type === "add" ? Promise.resolve([]) : table.getMany({
+	    trans: req.trans,
+	    keys: effectiveKeys,
+	    cache: "immutable"
+	  });
+	}
+
+	function getFromTransactionCache(keys, cache, clone) {
+	  try {
+	    if (!cache) return null;
+	    if (cache.keys.length < keys.length) return null;
+	    const result = [];
+
+	    for (let i = 0, j = 0; i < cache.keys.length && j < keys.length; ++i) {
+	      if (cmp(cache.keys[i], keys[j]) !== 0) continue;
+	      result.push(clone ? deepClone(cache.values[i]) : cache.values[i]);
+	      ++j;
+	    }
+
+	    return result.length === keys.length ? result : null;
+	  } catch (_a) {
+	    return null;
+	  }
+	}
+
+	const cacheExistingValuesMiddleware = {
+	  stack: "dbcore",
+	  level: -1,
+	  create: core => {
+	    return {
+	      table: tableName => {
+	        const table = core.table(tableName);
+	        return { ...table,
+	          getMany: req => {
+	            if (!req.cache) {
+	              return table.getMany(req);
+	            }
+
+	            const cachedResult = getFromTransactionCache(req.keys, req.trans["_cache"], req.cache === "clone");
+
+	            if (cachedResult) {
+	              return DexiePromise.resolve(cachedResult);
+	            }
+
+	            return table.getMany(req).then(res => {
+	              req.trans["_cache"] = {
+	                keys: req.keys,
+	                values: req.cache === "clone" ? deepClone(res) : res
+	              };
+	              return res;
+	            });
+	          },
+	          mutate: req => {
+	            if (req.type !== "add") req.trans["_cache"] = null;
+	            return table.mutate(req);
+	          }
+	        };
+	      }
+	    };
+	  }
+	};
+
+	function isEmptyRange(node) {
+	  return !("from" in node);
+	}
+
+	const RangeSet = function (fromOrTree, to) {
+	  if (this) {
+	    extend(this, arguments.length ? {
+	      d: 1,
+	      from: fromOrTree,
+	      to: arguments.length > 1 ? to : fromOrTree
+	    } : {
+	      d: 0
+	    });
+	  } else {
+	    const rv = new RangeSet();
+
+	    if (fromOrTree && "d" in fromOrTree) {
+	      extend(rv, fromOrTree);
+	    }
+
+	    return rv;
+	  }
+	};
+
+	props(RangeSet.prototype, {
+	  add(rangeSet) {
+	    mergeRanges(this, rangeSet);
+	    return this;
+	  },
+
+	  addKey(key) {
+	    addRange(this, key, key);
+	    return this;
+	  },
+
+	  addKeys(keys) {
+	    keys.forEach(key => addRange(this, key, key));
+	    return this;
+	  },
+
+	  [iteratorSymbol]() {
+	    return getRangeSetIterator(this);
+	  }
+
+	});
+
+	function addRange(target, from, to) {
+	  const diff = cmp(from, to);
+	  if (isNaN(diff)) return;
+	  if (diff > 0) throw RangeError();
+	  if (isEmptyRange(target)) return extend(target, {
+	    from,
+	    to,
+	    d: 1
+	  });
+	  const left = target.l;
+	  const right = target.r;
+
+	  if (cmp(to, target.from) < 0) {
+	    left ? addRange(left, from, to) : target.l = {
+	      from,
+	      to,
+	      d: 1,
+	      l: null,
+	      r: null
+	    };
+	    return rebalance(target);
+	  }
+
+	  if (cmp(from, target.to) > 0) {
+	    right ? addRange(right, from, to) : target.r = {
+	      from,
+	      to,
+	      d: 1,
+	      l: null,
+	      r: null
+	    };
+	    return rebalance(target);
+	  }
+
+	  if (cmp(from, target.from) < 0) {
+	    target.from = from;
+	    target.l = null;
+	    target.d = right ? right.d + 1 : 1;
+	  }
+
+	  if (cmp(to, target.to) > 0) {
+	    target.to = to;
+	    target.r = null;
+	    target.d = target.l ? target.l.d + 1 : 1;
+	  }
+
+	  const rightWasCutOff = !target.r;
+
+	  if (left && !target.l) {
+	    mergeRanges(target, left);
+	  }
+
+	  if (right && rightWasCutOff) {
+	    mergeRanges(target, right);
+	  }
+	}
+
+	function mergeRanges(target, newSet) {
+	  function _addRangeSet(target, {
+	    from,
+	    to,
+	    l,
+	    r
+	  }) {
+	    addRange(target, from, to);
+	    if (l) _addRangeSet(target, l);
+	    if (r) _addRangeSet(target, r);
+	  }
+
+	  if (!isEmptyRange(newSet)) _addRangeSet(target, newSet);
+	}
+
+	function rangesOverlap(rangeSet1, rangeSet2) {
+	  const i1 = getRangeSetIterator(rangeSet2);
+	  let nextResult1 = i1.next();
+	  if (nextResult1.done) return false;
+	  let a = nextResult1.value;
+	  const i2 = getRangeSetIterator(rangeSet1);
+	  let nextResult2 = i2.next(a.from);
+	  let b = nextResult2.value;
+
+	  while (!nextResult1.done && !nextResult2.done) {
+	    if (cmp(b.from, a.to) <= 0 && cmp(b.to, a.from) >= 0) return true;
+	    cmp(a.from, b.from) < 0 ? a = (nextResult1 = i1.next(b.from)).value : b = (nextResult2 = i2.next(a.from)).value;
+	  }
+
+	  return false;
+	}
+
+	function getRangeSetIterator(node) {
+	  let state = isEmptyRange(node) ? null : {
+	    s: 0,
+	    n: node
+	  };
+	  return {
+	    next(key) {
+	      const keyProvided = arguments.length > 0;
+
+	      while (state) {
+	        switch (state.s) {
+	          case 0:
+	            state.s = 1;
+
+	            if (keyProvided) {
+	              while (state.n.l && cmp(key, state.n.from) < 0) state = {
+	                up: state,
+	                n: state.n.l,
+	                s: 1
+	              };
+	            } else {
+	              while (state.n.l) state = {
+	                up: state,
+	                n: state.n.l,
+	                s: 1
+	              };
+	            }
+
+	          case 1:
+	            state.s = 2;
+	            if (!keyProvided || cmp(key, state.n.to) <= 0) return {
+	              value: state.n,
+	              done: false
+	            };
+
+	          case 2:
+	            if (state.n.r) {
+	              state.s = 3;
+	              state = {
+	                up: state,
+	                n: state.n.r,
+	                s: 0
+	              };
+	              continue;
+	            }
+
+	          case 3:
+	            state = state.up;
+	        }
+	      }
+
+	      return {
+	        done: true
+	      };
+	    }
+
+	  };
+	}
+
+	function rebalance(target) {
+	  var _a, _b;
+
+	  const diff = (((_a = target.r) === null || _a === void 0 ? void 0 : _a.d) || 0) - (((_b = target.l) === null || _b === void 0 ? void 0 : _b.d) || 0);
+	  const r = diff > 1 ? "r" : diff < -1 ? "l" : "";
+
+	  if (r) {
+	    const l = r === "r" ? "l" : "r";
+	    const rootClone = { ...target
+	    };
+	    const oldRootRight = target[r];
+	    target.from = oldRootRight.from;
+	    target.to = oldRootRight.to;
+	    target[r] = oldRootRight[r];
+	    rootClone[r] = oldRootRight[l];
+	    target[l] = rootClone;
+	    rootClone.d = computeDepth(rootClone);
+	  }
+
+	  target.d = computeDepth(target);
+	}
+
+	function computeDepth({
+	  r,
+	  l
+	}) {
+	  return (r ? l ? Math.max(r.d, l.d) : r.d : l ? l.d : 0) + 1;
+	}
+
+	const observabilityMiddleware = {
+	  stack: "dbcore",
+	  level: 0,
+	  create: core => {
+	    const dbName = core.schema.name;
+	    const FULL_RANGE = new RangeSet(core.MIN_KEY, core.MAX_KEY);
+	    return { ...core,
+	      table: tableName => {
+	        const table = core.table(tableName);
+	        const {
+	          schema
+	        } = table;
+	        const {
+	          primaryKey
+	        } = schema;
+	        const {
+	          extractKey,
+	          outbound
+	        } = primaryKey;
+	        const tableClone = { ...table,
+	          mutate: req => {
+	            const trans = req.trans;
+	            const mutatedParts = trans.mutatedParts || (trans.mutatedParts = {});
+
+	            const getRangeSet = indexName => {
+	              const part = `idb://${dbName}/${tableName}/${indexName}`;
+	              return mutatedParts[part] || (mutatedParts[part] = new RangeSet());
+	            };
+
+	            const pkRangeSet = getRangeSet("");
+	            const delsRangeSet = getRangeSet(":dels");
+	            const {
+	              type
+	            } = req;
+	            let [keys, newObjs] = req.type === "deleteRange" ? [req.range] : req.type === "delete" ? [req.keys] : req.values.length < 50 ? [[], req.values] : [];
+	            const oldCache = req.trans["_cache"];
+	            return table.mutate(req).then(res => {
+	              if (isArray(keys)) {
+	                if (type !== "delete") keys = res.results;
+	                pkRangeSet.addKeys(keys);
+	                const oldObjs = getFromTransactionCache(keys, oldCache);
+
+	                if (!oldObjs && type !== "add") {
+	                  delsRangeSet.addKeys(keys);
+	                }
+
+	                if (oldObjs || newObjs) {
+	                  trackAffectedIndexes(getRangeSet, schema, oldObjs, newObjs);
+	                }
+	              } else if (keys) {
+	                const range = {
+	                  from: keys.lower,
+	                  to: keys.upper
+	                };
+	                delsRangeSet.add(range);
+	                pkRangeSet.add(range);
+	              } else {
+	                pkRangeSet.add(FULL_RANGE);
+	                delsRangeSet.add(FULL_RANGE);
+	                schema.indexes.forEach(idx => getRangeSet(idx.name).add(FULL_RANGE));
+	              }
+
+	              return res;
+	            });
+	          }
+	        };
+
+	        const getRange = ({
+	          query: {
+	            index,
+	            range
+	          }
+	        }) => {
+	          var _a, _b;
+
+	          return [index, new RangeSet((_a = range.lower) !== null && _a !== void 0 ? _a : core.MIN_KEY, (_b = range.upper) !== null && _b !== void 0 ? _b : core.MAX_KEY)];
+	        };
+
+	        const readSubscribers = {
+	          get: req => [primaryKey, new RangeSet(req.key)],
+	          getMany: req => [primaryKey, new RangeSet().addKeys(req.keys)],
+	          count: getRange,
+	          query: getRange,
+	          openCursor: getRange
+	        };
+	        keys(readSubscribers).forEach(method => {
+	          tableClone[method] = function (req) {
+	            const {
+	              subscr
+	            } = PSD;
+
+	            if (subscr) {
+	              const getRangeSet = indexName => {
+	                const part = `idb://${dbName}/${tableName}/${indexName}`;
+	                return subscr[part] || (subscr[part] = new RangeSet());
+	              };
+
+	              const pkRangeSet = getRangeSet("");
+	              const delsRangeSet = getRangeSet(":dels");
+	              const [queriedIndex, queriedRanges] = readSubscribers[method](req);
+	              getRangeSet(queriedIndex.name || "").add(queriedRanges);
+
+	              if (!queriedIndex.isPrimaryKey) {
+	                if (method === "count") {
+	                  delsRangeSet.add(FULL_RANGE);
+	                } else {
+	                  const keysPromise = method === "query" && outbound && req.values && table.query({ ...req,
+	                    values: false
+	                  });
+	                  return table[method].apply(this, arguments).then(res => {
+	                    if (method === "query") {
+	                      if (outbound && req.values) {
+	                        return keysPromise.then(({
+	                          result: resultingKeys
+	                        }) => {
+	                          pkRangeSet.addKeys(resultingKeys);
+	                          return res;
+	                        });
+	                      }
+
+	                      const pKeys = req.values ? res.result.map(extractKey) : res.result;
+
+	                      if (req.values) {
+	                        pkRangeSet.addKeys(pKeys);
+	                      } else {
+	                        delsRangeSet.addKeys(pKeys);
+	                      }
+	                    } else if (method === "openCursor") {
+	                      const cursor = res;
+	                      const wantValues = req.values;
+	                      return cursor && Object.create(cursor, {
+	                        key: {
+	                          get() {
+	                            delsRangeSet.addKey(cursor.primaryKey);
+	                            return cursor.key;
+	                          }
+
+	                        },
+	                        primaryKey: {
+	                          get() {
+	                            const pkey = cursor.primaryKey;
+	                            delsRangeSet.addKey(pkey);
+	                            return pkey;
+	                          }
+
+	                        },
+	                        value: {
+	                          get() {
+	                            wantValues && pkRangeSet.addKey(cursor.primaryKey);
+	                            return cursor.value;
+	                          }
+
+	                        }
+	                      });
+	                    }
+
+	                    return res;
+	                  });
+	                }
+	              }
+	            }
+
+	            return table[method].apply(this, arguments);
+	          };
+	        });
+	        return tableClone;
+	      }
+	    };
+	  }
+	};
+
+	function trackAffectedIndexes(getRangeSet, schema, oldObjs, newObjs) {
+	  function addAffectedIndex(ix) {
+	    const rangeSet = getRangeSet(ix.name || "");
+
+	    function extractKey(obj) {
+	      return obj != null ? ix.extractKey(obj) : null;
+	    }
+
+	    const addKeyOrKeys = key => ix.multiEntry && isArray(key) ? key.forEach(key => rangeSet.addKey(key)) : rangeSet.addKey(key);
+
+	    (oldObjs || newObjs).forEach((_, i) => {
+	      const oldKey = oldObjs && extractKey(oldObjs[i]);
+	      const newKey = newObjs && extractKey(newObjs[i]);
+
+	      if (cmp(oldKey, newKey) !== 0) {
+	        if (oldKey != null) addKeyOrKeys(oldKey);
+	        if (newKey != null) addKeyOrKeys(newKey);
+	      }
+	    });
+	  }
+
+	  schema.indexes.forEach(addAffectedIndex);
+	}
+
+	class Dexie$1 {
+	  constructor(name, options) {
+	    this._middlewares = {};
+	    this.verno = 0;
+	    const deps = Dexie$1.dependencies;
+	    this._options = options = {
+	      addons: Dexie$1.addons,
+	      autoOpen: true,
+	      indexedDB: deps.indexedDB,
+	      IDBKeyRange: deps.IDBKeyRange,
+	      ...options
+	    };
+	    this._deps = {
+	      indexedDB: options.indexedDB,
+	      IDBKeyRange: options.IDBKeyRange
+	    };
+	    const {
+	      addons
+	    } = options;
+	    this._dbSchema = {};
+	    this._versions = [];
+	    this._storeNames = [];
+	    this._allTables = {};
+	    this.idbdb = null;
+	    this._novip = this;
+	    const state = {
+	      dbOpenError: null,
+	      isBeingOpened: false,
+	      onReadyBeingFired: null,
+	      openComplete: false,
+	      dbReadyResolve: nop,
+	      dbReadyPromise: null,
+	      cancelOpen: nop,
+	      openCanceller: null,
+	      autoSchema: true,
+	      PR1398_maxLoop: 3
+	    };
+	    state.dbReadyPromise = new DexiePromise(resolve => {
+	      state.dbReadyResolve = resolve;
+	    });
+	    state.openCanceller = new DexiePromise((_, reject) => {
+	      state.cancelOpen = reject;
+	    });
+	    this._state = state;
+	    this.name = name;
+	    this.on = Events(this, "populate", "blocked", "versionchange", "close", {
+	      ready: [promisableChain, nop]
+	    });
+	    this.on.ready.subscribe = override(this.on.ready.subscribe, subscribe => {
+	      return (subscriber, bSticky) => {
+	        Dexie$1.vip(() => {
+	          const state = this._state;
+
+	          if (state.openComplete) {
+	            if (!state.dbOpenError) DexiePromise.resolve().then(subscriber);
+	            if (bSticky) subscribe(subscriber);
+	          } else if (state.onReadyBeingFired) {
+	            state.onReadyBeingFired.push(subscriber);
+	            if (bSticky) subscribe(subscriber);
+	          } else {
+	            subscribe(subscriber);
+	            const db = this;
+	            if (!bSticky) subscribe(function unsubscribe() {
+	              db.on.ready.unsubscribe(subscriber);
+	              db.on.ready.unsubscribe(unsubscribe);
+	            });
+	          }
+	        });
+	      };
+	    });
+	    this.Collection = createCollectionConstructor(this);
+	    this.Table = createTableConstructor(this);
+	    this.Transaction = createTransactionConstructor(this);
+	    this.Version = createVersionConstructor(this);
+	    this.WhereClause = createWhereClauseConstructor(this);
+	    this.on("versionchange", ev => {
+	      if (ev.newVersion > 0) console.warn(`Another connection wants to upgrade database '${this.name}'. Closing db now to resume the upgrade.`);else console.warn(`Another connection wants to delete database '${this.name}'. Closing db now to resume the delete request.`);
+	      this.close();
+	    });
+	    this.on("blocked", ev => {
+	      if (!ev.newVersion || ev.newVersion < ev.oldVersion) console.warn(`Dexie.delete('${this.name}') was blocked`);else console.warn(`Upgrade '${this.name}' blocked by other connection holding version ${ev.oldVersion / 10}`);
+	    });
+	    this._maxKey = getMaxKey(options.IDBKeyRange);
+
+	    this._createTransaction = (mode, storeNames, dbschema, parentTransaction) => new this.Transaction(mode, storeNames, dbschema, this._options.chromeTransactionDurability, parentTransaction);
+
+	    this._fireOnBlocked = ev => {
+	      this.on("blocked").fire(ev);
+	      connections.filter(c => c.name === this.name && c !== this && !c._state.vcFired).map(c => c.on("versionchange").fire(ev));
+	    };
+
+	    this.use(virtualIndexMiddleware);
+	    this.use(hooksMiddleware);
+	    this.use(observabilityMiddleware);
+	    this.use(cacheExistingValuesMiddleware);
+	    this.vip = Object.create(this, {
+	      _vip: {
+	        value: true
+	      }
+	    });
+	    addons.forEach(addon => addon(this));
+	  }
+
+	  version(versionNumber) {
+	    if (isNaN(versionNumber) || versionNumber < 0.1) throw new exceptions.Type(`Given version is not a positive number`);
+	    versionNumber = Math.round(versionNumber * 10) / 10;
+	    if (this.idbdb || this._state.isBeingOpened) throw new exceptions.Schema("Cannot add version when database is open");
+	    this.verno = Math.max(this.verno, versionNumber);
+	    const versions = this._versions;
+	    var versionInstance = versions.filter(v => v._cfg.version === versionNumber)[0];
+	    if (versionInstance) return versionInstance;
+	    versionInstance = new this.Version(versionNumber);
+	    versions.push(versionInstance);
+	    versions.sort(lowerVersionFirst);
+	    versionInstance.stores({});
+	    this._state.autoSchema = false;
+	    return versionInstance;
+	  }
+
+	  _whenReady(fn) {
+	    return this.idbdb && (this._state.openComplete || PSD.letThrough || this._vip) ? fn() : new DexiePromise((resolve, reject) => {
+	      if (this._state.openComplete) {
+	        return reject(new exceptions.DatabaseClosed(this._state.dbOpenError));
+	      }
+
+	      if (!this._state.isBeingOpened) {
+	        if (!this._options.autoOpen) {
+	          reject(new exceptions.DatabaseClosed());
+	          return;
+	        }
+
+	        this.open().catch(nop);
+	      }
+
+	      this._state.dbReadyPromise.then(resolve, reject);
+	    }).then(fn);
+	  }
+
+	  use({
+	    stack,
+	    create,
+	    level,
+	    name
+	  }) {
+	    if (name) this.unuse({
+	      stack,
+	      name
+	    });
+	    const middlewares = this._middlewares[stack] || (this._middlewares[stack] = []);
+	    middlewares.push({
+	      stack,
+	      create,
+	      level: level == null ? 10 : level,
+	      name
+	    });
+	    middlewares.sort((a, b) => a.level - b.level);
+	    return this;
+	  }
+
+	  unuse({
+	    stack,
+	    name,
+	    create
+	  }) {
+	    if (stack && this._middlewares[stack]) {
+	      this._middlewares[stack] = this._middlewares[stack].filter(mw => create ? mw.create !== create : name ? mw.name !== name : false);
+	    }
+
+	    return this;
+	  }
+
+	  open() {
+	    return dexieOpen(this);
+	  }
+
+	  _close() {
+	    const state = this._state;
+	    const idx = connections.indexOf(this);
+	    if (idx >= 0) connections.splice(idx, 1);
+
+	    if (this.idbdb) {
+	      try {
+	        this.idbdb.close();
+	      } catch (e) {}
+
+	      this._novip.idbdb = null;
+	    }
+
+	    state.dbReadyPromise = new DexiePromise(resolve => {
+	      state.dbReadyResolve = resolve;
+	    });
+	    state.openCanceller = new DexiePromise((_, reject) => {
+	      state.cancelOpen = reject;
+	    });
+	  }
+
+	  close() {
+	    this._close();
+
+	    const state = this._state;
+	    this._options.autoOpen = false;
+	    state.dbOpenError = new exceptions.DatabaseClosed();
+	    if (state.isBeingOpened) state.cancelOpen(state.dbOpenError);
+	  }
+
+	  delete() {
+	    const hasArguments = arguments.length > 0;
+	    const state = this._state;
+	    return new DexiePromise((resolve, reject) => {
+	      const doDelete = () => {
+	        this.close();
+
+	        var req = this._deps.indexedDB.deleteDatabase(this.name);
+
+	        req.onsuccess = wrap(() => {
+	          _onDatabaseDeleted(this._deps, this.name);
+
+	          resolve();
+	        });
+	        req.onerror = eventRejectHandler(reject);
+	        req.onblocked = this._fireOnBlocked;
+	      };
+
+	      if (hasArguments) throw new exceptions.InvalidArgument("Arguments not allowed in db.delete()");
+
+	      if (state.isBeingOpened) {
+	        state.dbReadyPromise.then(doDelete);
+	      } else {
+	        doDelete();
+	      }
+	    });
+	  }
+
+	  backendDB() {
+	    return this.idbdb;
+	  }
+
+	  isOpen() {
+	    return this.idbdb !== null;
+	  }
+
+	  hasBeenClosed() {
+	    const dbOpenError = this._state.dbOpenError;
+	    return dbOpenError && dbOpenError.name === 'DatabaseClosed';
+	  }
+
+	  hasFailed() {
+	    return this._state.dbOpenError !== null;
+	  }
+
+	  dynamicallyOpened() {
+	    return this._state.autoSchema;
+	  }
+
+	  get tables() {
+	    return keys(this._allTables).map(name => this._allTables[name]);
+	  }
+
+	  transaction() {
+	    const args = extractTransactionArgs.apply(this, arguments);
+	    return this._transaction.apply(this, args);
+	  }
+
+	  _transaction(mode, tables, scopeFunc) {
+	    let parentTransaction = PSD.trans;
+	    if (!parentTransaction || parentTransaction.db !== this || mode.indexOf('!') !== -1) parentTransaction = null;
+	    const onlyIfCompatible = mode.indexOf('?') !== -1;
+	    mode = mode.replace('!', '').replace('?', '');
+	    let idbMode, storeNames;
+
+	    try {
+	      storeNames = tables.map(table => {
+	        var storeName = table instanceof this.Table ? table.name : table;
+	        if (typeof storeName !== 'string') throw new TypeError("Invalid table argument to Dexie.transaction(). Only Table or String are allowed");
+	        return storeName;
+	      });
+	      if (mode == "r" || mode === READONLY) idbMode = READONLY;else if (mode == "rw" || mode == READWRITE) idbMode = READWRITE;else throw new exceptions.InvalidArgument("Invalid transaction mode: " + mode);
+
+	      if (parentTransaction) {
+	        if (parentTransaction.mode === READONLY && idbMode === READWRITE) {
+	          if (onlyIfCompatible) {
+	            parentTransaction = null;
+	          } else throw new exceptions.SubTransaction("Cannot enter a sub-transaction with READWRITE mode when parent transaction is READONLY");
+	        }
+
+	        if (parentTransaction) {
+	          storeNames.forEach(storeName => {
+	            if (parentTransaction && parentTransaction.storeNames.indexOf(storeName) === -1) {
+	              if (onlyIfCompatible) {
+	                parentTransaction = null;
+	              } else throw new exceptions.SubTransaction("Table " + storeName + " not included in parent transaction.");
+	            }
+	          });
+	        }
+
+	        if (onlyIfCompatible && parentTransaction && !parentTransaction.active) {
+	          parentTransaction = null;
+	        }
+	      }
+	    } catch (e) {
+	      return parentTransaction ? parentTransaction._promise(null, (_, reject) => {
+	        reject(e);
+	      }) : rejection(e);
+	    }
+
+	    const enterTransaction = enterTransactionScope.bind(null, this, idbMode, storeNames, parentTransaction, scopeFunc);
+	    return parentTransaction ? parentTransaction._promise(idbMode, enterTransaction, "lock") : PSD.trans ? usePSD(PSD.transless, () => this._whenReady(enterTransaction)) : this._whenReady(enterTransaction);
+	  }
+
+	  table(tableName) {
+	    if (!hasOwn(this._allTables, tableName)) {
+	      throw new exceptions.InvalidTable(`Table ${tableName} does not exist`);
+	    }
+
+	    return this._allTables[tableName];
+	  }
+
+	}
+
+	const symbolObservable = typeof Symbol !== "undefined" && "observable" in Symbol ? Symbol.observable : "@@observable";
+
+	class Observable {
+	  constructor(subscribe) {
+	    this._subscribe = subscribe;
+	  }
+
+	  subscribe(x, error, complete) {
+	    return this._subscribe(!x || typeof x === "function" ? {
+	      next: x,
+	      error,
+	      complete
+	    } : x);
+	  }
+
+	  [symbolObservable]() {
+	    return this;
+	  }
+
+	}
+
+	function extendObservabilitySet(target, newSet) {
+	  keys(newSet).forEach(part => {
+	    const rangeSet = target[part] || (target[part] = new RangeSet());
+	    mergeRanges(rangeSet, newSet[part]);
+	  });
+	  return target;
+	}
+
+	function liveQuery(querier) {
+	  return new Observable(observer => {
+	    const scopeFuncIsAsync = isAsyncFunction(querier);
+
+	    function execute(subscr) {
+	      if (scopeFuncIsAsync) {
+	        incrementExpectedAwaits();
+	      }
+
+	      const exec = () => newScope(querier, {
+	        subscr,
+	        trans: null
+	      });
+
+	      const rv = PSD.trans ? usePSD(PSD.transless, exec) : exec();
+
+	      if (scopeFuncIsAsync) {
+	        rv.then(decrementExpectedAwaits, decrementExpectedAwaits);
+	      }
+
+	      return rv;
+	    }
+
+	    let closed = false;
+	    let accumMuts = {};
+	    let currentObs = {};
+	    const subscription = {
+	      get closed() {
+	        return closed;
+	      },
+
+	      unsubscribe: () => {
+	        closed = true;
+	        globalEvents.storagemutated.unsubscribe(mutationListener);
+	      }
+	    };
+	    observer.start && observer.start(subscription);
+	    let querying = false,
+	        startedListening = false;
+
+	    function shouldNotify() {
+	      return keys(currentObs).some(key => accumMuts[key] && rangesOverlap(accumMuts[key], currentObs[key]));
+	    }
+
+	    const mutationListener = parts => {
+	      extendObservabilitySet(accumMuts, parts);
+
+	      if (shouldNotify()) {
+	        doQuery();
+	      }
+	    };
+
+	    const doQuery = () => {
+	      if (querying || closed) return;
+	      accumMuts = {};
+	      const subscr = {};
+	      const ret = execute(subscr);
+
+	      if (!startedListening) {
+	        globalEvents(DEXIE_STORAGE_MUTATED_EVENT_NAME, mutationListener);
+	        startedListening = true;
+	      }
+
+	      querying = true;
+	      Promise.resolve(ret).then(result => {
+	        querying = false;
+	        if (closed) return;
+
+	        if (shouldNotify()) {
+	          doQuery();
+	        } else {
+	          accumMuts = {};
+	          currentObs = subscr;
+	          observer.next && observer.next(result);
+	        }
+	      }, err => {
+	        querying = false;
+	        observer.error && observer.error(err);
+	        subscription.unsubscribe();
+	      });
+	    };
+
+	    doQuery();
+	    return subscription;
+	  });
+	}
+
+	let domDeps;
+
+	try {
+	  domDeps = {
+	    indexedDB: _global.indexedDB || _global.mozIndexedDB || _global.webkitIndexedDB || _global.msIndexedDB,
+	    IDBKeyRange: _global.IDBKeyRange || _global.webkitIDBKeyRange
+	  };
+	} catch (e) {
+	  domDeps = {
+	    indexedDB: null,
+	    IDBKeyRange: null
+	  };
+	}
+
+	const Dexie = Dexie$1;
+	props(Dexie, { ...fullNameExceptions,
+
+	  delete(databaseName) {
+	    const db = new Dexie(databaseName, {
+	      addons: []
+	    });
+	    return db.delete();
+	  },
+
+	  exists(name) {
+	    return new Dexie(name, {
+	      addons: []
+	    }).open().then(db => {
+	      db.close();
+	      return true;
+	    }).catch('NoSuchDatabaseError', () => false);
+	  },
+
+	  getDatabaseNames(cb) {
+	    try {
+	      return getDatabaseNames(Dexie.dependencies).then(cb);
+	    } catch (_a) {
+	      return rejection(new exceptions.MissingAPI());
+	    }
+	  },
+
+	  defineClass() {
+	    function Class(content) {
+	      extend(this, content);
+	    }
+
+	    return Class;
+	  },
+
+	  ignoreTransaction(scopeFunc) {
+	    return PSD.trans ? usePSD(PSD.transless, scopeFunc) : scopeFunc();
+	  },
+
+	  vip,
+	  async: function (generatorFn) {
+	    return function () {
+	      try {
+	        var rv = awaitIterator(generatorFn.apply(this, arguments));
+	        if (!rv || typeof rv.then !== 'function') return DexiePromise.resolve(rv);
+	        return rv;
+	      } catch (e) {
+	        return rejection(e);
+	      }
+	    };
+	  },
+	  spawn: function (generatorFn, args, thiz) {
+	    try {
+	      var rv = awaitIterator(generatorFn.apply(thiz, args || []));
+	      if (!rv || typeof rv.then !== 'function') return DexiePromise.resolve(rv);
+	      return rv;
+	    } catch (e) {
+	      return rejection(e);
+	    }
+	  },
+	  currentTransaction: {
+	    get: () => PSD.trans || null
+	  },
+	  waitFor: function (promiseOrFunction, optionalTimeout) {
+	    const promise = DexiePromise.resolve(typeof promiseOrFunction === 'function' ? Dexie.ignoreTransaction(promiseOrFunction) : promiseOrFunction).timeout(optionalTimeout || 60000);
+	    return PSD.trans ? PSD.trans.waitFor(promise) : promise;
+	  },
+	  Promise: DexiePromise,
+	  debug: {
+	    get: () => debug,
+	    set: value => {
+	      setDebug(value, value === 'dexie' ? () => true : dexieStackFrameFilter);
+	    }
+	  },
+	  derive: derive,
+	  extend: extend,
+	  props: props,
+	  override: override,
+	  Events: Events,
+	  on: globalEvents,
+	  liveQuery,
+	  extendObservabilitySet,
+	  getByKeyPath: getByKeyPath,
+	  setByKeyPath: setByKeyPath,
+	  delByKeyPath: delByKeyPath,
+	  shallowClone: shallowClone,
+	  deepClone: deepClone,
+	  getObjectDiff: getObjectDiff,
+	  cmp,
+	  asap: asap$1,
+	  minKey: minKey,
+	  addons: [],
+	  connections: connections,
+	  errnames: errnames,
+	  dependencies: domDeps,
+	  semVer: DEXIE_VERSION,
+	  version: DEXIE_VERSION.split('.').map(n => parseInt(n)).reduce((p, c, i) => p + c / Math.pow(10, i * 2))
+	});
+	Dexie.maxKey = getMaxKey(Dexie.dependencies.IDBKeyRange);
+
+	if (typeof dispatchEvent !== 'undefined' && typeof addEventListener !== 'undefined') {
+	  globalEvents(DEXIE_STORAGE_MUTATED_EVENT_NAME, updatedParts => {
+	    if (!propagatingLocally) {
+	      let event;
+
+	      if (isIEOrEdge) {
+	        event = document.createEvent('CustomEvent');
+	        event.initCustomEvent(STORAGE_MUTATED_DOM_EVENT_NAME, true, true, updatedParts);
+	      } else {
+	        event = new CustomEvent(STORAGE_MUTATED_DOM_EVENT_NAME, {
+	          detail: updatedParts
+	        });
+	      }
+
+	      propagatingLocally = true;
+	      dispatchEvent(event);
+	      propagatingLocally = false;
+	    }
+	  });
+	  addEventListener(STORAGE_MUTATED_DOM_EVENT_NAME, ({
+	    detail
+	  }) => {
+	    if (!propagatingLocally) {
+	      propagateLocally(detail);
+	    }
+	  });
+	}
+
+	function propagateLocally(updateParts) {
+	  let wasMe = propagatingLocally;
+
+	  try {
+	    propagatingLocally = true;
+	    globalEvents.storagemutated.fire(updateParts);
+	  } finally {
+	    propagatingLocally = wasMe;
+	  }
+	}
+
+	let propagatingLocally = false;
+
+	if (typeof BroadcastChannel !== 'undefined') {
+	  const bc = new BroadcastChannel(STORAGE_MUTATED_DOM_EVENT_NAME);
+	  globalEvents(DEXIE_STORAGE_MUTATED_EVENT_NAME, changedParts => {
+	    if (!propagatingLocally) {
+	      bc.postMessage(changedParts);
+	    }
+	  });
+
+	  bc.onmessage = ev => {
+	    if (ev.data) propagateLocally(ev.data);
+	  };
+	} else if (typeof self !== 'undefined' && typeof navigator !== 'undefined') {
+	  globalEvents(DEXIE_STORAGE_MUTATED_EVENT_NAME, changedParts => {
+	    try {
+	      if (!propagatingLocally) {
+	        if (typeof localStorage !== 'undefined') {
+	          localStorage.setItem(STORAGE_MUTATED_DOM_EVENT_NAME, JSON.stringify({
+	            trig: Math.random(),
+	            changedParts
+	          }));
+	        }
+
+	        if (typeof self['clients'] === 'object') {
+	          [...self['clients'].matchAll({
+	            includeUncontrolled: true
+	          })].forEach(client => client.postMessage({
+	            type: STORAGE_MUTATED_DOM_EVENT_NAME,
+	            changedParts
+	          }));
+	        }
+	      }
+	    } catch (_a) {}
+	  });
+
+	  if (typeof addEventListener !== 'undefined') {
+	    addEventListener('storage', ev => {
+	      if (ev.key === STORAGE_MUTATED_DOM_EVENT_NAME) {
+	        const data = JSON.parse(ev.newValue);
+	        if (data) propagateLocally(data.changedParts);
+	      }
+	    });
+	  }
+
+	  const swContainer = self.document && navigator.serviceWorker;
+
+	  if (swContainer) {
+	    swContainer.addEventListener('message', propagateMessageLocally);
+	  }
+	}
+
+	function propagateMessageLocally({
+	  data
+	}) {
+	  if (data && data.type === STORAGE_MUTATED_DOM_EVENT_NAME) {
+	    propagateLocally(data.changedParts);
+	  }
+	}
+
+	DexiePromise.rejectionMapper = mapError;
+	setDebug(debug, dexieStackFrameFilter);
+
+	var dexie = /*#__PURE__*/Object.freeze({
+		__proto__: null,
+		Dexie: Dexie$1,
+		RangeSet: RangeSet,
+		'default': Dexie$1,
+		liveQuery: liveQuery,
+		mergeRanges: mergeRanges,
+		rangesOverlap: rangesOverlap
+	});
+
+	var require$$0 = /*@__PURE__*/getAugmentedNamespace(dexie);
+
+	(function (module, exports) {
+	(function (global, factory) {
+	  factory(exports, require$$0, react.exports) ;
+	})(commonjsGlobal, function (exports, dexie, React) {
+
+	  function _interopDefaultLegacy(e) {
+	    return e && typeof e === 'object' && 'default' in e ? e : {
+	      'default': e
+	    };
+	  }
+
+	  var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
+
+	  function useObservable(observableFactory, arg2, arg3) {
+	    // Resolve vars from overloading variants of this function:
+	    var deps;
+	    var defaultResult;
+
+	    if (typeof observableFactory === 'function') {
+	      deps = arg2 || [];
+	      defaultResult = arg3;
+	    } else {
+	      deps = [];
+	      defaultResult = arg2;
+	    } // Create a ref that keeps the state we need
+
+
+	    var monitor = React__default['default'].useRef({
+	      hasResult: false,
+	      result: defaultResult,
+	      error: null
+	    }); // We control when component should rerender. Make triggerUpdate
+	    // as examplified on React's docs at:
+	    // https://reactjs.org/docs/hooks-faq.html#is-there-something-like-forceupdate
+
+	    var _a = React__default['default'].useReducer(function (x) {
+	      return x + 1;
+	    }, 0);
+
+	    _a[0];
+	    var triggerUpdate = _a[1]; // Memoize the observable based on deps
+
+	    var observable = React__default['default'].useMemo(function () {
+	      // Make it remember previous subscription's default value when
+	      // resubscribing.
+	      var observable = typeof observableFactory === 'function' ? observableFactory() : observableFactory;
+
+	      if (!observable || typeof observable.subscribe !== 'function') {
+	        if (observableFactory === observable) {
+	          throw new TypeError("Given argument to useObservable() was neither a valid observable nor a function.");
+	        } else {
+	          throw new TypeError("Observable factory given to useObservable() did not return a valid observable.");
+	        }
+	      }
+
+	      if (!monitor.current.hasResult) {
+	        // Optimize for BehaviorSubject and other observables implementing getValue():
+	        if (typeof observable.getValue === 'function') {
+	          monitor.current.result = observable.getValue();
+	          monitor.current.hasResult = true;
+	        } else {
+	          // Find out if the observable has a current value: try get it by subscribing and
+	          // unsubscribing synchronously
+	          var subscription = observable.subscribe(function (val) {
+	            monitor.current.result = val;
+	            monitor.current.hasResult = true;
+	          }); // Unsubscribe directly. We only needed any synchronous value if it was possible.
+
+	          if (typeof subscription === 'function') {
+	            subscription();
+	          } else {
+	            subscription.unsubscribe();
+	          }
+	        }
+	      }
+
+	      return observable;
+	    }, deps); // Integrate with react devtools:
+
+	    React__default['default'].useDebugValue(monitor.current.result); // Subscribe to the observable
+
+	    React__default['default'].useEffect(function () {
+	      var subscription = observable.subscribe(function (val) {
+	        var current = monitor.current;
+
+	        if (current.error !== null || current.result !== val) {
+	          current.error = null;
+	          current.result = val;
+	          current.hasResult = true;
+	          triggerUpdate();
+	        }
+	      }, function (err) {
+	        var current = monitor.current;
+
+	        if (current.error !== err) {
+	          current.error = err;
+	          triggerUpdate();
+	        }
+	      });
+	      return typeof subscription === 'function' ? subscription // Support observables that return unsubscribe directly
+	      : subscription.unsubscribe.bind(subscription);
+	    }, deps); // Throw if observable has emitted error so that
+	    // an ErrorBoundrary can catch it
+
+	    if (monitor.current.error) throw monitor.current.error; // Return the current result
+
+	    return monitor.current.result;
+	  }
+
+	  function useLiveQuery(querier, deps, defaultResult) {
+	    return useObservable(function () {
+	      return dexie.liveQuery(querier);
+	    }, deps || [], defaultResult);
+	  }
+
+	  function usePermissions(firstArg, table, obj) {
+	    if (!firstArg) throw new TypeError("Invalid arguments to usePermissions(): undefined or null");
+	    var db;
+
+	    if (arguments.length >= 3) {
+	      if (!('transaction' in firstArg)) {
+	        // Using ducktyping instead of instanceof in case there are multiple Dexie modules in app.
+	        // First arg is  ensures first arg is a Dexie instance
+	        throw new TypeError("Invalid arguments to usePermission(db, table, obj): 1st arg must be a Dexie instance");
+	      }
+
+	      if (typeof table !== 'string') throw new TypeError("Invalid arguments to usePermission(db, table, obj): 2nd arg must be string");
+	      if (!obj || typeof obj !== 'object') throw new TypeError("Invalid arguments to usePermission(db, table, obj): 3rd arg must be an object");
+	      db = firstArg;
+	    } else {
+	      if (firstArg instanceof dexie.Dexie) throw new TypeError("Invalid arguments to usePermission(db, table, obj): Missing table and obj arguments.");
+
+	      if (typeof firstArg.table === 'function' && typeof firstArg.db === 'object') {
+	        db = firstArg.db;
+	        obj = firstArg;
+	        table = firstArg.table();
+	      } else {
+	        throw new TypeError("Invalid arguments to usePermissions(). " + "Expected usePermissions(entity: DexieCloudEntity) or " + "usePermissions(db: Dexie, table: string, obj: DexieCloudObject)");
+	      }
+	    }
+
+	    if (!('cloud' in db)) throw new Error("usePermissions() is only for Dexie Cloud but there's no dexie-cloud-addon active in given db.");
+	    if (!('permissions' in db['cloud'])) throw new Error("usePermissions() requires a newer version of dexie-cloud-addon. Please upgrade it.");
+	    return useObservable( // @ts-ignore
+	    function () {
+	      return db.cloud.permissions(obj, table);
+	    }, [obj.realmId, obj.owner, table]);
+	  }
+
+	  exports.useLiveQuery = useLiveQuery;
+	  exports.useObservable = useObservable;
+	  exports.usePermissions = usePermissions;
+	  Object.defineProperty(exports, '__esModule', {
+	    value: true
+	  });
+	});
+	}(dexieReactHooks, dexieReactHooks.exports));
+
+	// db.js
+	const db = new Dexie$1('fixturesDatabase');
+	db.version(1).stores({
+	  fixtures: 'id,datetimeZ,homeclub' // Primary key and indexed props
+
+	});
+
+	const Fixtures = () => {
+	  const [section, setSection] = react.exports.useState('all');
+	  const [club, setClub] = react.exports.useState('all');
+	  const [competition, setCompetition] = react.exports.useState('all');
+	  const [team, setTeam] = react.exports.useState('all');
+	  const navigate = useNavigate();
+	  const fixtures = dexieReactHooks.exports.useLiveQuery(() => db.fixtures.orderBy('datetimeZ').toArray());
+	  const sections = [...new Set(fixtures?.map(x => x.section))];
+	  sections.sort();
+	  const clubs = [...new Set(fixtures?.filter(x => section == 'all' || section == x.section).map(x => x.home.club))];
+	  clubs.sort();
+	  const competitions = [...new Set(fixtures?.filter(x => section == 'all' || section == x.section).map(x => x.competition))];
+	  competitions.sort();
+	  const teams = [...new Set(fixtures?.filter(x => section == 'all' || section == x.section).filter(x => club == 'all' || club == x.home.club).map(x => x.home.club + " " + x.home.team))];
+	  teams.sort();
+	  const selectedFixtures = fixtures?.filter(x => {
+	    if (club != 'all' && !(x.home.club == club || x.away.club == club)) return false;
+	    if (section != 'all' && x.section != section) return false;
+	    if (competition != 'all' && x.competition != competition) return false;
+	    return true;
+	  });
+	  selectedFixtures?.forEach((v, i, a) => {
+	    v.date = moment(v.datetimeZ);
+
+	    if (i > 0) {
+	      const prev = a[i - 1];
+	      v.prev = prev;
+
+	      if (prev.date.month() != v.date.month()) {
+	        v.daybreak = true;
+	        v.monthbreak = true;
+	        prev.nextdaybreak = true;
+	        prev.nextmonthbreak = true;
+	      } else if (prev.date.date() != v.date.date()) {
+	        v.daybreak = true;
+	        prev.nextdaybreak = true;
+	      }
+	    } else {
+	      v.monthbreak = true;
+	      v.daybreak = true;
+	    }
+	  });
+	  selectedFixtures?.forEach(x => console.log(x));
+	  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h1", null, "Fixtures"), /*#__PURE__*/React.createElement("header", {
+	    className: "fixtures"
+	  }, /*#__PURE__*/React.createElement("select", {
+	    onChange: e => setSection(e.target.value)
+	  }, /*#__PURE__*/React.createElement("option", {
+	    value: "all"
+	  }, "All Sections"), sections.map(x => /*#__PURE__*/React.createElement("option", {
+	    key: 'section:' + x
+	  }, x))), /*#__PURE__*/React.createElement("select", {
+	    onChange: e => setClub(e.target.value)
+	  }, /*#__PURE__*/React.createElement("option", {
+	    value: "all"
+	  }, "All Clubs"), clubs.map(x => /*#__PURE__*/React.createElement("option", {
+	    key: 'club:' + x
+	  }, x))), /*#__PURE__*/React.createElement("select", {
+	    onChange: e => setCompetition(e.target.value)
+	  }, /*#__PURE__*/React.createElement("option", {
+	    value: "all"
+	  }, "All Competitions"), competitions.map(x => /*#__PURE__*/React.createElement("option", {
+	    key: 'comp:' + x
+	  }, x))), /*#__PURE__*/React.createElement("select", {
+	    onChange: e => setTeam(e.target.value)
+	  }, /*#__PURE__*/React.createElement("option", {
+	    value: "all"
+	  }, "All Teams"), teams.map(x => /*#__PURE__*/React.createElement("option", {
+	    key: 'team:' + x
+	  }, x)))), /*#__PURE__*/React.createElement("ol", null, selectedFixtures?.map(item => {
+	    return /*#__PURE__*/React.createElement(React.Fragment, null, item.monthbreak ? /*#__PURE__*/React.createElement("h2", {
+	      className: "month-break",
+	      key: 'm' + item.id
+	    }, /*#__PURE__*/React.createElement("time", {
+	      dateTime: item.date.format('YYYY-MM')
+	    }, item.date.format('MMMM YYYY'))) : null, item.daybreak ? /*#__PURE__*/React.createElement("h3", {
+	      className: "day-break",
+	      key: 'd' + item.id
+	    }, /*#__PURE__*/React.createElement("time", {
+	      dateTime: item.date.format('YYYY-MM-DD')
+	    }, /*#__PURE__*/React.createElement("span", {
+	      className: "sm day-date"
+	    }, item.date.format('dddd D')), /*#__PURE__*/React.createElement("span", {
+	      className: "lg date"
+	    }, item.date.format('D')), /*#__PURE__*/React.createElement("span", {
+	      className: "lg day"
+	    }, item.date.format('dddd')))) : null, item.daybreak || item.date.format('HH:mm') != item.prev?.date.format('HH:mm') ? /*#__PURE__*/React.createElement("h4", {
+	      className: "time-break"
+	    }, /*#__PURE__*/React.createElement("time", {
+	      dateTime: item.date.format('HH:mm')
+	    }, item.date.format('h:mm'))) : null, /*#__PURE__*/React.createElement("li", {
+	      className: 'fixture' + (item.nextdaybreak ? ' day-break-after' : ''),
+	      key: item.id,
 	      onClick: () => {
 	        navigate(`/${item.id}`);
 	      }
-	    }, /*#__PURE__*/React.createElement("td", {
-	      className: "day-break"
-	    }, item.date.month() != item.previous?.month() || item.date.date() != item.previous?.date() ? item.date.date() : null), /*#__PURE__*/React.createElement("td", {
-	      className: "time-break"
-	    }, item.date.month() != item.previous?.month() || item.date.date() != item.previous?.date() || getTime(item.date) != getTime(item.previous) ? getTime(item.date) : null), /*#__PURE__*/React.createElement("td", null, item.competition), /*#__PURE__*/React.createElement("td", null, item.home.name), /*#__PURE__*/React.createElement("td", null, item.played == 'yes' ? item.home.score + "v" + item.away.score : null), /*#__PURE__*/React.createElement("td", null, item.away.name)));
-	  };
-
-	  return /*#__PURE__*/React.createElement("div", {
-	    ref: containerRef,
-	    style: {
-	      position: 'absolute',
-	      top: "5rem",
-	      bottom: 0,
-	      left: 0,
-	      right: 0,
-	      overflowY: 'auto',
-	      height: 'auto'
-	    }
-	  }, /*#__PURE__*/React.createElement("table", {
-	    style: {
-	      width: '100%',
-	      borderSpacing: 0
-	    }
-	  }, /*#__PURE__*/React.createElement("tbody", null, /*#__PURE__*/React.createElement("tr", {
-	    key: "top",
-	    ref: topRef
-	  }, /*#__PURE__*/React.createElement("td", {
-	    colSpan: "5"
-	  }, dots(range?.firstPage != null))), items.current.map(formatRow), /*#__PURE__*/React.createElement("tr", {
-	    key: "bottom",
-	    ref: bottomRef
-	  }, /*#__PURE__*/React.createElement("td", {
-	    colSpan: "5"
-	  }, dots(range?.lastPage != null))))));
+	    }, /*#__PURE__*/React.createElement("div", {
+	      className: "lg"
+	    }, item.competition), /*#__PURE__*/React.createElement("div", {
+	      className: "sm"
+	    }, item['competition-code']), /*#__PURE__*/React.createElement("div", {
+	      className: "lg"
+	    }, item.home.name), /*#__PURE__*/React.createElement("div", {
+	      className: "lg"
+	    }, item.played == 'yes' ? item.home.score + "v" + item.away.score : null), /*#__PURE__*/React.createElement("div", {
+	      className: "lg"
+	    }, item.away.name), /*#__PURE__*/React.createElement("div", {
+	      className: "sm"
+	    }, item.home.name, " ", /*#__PURE__*/React.createElement("strong", null, "v"), " ", item.away.name)));
+	  })));
 	};
 
 	var lodash = {exports: {}};
@@ -29465,239 +34014,323 @@
 	};
 	var convertCurry = convert.bind(null, React.createElement);
 
-	var faMinus={prefix:'fas',iconName:'minus',icon:[448,512,[8722,10134,8211,"subtract"],"f068","M400 288h-352c-17.69 0-32-14.32-32-32.01s14.31-31.99 32-31.99h352c17.69 0 32 14.3 32 31.99S417.7 288 400 288z"]};var faPersonCirclePlus={prefix:'fas',iconName:'person-circle-plus',icon:[576,512,[],"e541","M208 48C208 74.51 186.5 96 160 96C133.5 96 112 74.51 112 48C112 21.49 133.5 0 160 0C186.5 0 208 21.49 208 48zM152 352V480C152 497.7 137.7 512 120 512C102.3 512 88 497.7 88 480V256.9L59.43 304.5C50.33 319.6 30.67 324.5 15.52 315.4C.3696 306.3-4.531 286.7 4.573 271.5L62.85 174.6C80.2 145.7 111.4 128 145.1 128H174.9C208.6 128 239.8 145.7 257.2 174.6L302.1 249.3C285.1 266.9 273.4 287.7 265.5 310.8C263.6 308.9 261.1 306.8 260.6 304.5L232 256.9V480C232 497.7 217.7 512 200 512C182.3 512 168 497.7 168 480V352L152 352zM288 368C288 288.5 352.5 224 432 224C511.5 224 576 288.5 576 368C576 447.5 511.5 512 432 512C352.5 512 288 447.5 288 368zM448 303.1C448 295.2 440.8 287.1 432 287.1C423.2 287.1 416 295.2 416 303.1V351.1H368C359.2 351.1 352 359.2 352 367.1C352 376.8 359.2 383.1 368 383.1H416V431.1C416 440.8 423.2 447.1 432 447.1C440.8 447.1 448 440.8 448 431.1V383.1H496C504.8 383.1 512 376.8 512 367.1C512 359.2 504.8 351.1 496 351.1H448V303.1z"]};var faPlus={prefix:'fas',iconName:'plus',icon:[448,512,[10133,61543,"add"],"2b","M432 256c0 17.69-14.33 32.01-32 32.01H256v144c0 17.69-14.33 31.99-32 31.99s-32-14.3-32-31.99v-144H48c-17.67 0-32-14.32-32-32.01s14.33-31.99 32-31.99H192v-144c0-17.69 14.33-32.01 32-32.01s32 14.32 32 32.01v144h144C417.7 224 432 238.3 432 256z"]};
+	var faArrowUpFromBracket={prefix:'fas',iconName:'arrow-up-from-bracket',icon:[448,512,[],"e09a","M384 352v64c0 17.67-14.33 32-32 32H96c-17.67 0-32-14.33-32-32v-64c0-17.67-14.33-32-32-32s-32 14.33-32 32v64c0 53.02 42.98 96 96 96h256c53.02 0 96-42.98 96-96v-64c0-17.67-14.33-32-32-32S384 334.3 384 352zM201.4 9.375l-128 128c-12.51 12.51-12.49 32.76 0 45.25c12.5 12.5 32.75 12.5 45.25 0L192 109.3V320c0 17.69 14.31 32 32 32s32-14.31 32-32V109.3l73.38 73.38c12.5 12.5 32.75 12.5 45.25 0s12.5-32.75 0-45.25l-128-128C234.1-3.125 213.9-3.125 201.4 9.375z"]};var faMinus={prefix:'fas',iconName:'minus',icon:[448,512,[8722,10134,8211,"subtract"],"f068","M400 288h-352c-17.69 0-32-14.32-32-32.01s14.31-31.99 32-31.99h352c17.69 0 32 14.3 32 31.99S417.7 288 400 288z"]};var faNoteSticky={prefix:'fas',iconName:'note-sticky',icon:[448,512,[62026,"sticky-note"],"f249","M400 32h-352C21.49 32 0 53.49 0 80v352C0 458.5 21.49 480 48 480h245.5c16.97 0 33.25-6.744 45.26-18.75l90.51-90.51C441.3 358.7 448 342.5 448 325.5V80C448 53.49 426.5 32 400 32zM64 96h320l-.001 224H320c-17.67 0-32 14.33-32 32v64H64V96z"]};var faPersonCirclePlus={prefix:'fas',iconName:'person-circle-plus',icon:[576,512,[],"e541","M208 48C208 74.51 186.5 96 160 96C133.5 96 112 74.51 112 48C112 21.49 133.5 0 160 0C186.5 0 208 21.49 208 48zM152 352V480C152 497.7 137.7 512 120 512C102.3 512 88 497.7 88 480V256.9L59.43 304.5C50.33 319.6 30.67 324.5 15.52 315.4C.3696 306.3-4.531 286.7 4.573 271.5L62.85 174.6C80.2 145.7 111.4 128 145.1 128H174.9C208.6 128 239.8 145.7 257.2 174.6L302.1 249.3C285.1 266.9 273.4 287.7 265.5 310.8C263.6 308.9 261.1 306.8 260.6 304.5L232 256.9V480C232 497.7 217.7 512 200 512C182.3 512 168 497.7 168 480V352L152 352zM288 368C288 288.5 352.5 224 432 224C511.5 224 576 288.5 576 368C576 447.5 511.5 512 432 512C352.5 512 288 447.5 288 368zM448 303.1C448 295.2 440.8 287.1 432 287.1C423.2 287.1 416 295.2 416 303.1V351.1H368C359.2 351.1 352 359.2 352 367.1C352 376.8 359.2 383.1 368 383.1H416V431.1C416 440.8 423.2 447.1 432 447.1C440.8 447.1 448 440.8 448 431.1V383.1H496C504.8 383.1 512 376.8 512 367.1C512 359.2 504.8 351.1 496 351.1H448V303.1z"]};var faPlus={prefix:'fas',iconName:'plus',icon:[448,512,[10133,61543,"add"],"2b","M432 256c0 17.69-14.33 32.01-32 32.01H256v144c0 17.69-14.33 31.99-32 31.99s-32-14.3-32-31.99v-144H48c-17.67 0-32-14.32-32-32.01s14.33-31.99 32-31.99H192v-144c0-17.69 14.33-32.01 32-32.01s32 14.32 32 32.01v144h144C417.7 224 432 238.3 432 256z"]};
 
-	var redCard = "data:image/png;base64,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";
+	const PlayerSelect = props => {
+	  const user = react.exports.useContext(UserContext);
+	  const [viewState, setViewState] = react.exports.useState('all');
+	  const [allPlayers, setAllPlayers] = react.exports.useState([]);
+	  const [selectedPlayers, setSelectedPlayers] = react.exports.useState([]);
+	  react.exports.useEffect(() => fetch(`http://cards.leinsterhockey.ie/api/registration/list.json?s=${user.section}&t=${props.team}`, {
+	    headers: {
+	      'X-Auth-Token': `${sessionStorage.getItem("jwtToken")}`
+	    }
+	  }).then(res => res.json()).then(data => {
+	    const players = data.map(x => {
+	      const dates = x.history.map(y => moment(y.date));
+	      x['lastDate'] = Math.min(...dates);
+	      return x;
+	    });
+	    setAllPlayers(players);
+	  }), []);
+	  const players = [...allPlayers];
 
-	var yellowCard = "data:image/png;base64,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";
+	  if (viewState == 'all') {
+	    players.sort((a, b) => {
+	      return a.name.localeCompare(b.name);
+	    });
+	  } else if (viewState == 'recent') {
+	    players.sort((a, b) => {
+	      return a.lastDate ? a.lastDate - b.lastDate : 1;
+	    });
+	  }
 
-	var greenCard = "data:image/png;base64,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";
+	  const addPlayersText = () => {
+	    if (selectedPlayers.length == 0) return "Add players";
+	    if (selectedPlayers.length == 1) return "Add 1 player";
+	    return "Add " + selectedPlayers.length + " players";
+	  };
+
+	  return /*#__PURE__*/React.createElement("div", {
+	    id: "player-select"
+	  }, /*#__PURE__*/React.createElement("div", {
+	    className: "buttons-bar"
+	  }, /*#__PURE__*/React.createElement("button", {
+	    className: "success",
+	    disabled: !selectedPlayers
+	  }, addPlayersText()), /*#__PURE__*/React.createElement("button", {
+	    className: "warning",
+	    onClick: () => props.setKicker(false)
+	  }, "Cancel")), /*#__PURE__*/React.createElement("div", {
+	    className: "buttons-bar"
+	  }, /*#__PURE__*/React.createElement("button", {
+	    onClick: () => setViewState('all')
+	  }, "All (A-Z)"), /*#__PURE__*/React.createElement("button", {
+	    onClick: () => setViewState('recent')
+	  }, "Recent")), /*#__PURE__*/React.createElement("div", {
+	    className: "players"
+	  }, viewState == 'free' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "Player Name ", /*#__PURE__*/React.createElement("input", {
+	    type: "text"
+	  })), /*#__PURE__*/React.createElement("button", null, "Add Player")) : /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("tbody", null, players.map((p, i) => /*#__PURE__*/React.createElement("tr", {
+	    key: p.name
+	  }, /*#__PURE__*/React.createElement("td", {
+	    className: selectedPlayers.includes(p.name) ? 'selected' : '',
+	    onClick: () => {
+	      if (selectedPlayers.includes(p.name)) setSelectedPlayers(selectedPlayers.filter(x => x != p.name));else setSelectedPlayers([...selectedPlayers, p.name]);
+	    }
+	  }, p.name)))))));
+	};
+
+	const Matchcard = () => {
+	  const user = react.exports.useContext(UserContext);
+	  const [card, setCard] = react.exports.useState(null);
+	  const [selected, setSelected] = react.exports.useState(null);
+	  const [kicker, setKicker] = react.exports.useState(false);
+	  const {
+	    id
+	  } = useParams();
+	  react.exports.useEffect(() => {
+	    fetch(`http://cards.leinsterhockey.ie/api/fixtures/${id}`).then(res => res.json()).then(data => setCard(tweak(data.data)));
+	  }, []);
+	  if (card == null) return /*#__PURE__*/React.createElement("div", {
+	    className: "loading"
+	  }, "Loading...");
+	  const active = getActive(card, user);
+	  if (active) active.active = true;
+
+	  if (kicker) {
+	    return /*#__PURE__*/React.createElement(PlayerSelect, {
+	      setKicker: setKicker,
+	      team: active.team
+	    });
+	  }
+
+	  const dt = moment(card.datetime);
+	  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("header", {
+	    className: "matchcard"
+	  }, /*#__PURE__*/React.createElement("h2", null, card.competition), /*#__PURE__*/React.createElement("div", {
+	    className: "buttons"
+	  }, /*#__PURE__*/React.createElement("button", null, /*#__PURE__*/React.createElement(FontAwesomeIcon, {
+	    icon: faNoteSticky
+	  }), " Add Note..."), /*#__PURE__*/React.createElement("button", null, /*#__PURE__*/React.createElement(FontAwesomeIcon, {
+	    icon: faArrowUpFromBracket
+	  }), " Submit Card")), /*#__PURE__*/React.createElement("div", {
+	    className: "detail"
+	  }, /*#__PURE__*/React.createElement("dl", null, /*#__PURE__*/React.createElement("dt", null, "Fixture ID"), /*#__PURE__*/React.createElement("dd", null, card.fixture_id)), /*#__PURE__*/React.createElement("dl", null, /*#__PURE__*/React.createElement("dt", null, "Date"), /*#__PURE__*/React.createElement("dd", null, dt.format('YYYY-MM-DD'))), /*#__PURE__*/React.createElement("dl", null, /*#__PURE__*/React.createElement("dt", null, "Time"), /*#__PURE__*/React.createElement("dd", null, dt.format('HH:mm'))))), /*#__PURE__*/React.createElement("ol", {
+	    className: "teams"
+	  }, /*#__PURE__*/React.createElement("li", {
+	    className: "team"
+	  }, /*#__PURE__*/React.createElement(Team, {
+	    cardId: id,
+	    team: card.home,
+	    setKicker: setKicker,
+	    selected: selected,
+	    setSelected: setSelected
+	  })), /*#__PURE__*/React.createElement("li", {
+	    className: "team"
+	  }, /*#__PURE__*/React.createElement(Team, {
+	    cardId: id,
+	    team: card.away,
+	    setKicker: setKicker,
+	    selected: selected,
+	    setSelected: setSelected
+	  }))), /*#__PURE__*/React.createElement("dialog", null, /*#__PURE__*/React.createElement("header", null, /*#__PURE__*/React.createElement("h1", null, "Player NAME")), /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("tbody", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, "12")), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+	    colSpan: 3
+	  }, "Shirt Number ", /*#__PURE__*/React.createElement("input", {
+	    type: "number",
+	    size: 3,
+	    onChange: event => {//player.number = event.target.valueAsNumber
+	      //setTrigger(f => !f)
+	    },
+	    style: {
+	      width: '3rem'
+	    },
+	    value: 0
+	  }), /*#__PURE__*/React.createElement("div", {
+	    className: "goals"
+	  }, /*#__PURE__*/React.createElement(FontAwesomeIcon, {
+	    icon: faPlus,
+	    style: {
+	      color: '#484'
+	    },
+	    onClick: event => modScore(event, true)
+	  }), /*#__PURE__*/React.createElement("span", null, "x", 0), /*#__PURE__*/React.createElement(FontAwesomeIcon, {
+	    icon: faMinus,
+	    onClick: event => modScore(event, false)
+	  })))), /*#__PURE__*/React.createElement("tr", {
+	    className: "roles"
+	  }, /*#__PURE__*/React.createElement("td", {
+	    colSpan: 3
+	  }, /*#__PURE__*/React.createElement("span", null, "//", roleOptions.map(r => /*#__PURE__*/React.createElement("button", {
+	    key: 'rolebutton' + r,
+	    onClick: () => setRole(r.key),
+	    style: {
+	      backgroundColor: r.back,
+	      color: r.fore
+	    }
+	  }, r.text))))), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+	    colSpan: 3,
+	    className: "penalties"
+	  }, "Penalties ", /*#__PURE__*/React.createElement("select", {
+	    onChange: event => {//  player.penalties = player.penalties ?? []
+	      //  player.penalties.push(penalties.find(x => x.detail == event.target.value))
+	      //  setTrigger(f => !f)
+	    }
+	  }, /*#__PURE__*/React.createElement("option", null, "Select card to add")), /*#__PURE__*/React.createElement("br", null))), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+	    colSpan: 3
+	  })))), /*#__PURE__*/React.createElement("footer", null, /*#__PURE__*/React.createElement("button", {
+	    className: "danger",
+	    onClick: () => {//  player.removed = moment()
+	      //  setSelect(null)
+	    }
+	  }, "Remove Player"))));
+	};
 
 	const p = {
 	  'green': ['Green Card'],
 	  'yellow': ['Technical - Breakdown', 'Technical - Delay/Time Wasting', 'Technical - Dissent', 'Technical - Foul/Abusive Language', 'Technical - Bench/Coach/Team Foul', 'Physical - Tackle', 'Physical - Dangerous/Reckless Play'],
 	  'red': ['Red Card']
 	};
-	const penalties = Object.keys(p).flatMap(x => p[x].map(y => ({
+	Object.keys(p).flatMap(x => p[x].map(y => ({
 	  detail: y,
 	  color: x
 	})));
-	const cardImg = {
-	  'red': redCard,
-	  'yellow': yellowCard,
-	  'green': greenCard
-	};
+	const roleOptions = [{
+	  key: 'c',
+	  text: 'Captain',
+	  shortText: 'Capt',
+	  charText: 'C'
+	}, {
+	  key: 'g',
+	  text: 'Goalkeeper',
+	  shortText: 'GK',
+	  charText: 'GK'
+	}, {
+	  key: 'm',
+	  text: 'Manager',
+	  shortText: 'Mgr',
+	  charText: 'M'
+	}, {
+	  key: 'p',
+	  text: 'Physio',
+	  shortText: 'Phy',
+	  charText: 'P'
+	}, {
+	  key: 'cc',
+	  text: 'Coach',
+	  shortText: 'Coach',
+	  charText: 'CC'
+	}];
 
 	const Team = props => {
-	  const [trigger, setTrigger] = react.exports.useState(false);
+	  react.exports.useState(false);
 	  const team = props.team;
 	  const setSelect = props.setSelected;
-	  const select = props.selected;
+	  props.selected;
+	  const setKicker = props.setKicker; // const formatPlayer = (player) => {
+	  //   const modScore = (event, add) => {
+	  //     event.stopPropagation()
+	  //     if (add) {
+	  //       player.score = (player.score ?? 0) + 1
+	  //     } else {
+	  //       if (player.score) player.score = player.score - 1
+	  //     }
+	  //     setTrigger(f => !f)
+	  //   }
+	  //   const setRole = (role) => {
+	  //     if (player.roles && player.roles.includes(role)) {
+	  //       player.roles = player.roles.filter(x => x != role)
+	  //     } else {
+	  //       if (!player.roles) player.roles = []
+	  //       player.roles.push(role)
+	  //     }
+	  //     console.log("Roles", player.roles)
+	  //     setTrigger(f => !f)
+	  //   }
 
-	  const formatPlayer = player => {
-	    console.log("Props", props);
+	  const roles = player => player.roles ? /*#__PURE__*/React.createElement(React.Fragment, null, player.roles.map(r => {
+	    const role = roleOptions.find(x => x.key == r.toLowerCase());
 
-	    const modScore = (event, add) => {
-	      event.stopPropagation();
+	    if (!role) {
+	      console.log("Unknown role: ", r);
+	      return null;
+	    }
 
-	      if (add) {
-	        player.score = (player.score ?? 0) + 1;
-	      } else {
-	        if (player.score) player.score = player.score - 1;
-	      }
+	    const name = role.text.toLowerCase();
+	    return /*#__PURE__*/React.createElement("li", {
+	      key: 'role' + name,
+	      className: 'role-' + name
+	    }, role.charText);
+	  })) : null;
 
-	      setTrigger(f => !f);
-	    };
+	  const cards = player => player.penalties ? /*#__PURE__*/React.createElement(React.Fragment, null, player.penalties.map((x, i) => /*#__PURE__*/React.createElement("li", {
+	    key: 'pen' + i,
+	    className: 'pen-' + x.color
+	  }))) : null; //   const f = player.name.match(/(.*), ([^ ]*)/)
+	  //   return <React.Fragment key={player.name}>
+	  //     {select == player.name && team.active 
+	  //       ? <tr className='selected' onClick={(event) => {
+	  //         if (event.target.nodeName.startsWith('T')) setSelect(null) }}>
+	  //           <td colSpan={3}>
+	  //           </td>
+	  //         </tr>
+	  //       : <tr >
+	  //       <div>{player.number}</div>
+	  //       <div>{f[2]}</div>
+	  //       <div>{f[1]} <span className='detail'>{roles()}{cards()}{scorex}</span></div>
+	  //     }
+	  //   </React.Fragment>
+	  // }
 
-	    const setRole = role => {
-	      if (player.roles && player.roles.includes(role)) {
-	        player.roles = player.roles.filter(x => x != role);
-	      } else {
-	        if (!player.roles) player.roles = [];
-	        player.roles.push(role);
-	      }
 
-	      console.log("Roles", player.roles);
-	      setTrigger(f => !f);
-	    };
-
-	    const roleOptions = [{
-	      key: 'c',
-	      text: 'Captain',
-	      shortText: 'Capt',
-	      charText: 'C',
-	      back: 'black',
-	      fore: 'white'
-	    }, {
-	      key: 'g',
-	      text: 'Goalkeeper',
-	      shortText: 'GK',
-	      charText: 'GK',
-	      back: 'green',
-	      fore: 'white'
-	    }, {
-	      key: 'm',
-	      text: 'Manager',
-	      shortText: 'Mgr',
-	      charText: 'M',
-	      back: 'blue',
-	      fore: 'white'
-	    }, {
-	      key: 'p',
-	      text: 'Physio',
-	      shortText: 'Phy',
-	      charText: 'P',
-	      back: 'orange',
-	      fore: 'black'
-	    }, {
-	      key: 'cc',
-	      text: 'Coach',
-	      shortText: 'Coach',
-	      charText: 'CC',
-	      back: 'red',
-	      fore: 'white'
-	    }];
-
-	    const roles = () => player.roles ? /*#__PURE__*/React.createElement("ol", {
-	      className: "roles"
-	    }, player.roles.map(r => {
-	      const role = roleOptions.find(x => x.key == r.toLowerCase());
-
-	      if (!role) {
-	        console.log("Unknown role: ", r);
-	        return null;
-	      }
-
-	      return /*#__PURE__*/React.createElement("li", {
-	        key: 'rolebadge' + r,
-	        style: {
-	          backgroundColor: role.back,
-	          color: role.fore
-	        }
-	      }, role.charText);
-	    })) : null;
-
-	    const cards = () => player.penalties ? /*#__PURE__*/React.createElement("ol", {
-	      className: "penalties"
-	    }, player.penalties.map((x, i) => /*#__PURE__*/React.createElement("li", {
-	      key: 'pen' + i
-	    }, /*#__PURE__*/React.createElement("img", {
-	      src: cardImg[x.color]
-	    })))) : null;
-
-	    const f = player.name.match(/(.*), ([^ ]*)/);
-	    const scorex = player.score > 0 ? "x" + player.score : "";
-	    return /*#__PURE__*/React.createElement(React.Fragment, {
-	      key: player.name
-	    }, select == player.name && team.active ? /*#__PURE__*/React.createElement("tr", {
-	      className: "selected",
-	      onClick: event => {
-	        if (event.target.nodeName.startsWith('T')) setSelect(null);
-	      }
-	    }, /*#__PURE__*/React.createElement("td", {
-	      colSpan: 3
-	    }, /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("tbody", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, player.number), /*#__PURE__*/React.createElement("td", {
-	      colSpan: "2"
-	    }, f[2], " ", f[1], " ", /*#__PURE__*/React.createElement("span", {
-	      className: "detail"
-	    }, roles(), cards(), "x", player.score ?? 0))), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-	      colSpan: 3
-	    }, "Shirt Number ", /*#__PURE__*/React.createElement("input", {
-	      type: "number",
-	      size: 3,
-	      onChange: event => {
-	        player.number = event.target.valueAsNumber;
-	        setTrigger(f => !f);
-	      },
-	      style: {
-	        width: '3rem'
-	      },
-	      value: player.number
-	    }), /*#__PURE__*/React.createElement("div", {
-	      className: "goals"
-	    }, /*#__PURE__*/React.createElement(FontAwesomeIcon, {
-	      icon: faPlus,
-	      style: {
-	        color: '#484'
-	      },
-	      onClick: event => modScore(event, true)
-	    }), /*#__PURE__*/React.createElement("span", null, "x", player.score ?? 0), /*#__PURE__*/React.createElement(FontAwesomeIcon, {
-	      icon: faMinus,
-	      onClick: event => modScore(event, false)
-	    })))), /*#__PURE__*/React.createElement("tr", {
-	      className: "roles"
-	    }, /*#__PURE__*/React.createElement("td", {
-	      colSpan: 3
-	    }, /*#__PURE__*/React.createElement("span", null, roleOptions.map(r => /*#__PURE__*/React.createElement("button", {
-	      key: 'rolebutton' + r,
-	      onClick: () => setRole(r.key),
-	      style: {
-	        backgroundColor: r.back,
-	        color: r.fore
-	      }
-	    }, r.text))))), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-	      colSpan: 3,
-	      className: "penalties"
-	    }, "Penalties ", /*#__PURE__*/React.createElement("select", {
-	      onChange: event => {
-	        player.penalties = player.penalties ?? [];
-	        player.penalties.push(penalties.find(x => x.detail == event.target.value));
-	        setTrigger(f => !f);
-	      }
-	    }, /*#__PURE__*/React.createElement("option", null, "Select card to add"), penalties.map(x => /*#__PURE__*/React.createElement("option", {
-	      key: x.detail,
-	      className: 'card-' + x.color
-	    }, x.detail))), /*#__PURE__*/React.createElement("br", null), (player.penalties ?? []).map((x, i) => /*#__PURE__*/React.createElement("p", {
-	      key: 'pensel' + i
-	    }, /*#__PURE__*/React.createElement("img", {
-	      src: cardImg[x.color]
-	    }), " ", x.detail)))), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-	      colSpan: 3
-	    }, /*#__PURE__*/React.createElement("button", {
-	      className: "danger",
-	      onClick: () => {
-	        player.removed = moment();
-	        setSelect(null);
-	      }
-	    }, "Remove Player"))))))) : /*#__PURE__*/React.createElement("tr", {
-	      onClick: () => setSelect(player.name)
-	    }, /*#__PURE__*/React.createElement("td", null, player.number), /*#__PURE__*/React.createElement("td", null, f[2]), /*#__PURE__*/React.createElement("td", null, f[1], " ", /*#__PURE__*/React.createElement("span", {
-	      className: "detail"
-	    }, roles(), cards(), scorex))));
+	  const score = player => {
+	    if (player) return player.score > 0 ? /*#__PURE__*/React.createElement("li", {
+	      className: "score"
+	    }, player.score) : null;
+	    const teamScore = team.players.map(x => x.score ?? 0).reduce((a, b) => a + b, 0);
+	    return teamScore > 0 ? /*#__PURE__*/React.createElement("li", {
+	      className: "score"
+	    }, teamScore) : null;
 	  };
 
-	  const teamScore = team.players.map(x => x.score ?? 0).reduce((a, b) => a + b, 0);
-	  const score = teamScore > 0 ? "x" + teamScore : null;
-	  return /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("caption", null, team.club, " ", team.team, /*#__PURE__*/React.createElement("span", {
+	  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("header", null, /*#__PURE__*/React.createElement("h3", null, team.club, " ", team.team), /*#__PURE__*/React.createElement("span", {
 	    className: "detail"
-	  }, score)), /*#__PURE__*/React.createElement("thead", null, team.active && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-	    colSpan: "3"
-	  }, /*#__PURE__*/React.createElement(Link, {
-	    to: `/${props.cardId}/select`
+	  }, /*#__PURE__*/React.createElement("output", null, score()))), team.active && /*#__PURE__*/React.createElement("button", {
+	    className: "success",
+	    onClick: () => setKicker(true)
 	  }, /*#__PURE__*/React.createElement(FontAwesomeIcon, {
 	    icon: faPersonCirclePlus
-	  }), " Add Players...")))), /*#__PURE__*/React.createElement("tbody", null, team.players.filter(x => !x.removed).map(formatPlayer)));
+	  }), " Add Players..."), /*#__PURE__*/React.createElement("ol", null, team.players.filter(x => !x.removed).map(pl => {
+	    const [fullName, lastName, firstName] = pl.name.match(/(.*), ([^ ]*)/);
+	    return /*#__PURE__*/React.createElement("li", {
+	      className: "player",
+	      onClick: () => setSelect(pl.name),
+	      key: pl.name
+	    }, /*#__PURE__*/React.createElement("div", null, pl.number), /*#__PURE__*/React.createElement("div", null, firstName), /*#__PURE__*/React.createElement("div", null, lastName), /*#__PURE__*/React.createElement("ol", {
+	      className: "detail"
+	    }, roles(pl), cards(pl), score(pl)));
+	  })));
 	};
 
 	const tweak = js => {
-	  const tweakTeam = js => {
-	    js.players = Object.keys(js.players).map(p => {
-	      const k = js.players[p];
+	  const tweakTeam = jsTeam => {
+	    jsTeam.players = Object.keys(jsTeam.players).map(p => {
+	      const k = jsTeam.players[p];
 	      const d = k.detail ? JSON.parse(k.detail) : {};
 	      const player = {
 	        name: p,
 	        ...d,
 	        ts: k.date
 	      };
-	      const s = js.scorers[p];
+	      const s = jsTeam.scorers[p];
 	      if (s) player.score = s;
 	      const n = k.number;
 	      if (n) player.number = n;
 	      return player;
 	    });
-	    delete js.scorers;
-	    delete js.captain;
-	    delete js.goals;
+	    delete jsTeam.scorers;
+	    delete jsTeam.captain;
+	    delete jsTeam.goals;
 	  };
 
 	  tweakTeam(js.home);
@@ -29710,149 +34343,67 @@
 	  delete js.home_team;
 	  delete js.goals;
 	  delete js.comment;
+	  console.log("Card", js);
 	  return js;
 	};
 
-	const Matchcard = props => {
-	  const [card, setCard] = react.exports.useState(null);
-	  const [selected, setSelected] = react.exports.useState(null);
-	  const {
-	    id
-	  } = useParams();
-	  react.exports.useEffect(() => {
-	    fetch(`http://cards.leinsterhockey.ie/api/fixtures/${id}`).then(res => res.json()).then(data => {
-	      setCard(tweak(data.data));
-	    });
-	  }, []);
-	  if (card == null) return null;
-	  card.home.active = true;
-	  const dt = moment(card.datetime);
-	  return /*#__PURE__*/React.createElement("div", {
-	    className: "matchcard"
-	  }, /*#__PURE__*/React.createElement("h1", null, card.competition), /*#__PURE__*/React.createElement("div", {
-	    className: "detail"
-	  }, /*#__PURE__*/React.createElement("dl", null, /*#__PURE__*/React.createElement("dt", null, "Fixture ID"), /*#__PURE__*/React.createElement("dd", null, card.fixture_id)), /*#__PURE__*/React.createElement("dl", null, /*#__PURE__*/React.createElement("dt", null, "Date"), /*#__PURE__*/React.createElement("dd", null, dt.format('YYYY-MM-DD'))), /*#__PURE__*/React.createElement("dl", null, /*#__PURE__*/React.createElement("dt", null, "Time"), /*#__PURE__*/React.createElement("dd", null, dt.format('HH:mm')))), /*#__PURE__*/React.createElement("div", {
-	    className: "teams pure-g"
-	  }, /*#__PURE__*/React.createElement(Team, {
-	    cardId: id,
-	    team: card.home,
-	    selected: selected,
-	    setSelected: setSelected
-	  }), /*#__PURE__*/React.createElement(Team, {
-	    cardId: id,
-	    team: card.away,
-	    selected: selected,
-	    setSelected: setSelected
-	  })));
-	};
+	function getActive(card, user) {
+	  if (user) {
+	    if (card.section == user.section) {
+	      if (card.home.club == user.club) return card.home;
+	      if (card.away.club == user.club) return card.away;
+	    }
 
-	const players = [{
-	  "name": "Perice Eagger",
-	  "id": "ME400351"
-	}, {
-	  "name": "Lethia Ledwith",
-	  "id": "ME416436"
-	}, {
-	  "name": "Lark Jendrich",
-	  "id": "ME627859"
-	}, {
-	  "name": "Udell Knoble",
-	  "id": "ME962246"
-	}, {
-	  "name": "Yuri Billows",
-	  "id": "ME828678"
-	}, {
-	  "name": "Boonie Noseworthy",
-	  "id": "ME966842"
-	}, {
-	  "name": "Phillipp Mulliss",
-	  "id": "ME545758"
-	}, {
-	  "name": "Lynde Kingsnoad",
-	  "id": "ME265303"
-	}, {
-	  "name": "Edlin Elsey",
-	  "id": "ME956506"
-	}, {
-	  "name": "Gabbie Slyford",
-	  "id": "ME871026"
-	}, {
-	  "name": "Idette Trundle",
-	  "id": "ME935803"
-	}, {
-	  "name": "Claudelle Pankethman",
-	  "id": "ME682495"
-	}, {
-	  "name": "Belia Moneti",
-	  "id": "ME132196"
-	}, {
-	  "name": "Reynold Tegeller",
-	  "id": "ME380781"
-	}, {
-	  "name": "Mab Dane",
-	  "id": "ME182697"
-	}, {
-	  "name": "Marcelline Dumphrey",
-	  "id": "ME692309"
-	}, {
-	  "name": "Rudiger Spancock",
-	  "id": "ME477818"
-	}, {
-	  "name": "Deonne Vince",
-	  "id": "ME619245"
-	}, {
-	  "name": "Mace Orcas",
-	  "id": "ME641004"
-	}, {
-	  "name": "Gran Camelin",
-	  "id": "ME962372"
-	}, {
-	  "name": "Ailina Chadderton",
-	  "id": "ME000610"
-	}, {
-	  "name": "Eulalie Lacky",
-	  "id": "ME033058"
-	}, {
-	  "name": "Vanni Ailsbury",
-	  "id": "ME518392"
-	}, {
-	  "name": "Tommy Plain",
-	  "id": "ME794787"
-	}, {
-	  "name": "Blaire Ioselevich",
-	  "id": "ME809775"
-	}, {
-	  "name": "Cozmo Okroy",
-	  "id": "ME980549"
-	}, {
-	  "name": "Ted Hawney",
-	  "id": "ME124188"
-	}, {
-	  "name": "Tiffany Stickells",
-	  "id": "ME185575"
-	}, {
-	  "name": "Leah Tomaello",
-	  "id": "ME325735"
-	}, {
-	  "name": "Karissa O'Lagen",
-	  "id": "ME977629"
-	}];
+	    return undefined;
+	  }
+	}
 
-	const PlayerSelect = props => {
-	  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("table", {
-	    id: "player-select"
-	  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("button", null, "All"), /*#__PURE__*/React.createElement("button", null, "Recent"), /*#__PURE__*/React.createElement("button", null, "Free")))), /*#__PURE__*/React.createElement("tbody", null, players.map(p => /*#__PURE__*/React.createElement("tr", {
-	    key: p.id
-	  }, /*#__PURE__*/React.createElement("td", null, p.name))))));
-	};
+	const UserContext = /*#__PURE__*/React.createContext(null);
 
 	function App() {
-	  return /*#__PURE__*/React.createElement(BrowserRouter, null, /*#__PURE__*/React.createElement("nav", null, /*#__PURE__*/React.createElement(NavLink, {
+	  const [userData, setUserData] = react.exports.useState();
+	  const search = window.location.search;
+	  const params = new URLSearchParams(search);
+	  const token = params.get("token");
+
+	  if (token) {
+	    sessionStorage.setItem("jwtToken", token);
+	  }
+
+	  if (!userData) {
+	    fetch("http://cards.leinsterhockey.ie/api/users", {
+	      headers: {
+	        'X-Auth-Token': `${sessionStorage.getItem("jwtToken")}`
+	      }
+	    }).then(res => res.json()).then(data => {
+	      console.log(data);
+	      setUserData(data);
+	    });
+	  }
+
+	  function formatUser(user) {
+	    const v = user.match(/(.*) \((.*)\)/);
+	    return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", null, v[1]), /*#__PURE__*/React.createElement("span", null, v[2]));
+	  }
+
+	  react.exports.useEffect(() => {//reloadDb(0)
+	  });
+	  return /*#__PURE__*/React.createElement(BrowserRouter, null, /*#__PURE__*/React.createElement(UserContext.Provider, {
+	    value: userData
+	  }, /*#__PURE__*/React.createElement("header", null, /*#__PURE__*/React.createElement("h1", null, "Leinster Hockey Matchcards"), /*#__PURE__*/React.createElement("span", {
+	    className: "login"
+	  }, userData ? formatUser(userData.user) : /*#__PURE__*/React.createElement("button", null, "Login")), /*#__PURE__*/React.createElement("input", {
+	    type: "text",
+	    name: "search",
+	    placeholder: "Search for card by club, competition or date",
+	    spellCheck: "false"
+	  }), /*#__PURE__*/React.createElement("nav", null, /*#__PURE__*/React.createElement(NavLink, {
 	    to: "/"
-	  }, "Fixtures")), /*#__PURE__*/React.createElement("main", null, /*#__PURE__*/React.createElement(Routes, null, /*#__PURE__*/React.createElement(Route, {
-	    path: "/:id/select",
-	    element: /*#__PURE__*/React.createElement(PlayerSelect, null)
-	  }), /*#__PURE__*/React.createElement(Route, {
+	  }, "Fixtures"), /*#__PURE__*/React.createElement(NavLink, {
+	    to: "/"
+	  }, "Reports"), /*#__PURE__*/React.createElement("span", {
+	    className: "user-info"
+	  }))), /*#__PURE__*/React.createElement("main", null, /*#__PURE__*/React.createElement(Routes, null, /*#__PURE__*/React.createElement(Route, {
 	    path: "/:id",
 	    element: /*#__PURE__*/React.createElement(Matchcard, null)
 	  }), /*#__PURE__*/React.createElement(Route, {
@@ -29860,7 +34411,7 @@
 	    element: /*#__PURE__*/React.createElement(Fixtures, null)
 	  }), /*#__PURE__*/React.createElement(Route, {
 	    render: () => /*#__PURE__*/React.createElement("h1", null, "Page not found")
-	  }))));
+	  })))));
 	}
 
 	ReactDOM.render( /*#__PURE__*/React.createElement(App, null), document.querySelector('#root'));

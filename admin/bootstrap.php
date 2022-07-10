@@ -1,13 +1,4 @@
 <?php
-/* Raven/Sentry */
-#require_once PKGPATH.'Raven/Autoloader.php';
-#Raven_Autoloader::register();
-#$sentry_client = new Raven_Client('https://0e648f1a6af5407985c427afb086e5bb:37b68176201d451a849bbbb4c81ec6f6@sentry.io/1242091');
-#$error_handler = new Raven_ErrorHandler($sentry_client);
-#$error_handler->registerExceptionHandler();
-#$error_handler->registerErrorHandler();
-#$error_handler->registerShutdownFunction();
-
 // Bootstrap the framework DO NOT edit this
 require COREPATH.'bootstrap.php';
 
@@ -39,6 +30,8 @@ function ensurePath($path, $file = "")
     }
     return realpath("$path")."/$file";
 }
+
+define('JWT_KEY', '1234567890abcdef');
 
 define('DATAPATH', DOCROOT.'/data/');
 

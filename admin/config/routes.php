@@ -26,6 +26,7 @@ return array(
 	'api/competitions/:id' => 'competitionapi',
 	'api/competitions' => 'competitionapi',
 	'api/fixtures' => 'fixtureapi',
+	'api/fixtures/:id' => 'fixtureapi',
 	'api/admin/(:any)' => 'adminapi/$1',
 	'api/registration/(:any)' => 'registrationapi/$1',
 

@@ -1,148 +1,175 @@
-import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import _ from 'lodash';
+import React, { useState, useEffect, useRef } from 'react';
+import { Dots } from 'loading-animations-react';
+import moment from "moment";
+import { useNavigate } from "react-router-dom";
+import './fixtures.scss';
 
-function Fixtures() {
-
+const Fixtures = () => {
     const pageSize = 10
+
+    const navigate = useNavigate()
     const containerRef = useRef(null)
     const topRef = useRef(null)
     const bottomRef = useRef(null)
+    const items = useRef([])
 
-    const [starting, setStarting] = useState(true)
-    const [active, setActive] = useState({top: false, bottom: false})
-    const [items, setItems] = useState([])
-    const [fixtures, setFixtures] = useState({
-        bottomAdd: 0, topAdd: 0,
-        topDone: false, bottomDone: false,
-        firstPage:0, lastPage:-1})
+    const [range, setRange] = useState(null)
+    const [visible, setVisible] = useState({top: true, bottom: true})
 
-    //  console.log("State:", active, fixtures)
+    //console.log("Loop ", range, items.current.length, visible)
 
     useEffect(() => {
         const observer = new IntersectionObserver(callback, { 
             root: containerRef.current, rootMargin: "0px", threshold: 0.0 })
         observer.observe(topRef.current)
         observer.observe(bottomRef.current)
-        containerRef.current.scrollTop = topRef.current.offsetHeight + 2
-        topRef.current.visible = false
-        console.log("Use Effect", containerRef.current.scrollTop)
-        console.log(starting, '- Has changed')
-        containerRef.current.addEventListener("scroll", (e) => {
-            console.log("Scroll",e)
-        })
-        return () => {
-            console.log("Cleanup")
-        }
-    })
 
-    useLayoutEffect(() => {
-        const allItems = [].slice.call(containerRef.current.firstChild.firstChild.children)
-        const iitems = allItems.slice(1,-1)
-        const s0 = containerRef.current.scrollTop
-        console.log("Use Layout Effect", iitems.length, s0, starting)
+        if (!range) {
+            //console.debug("  Empty", nextPage)
+            bottomRef.current.firstChild.height = containerRef.current.clientHeight + 10
+        } else {
+            const allItems = [].slice.call(containerRef.current.firstChild.firstChild.children)
 
-        if (starting) {
-            fixtures.bottomAdd = 0
-            let h = iitems.map(x => x.offsetHeight).reduce((a,b) => a+b, 0)
-            if (h > containerRef.current.offsetHeight || fixtures.bottomDone) {
-                console.log("starting done", containerRef.current.offsetHeight, h)
-                bottomRef.current.firstChild.height = containerRef.current.offsetHeight - h
-                containerRef.current.scrollTop = 2
-                setStarting(false)
-            } else {
-                get(fixtures.lastPage + 1)
+            if (range.firstPage == 0) {
+                // Initialization
+                const topHeight = topRef.current.firstChild.clientHeight
+                const h = containerRef.current.clientHeight - allItems.slice(1,-1)
+                .map(x => x.clientHeight).reduce((a,b)=>a+b, 0)
+                bottomRef.current.firstChild.height = Math.max(topHeight, h)
             }
         }
-    })
 
-    function get(page) {
-        console.log("  Get page", items.length, page, active, starting)
-        if (page >= 0) { // bottom
-            if (!active.bottom) return
-            console.log("  Getting bottom")
-            fetch(`http://cards.leinsterhockey.ie/api/fixtures?p=${page}&n=${pageSize}`)
-                .then((res) => res.json())
-                .then((list) => {
-                    const newFixtures = list.fixtures
-                    if (newFixtures.length > 0 && page <= 0) {
-                        console.log("    Add " + newFixtures.length + " at bottom", page)
-                        for (let i=0;i<pageSize;i++) newFixtures[i].date = i + (page*pageSize)
-                        setFixtures({
-                            lastPage: page,
-                            bottomAdd: fixtures.bottomAdd + newFixtures.length})
-                        setItems([...items, ...newFixtures ])
-                    } else {
-                        setFixtures({
-                            ...fixtures,
-                            bottomDone: true
-                        })
-                    }
-                });
-        } else { // top
-            if (page < -3) return
-            if (!active.top) return
-            if (starting) return
-            console.log("  Getting top")
-            fetch(`http://cards.leinsterhockey.ie/api/fixtures?p=${page}&n=${pageSize}`)
-                .then((res) => res.json())
-                .then((list) => {
-                    const newFixtures = list.fixtures
-                    if (newFixtures.length > 0) {
-                        console.log("    Add " + newFixtures.length + " at top", page, containerRef.current.topLastAdded)
-                        for (let i=0;i<pageSize;i++) newFixtures[i].date = (i + (page*pageSize))
-                        setFixtures({...fixtures,
-                            firstPage: page,
-                            topAdd: fixtures.topAdd + newFixtures.length})
-                        setItems([ ...newFixtures,  ...items])
-                    } else {
-                        setFixtures({
-                            ...fixtures,
-                            topDone: true
-                        })
-                    }
-                });
+        containerRef.current.scrollTop = topRef.current.clientHeight + 5
+    }, [range])
+
+    const calcNextPage = () => {
+        if (range == null) return 0
+        if (range.currentPage != null) return null
+        if (visible.bottom && range.lastPage != null) {
+            return range.lastPage + 1
         }
+        if (visible.top && range.firstPage != null) {
+            return range.firstPage - 1;
+        }
+        return null
+    }
+
+    const nextPage = calcNextPage()
+
+    if (nextPage != null) {
+        if (range != null) range.currentPage = nextPage;
+        //console.debug("  Fetch", nextPage)
+        fetch(`http://cards.leinsterhockey.ie/api/fixtures?p=${nextPage}&n=${pageSize}`)
+        .then((res) => res.json())
+        .then((list) => {
+            //console.debug("Page", nextPage, list.fixtures)
+            const newFixtures = list.fixtures
+            newFixtures.forEach(f => {
+                f.date = moment(f.datetimeZ)
+            })
+
+            let fp = 0, lp = 0
+            if (range) {
+                fp = range.firstPage
+                lp = range.lastPage
+            }
+
+            if (newFixtures.length > 0) {
+                if (nextPage < 0) {
+                    fp = nextPage
+                    items.current = [...newFixtures, ...items.current]
+                } else {
+                    lp = nextPage
+                    items.current = [...items.current, ...newFixtures]
+                }
+            } else {
+                if (nextPage < 0) fp = null
+                if (nextPage > 0) lp = null
+            }
+
+            let d = null
+            items.current.forEach(f => {
+                f.previous = d
+                d = f.date      
+            })
+            const newRange = {firstPage: fp, lastPage: lp, currentPage: null}
+            //console.debug("   End:", nextPage, range, "->", newRange)
+            setRange(newRange)
+        })
     }
 
     function callback(entries) {
-        entries.forEach(entry => { entry.target.visible = entry.isIntersecting })
+        entries.forEach(entry => entry.target.visible = entry.isIntersecting)
 
-        const newBottom = bottomRef.current.visible || false
-        const newTop = topRef.current.visible || false 
-        console.log("Callback", newTop, newBottom, active)
-
-        const bottomChangedToVisible = newBottom && !active.bottom
-        active.bottom = newBottom
-        if (bottomChangedToVisible) {
-            get(fixtures.lastPage + 1)
-        }
-        const topChangedToVisible = newTop && !active.top
-        active.top = newTop
-        if (topChangedToVisible) {
-            get(fixtures.firstPage - 1)
+        const newVisible = ({top: topRef.current.visible, bottom: bottomRef.current.visible})
+        //console.trace("  0 Visible Callback", visible)
+        // only rerender if something is now visible
+        if ((!visible.top && newVisible.top)||(!visible.bottom && newVisible.bottom)) {
+            setVisible(newVisible)
+            //console.trace("  + Visible Callback", newVisible)
+        } else {
+            visible.top = newVisible.top
+            visible.bottom = newVisible.bottom
+            //console.trace("  - Visible Callback", newVisible)
         }
     }
 
-    console.log("Rendering", fixtures)
+    const dots = (condition) => {
+        if (condition) {
+            return <div style={{width:"8rem",padding:"3px 0"}}><Dots text="" dotColors={['#000','#333','#666','#999','#ccc','#fff']}/></div>
+        } else {
+            return null
+        }
+    }
 
-    return <div ref={containerRef} style={{height:'300px',overflowY:'auto'}}>
-        <table>
-        <tbody>
-            <tr ref={topRef} key='top' style={{backgroundColor:"green", display: starting ? 'none' : 'table-row'}}>
-                <td>Top {fixtures.firstPage}</td>
+    const monthNames = ["January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"];
+
+    const getTime = (d) => {
+        return d.format('HH:mm')
+    }
+
+    const formatRow = (item) => {
+        return <React.Fragment key={item.id}>
+            {(item.date?.month() != item.previous?.month()) 
+                ? <tr>
+                    <td colSpan='5' className='month-break'>{monthNames[item.date.month()]} {item.date.year()}</td>
+                </tr> 
+                : null }
+            <tr onClick={() => { navigate(`/${item.id}`)}}>
+                <td className='day-break'>{(item.date.month() != item.previous?.month() || 
+                    item.date.date() != item.previous?.date()) 
+                ? item.date.date()
+                : null }
+                </td>
+                <td className='time-break'>{(item.date.month() != item.previous?.month() || 
+                    item.date.date() != item.previous?.date() ||
+                    getTime(item.date) != getTime(item.previous)) 
+                ? getTime(item.date)
+                : null }
+                </td>
+                <td>{item.competition}</td>
+                <td>{item.home.name}</td>
+                <td>{item.played == 'yes' 
+                    ? item.home.score + "v" + item.away.score
+                    : null}</td>
+                <td>{item.away.name}</td>
             </tr>
-        {items.map(fixture => {
-            return <tr key={fixture.id}>
-                <td>{fixture.date}</td>
-                <td>{fixture.competition}</td>
-                <td>{fixture.home.name}</td>
-                <td>{fixture.home.score + "v" + fixture.away.score}</td>
-                <td>{fixture.away.name}</td>
-            </tr>
-        })}
-            <tr ref={bottomRef} key='bottom' style={{backgroundColor:"red"}}><td>Bottom {fixtures.lastPage}</td></tr>
-        </tbody>
-    </table>
+        </React.Fragment>
+    }
+
+    return <div ref={containerRef} style={{position:'absolute',top:"5rem",bottom:0,left:0,right:0,overflowY:'auto',height:'auto'}}>
+        <table style={{width:'100%',borderSpacing:0}}>
+            <tbody>
+                <tr key='top' ref={topRef}>
+                    <td colSpan='5'>{dots(range?.firstPage != null)}</td>
+                </tr>
+                {items.current.map(formatRow)}
+                <tr key='bottom' ref={bottomRef}>
+                    <td colSpan='5'>{ dots(range?.lastPage != null) }</td>
+                </tr>
+            </tbody>
+        </table>
     </div>;
 }
 

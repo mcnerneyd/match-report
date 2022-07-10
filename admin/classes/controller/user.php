@@ -235,27 +235,7 @@ class Controller_User extends Controller_Template
         });
         $users = array_map(function($a) { return $a['username'];}, $users);
         sort($users);
-        //$users = self::classify($users, 'role');
-        //$data['users'] = array('Clubs'=>array(), 'Umpires'=>array());
-        //if ($users) {
-        //  if (isset($users['user'])) $data['users']['Clubs'] = $users['user'];
-        //  if (isset($users['umpire'])) $data['users']['Umpires'] = $users['umpire'];
-        //}
         $data['users'] = $users;
-
-        /*$sites = array();
-        foreach (scandir(DATAPATH."/sections/") as $site) {
-            if ($site[0] === '.') {
-                continue;
-            }
-            $configPath = DATAPATH."/sections/$site/config.json";
-            if (!file_exists($configPath)) {
-                continue;
-            }
-            $config = json_decode(file_get_contents($configPath));
-            $sites[$site] = isset($config->title) ? $config->title : "";
-        }
-        $data['sites'] = $sites;*/
 
         $this->template->content = View::forge('login', $data);
     }

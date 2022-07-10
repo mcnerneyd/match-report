@@ -2,7 +2,7 @@
 	$(document).ready(function() {
 		$('#users-table').DataTable({
 			responsive:true,
-			columns: [ 
+			columns: [
 				{ responsivePriority: "1" },
 				{ responsivePriority: "1" },
 				{ responsivePriority: "3" },
@@ -78,7 +78,7 @@
 			$.post('<?= Uri::create('index.php/api/users') ?>', $('#add-user-modal form').serialize(), function(data) {
 				window.location.reload();
 				$.notify({message: 'User Created'}, {
-					placement: { from: 'top', align: 'right' },		
+					placement: { from: 'top', align: 'right' },
 					delay: 1000,
 					animate: {
 						enter: 'animated bounceInDown',
@@ -101,7 +101,7 @@
              }).done((data) => {
 				window.location.reload();
 				$.notify({message: 'Users Imported'}, {
-					placement: { from: 'top', align: 'right' },		
+					placement: { from: 'top', align: 'right' },
 					delay: 1000,
 					animate: {
 						enter: 'animated bounceInDown',
@@ -193,21 +193,19 @@
 
 					<div class='form-group'>
 						<label>User Name</label>
-						<input class='form-control' type='text' name='username'/>
+						<input class='form-control' type='text' name='username'  pattern='[A-Za-z0-9.@,/ ]+'/>
 					</div>
 
 					<div class='form-group'>
 						<label>Email Address</label>
-						<input class='form-control' type='email' name='email'/>
+						<input class='form-control' type='email' name='email' pattern='[A-Za-z0-9.@ ]+'/>
 					</div>
 
 					<div class='form-group'>
 						<label>Section</label>
 						<select class='form-control' name='section'>
               <option value='all'>All sections</option>
-							<?php foreach ($sections as $section) {
-    echo "<option>${section['name']}</option>\n";
-} ?>
+							<?php foreach ($sections as $section) { echo "<option>${section['name']}</option>\n"; } ?>
 						</select>
 					</div>
 
@@ -258,9 +256,7 @@
                     <label>Section</label>
                     <select class='form-control' name='section'>
                       <option value='all'>All sections</option>
-                            <?php foreach ($sections as $section) {
-    echo "<option>${section['name']}</option>\n";
-} ?>
+                            <?php foreach ($sections as $section) {echo "<option>${section['name']}</option>\n";} ?>
                     </select>
                 </div>
                   <div class='row'>

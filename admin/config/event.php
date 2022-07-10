@@ -1,4 +1,6 @@
 <?php
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 
 return array(
 	'fuelphp' => array(
@@ -15,12 +17,9 @@ return array(
 			Cookie::set('site', $site, 60*60*24*30);
 			Session::set('site', $site);
 
-			if ($header = \Input::headers('Authorization')) {
-				$matches = array();
-				preg_match("/Basic (.*)/", $header, $matches);
-				$data = base64_decode($matches[1]);
-				preg_match("/(.*):(.*)/", $data, $matches);
-				\Auth::login($matches[1], $matches[2]);
+			if ($header = \Input::headers('X-Auth-Token')) {
+				$data = JWT::decode($header, new Key(JWT_KEY, 'HS256'));
+				\Auth::force_login($data->id);
 			}
 		},
 	),

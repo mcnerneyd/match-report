@@ -69,9 +69,9 @@
 		usort($comps, function($a,$b) {
 			$sa = $a['sequence'];
 			$sb = $b['sequence'];
-			if ($sa == $sb) $ret = 0; 
+			if ($sa == $sb) $ret = 0;
 			else $ret = ($sa < $sb) ? -1 : 1;
-			return $ret; 
+			return $ret;
 		});
 		foreach ($comps as $teamComp) {
 			echo "<span class='d-none d-md-inline'><span class='badge label-".($teamComp['teamsize']?'league':'cup')."'>${teamComp['name']}</span></span>";
@@ -99,11 +99,11 @@
 					<input type='hidden' name='id'/>
 					<div class='form-group'>
 						<label for='clubname'>Club Name</label>
-						<input type='text' class='form-control' id='clubname' name='clubname'/>
+						<input type='text' class='form-control' id='clubname' name='clubname' pattern='[A-Z][A-Za-z ]+'/>
 					</div>
 					<div class='form-group'>
 						<label for='clubcode'>Code</label>
-						<input type='text' class='form-control' id='clubcode' name='clubcode'/>
+						<input type='text' class='form-control' id='clubcode' name='clubcode' pattern='[A-Z]+'/>
 					</div>
 				</form>
       </div>

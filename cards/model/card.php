@@ -18,7 +18,9 @@ class Card {
 				JOIN club c ON i.club_id = c.id
 			WHERE matchcard_id = $id AND c.name = '$club' AND i.type = 'Locked'")->fetch();
 
-		if ($res[0] > 0) throw new Exception("Card is already locked");
+		if ($res[0] > 0) {
+			Log::debug("Card is already locked $id (club=$club)");
+		}
 
 		$lockCode = substr('0000'.rand(0, 9999), -4);
 

@@ -1,51 +1,101 @@
-* {
-    color: black;
-}
+dialog {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    border: 0.2rem solid var(--dialog-color);
+    border-radius: 2mm;
+    box-shadow: 100vw 100vw;
+    padding: 2mm;
 
-button, input, select {
-    border-radius: 5px;
-    border: 0px;
-    padding: 8px 8px;
-    background-color: white;
-}
-
-button {
-    color: white;
-    width: 100%;
-    font-weight: 600;
-    font-size: 105%;
-    background-color: rgb(16, 16, 128);
-    &.danger {
-        background-color: rgb(128, 16, 16);
-    }
-    &.success {
-        background-color: rgb(16, 128, 16);
+    header {
+        background-color: var(--dialog-color);
+        opacity: 0.5;
     }
 }
 
-#player-select {
-    width: 100%;
-    thead td {
+header.matchcard {
+
+    display: grid;
+    grid-template-columns: 1fr auto;
+
+    .detail {
+        grid-column: 1 / span 2;
+        border-top: 1px solid black;
+        margin-top: 2mm;
+        padding-top: 2mm;
         display: flex;
-        gap: 1px;
-        button:not(:first-child) {
-            border-top-left-radius: 0;
-            border-bottom-left-radius: 0;
+        gap: 5mm;
+        dl {
+            font-size: 11pt;
+            dt {
+                font-weight: 800;
+            }
+            dd {
+                margin: 0;
+            }
         }
-        button:not(:last-child) {
-            border-top-right-radius: 0;
-            border-bottom-right-radius: 0;
-        }
-    }    
+    }
 }
 
-.matchcard {
+.teams {
+    display: flex;
+    width:100%;
+    flex-direction: row;
+    gap: 1cm;
+    & > li {
+        display: block;
+        width: 100%;
+    }
+
+    .team button {
+        width: 100%;
+    }
+}
+
+.teams .player {
+    display: grid;
+    grid-template-columns: 1.5rem 6rem 1fr auto;
+    border-top: 1px solid #ccc;
+    padding-block: 0.2rem;
+}
+
+.teams .detail {
+    * {
+        font-size: 80%;
+        font-weight: 600;
+        display: inline-block;
+        vertical-align: middle;
+    }
+    li {
+        border-radius: 100vw;
+        padding: 1px 4px 2px 4px;
+    }
+    output {
+        margin-left: 1mm;
+        color: #4a6;
+    }
+}
+
+.team header {
+    margin-top: 2mm;
+    margin-bottom: 1mm;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    border-top: 1px solid black;
+
+    output {
+        font-size: 120% !important;
+        vertical-align: bottom;
+    }
+}
+
+#matchcard {
     div.detail {
+        display: flex;
+        gap: 6mm;
+        margin-bottom: 2mm;
         dl {
-            display: inline-block;
             font-size: 11pt;
-            margin-bottom: 10px;
-            margin-right: 20px;
             dt {
                 font-weight: 800;
             }
@@ -75,6 +125,23 @@ button {
         }
     }
 
+    header {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        title {
+            padding-bottom: 5px;
+            width: 100%;
+            margin-bottom: 5px;
+            border-bottom: 1px solid black;
+            display: flex;
+
+            h1 {
+                flex-grow: 1;
+            }
+        }
+    }
+
     caption {
         position:relative;
         width: 100%;
@@ -88,7 +155,7 @@ button {
 
     .teams {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         flex-wrap: nowrap;
         justify-content: space-between;
         align-items: flex-start;
@@ -198,9 +265,22 @@ button {
         }
     }
 
-    @media screen and (min-width: 48em) {
+    @media screen and (min-width: 32rem) {
         .teams {
             flex-direction: row;
+        }
+    }
+}
+
+@media only screen and (max-width: 600px) {
+    .teams {
+        flex-direction: column;
+    }
+    
+    header.matchcard {
+        grid-template-columns: 1fr;
+        .detail {
+            grid-column: 1;
         }
     }
 }

@@ -570,17 +570,6 @@ class Controller_Report extends Controller_Template
 
 		$t0 = milliseconds();
 		
-		$mismatches = array();
-
-		$cards = array();
-		foreach (DB::query("SELECT fixture_id, id FROM matchcard")->execute() as $row) {
-			$cards[$row['fixture_id']] = $row['id'];
-		}
-
-		Log::info("Fetching");
-		$t1 = milliseconds();
-
-
 		$fixtures = array();
 
 		foreach (Model_Fixture::getAll() as $fixture) {
@@ -590,34 +579,22 @@ class Controller_Report extends Controller_Template
 				if ($fixture['section'] != $sectionName) continue;
 			}
 
-			$cardId = $cards[$fixture['fixtureID']] ?? null;
-
-			if (!$cardId) continue;
-
-			$fixture['card_id'] = $cardId;
 			$fixtures[] = $fixture;
 		}
 
-		$cards = array();
+		$t2 = milliseconds();
 		
-		foreach (Model_Matchcard::cardsFromFixtures($fixtures) as $card) {
-			$cards[$card['card_id']] = $card['card'];
-		}
+		$fixtures = Model_Matchcard::cardsFromFixtures($fixtures);
 
+		$t3 = milliseconds();
 		foreach ($fixtures as $fixture) {
-			$t1 = milliseconds();
-
-			$card = $cards[$fixture['card_id']];
-
-			if (!$card) continue;
-
-			echo "<!-- Card ".$fixture['fixtureID']." ".$fixture['card_id'].": ".(milliseconds() - $t1)." -->";
+			$card = $fixture['card'];
 
 			if (!$card) continue;		// If the fixture has no card, there's no mismatch
 			if (!$card['away_id'] || !$card['home_id']) continue;		// Don't card about EHYL etc
 
 			if (($card['home']['goals'] == $fixture['home_score'])
-					and ($card['away']['goals'] == $fixture['away_score'])) continue;
+					&& ($card['away']['goals'] == $fixture['away_score'])) continue;
 
 			$card['home_score'] = $fixture['home_score'] || 0;
 			$card['home_team'] = $card['home']['club'].' '.$card['home']['team'];
@@ -643,9 +620,9 @@ class Controller_Report extends Controller_Template
 			$mismatches[] = $card;
 		}
 
-		$t2 = milliseconds();
+		$t4 = milliseconds();
 
-		echo "<!-- Timing: " . ($t1-$t0)." ".($t2-$t0)." -->";
+		Log::debug("Mismatch report timing: ".($t2-$t0)." ".($t3-$t0)." ".($t4-$t0));
 
 		$this->template->title = "Mismatch Results";
 		$this->template->content = View::forge('report/mismatch', array('mismatches'=>$mismatches));
