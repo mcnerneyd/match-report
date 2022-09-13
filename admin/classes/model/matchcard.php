@@ -42,20 +42,26 @@ class Model_Matchcard extends \Orm\Model
         ),
     );
 
+    public static function getx($fixtureId) {
+
+        if (!self::createMatchcard($fixtureId)) {
+            return null;
+        }
+
+        return Model_Matchcard::find_by_fixture_id($fixtureId);
+    }
+
     public static function createMatchcard($fixtureId)
     {
         try {
+
             $fixture = Model_Fixture::get($fixtureId);
+            $comp = Model_Competition::find_by_name($fixture['competition'])->id;
+            $home = Model_Team::find_by_name($fixture['section'], $fixture['home'])->id;
+            $away = Model_Team::find_by_name($fixture['section'], $fixture['away'])->id;
 
-            $comp = Model_Competition::find_by_name($fixture['competition']);
-            $comp = $comp->id;
-            $home = Model_Team::find_by_name($fixture['section'], $fixture['home']);
-            $home = $home->id;
-            $away = Model_Team::find_by_name($fixture['section'], $fixture['away']);
-            $away = $away->id;
-
-            DB::insert('matchcard', array('fixture_id','home_id','away_id','competition_id'))
-                ->values(array($fixtureId, $home, $away, $comp))->execute();
+            DB::insert('matchcard', array('fixture_id','home_id','away_id','competition_id','description'))
+                ->values(array($fixtureId, $home, $away, $comp, ""))->execute();
 
             Log::info("Created new card for $fixtureId");
 

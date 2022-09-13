@@ -10,7 +10,6 @@ import { faPlus, faMinus, faPersonCirclePlus, faNoteSticky, faArrowUpFromBracket
 import redCard from './img/red-card.png'
 import yellowCard from './img/yellow-card.png'
 import greenCard from './img/green-card.png'
-import PlayerSelect from './playerselect';
 
 const Matchcard = () => {  
 
@@ -18,7 +17,10 @@ const Matchcard = () => {
 
   const [card, setCard] = useState(null)  
   const [selected, setSelected] = useState(null)
-  const [kicker, setKicker] = useState(false)
+  const [kicker, setKicker] = useState(null)
+  const [allPlayers, setAllPlayers] = useState([])
+  const [selectedPlayers, setSelectedPlayers] = useState([])
+
   const { id } = useParams()
 
   useEffect(() => {
@@ -27,16 +29,34 @@ const Matchcard = () => {
     .then((data) => setCard(tweak(data.data)))
   }, [])
 
+  useEffect(() => {
+    if (card != null) {
+      const active = getActive(card, user)
+
+      if (active) {
+      fetch(`http://cards.leinsterhockey.ie/api/registration/list.json?s=${user.section}&t=${active.team}`,{
+    headers: {'X-Auth-Token': `${sessionStorage.getItem("jwtToken")}`}})
+    .then((res) => res.json())
+    .then((data) => {
+      const players = data.map(x => {
+          const dates = x.history.map(y => moment(y.date))
+          x['lastDate'] = Math.min(...dates)
+          return x
+      })
+      console.log("Found ", players)
+    setAllPlayers(players)
+    })
+  }}}, [])
+
   if (card == null) return <div className='loading'>Loading...</div>
   const active = getActive(card, user)
 
-  if (active) active.active = true
-
-  if (kicker) {
-    return <PlayerSelect setKicker={setKicker} team={active.team}/>
+  if (active) {
+    active.active = true
   }
 
-  const dt = moment(card.datetime)
+
+const dt = moment(card.datetime)
 
   return <>
       <header className='matchcard'>
@@ -61,78 +81,32 @@ const Matchcard = () => {
         </div>
       </header>
       <ol className='teams'>
+        {kicker == null
+        ? <>
         <li className='team'>
           <Team cardId={id} team={card.home} setKicker={setKicker} selected={selected} setSelected={setSelected}/>
         </li>
         <li className='team'>
           <Team cardId={id} team={card.away} setKicker={setKicker} selected={selected} setSelected={setSelected} />
         </li>
+        </>
+        : <li className='team'>
+              <header>
+                <h3>{active.club} {active.team}</h3>
+              </header>
+              <button className='success' onClick={()=>setKicker(null)}><FontAwesomeIcon icon={faPersonCirclePlus}/> Add Players...</button>
+              <ul>
+              { allPlayers.map( (px,ix) => <li key={px.name}>
+                    <span className={selectedPlayers.includes(px.name) ? 'selected' : ''}
+                        onClick={() => {
+                            if (selectedPlayers.includes(px.name)) 
+                                setSelectedPlayers(selectedPlayers.filter(x => x != px.name))
+                            else setSelectedPlayers([...selectedPlayers, px.name])
+                        }}>{px.name}</span>
+                </li>)}
+              </ul>
+        </li>}
       </ol>
-      <dialog>
-        <header>
-          <h1>Player NAME</h1>
-        </header>
-             <table><tbody>
-               <tr>
-                 <td>12</td>
-                 {/* <td colSpan='2'>{f[2]} {f[1]} <span className='detail'>
-                   {roles()}
-                   {cards()}
-                   x0
-                   </span></td> */}
-               </tr>
-               <tr>
-                 <td colSpan={3}>
-                     Shirt Number <input type='number' size={3} onChange={(event) => {
-                       //player.number = event.target.valueAsNumber
-                       //setTrigger(f => !f)
-                     }} style={{width:'3rem'}} value={0}/>
-                     <div className='goals'>
-                       <FontAwesomeIcon icon={faPlus} style={{color:'#484'}} onClick={(event)=>modScore(event, true)}/>
-                       <span>x{0}</span>
-                       <FontAwesomeIcon icon={faMinus} onClick={(event)=>modScore(event, false)}/>
-                   </div>
-                 </td>
-               </tr>
-               <tr className='roles'>
-                 <td colSpan={3}>
-                   <span>
-                   //{roleOptions.map(r => <button key={'rolebutton' + r} onClick={()=>setRole(r.key)} style={{backgroundColor:r.back, color:r.fore}}>{r.text}</button>)}
-                   </span>
-                 </td>
-               </tr>
-               <tr>
-                 <td colSpan={3} className='penalties'>
-                   Penalties <select onChange={(event) => {
-                      //  player.penalties = player.penalties ?? []
-                      //  player.penalties.push(penalties.find(x => x.detail == event.target.value))
-                      //  setTrigger(f => !f)
-                     }}>
-
-                       <option>Select card to add</option>
-                       {/* {penalties.map(x => <option key={x.detail} className={'card-' + x.color}>
-                           {x.detail}
-                         </option>)} */}
-                     </select><br/>
-                     {/* {(player.penalties ?? []).map((x,i) => <p key={'pensel' + i}>          
-                         <img src={ cardImg[x.color] }/> {x.detail}
-                       </p>)} */}
-                   </td>
-                 </tr>
-                 <tr>
-                   <td colSpan={3}>
-                     </td>
-                 </tr>
-                 </tbody>
-               </table>
-          <footer>
-          <button className='danger' onClick={()=>{ 
-                      //  player.removed = moment()
-                      //  setSelect(null)
-                     }}>
-                       Remove Player</button>
-          </footer>
-      </dialog>
     </>
   }
 
@@ -172,27 +146,6 @@ const Team = (props) => {
   const setSelect = props.setSelected
   const select = props.selected
   const setKicker = props.setKicker
-  // const formatPlayer = (player) => {
-  //   const modScore = (event, add) => {
-  //     event.stopPropagation()
-  //     if (add) {
-  //       player.score = (player.score ?? 0) + 1
-  //     } else {
-  //       if (player.score) player.score = player.score - 1
-  //     }
-  //     setTrigger(f => !f)
-  //   }
-
-  //   const setRole = (role) => {
-  //     if (player.roles && player.roles.includes(role)) {
-  //       player.roles = player.roles.filter(x => x != role)
-  //     } else {
-  //       if (!player.roles) player.roles = []
-  //       player.roles.push(role)
-  //     }
-  //     console.log("Roles", player.roles)
-  //     setTrigger(f => !f)
-  //   }
 
     const roles = (player) => player.roles 
       ? <>
@@ -213,22 +166,6 @@ const Team = (props) => {
         </>
       : null
   
-  //   const f = player.name.match(/(.*), ([^ ]*)/)
-  //   return <React.Fragment key={player.name}>
-  //     {select == player.name && team.active 
-  //       ? <tr className='selected' onClick={(event) => {
-  //         if (event.target.nodeName.startsWith('T')) setSelect(null) }}>
-  //           <td colSpan={3}>
-  //           </td>
-  //         </tr>
-  //       : <tr >
-  //       <div>{player.number}</div>
-  //       <div>{f[2]}</div>
-  //       <div>{f[1]} <span className='detail'>{roles()}{cards()}{scorex}</span></div>
-  //     }
-  //   </React.Fragment>
-  // }
-
   const score = (player) => {
     if (player) return player.score > 0 ? <li className='score'>{player.score}</li> : null
 
@@ -242,16 +179,48 @@ const Team = (props) => {
         <span className='detail'><output>{score()}</output></span>
       </header>
       { team.active &&
-      <button className='success' onClick={()=>setKicker(true)}><FontAwesomeIcon icon={faPersonCirclePlus}/> Add Players...</button>
+      <button className='success' onClick={()=>setKicker([])}><FontAwesomeIcon icon={faPersonCirclePlus}/> Add Players...</button>
       }
       <ol>
         {team.players.filter(x => !x.removed).map(pl => {
           const [fullName, lastName, firstName] = pl.name.match(/(.*), ([^ ]*)/)
-          return <li className='player' onClick={() => setSelect(pl.name)} key={pl.name}> 
+          const selectName = team.club + team.team + pl.name;
+          const selected = (selectName == select);
+          return <li className={'player' + (selected ? ' selected' : '')} onClick={() => team.active && setSelect(selectName)} key={selectName}> 
             <div>{pl.number}</div>
             <div>{firstName}</div>
             <div>{lastName}</div>
             <ol className='detail'>{roles(pl)}{cards(pl)}{score(pl)}</ol>
+            {selected
+            ? <div className='edit'>
+                <label>Shirt Number</label>
+                <input type='number' value={pl.number}/>
+
+                <label>Goals</label>
+                <input type='number' value={pl.goals}/>
+
+                <span className='roles'>
+                   {roleOptions.map(r => <button className={'role-' + r.text.toLowerCase()} 
+                      key={'rolebutton' + r} onClick={()=>setRole(r.key)}>{r.text}</button>)}
+                </span>
+
+                <label>Cards</label>
+                <select onChange={(event) => {
+                      //  player.penalties = player.penalties ?? []
+                      //  player.penalties.push(penalties.find(x => x.detail == event.target.value))
+                      //  setTrigger(f => !f)
+                     }}>
+
+                       <option>Select card to add</option>
+                       {/* {penalties.map(x => <option key={x.detail} className={'card-' + x.color}>
+                           {x.detail}
+                         </option>)} */}
+                     </select>
+                     <ul>
+                     {(pl.penalties ?? []).map((x,i) => <li key={'pensel' + i}>{x.color} {x.detail}</li>)}
+                     </ul>
+              </div>
+            : null}
           </li>})}
       </ol>
     </>

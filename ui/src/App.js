@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, NavLink } from "react-router-dom";
 import './App.scss';
-import Fixtures from './fixtures2';
+import Fixtures from './fixtures';
 import Matchcard from './matchcard';
 import { db } from './db'
 
@@ -66,7 +66,7 @@ function App() {
       <header>
         <h1>Leinster Hockey Matchcards</h1>
         <span className='login'>{ userData ? formatUser(userData.user) : <button>Login</button>}</span>
-        <input type='text' name='search' placeholder='Search for card by club, competition or date' spellCheck='false'/>
+        <input type='text' name='search' placeholder='Search for fixtures by club, competition or date' spellCheck='false'/>
         <nav>
           <NavLink to='/'>Fixtures</NavLink>
           <NavLink to='/'>Reports</NavLink>

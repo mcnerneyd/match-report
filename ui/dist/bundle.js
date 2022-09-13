@@ -7699,7 +7699,7 @@
 	var ReactDOM = reactDom.exports;
 
 	function _extends$1() {
-	  _extends$1 = Object.assign || function (target) {
+	  _extends$1 = Object.assign ? Object.assign.bind() : function (target) {
 	    for (var i = 1; i < arguments.length; i++) {
 	      var source = arguments[i];
 
@@ -7712,7 +7712,6 @@
 
 	    return target;
 	  };
-
 	  return _extends$1.apply(this, arguments);
 	}
 
@@ -20153,9 +20152,9 @@
 	      v.monthbreak = true;
 	      v.daybreak = true;
 	    }
-	  });
-	  selectedFixtures?.forEach(x => console.log(x));
-	  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h1", null, "Fixtures"), /*#__PURE__*/React.createElement("header", {
+	  }); //selectedFixtures?.forEach(x => console.log(x))
+
+	  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h2", null, "Fixtures"), /*#__PURE__*/React.createElement("header", {
 	    className: "fixtures"
 	  }, /*#__PURE__*/React.createElement("select", {
 	    onChange: e => setSection(e.target.value)
@@ -20182,12 +20181,12 @@
 	  }, "All Teams"), teams.map(x => /*#__PURE__*/React.createElement("option", {
 	    key: 'team:' + x
 	  }, x)))), /*#__PURE__*/React.createElement("ol", null, selectedFixtures?.map(item => {
-	    return /*#__PURE__*/React.createElement(React.Fragment, null, item.monthbreak ? /*#__PURE__*/React.createElement("h2", {
+	    return /*#__PURE__*/React.createElement(React.Fragment, null, item.monthbreak ? /*#__PURE__*/React.createElement("h3", {
 	      className: "month-break",
 	      key: 'm' + item.id
 	    }, /*#__PURE__*/React.createElement("time", {
 	      dateTime: item.date.format('YYYY-MM')
-	    }, item.date.format('MMMM YYYY'))) : null, item.daybreak ? /*#__PURE__*/React.createElement("h3", {
+	    }, item.date.format('MMMM YYYY'))) : null, item.daybreak ? /*#__PURE__*/React.createElement("h4", {
 	      className: "day-break",
 	      key: 'd' + item.id
 	    }, /*#__PURE__*/React.createElement("time", {
@@ -20198,7 +20197,7 @@
 	      className: "lg date"
 	    }, item.date.format('D')), /*#__PURE__*/React.createElement("span", {
 	      className: "lg day"
-	    }, item.date.format('dddd')))) : null, item.daybreak || item.date.format('HH:mm') != item.prev?.date.format('HH:mm') ? /*#__PURE__*/React.createElement("h4", {
+	    }, item.date.format('dddd')))) : null, item.daybreak || item.date.format('HH:mm') != item.prev?.date.format('HH:mm') ? /*#__PURE__*/React.createElement("h5", {
 	      className: "time-break"
 	    }, /*#__PURE__*/React.createElement("time", {
 	      dateTime: item.date.format('HH:mm')
@@ -29701,11 +29700,6 @@
 	root._=_;}}).call(commonjsGlobal);
 	}(lodash, lodash.exports));
 
-	/*!
-	 * Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com
-	 * License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)
-	 * Copyright 2022 Fonticons, Inc.
-	 */
 	function ownKeys$1(object, enumerableOnly) {
 	  var keys = Object.keys(object);
 
@@ -29885,9 +29879,12 @@
 	!!WINDOW.document;
 	var IS_DOM = !!DOCUMENT.documentElement && !!DOCUMENT.head && typeof DOCUMENT.addEventListener === 'function' && typeof DOCUMENT.createElement === 'function';
 	var IS_IE = ~userAgent.indexOf('MSIE') || ~userAgent.indexOf('Trident/');
+
+	var _familyProxy, _familyProxy2, _familyProxy3, _familyProxy4, _familyProxy5;
+
 	var NAMESPACE_IDENTIFIER = '___FONT_AWESOME___';
 	var UNITS_IN_GRID = 16;
-	var DEFAULT_FAMILY_PREFIX = 'fa';
+	var DEFAULT_CSS_PREFIX = 'fa';
 	var DEFAULT_REPLACEMENT_CLASS = 'svg-inline--fa';
 	var DATA_FA_I2SVG = 'data-fa-i2svg';
 	var DATA_FA_PSEUDO_ELEMENT = 'data-fa-pseudo-element';
@@ -29906,7 +29903,21 @@
 	  }
 	}();
 
-	var PREFIX_TO_STYLE = {
+	var FAMILY_CLASSIC = 'classic';
+	var FAMILY_SHARP = 'sharp';
+	var FAMILIES = [FAMILY_CLASSIC, FAMILY_SHARP];
+
+	function familyProxy(obj) {
+	  // Defaults to the classic family if family is not available
+	  return new Proxy(obj, {
+	    get: function get(target, prop) {
+	      return prop in target ? target[prop] : target[FAMILY_CLASSIC];
+	    }
+	  });
+	}
+
+	var PREFIX_TO_STYLE = familyProxy((_familyProxy = {}, _defineProperty$1(_familyProxy, FAMILY_CLASSIC, {
+	  'fa': 'solid',
 	  'fas': 'solid',
 	  'fa-solid': 'solid',
 	  'far': 'regular',
@@ -29920,10 +29931,13 @@
 	  'fab': 'brands',
 	  'fa-brands': 'brands',
 	  'fak': 'kit',
-	  'fa-kit': 'kit',
-	  'fa': 'solid'
-	};
-	var STYLE_TO_PREFIX = {
+	  'fa-kit': 'kit'
+	}), _defineProperty$1(_familyProxy, FAMILY_SHARP, {
+	  'fa': 'solid',
+	  'fass': 'solid',
+	  'fa-solid': 'solid'
+	}), _familyProxy));
+	var STYLE_TO_PREFIX = familyProxy((_familyProxy2 = {}, _defineProperty$1(_familyProxy2, FAMILY_CLASSIC, {
 	  'solid': 'fas',
 	  'regular': 'far',
 	  'light': 'fal',
@@ -29931,8 +29945,10 @@
 	  'duotone': 'fad',
 	  'brands': 'fab',
 	  'kit': 'fak'
-	};
-	var PREFIX_TO_LONG_STYLE = {
+	}), _defineProperty$1(_familyProxy2, FAMILY_SHARP, {
+	  'solid': 'fass'
+	}), _familyProxy2));
+	var PREFIX_TO_LONG_STYLE = familyProxy((_familyProxy3 = {}, _defineProperty$1(_familyProxy3, FAMILY_CLASSIC, {
 	  'fab': 'fa-brands',
 	  'fad': 'fa-duotone',
 	  'fak': 'fa-kit',
@@ -29940,8 +29956,10 @@
 	  'far': 'fa-regular',
 	  'fas': 'fa-solid',
 	  'fat': 'fa-thin'
-	};
-	var LONG_STYLE_TO_PREFIX = {
+	}), _defineProperty$1(_familyProxy3, FAMILY_SHARP, {
+	  'fass': 'fa-solid'
+	}), _familyProxy3));
+	var LONG_STYLE_TO_PREFIX = familyProxy((_familyProxy4 = {}, _defineProperty$1(_familyProxy4, FAMILY_CLASSIC, {
 	  'fa-brands': 'fab',
 	  'fa-duotone': 'fad',
 	  'fa-kit': 'fak',
@@ -29949,19 +29967,24 @@
 	  'fa-regular': 'far',
 	  'fa-solid': 'fas',
 	  'fa-thin': 'fat'
-	};
-	var ICON_SELECTION_SYNTAX_PATTERN = /fa[srltdbk\-\ ]/; // eslint-disable-line no-useless-escape
+	}), _defineProperty$1(_familyProxy4, FAMILY_SHARP, {
+	  'fa-solid': 'fass'
+	}), _familyProxy4));
+	var ICON_SELECTION_SYNTAX_PATTERN = /fa(s|r|l|t|d|b|k|ss)?[\-\ ]/; // eslint-disable-line no-useless-escape
 
 	var LAYERS_TEXT_CLASSNAME = 'fa-layers-text';
-	var FONT_FAMILY_PATTERN = /Font ?Awesome ?([56 ]*)(Solid|Regular|Light|Thin|Duotone|Brands|Free|Pro|Kit)?.*/i; // TODO: do we need to handle font-weight for kit SVG pseudo-elements?
+	var FONT_FAMILY_PATTERN = /Font ?Awesome ?([56 ]*)(Solid|Regular|Light|Thin|Duotone|Brands|Free|Pro|Sharp|Kit)?.*/i; // TODO: this needs to support fass
+	// TODO: do we need to handle font-weight for kit SVG pseudo-elements?
 
-	var FONT_WEIGHT_TO_PREFIX = {
+	var FONT_WEIGHT_TO_PREFIX = familyProxy((_familyProxy5 = {}, _defineProperty$1(_familyProxy5, FAMILY_CLASSIC, {
 	  '900': 'fas',
 	  '400': 'far',
 	  'normal': 'far',
 	  '300': 'fal',
 	  '100': 'fat'
-	};
+	}), _defineProperty$1(_familyProxy5, FAMILY_SHARP, {
+	  '900': 'fass'
+	}), _familyProxy5));
 	var oneToTen = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 	var oneToTwenty = oneToTen.concat([11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
 	var ATTRIBUTES_WATCHED_FOR_MUTATION = ['class', 'data-prefix', 'data-icon', 'data-fa-transform', 'data-fa-mask'];
@@ -29971,7 +29994,10 @@
 	  PRIMARY: 'primary',
 	  SECONDARY: 'secondary'
 	};
-	var RESERVED_CLASSES = [].concat(_toConsumableArray$1(Object.keys(STYLE_TO_PREFIX)), ['2xs', 'xs', 'sm', 'lg', 'xl', '2xl', 'beat', 'border', 'fade', 'beat-fade', 'bounce', 'flip-both', 'flip-horizontal', 'flip-vertical', 'flip', 'fw', 'inverse', 'layers-counter', 'layers-text', 'layers', 'li', 'pull-left', 'pull-right', 'pulse', 'rotate-180', 'rotate-270', 'rotate-90', 'rotate-by', 'shake', 'spin-pulse', 'spin-reverse', 'spin', 'stack-1x', 'stack-2x', 'stack', 'ul', DUOTONE_CLASSES.GROUP, DUOTONE_CLASSES.SWAP_OPACITY, DUOTONE_CLASSES.PRIMARY, DUOTONE_CLASSES.SECONDARY]).concat(oneToTen.map(function (n) {
+	var prefixes = new Set();
+	Object.keys(STYLE_TO_PREFIX[FAMILY_CLASSIC]).map(prefixes.add.bind(prefixes));
+	Object.keys(STYLE_TO_PREFIX[FAMILY_SHARP]).map(prefixes.add.bind(prefixes));
+	var RESERVED_CLASSES = [].concat(FAMILIES, _toConsumableArray$1(prefixes), ['2xs', 'xs', 'sm', 'lg', 'xl', '2xl', 'beat', 'border', 'fade', 'beat-fade', 'bounce', 'flip-both', 'flip-horizontal', 'flip-vertical', 'flip', 'fw', 'inverse', 'layers-counter', 'layers-text', 'layers', 'li', 'pull-left', 'pull-right', 'pulse', 'rotate-180', 'rotate-270', 'rotate-90', 'rotate-by', 'shake', 'spin-pulse', 'spin-reverse', 'spin', 'stack-1x', 'stack-2x', 'stack', 'ul', DUOTONE_CLASSES.GROUP, DUOTONE_CLASSES.SWAP_OPACITY, DUOTONE_CLASSES.PRIMARY, DUOTONE_CLASSES.SECONDARY]).concat(oneToTen.map(function (n) {
 	  return "".concat(n, "x");
 	})).concat(oneToTwenty.map(function (n) {
 	  return "w-".concat(n);
@@ -29996,7 +30022,7 @@
 	}
 
 	if (DOCUMENT && typeof DOCUMENT.querySelector === 'function') {
-	  var attrs = [['data-family-prefix', 'familyPrefix'], ['data-style-default', 'styleDefault'], ['data-replacement-class', 'replacementClass'], ['data-auto-replace-svg', 'autoReplaceSvg'], ['data-auto-add-css', 'autoAddCss'], ['data-auto-a11y', 'autoA11y'], ['data-search-pseudo-elements', 'searchPseudoElements'], ['data-observe-mutations', 'observeMutations'], ['data-mutate-approach', 'mutateApproach'], ['data-keep-original-source', 'keepOriginalSource'], ['data-measure-performance', 'measurePerformance'], ['data-show-missing-icons', 'showMissingIcons']];
+	  var attrs = [['data-family-prefix', 'familyPrefix'], ['data-css-prefix', 'cssPrefix'], ['data-family-default', 'familyDefault'], ['data-style-default', 'styleDefault'], ['data-replacement-class', 'replacementClass'], ['data-auto-replace-svg', 'autoReplaceSvg'], ['data-auto-add-css', 'autoAddCss'], ['data-auto-a11y', 'autoA11y'], ['data-search-pseudo-elements', 'searchPseudoElements'], ['data-observe-mutations', 'observeMutations'], ['data-mutate-approach', 'mutateApproach'], ['data-keep-original-source', 'keepOriginalSource'], ['data-measure-performance', 'measurePerformance'], ['data-show-missing-icons', 'showMissingIcons']];
 	  attrs.forEach(function (_ref) {
 	    var _ref2 = _slicedToArray(_ref, 2),
 	        attr = _ref2[0],
@@ -30011,8 +30037,9 @@
 	}
 
 	var _default = {
-	  familyPrefix: DEFAULT_FAMILY_PREFIX,
 	  styleDefault: 'solid',
+	  familyDefault: 'classic',
+	  cssPrefix: DEFAULT_CSS_PREFIX,
 	  replacementClass: DEFAULT_REPLACEMENT_CLASS,
 	  autoReplaceSvg: true,
 	  autoAddCss: true,
@@ -30023,13 +30050,17 @@
 	  keepOriginalSource: true,
 	  measurePerformance: false,
 	  showMissingIcons: true
-	};
+	}; // familyPrefix is deprecated but we must still support it if present
+
+	if (initial.familyPrefix) {
+	  initial.cssPrefix = initial.familyPrefix;
+	}
 
 	var _config = _objectSpread2$1(_objectSpread2$1({}, _default), initial);
 
 	if (!_config.autoReplaceSvg) _config.observeMutations = false;
 	var config = {};
-	Object.keys(_config).forEach(function (key) {
+	Object.keys(_default).forEach(function (key) {
 	  Object.defineProperty(config, key, {
 	    enumerable: true,
 	    set: function set(val) {
@@ -30043,6 +30074,20 @@
 	      return _config[key];
 	    }
 	  });
+	}); // familyPrefix is deprecated as of 6.2.0 and should be removed in 7.0.0
+
+	Object.defineProperty(config, 'familyPrefix', {
+	  enumerable: true,
+	  set: function set(val) {
+	    _config.cssPrefix = val;
+
+	    _onChangeCb.forEach(function (cb) {
+	      return cb(config);
+	    });
+	  },
+	  get: function get() {
+	    return _config.cssPrefix;
+	  }
 	});
 	WINDOW.FontAwesomeConfig = config;
 	var _onChangeCb = [];
@@ -30188,18 +30233,18 @@
 	  return val;
 	}
 
-	var baseStyles = ":root, :host {\n  --fa-font-solid: normal 900 1em/1 \"Font Awesome 6 Solid\";\n  --fa-font-regular: normal 400 1em/1 \"Font Awesome 6 Regular\";\n  --fa-font-light: normal 300 1em/1 \"Font Awesome 6 Light\";\n  --fa-font-thin: normal 100 1em/1 \"Font Awesome 6 Thin\";\n  --fa-font-duotone: normal 900 1em/1 \"Font Awesome 6 Duotone\";\n  --fa-font-brands: normal 400 1em/1 \"Font Awesome 6 Brands\";\n}\n\nsvg:not(:root).svg-inline--fa, svg:not(:host).svg-inline--fa {\n  overflow: visible;\n  box-sizing: content-box;\n}\n\n.svg-inline--fa {\n  display: var(--fa-display, inline-block);\n  height: 1em;\n  overflow: visible;\n  vertical-align: -0.125em;\n}\n.svg-inline--fa.fa-2xs {\n  vertical-align: 0.1em;\n}\n.svg-inline--fa.fa-xs {\n  vertical-align: 0em;\n}\n.svg-inline--fa.fa-sm {\n  vertical-align: -0.0714285705em;\n}\n.svg-inline--fa.fa-lg {\n  vertical-align: -0.2em;\n}\n.svg-inline--fa.fa-xl {\n  vertical-align: -0.25em;\n}\n.svg-inline--fa.fa-2xl {\n  vertical-align: -0.3125em;\n}\n.svg-inline--fa.fa-pull-left {\n  margin-right: var(--fa-pull-margin, 0.3em);\n  width: auto;\n}\n.svg-inline--fa.fa-pull-right {\n  margin-left: var(--fa-pull-margin, 0.3em);\n  width: auto;\n}\n.svg-inline--fa.fa-li {\n  width: var(--fa-li-width, 2em);\n  top: 0.25em;\n}\n.svg-inline--fa.fa-fw {\n  width: var(--fa-fw-width, 1.25em);\n}\n\n.fa-layers svg.svg-inline--fa {\n  bottom: 0;\n  left: 0;\n  margin: auto;\n  position: absolute;\n  right: 0;\n  top: 0;\n}\n\n.fa-layers-counter, .fa-layers-text {\n  display: inline-block;\n  position: absolute;\n  text-align: center;\n}\n\n.fa-layers {\n  display: inline-block;\n  height: 1em;\n  position: relative;\n  text-align: center;\n  vertical-align: -0.125em;\n  width: 1em;\n}\n.fa-layers svg.svg-inline--fa {\n  -webkit-transform-origin: center center;\n          transform-origin: center center;\n}\n\n.fa-layers-text {\n  left: 50%;\n  top: 50%;\n  -webkit-transform: translate(-50%, -50%);\n          transform: translate(-50%, -50%);\n  -webkit-transform-origin: center center;\n          transform-origin: center center;\n}\n\n.fa-layers-counter {\n  background-color: var(--fa-counter-background-color, #ff253a);\n  border-radius: var(--fa-counter-border-radius, 1em);\n  box-sizing: border-box;\n  color: var(--fa-inverse, #fff);\n  line-height: var(--fa-counter-line-height, 1);\n  max-width: var(--fa-counter-max-width, 5em);\n  min-width: var(--fa-counter-min-width, 1.5em);\n  overflow: hidden;\n  padding: var(--fa-counter-padding, 0.25em 0.5em);\n  right: var(--fa-right, 0);\n  text-overflow: ellipsis;\n  top: var(--fa-top, 0);\n  -webkit-transform: scale(var(--fa-counter-scale, 0.25));\n          transform: scale(var(--fa-counter-scale, 0.25));\n  -webkit-transform-origin: top right;\n          transform-origin: top right;\n}\n\n.fa-layers-bottom-right {\n  bottom: var(--fa-bottom, 0);\n  right: var(--fa-right, 0);\n  top: auto;\n  -webkit-transform: scale(var(--fa-layers-scale, 0.25));\n          transform: scale(var(--fa-layers-scale, 0.25));\n  -webkit-transform-origin: bottom right;\n          transform-origin: bottom right;\n}\n\n.fa-layers-bottom-left {\n  bottom: var(--fa-bottom, 0);\n  left: var(--fa-left, 0);\n  right: auto;\n  top: auto;\n  -webkit-transform: scale(var(--fa-layers-scale, 0.25));\n          transform: scale(var(--fa-layers-scale, 0.25));\n  -webkit-transform-origin: bottom left;\n          transform-origin: bottom left;\n}\n\n.fa-layers-top-right {\n  top: var(--fa-top, 0);\n  right: var(--fa-right, 0);\n  -webkit-transform: scale(var(--fa-layers-scale, 0.25));\n          transform: scale(var(--fa-layers-scale, 0.25));\n  -webkit-transform-origin: top right;\n          transform-origin: top right;\n}\n\n.fa-layers-top-left {\n  left: var(--fa-left, 0);\n  right: auto;\n  top: var(--fa-top, 0);\n  -webkit-transform: scale(var(--fa-layers-scale, 0.25));\n          transform: scale(var(--fa-layers-scale, 0.25));\n  -webkit-transform-origin: top left;\n          transform-origin: top left;\n}\n\n.fa-1x {\n  font-size: 1em;\n}\n\n.fa-2x {\n  font-size: 2em;\n}\n\n.fa-3x {\n  font-size: 3em;\n}\n\n.fa-4x {\n  font-size: 4em;\n}\n\n.fa-5x {\n  font-size: 5em;\n}\n\n.fa-6x {\n  font-size: 6em;\n}\n\n.fa-7x {\n  font-size: 7em;\n}\n\n.fa-8x {\n  font-size: 8em;\n}\n\n.fa-9x {\n  font-size: 9em;\n}\n\n.fa-10x {\n  font-size: 10em;\n}\n\n.fa-2xs {\n  font-size: 0.625em;\n  line-height: 0.1em;\n  vertical-align: 0.225em;\n}\n\n.fa-xs {\n  font-size: 0.75em;\n  line-height: 0.0833333337em;\n  vertical-align: 0.125em;\n}\n\n.fa-sm {\n  font-size: 0.875em;\n  line-height: 0.0714285718em;\n  vertical-align: 0.0535714295em;\n}\n\n.fa-lg {\n  font-size: 1.25em;\n  line-height: 0.05em;\n  vertical-align: -0.075em;\n}\n\n.fa-xl {\n  font-size: 1.5em;\n  line-height: 0.0416666682em;\n  vertical-align: -0.125em;\n}\n\n.fa-2xl {\n  font-size: 2em;\n  line-height: 0.03125em;\n  vertical-align: -0.1875em;\n}\n\n.fa-fw {\n  text-align: center;\n  width: 1.25em;\n}\n\n.fa-ul {\n  list-style-type: none;\n  margin-left: var(--fa-li-margin, 2.5em);\n  padding-left: 0;\n}\n.fa-ul > li {\n  position: relative;\n}\n\n.fa-li {\n  left: calc(var(--fa-li-width, 2em) * -1);\n  position: absolute;\n  text-align: center;\n  width: var(--fa-li-width, 2em);\n  line-height: inherit;\n}\n\n.fa-border {\n  border-color: var(--fa-border-color, #eee);\n  border-radius: var(--fa-border-radius, 0.1em);\n  border-style: var(--fa-border-style, solid);\n  border-width: var(--fa-border-width, 0.08em);\n  padding: var(--fa-border-padding, 0.2em 0.25em 0.15em);\n}\n\n.fa-pull-left {\n  float: left;\n  margin-right: var(--fa-pull-margin, 0.3em);\n}\n\n.fa-pull-right {\n  float: right;\n  margin-left: var(--fa-pull-margin, 0.3em);\n}\n\n.fa-beat {\n  -webkit-animation-name: fa-beat;\n          animation-name: fa-beat;\n  -webkit-animation-delay: var(--fa-animation-delay, 0);\n          animation-delay: var(--fa-animation-delay, 0);\n  -webkit-animation-direction: var(--fa-animation-direction, normal);\n          animation-direction: var(--fa-animation-direction, normal);\n  -webkit-animation-duration: var(--fa-animation-duration, 1s);\n          animation-duration: var(--fa-animation-duration, 1s);\n  -webkit-animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n          animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n  -webkit-animation-timing-function: var(--fa-animation-timing, ease-in-out);\n          animation-timing-function: var(--fa-animation-timing, ease-in-out);\n}\n\n.fa-bounce {\n  -webkit-animation-name: fa-bounce;\n          animation-name: fa-bounce;\n  -webkit-animation-delay: var(--fa-animation-delay, 0);\n          animation-delay: var(--fa-animation-delay, 0);\n  -webkit-animation-direction: var(--fa-animation-direction, normal);\n          animation-direction: var(--fa-animation-direction, normal);\n  -webkit-animation-duration: var(--fa-animation-duration, 1s);\n          animation-duration: var(--fa-animation-duration, 1s);\n  -webkit-animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n          animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n  -webkit-animation-timing-function: var(--fa-animation-timing, cubic-bezier(0.28, 0.84, 0.42, 1));\n          animation-timing-function: var(--fa-animation-timing, cubic-bezier(0.28, 0.84, 0.42, 1));\n}\n\n.fa-fade {\n  -webkit-animation-name: fa-fade;\n          animation-name: fa-fade;\n  -webkit-animation-delay: var(--fa-animation-delay, 0);\n          animation-delay: var(--fa-animation-delay, 0);\n  -webkit-animation-direction: var(--fa-animation-direction, normal);\n          animation-direction: var(--fa-animation-direction, normal);\n  -webkit-animation-duration: var(--fa-animation-duration, 1s);\n          animation-duration: var(--fa-animation-duration, 1s);\n  -webkit-animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n          animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n  -webkit-animation-timing-function: var(--fa-animation-timing, cubic-bezier(0.4, 0, 0.6, 1));\n          animation-timing-function: var(--fa-animation-timing, cubic-bezier(0.4, 0, 0.6, 1));\n}\n\n.fa-beat-fade {\n  -webkit-animation-name: fa-beat-fade;\n          animation-name: fa-beat-fade;\n  -webkit-animation-delay: var(--fa-animation-delay, 0);\n          animation-delay: var(--fa-animation-delay, 0);\n  -webkit-animation-direction: var(--fa-animation-direction, normal);\n          animation-direction: var(--fa-animation-direction, normal);\n  -webkit-animation-duration: var(--fa-animation-duration, 1s);\n          animation-duration: var(--fa-animation-duration, 1s);\n  -webkit-animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n          animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n  -webkit-animation-timing-function: var(--fa-animation-timing, cubic-bezier(0.4, 0, 0.6, 1));\n          animation-timing-function: var(--fa-animation-timing, cubic-bezier(0.4, 0, 0.6, 1));\n}\n\n.fa-flip {\n  -webkit-animation-name: fa-flip;\n          animation-name: fa-flip;\n  -webkit-animation-delay: var(--fa-animation-delay, 0);\n          animation-delay: var(--fa-animation-delay, 0);\n  -webkit-animation-direction: var(--fa-animation-direction, normal);\n          animation-direction: var(--fa-animation-direction, normal);\n  -webkit-animation-duration: var(--fa-animation-duration, 1s);\n          animation-duration: var(--fa-animation-duration, 1s);\n  -webkit-animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n          animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n  -webkit-animation-timing-function: var(--fa-animation-timing, ease-in-out);\n          animation-timing-function: var(--fa-animation-timing, ease-in-out);\n}\n\n.fa-shake {\n  -webkit-animation-name: fa-shake;\n          animation-name: fa-shake;\n  -webkit-animation-delay: var(--fa-animation-delay, 0);\n          animation-delay: var(--fa-animation-delay, 0);\n  -webkit-animation-direction: var(--fa-animation-direction, normal);\n          animation-direction: var(--fa-animation-direction, normal);\n  -webkit-animation-duration: var(--fa-animation-duration, 1s);\n          animation-duration: var(--fa-animation-duration, 1s);\n  -webkit-animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n          animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n  -webkit-animation-timing-function: var(--fa-animation-timing, linear);\n          animation-timing-function: var(--fa-animation-timing, linear);\n}\n\n.fa-spin {\n  -webkit-animation-name: fa-spin;\n          animation-name: fa-spin;\n  -webkit-animation-delay: var(--fa-animation-delay, 0);\n          animation-delay: var(--fa-animation-delay, 0);\n  -webkit-animation-direction: var(--fa-animation-direction, normal);\n          animation-direction: var(--fa-animation-direction, normal);\n  -webkit-animation-duration: var(--fa-animation-duration, 2s);\n          animation-duration: var(--fa-animation-duration, 2s);\n  -webkit-animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n          animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n  -webkit-animation-timing-function: var(--fa-animation-timing, linear);\n          animation-timing-function: var(--fa-animation-timing, linear);\n}\n\n.fa-spin-reverse {\n  --fa-animation-direction: reverse;\n}\n\n.fa-pulse,\n.fa-spin-pulse {\n  -webkit-animation-name: fa-spin;\n          animation-name: fa-spin;\n  -webkit-animation-direction: var(--fa-animation-direction, normal);\n          animation-direction: var(--fa-animation-direction, normal);\n  -webkit-animation-duration: var(--fa-animation-duration, 1s);\n          animation-duration: var(--fa-animation-duration, 1s);\n  -webkit-animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n          animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n  -webkit-animation-timing-function: var(--fa-animation-timing, steps(8));\n          animation-timing-function: var(--fa-animation-timing, steps(8));\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .fa-beat,\n.fa-bounce,\n.fa-fade,\n.fa-beat-fade,\n.fa-flip,\n.fa-pulse,\n.fa-shake,\n.fa-spin,\n.fa-spin-pulse {\n    -webkit-animation-delay: -1ms;\n            animation-delay: -1ms;\n    -webkit-animation-duration: 1ms;\n            animation-duration: 1ms;\n    -webkit-animation-iteration-count: 1;\n            animation-iteration-count: 1;\n    transition-delay: 0s;\n    transition-duration: 0s;\n  }\n}\n@-webkit-keyframes fa-beat {\n  0%, 90% {\n    -webkit-transform: scale(1);\n            transform: scale(1);\n  }\n  45% {\n    -webkit-transform: scale(var(--fa-beat-scale, 1.25));\n            transform: scale(var(--fa-beat-scale, 1.25));\n  }\n}\n@keyframes fa-beat {\n  0%, 90% {\n    -webkit-transform: scale(1);\n            transform: scale(1);\n  }\n  45% {\n    -webkit-transform: scale(var(--fa-beat-scale, 1.25));\n            transform: scale(var(--fa-beat-scale, 1.25));\n  }\n}\n@-webkit-keyframes fa-bounce {\n  0% {\n    -webkit-transform: scale(1, 1) translateY(0);\n            transform: scale(1, 1) translateY(0);\n  }\n  10% {\n    -webkit-transform: scale(var(--fa-bounce-start-scale-x, 1.1), var(--fa-bounce-start-scale-y, 0.9)) translateY(0);\n            transform: scale(var(--fa-bounce-start-scale-x, 1.1), var(--fa-bounce-start-scale-y, 0.9)) translateY(0);\n  }\n  30% {\n    -webkit-transform: scale(var(--fa-bounce-jump-scale-x, 0.9), var(--fa-bounce-jump-scale-y, 1.1)) translateY(var(--fa-bounce-height, -0.5em));\n            transform: scale(var(--fa-bounce-jump-scale-x, 0.9), var(--fa-bounce-jump-scale-y, 1.1)) translateY(var(--fa-bounce-height, -0.5em));\n  }\n  50% {\n    -webkit-transform: scale(var(--fa-bounce-land-scale-x, 1.05), var(--fa-bounce-land-scale-y, 0.95)) translateY(0);\n            transform: scale(var(--fa-bounce-land-scale-x, 1.05), var(--fa-bounce-land-scale-y, 0.95)) translateY(0);\n  }\n  57% {\n    -webkit-transform: scale(1, 1) translateY(var(--fa-bounce-rebound, -0.125em));\n            transform: scale(1, 1) translateY(var(--fa-bounce-rebound, -0.125em));\n  }\n  64% {\n    -webkit-transform: scale(1, 1) translateY(0);\n            transform: scale(1, 1) translateY(0);\n  }\n  100% {\n    -webkit-transform: scale(1, 1) translateY(0);\n            transform: scale(1, 1) translateY(0);\n  }\n}\n@keyframes fa-bounce {\n  0% {\n    -webkit-transform: scale(1, 1) translateY(0);\n            transform: scale(1, 1) translateY(0);\n  }\n  10% {\n    -webkit-transform: scale(var(--fa-bounce-start-scale-x, 1.1), var(--fa-bounce-start-scale-y, 0.9)) translateY(0);\n            transform: scale(var(--fa-bounce-start-scale-x, 1.1), var(--fa-bounce-start-scale-y, 0.9)) translateY(0);\n  }\n  30% {\n    -webkit-transform: scale(var(--fa-bounce-jump-scale-x, 0.9), var(--fa-bounce-jump-scale-y, 1.1)) translateY(var(--fa-bounce-height, -0.5em));\n            transform: scale(var(--fa-bounce-jump-scale-x, 0.9), var(--fa-bounce-jump-scale-y, 1.1)) translateY(var(--fa-bounce-height, -0.5em));\n  }\n  50% {\n    -webkit-transform: scale(var(--fa-bounce-land-scale-x, 1.05), var(--fa-bounce-land-scale-y, 0.95)) translateY(0);\n            transform: scale(var(--fa-bounce-land-scale-x, 1.05), var(--fa-bounce-land-scale-y, 0.95)) translateY(0);\n  }\n  57% {\n    -webkit-transform: scale(1, 1) translateY(var(--fa-bounce-rebound, -0.125em));\n            transform: scale(1, 1) translateY(var(--fa-bounce-rebound, -0.125em));\n  }\n  64% {\n    -webkit-transform: scale(1, 1) translateY(0);\n            transform: scale(1, 1) translateY(0);\n  }\n  100% {\n    -webkit-transform: scale(1, 1) translateY(0);\n            transform: scale(1, 1) translateY(0);\n  }\n}\n@-webkit-keyframes fa-fade {\n  50% {\n    opacity: var(--fa-fade-opacity, 0.4);\n  }\n}\n@keyframes fa-fade {\n  50% {\n    opacity: var(--fa-fade-opacity, 0.4);\n  }\n}\n@-webkit-keyframes fa-beat-fade {\n  0%, 100% {\n    opacity: var(--fa-beat-fade-opacity, 0.4);\n    -webkit-transform: scale(1);\n            transform: scale(1);\n  }\n  50% {\n    opacity: 1;\n    -webkit-transform: scale(var(--fa-beat-fade-scale, 1.125));\n            transform: scale(var(--fa-beat-fade-scale, 1.125));\n  }\n}\n@keyframes fa-beat-fade {\n  0%, 100% {\n    opacity: var(--fa-beat-fade-opacity, 0.4);\n    -webkit-transform: scale(1);\n            transform: scale(1);\n  }\n  50% {\n    opacity: 1;\n    -webkit-transform: scale(var(--fa-beat-fade-scale, 1.125));\n            transform: scale(var(--fa-beat-fade-scale, 1.125));\n  }\n}\n@-webkit-keyframes fa-flip {\n  50% {\n    -webkit-transform: rotate3d(var(--fa-flip-x, 0), var(--fa-flip-y, 1), var(--fa-flip-z, 0), var(--fa-flip-angle, -180deg));\n            transform: rotate3d(var(--fa-flip-x, 0), var(--fa-flip-y, 1), var(--fa-flip-z, 0), var(--fa-flip-angle, -180deg));\n  }\n}\n@keyframes fa-flip {\n  50% {\n    -webkit-transform: rotate3d(var(--fa-flip-x, 0), var(--fa-flip-y, 1), var(--fa-flip-z, 0), var(--fa-flip-angle, -180deg));\n            transform: rotate3d(var(--fa-flip-x, 0), var(--fa-flip-y, 1), var(--fa-flip-z, 0), var(--fa-flip-angle, -180deg));\n  }\n}\n@-webkit-keyframes fa-shake {\n  0% {\n    -webkit-transform: rotate(-15deg);\n            transform: rotate(-15deg);\n  }\n  4% {\n    -webkit-transform: rotate(15deg);\n            transform: rotate(15deg);\n  }\n  8%, 24% {\n    -webkit-transform: rotate(-18deg);\n            transform: rotate(-18deg);\n  }\n  12%, 28% {\n    -webkit-transform: rotate(18deg);\n            transform: rotate(18deg);\n  }\n  16% {\n    -webkit-transform: rotate(-22deg);\n            transform: rotate(-22deg);\n  }\n  20% {\n    -webkit-transform: rotate(22deg);\n            transform: rotate(22deg);\n  }\n  32% {\n    -webkit-transform: rotate(-12deg);\n            transform: rotate(-12deg);\n  }\n  36% {\n    -webkit-transform: rotate(12deg);\n            transform: rotate(12deg);\n  }\n  40%, 100% {\n    -webkit-transform: rotate(0deg);\n            transform: rotate(0deg);\n  }\n}\n@keyframes fa-shake {\n  0% {\n    -webkit-transform: rotate(-15deg);\n            transform: rotate(-15deg);\n  }\n  4% {\n    -webkit-transform: rotate(15deg);\n            transform: rotate(15deg);\n  }\n  8%, 24% {\n    -webkit-transform: rotate(-18deg);\n            transform: rotate(-18deg);\n  }\n  12%, 28% {\n    -webkit-transform: rotate(18deg);\n            transform: rotate(18deg);\n  }\n  16% {\n    -webkit-transform: rotate(-22deg);\n            transform: rotate(-22deg);\n  }\n  20% {\n    -webkit-transform: rotate(22deg);\n            transform: rotate(22deg);\n  }\n  32% {\n    -webkit-transform: rotate(-12deg);\n            transform: rotate(-12deg);\n  }\n  36% {\n    -webkit-transform: rotate(12deg);\n            transform: rotate(12deg);\n  }\n  40%, 100% {\n    -webkit-transform: rotate(0deg);\n            transform: rotate(0deg);\n  }\n}\n@-webkit-keyframes fa-spin {\n  0% {\n    -webkit-transform: rotate(0deg);\n            transform: rotate(0deg);\n  }\n  100% {\n    -webkit-transform: rotate(360deg);\n            transform: rotate(360deg);\n  }\n}\n@keyframes fa-spin {\n  0% {\n    -webkit-transform: rotate(0deg);\n            transform: rotate(0deg);\n  }\n  100% {\n    -webkit-transform: rotate(360deg);\n            transform: rotate(360deg);\n  }\n}\n.fa-rotate-90 {\n  -webkit-transform: rotate(90deg);\n          transform: rotate(90deg);\n}\n\n.fa-rotate-180 {\n  -webkit-transform: rotate(180deg);\n          transform: rotate(180deg);\n}\n\n.fa-rotate-270 {\n  -webkit-transform: rotate(270deg);\n          transform: rotate(270deg);\n}\n\n.fa-flip-horizontal {\n  -webkit-transform: scale(-1, 1);\n          transform: scale(-1, 1);\n}\n\n.fa-flip-vertical {\n  -webkit-transform: scale(1, -1);\n          transform: scale(1, -1);\n}\n\n.fa-flip-both,\n.fa-flip-horizontal.fa-flip-vertical {\n  -webkit-transform: scale(-1, -1);\n          transform: scale(-1, -1);\n}\n\n.fa-rotate-by {\n  -webkit-transform: rotate(var(--fa-rotate-angle, none));\n          transform: rotate(var(--fa-rotate-angle, none));\n}\n\n.fa-stack {\n  display: inline-block;\n  vertical-align: middle;\n  height: 2em;\n  position: relative;\n  width: 2.5em;\n}\n\n.fa-stack-1x,\n.fa-stack-2x {\n  bottom: 0;\n  left: 0;\n  margin: auto;\n  position: absolute;\n  right: 0;\n  top: 0;\n  z-index: var(--fa-stack-z-index, auto);\n}\n\n.svg-inline--fa.fa-stack-1x {\n  height: 1em;\n  width: 1.25em;\n}\n.svg-inline--fa.fa-stack-2x {\n  height: 2em;\n  width: 2.5em;\n}\n\n.fa-inverse {\n  color: var(--fa-inverse, #fff);\n}\n\n.sr-only,\n.fa-sr-only {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  margin: -1px;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0);\n  white-space: nowrap;\n  border-width: 0;\n}\n\n.sr-only-focusable:not(:focus),\n.fa-sr-only-focusable:not(:focus) {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  margin: -1px;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0);\n  white-space: nowrap;\n  border-width: 0;\n}\n\n.svg-inline--fa .fa-primary {\n  fill: var(--fa-primary-color, currentColor);\n  opacity: var(--fa-primary-opacity, 1);\n}\n\n.svg-inline--fa .fa-secondary {\n  fill: var(--fa-secondary-color, currentColor);\n  opacity: var(--fa-secondary-opacity, 0.4);\n}\n\n.svg-inline--fa.fa-swap-opacity .fa-primary {\n  opacity: var(--fa-secondary-opacity, 0.4);\n}\n\n.svg-inline--fa.fa-swap-opacity .fa-secondary {\n  opacity: var(--fa-primary-opacity, 1);\n}\n\n.svg-inline--fa mask .fa-primary,\n.svg-inline--fa mask .fa-secondary {\n  fill: black;\n}\n\n.fad.fa-inverse,\n.fa-duotone.fa-inverse {\n  color: var(--fa-inverse, #fff);\n}";
+	var baseStyles = ":root, :host {\n  --fa-font-solid: normal 900 1em/1 \"Font Awesome 6 Solid\";\n  --fa-font-regular: normal 400 1em/1 \"Font Awesome 6 Regular\";\n  --fa-font-light: normal 300 1em/1 \"Font Awesome 6 Light\";\n  --fa-font-thin: normal 100 1em/1 \"Font Awesome 6 Thin\";\n  --fa-font-duotone: normal 900 1em/1 \"Font Awesome 6 Duotone\";\n  --fa-font-sharp-solid: normal 900 1em/1 \"Font Awesome 6 Sharp\";\n  --fa-font-brands: normal 400 1em/1 \"Font Awesome 6 Brands\";\n}\n\nsvg:not(:root).svg-inline--fa, svg:not(:host).svg-inline--fa {\n  overflow: visible;\n  box-sizing: content-box;\n}\n\n.svg-inline--fa {\n  display: var(--fa-display, inline-block);\n  height: 1em;\n  overflow: visible;\n  vertical-align: -0.125em;\n}\n.svg-inline--fa.fa-2xs {\n  vertical-align: 0.1em;\n}\n.svg-inline--fa.fa-xs {\n  vertical-align: 0em;\n}\n.svg-inline--fa.fa-sm {\n  vertical-align: -0.0714285705em;\n}\n.svg-inline--fa.fa-lg {\n  vertical-align: -0.2em;\n}\n.svg-inline--fa.fa-xl {\n  vertical-align: -0.25em;\n}\n.svg-inline--fa.fa-2xl {\n  vertical-align: -0.3125em;\n}\n.svg-inline--fa.fa-pull-left {\n  margin-right: var(--fa-pull-margin, 0.3em);\n  width: auto;\n}\n.svg-inline--fa.fa-pull-right {\n  margin-left: var(--fa-pull-margin, 0.3em);\n  width: auto;\n}\n.svg-inline--fa.fa-li {\n  width: var(--fa-li-width, 2em);\n  top: 0.25em;\n}\n.svg-inline--fa.fa-fw {\n  width: var(--fa-fw-width, 1.25em);\n}\n\n.fa-layers svg.svg-inline--fa {\n  bottom: 0;\n  left: 0;\n  margin: auto;\n  position: absolute;\n  right: 0;\n  top: 0;\n}\n\n.fa-layers-counter, .fa-layers-text {\n  display: inline-block;\n  position: absolute;\n  text-align: center;\n}\n\n.fa-layers {\n  display: inline-block;\n  height: 1em;\n  position: relative;\n  text-align: center;\n  vertical-align: -0.125em;\n  width: 1em;\n}\n.fa-layers svg.svg-inline--fa {\n  -webkit-transform-origin: center center;\n          transform-origin: center center;\n}\n\n.fa-layers-text {\n  left: 50%;\n  top: 50%;\n  -webkit-transform: translate(-50%, -50%);\n          transform: translate(-50%, -50%);\n  -webkit-transform-origin: center center;\n          transform-origin: center center;\n}\n\n.fa-layers-counter {\n  background-color: var(--fa-counter-background-color, #ff253a);\n  border-radius: var(--fa-counter-border-radius, 1em);\n  box-sizing: border-box;\n  color: var(--fa-inverse, #fff);\n  line-height: var(--fa-counter-line-height, 1);\n  max-width: var(--fa-counter-max-width, 5em);\n  min-width: var(--fa-counter-min-width, 1.5em);\n  overflow: hidden;\n  padding: var(--fa-counter-padding, 0.25em 0.5em);\n  right: var(--fa-right, 0);\n  text-overflow: ellipsis;\n  top: var(--fa-top, 0);\n  -webkit-transform: scale(var(--fa-counter-scale, 0.25));\n          transform: scale(var(--fa-counter-scale, 0.25));\n  -webkit-transform-origin: top right;\n          transform-origin: top right;\n}\n\n.fa-layers-bottom-right {\n  bottom: var(--fa-bottom, 0);\n  right: var(--fa-right, 0);\n  top: auto;\n  -webkit-transform: scale(var(--fa-layers-scale, 0.25));\n          transform: scale(var(--fa-layers-scale, 0.25));\n  -webkit-transform-origin: bottom right;\n          transform-origin: bottom right;\n}\n\n.fa-layers-bottom-left {\n  bottom: var(--fa-bottom, 0);\n  left: var(--fa-left, 0);\n  right: auto;\n  top: auto;\n  -webkit-transform: scale(var(--fa-layers-scale, 0.25));\n          transform: scale(var(--fa-layers-scale, 0.25));\n  -webkit-transform-origin: bottom left;\n          transform-origin: bottom left;\n}\n\n.fa-layers-top-right {\n  top: var(--fa-top, 0);\n  right: var(--fa-right, 0);\n  -webkit-transform: scale(var(--fa-layers-scale, 0.25));\n          transform: scale(var(--fa-layers-scale, 0.25));\n  -webkit-transform-origin: top right;\n          transform-origin: top right;\n}\n\n.fa-layers-top-left {\n  left: var(--fa-left, 0);\n  right: auto;\n  top: var(--fa-top, 0);\n  -webkit-transform: scale(var(--fa-layers-scale, 0.25));\n          transform: scale(var(--fa-layers-scale, 0.25));\n  -webkit-transform-origin: top left;\n          transform-origin: top left;\n}\n\n.fa-1x {\n  font-size: 1em;\n}\n\n.fa-2x {\n  font-size: 2em;\n}\n\n.fa-3x {\n  font-size: 3em;\n}\n\n.fa-4x {\n  font-size: 4em;\n}\n\n.fa-5x {\n  font-size: 5em;\n}\n\n.fa-6x {\n  font-size: 6em;\n}\n\n.fa-7x {\n  font-size: 7em;\n}\n\n.fa-8x {\n  font-size: 8em;\n}\n\n.fa-9x {\n  font-size: 9em;\n}\n\n.fa-10x {\n  font-size: 10em;\n}\n\n.fa-2xs {\n  font-size: 0.625em;\n  line-height: 0.1em;\n  vertical-align: 0.225em;\n}\n\n.fa-xs {\n  font-size: 0.75em;\n  line-height: 0.0833333337em;\n  vertical-align: 0.125em;\n}\n\n.fa-sm {\n  font-size: 0.875em;\n  line-height: 0.0714285718em;\n  vertical-align: 0.0535714295em;\n}\n\n.fa-lg {\n  font-size: 1.25em;\n  line-height: 0.05em;\n  vertical-align: -0.075em;\n}\n\n.fa-xl {\n  font-size: 1.5em;\n  line-height: 0.0416666682em;\n  vertical-align: -0.125em;\n}\n\n.fa-2xl {\n  font-size: 2em;\n  line-height: 0.03125em;\n  vertical-align: -0.1875em;\n}\n\n.fa-fw {\n  text-align: center;\n  width: 1.25em;\n}\n\n.fa-ul {\n  list-style-type: none;\n  margin-left: var(--fa-li-margin, 2.5em);\n  padding-left: 0;\n}\n.fa-ul > li {\n  position: relative;\n}\n\n.fa-li {\n  left: calc(var(--fa-li-width, 2em) * -1);\n  position: absolute;\n  text-align: center;\n  width: var(--fa-li-width, 2em);\n  line-height: inherit;\n}\n\n.fa-border {\n  border-color: var(--fa-border-color, #eee);\n  border-radius: var(--fa-border-radius, 0.1em);\n  border-style: var(--fa-border-style, solid);\n  border-width: var(--fa-border-width, 0.08em);\n  padding: var(--fa-border-padding, 0.2em 0.25em 0.15em);\n}\n\n.fa-pull-left {\n  float: left;\n  margin-right: var(--fa-pull-margin, 0.3em);\n}\n\n.fa-pull-right {\n  float: right;\n  margin-left: var(--fa-pull-margin, 0.3em);\n}\n\n.fa-beat {\n  -webkit-animation-name: fa-beat;\n          animation-name: fa-beat;\n  -webkit-animation-delay: var(--fa-animation-delay, 0s);\n          animation-delay: var(--fa-animation-delay, 0s);\n  -webkit-animation-direction: var(--fa-animation-direction, normal);\n          animation-direction: var(--fa-animation-direction, normal);\n  -webkit-animation-duration: var(--fa-animation-duration, 1s);\n          animation-duration: var(--fa-animation-duration, 1s);\n  -webkit-animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n          animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n  -webkit-animation-timing-function: var(--fa-animation-timing, ease-in-out);\n          animation-timing-function: var(--fa-animation-timing, ease-in-out);\n}\n\n.fa-bounce {\n  -webkit-animation-name: fa-bounce;\n          animation-name: fa-bounce;\n  -webkit-animation-delay: var(--fa-animation-delay, 0s);\n          animation-delay: var(--fa-animation-delay, 0s);\n  -webkit-animation-direction: var(--fa-animation-direction, normal);\n          animation-direction: var(--fa-animation-direction, normal);\n  -webkit-animation-duration: var(--fa-animation-duration, 1s);\n          animation-duration: var(--fa-animation-duration, 1s);\n  -webkit-animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n          animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n  -webkit-animation-timing-function: var(--fa-animation-timing, cubic-bezier(0.28, 0.84, 0.42, 1));\n          animation-timing-function: var(--fa-animation-timing, cubic-bezier(0.28, 0.84, 0.42, 1));\n}\n\n.fa-fade {\n  -webkit-animation-name: fa-fade;\n          animation-name: fa-fade;\n  -webkit-animation-delay: var(--fa-animation-delay, 0s);\n          animation-delay: var(--fa-animation-delay, 0s);\n  -webkit-animation-direction: var(--fa-animation-direction, normal);\n          animation-direction: var(--fa-animation-direction, normal);\n  -webkit-animation-duration: var(--fa-animation-duration, 1s);\n          animation-duration: var(--fa-animation-duration, 1s);\n  -webkit-animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n          animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n  -webkit-animation-timing-function: var(--fa-animation-timing, cubic-bezier(0.4, 0, 0.6, 1));\n          animation-timing-function: var(--fa-animation-timing, cubic-bezier(0.4, 0, 0.6, 1));\n}\n\n.fa-beat-fade {\n  -webkit-animation-name: fa-beat-fade;\n          animation-name: fa-beat-fade;\n  -webkit-animation-delay: var(--fa-animation-delay, 0s);\n          animation-delay: var(--fa-animation-delay, 0s);\n  -webkit-animation-direction: var(--fa-animation-direction, normal);\n          animation-direction: var(--fa-animation-direction, normal);\n  -webkit-animation-duration: var(--fa-animation-duration, 1s);\n          animation-duration: var(--fa-animation-duration, 1s);\n  -webkit-animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n          animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n  -webkit-animation-timing-function: var(--fa-animation-timing, cubic-bezier(0.4, 0, 0.6, 1));\n          animation-timing-function: var(--fa-animation-timing, cubic-bezier(0.4, 0, 0.6, 1));\n}\n\n.fa-flip {\n  -webkit-animation-name: fa-flip;\n          animation-name: fa-flip;\n  -webkit-animation-delay: var(--fa-animation-delay, 0s);\n          animation-delay: var(--fa-animation-delay, 0s);\n  -webkit-animation-direction: var(--fa-animation-direction, normal);\n          animation-direction: var(--fa-animation-direction, normal);\n  -webkit-animation-duration: var(--fa-animation-duration, 1s);\n          animation-duration: var(--fa-animation-duration, 1s);\n  -webkit-animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n          animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n  -webkit-animation-timing-function: var(--fa-animation-timing, ease-in-out);\n          animation-timing-function: var(--fa-animation-timing, ease-in-out);\n}\n\n.fa-shake {\n  -webkit-animation-name: fa-shake;\n          animation-name: fa-shake;\n  -webkit-animation-delay: var(--fa-animation-delay, 0s);\n          animation-delay: var(--fa-animation-delay, 0s);\n  -webkit-animation-direction: var(--fa-animation-direction, normal);\n          animation-direction: var(--fa-animation-direction, normal);\n  -webkit-animation-duration: var(--fa-animation-duration, 1s);\n          animation-duration: var(--fa-animation-duration, 1s);\n  -webkit-animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n          animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n  -webkit-animation-timing-function: var(--fa-animation-timing, linear);\n          animation-timing-function: var(--fa-animation-timing, linear);\n}\n\n.fa-spin {\n  -webkit-animation-name: fa-spin;\n          animation-name: fa-spin;\n  -webkit-animation-delay: var(--fa-animation-delay, 0s);\n          animation-delay: var(--fa-animation-delay, 0s);\n  -webkit-animation-direction: var(--fa-animation-direction, normal);\n          animation-direction: var(--fa-animation-direction, normal);\n  -webkit-animation-duration: var(--fa-animation-duration, 2s);\n          animation-duration: var(--fa-animation-duration, 2s);\n  -webkit-animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n          animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n  -webkit-animation-timing-function: var(--fa-animation-timing, linear);\n          animation-timing-function: var(--fa-animation-timing, linear);\n}\n\n.fa-spin-reverse {\n  --fa-animation-direction: reverse;\n}\n\n.fa-pulse,\n.fa-spin-pulse {\n  -webkit-animation-name: fa-spin;\n          animation-name: fa-spin;\n  -webkit-animation-direction: var(--fa-animation-direction, normal);\n          animation-direction: var(--fa-animation-direction, normal);\n  -webkit-animation-duration: var(--fa-animation-duration, 1s);\n          animation-duration: var(--fa-animation-duration, 1s);\n  -webkit-animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n          animation-iteration-count: var(--fa-animation-iteration-count, infinite);\n  -webkit-animation-timing-function: var(--fa-animation-timing, steps(8));\n          animation-timing-function: var(--fa-animation-timing, steps(8));\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .fa-beat,\n.fa-bounce,\n.fa-fade,\n.fa-beat-fade,\n.fa-flip,\n.fa-pulse,\n.fa-shake,\n.fa-spin,\n.fa-spin-pulse {\n    -webkit-animation-delay: -1ms;\n            animation-delay: -1ms;\n    -webkit-animation-duration: 1ms;\n            animation-duration: 1ms;\n    -webkit-animation-iteration-count: 1;\n            animation-iteration-count: 1;\n    transition-delay: 0s;\n    transition-duration: 0s;\n  }\n}\n@-webkit-keyframes fa-beat {\n  0%, 90% {\n    -webkit-transform: scale(1);\n            transform: scale(1);\n  }\n  45% {\n    -webkit-transform: scale(var(--fa-beat-scale, 1.25));\n            transform: scale(var(--fa-beat-scale, 1.25));\n  }\n}\n@keyframes fa-beat {\n  0%, 90% {\n    -webkit-transform: scale(1);\n            transform: scale(1);\n  }\n  45% {\n    -webkit-transform: scale(var(--fa-beat-scale, 1.25));\n            transform: scale(var(--fa-beat-scale, 1.25));\n  }\n}\n@-webkit-keyframes fa-bounce {\n  0% {\n    -webkit-transform: scale(1, 1) translateY(0);\n            transform: scale(1, 1) translateY(0);\n  }\n  10% {\n    -webkit-transform: scale(var(--fa-bounce-start-scale-x, 1.1), var(--fa-bounce-start-scale-y, 0.9)) translateY(0);\n            transform: scale(var(--fa-bounce-start-scale-x, 1.1), var(--fa-bounce-start-scale-y, 0.9)) translateY(0);\n  }\n  30% {\n    -webkit-transform: scale(var(--fa-bounce-jump-scale-x, 0.9), var(--fa-bounce-jump-scale-y, 1.1)) translateY(var(--fa-bounce-height, -0.5em));\n            transform: scale(var(--fa-bounce-jump-scale-x, 0.9), var(--fa-bounce-jump-scale-y, 1.1)) translateY(var(--fa-bounce-height, -0.5em));\n  }\n  50% {\n    -webkit-transform: scale(var(--fa-bounce-land-scale-x, 1.05), var(--fa-bounce-land-scale-y, 0.95)) translateY(0);\n            transform: scale(var(--fa-bounce-land-scale-x, 1.05), var(--fa-bounce-land-scale-y, 0.95)) translateY(0);\n  }\n  57% {\n    -webkit-transform: scale(1, 1) translateY(var(--fa-bounce-rebound, -0.125em));\n            transform: scale(1, 1) translateY(var(--fa-bounce-rebound, -0.125em));\n  }\n  64% {\n    -webkit-transform: scale(1, 1) translateY(0);\n            transform: scale(1, 1) translateY(0);\n  }\n  100% {\n    -webkit-transform: scale(1, 1) translateY(0);\n            transform: scale(1, 1) translateY(0);\n  }\n}\n@keyframes fa-bounce {\n  0% {\n    -webkit-transform: scale(1, 1) translateY(0);\n            transform: scale(1, 1) translateY(0);\n  }\n  10% {\n    -webkit-transform: scale(var(--fa-bounce-start-scale-x, 1.1), var(--fa-bounce-start-scale-y, 0.9)) translateY(0);\n            transform: scale(var(--fa-bounce-start-scale-x, 1.1), var(--fa-bounce-start-scale-y, 0.9)) translateY(0);\n  }\n  30% {\n    -webkit-transform: scale(var(--fa-bounce-jump-scale-x, 0.9), var(--fa-bounce-jump-scale-y, 1.1)) translateY(var(--fa-bounce-height, -0.5em));\n            transform: scale(var(--fa-bounce-jump-scale-x, 0.9), var(--fa-bounce-jump-scale-y, 1.1)) translateY(var(--fa-bounce-height, -0.5em));\n  }\n  50% {\n    -webkit-transform: scale(var(--fa-bounce-land-scale-x, 1.05), var(--fa-bounce-land-scale-y, 0.95)) translateY(0);\n            transform: scale(var(--fa-bounce-land-scale-x, 1.05), var(--fa-bounce-land-scale-y, 0.95)) translateY(0);\n  }\n  57% {\n    -webkit-transform: scale(1, 1) translateY(var(--fa-bounce-rebound, -0.125em));\n            transform: scale(1, 1) translateY(var(--fa-bounce-rebound, -0.125em));\n  }\n  64% {\n    -webkit-transform: scale(1, 1) translateY(0);\n            transform: scale(1, 1) translateY(0);\n  }\n  100% {\n    -webkit-transform: scale(1, 1) translateY(0);\n            transform: scale(1, 1) translateY(0);\n  }\n}\n@-webkit-keyframes fa-fade {\n  50% {\n    opacity: var(--fa-fade-opacity, 0.4);\n  }\n}\n@keyframes fa-fade {\n  50% {\n    opacity: var(--fa-fade-opacity, 0.4);\n  }\n}\n@-webkit-keyframes fa-beat-fade {\n  0%, 100% {\n    opacity: var(--fa-beat-fade-opacity, 0.4);\n    -webkit-transform: scale(1);\n            transform: scale(1);\n  }\n  50% {\n    opacity: 1;\n    -webkit-transform: scale(var(--fa-beat-fade-scale, 1.125));\n            transform: scale(var(--fa-beat-fade-scale, 1.125));\n  }\n}\n@keyframes fa-beat-fade {\n  0%, 100% {\n    opacity: var(--fa-beat-fade-opacity, 0.4);\n    -webkit-transform: scale(1);\n            transform: scale(1);\n  }\n  50% {\n    opacity: 1;\n    -webkit-transform: scale(var(--fa-beat-fade-scale, 1.125));\n            transform: scale(var(--fa-beat-fade-scale, 1.125));\n  }\n}\n@-webkit-keyframes fa-flip {\n  50% {\n    -webkit-transform: rotate3d(var(--fa-flip-x, 0), var(--fa-flip-y, 1), var(--fa-flip-z, 0), var(--fa-flip-angle, -180deg));\n            transform: rotate3d(var(--fa-flip-x, 0), var(--fa-flip-y, 1), var(--fa-flip-z, 0), var(--fa-flip-angle, -180deg));\n  }\n}\n@keyframes fa-flip {\n  50% {\n    -webkit-transform: rotate3d(var(--fa-flip-x, 0), var(--fa-flip-y, 1), var(--fa-flip-z, 0), var(--fa-flip-angle, -180deg));\n            transform: rotate3d(var(--fa-flip-x, 0), var(--fa-flip-y, 1), var(--fa-flip-z, 0), var(--fa-flip-angle, -180deg));\n  }\n}\n@-webkit-keyframes fa-shake {\n  0% {\n    -webkit-transform: rotate(-15deg);\n            transform: rotate(-15deg);\n  }\n  4% {\n    -webkit-transform: rotate(15deg);\n            transform: rotate(15deg);\n  }\n  8%, 24% {\n    -webkit-transform: rotate(-18deg);\n            transform: rotate(-18deg);\n  }\n  12%, 28% {\n    -webkit-transform: rotate(18deg);\n            transform: rotate(18deg);\n  }\n  16% {\n    -webkit-transform: rotate(-22deg);\n            transform: rotate(-22deg);\n  }\n  20% {\n    -webkit-transform: rotate(22deg);\n            transform: rotate(22deg);\n  }\n  32% {\n    -webkit-transform: rotate(-12deg);\n            transform: rotate(-12deg);\n  }\n  36% {\n    -webkit-transform: rotate(12deg);\n            transform: rotate(12deg);\n  }\n  40%, 100% {\n    -webkit-transform: rotate(0deg);\n            transform: rotate(0deg);\n  }\n}\n@keyframes fa-shake {\n  0% {\n    -webkit-transform: rotate(-15deg);\n            transform: rotate(-15deg);\n  }\n  4% {\n    -webkit-transform: rotate(15deg);\n            transform: rotate(15deg);\n  }\n  8%, 24% {\n    -webkit-transform: rotate(-18deg);\n            transform: rotate(-18deg);\n  }\n  12%, 28% {\n    -webkit-transform: rotate(18deg);\n            transform: rotate(18deg);\n  }\n  16% {\n    -webkit-transform: rotate(-22deg);\n            transform: rotate(-22deg);\n  }\n  20% {\n    -webkit-transform: rotate(22deg);\n            transform: rotate(22deg);\n  }\n  32% {\n    -webkit-transform: rotate(-12deg);\n            transform: rotate(-12deg);\n  }\n  36% {\n    -webkit-transform: rotate(12deg);\n            transform: rotate(12deg);\n  }\n  40%, 100% {\n    -webkit-transform: rotate(0deg);\n            transform: rotate(0deg);\n  }\n}\n@-webkit-keyframes fa-spin {\n  0% {\n    -webkit-transform: rotate(0deg);\n            transform: rotate(0deg);\n  }\n  100% {\n    -webkit-transform: rotate(360deg);\n            transform: rotate(360deg);\n  }\n}\n@keyframes fa-spin {\n  0% {\n    -webkit-transform: rotate(0deg);\n            transform: rotate(0deg);\n  }\n  100% {\n    -webkit-transform: rotate(360deg);\n            transform: rotate(360deg);\n  }\n}\n.fa-rotate-90 {\n  -webkit-transform: rotate(90deg);\n          transform: rotate(90deg);\n}\n\n.fa-rotate-180 {\n  -webkit-transform: rotate(180deg);\n          transform: rotate(180deg);\n}\n\n.fa-rotate-270 {\n  -webkit-transform: rotate(270deg);\n          transform: rotate(270deg);\n}\n\n.fa-flip-horizontal {\n  -webkit-transform: scale(-1, 1);\n          transform: scale(-1, 1);\n}\n\n.fa-flip-vertical {\n  -webkit-transform: scale(1, -1);\n          transform: scale(1, -1);\n}\n\n.fa-flip-both,\n.fa-flip-horizontal.fa-flip-vertical {\n  -webkit-transform: scale(-1, -1);\n          transform: scale(-1, -1);\n}\n\n.fa-rotate-by {\n  -webkit-transform: rotate(var(--fa-rotate-angle, none));\n          transform: rotate(var(--fa-rotate-angle, none));\n}\n\n.fa-stack {\n  display: inline-block;\n  vertical-align: middle;\n  height: 2em;\n  position: relative;\n  width: 2.5em;\n}\n\n.fa-stack-1x,\n.fa-stack-2x {\n  bottom: 0;\n  left: 0;\n  margin: auto;\n  position: absolute;\n  right: 0;\n  top: 0;\n  z-index: var(--fa-stack-z-index, auto);\n}\n\n.svg-inline--fa.fa-stack-1x {\n  height: 1em;\n  width: 1.25em;\n}\n.svg-inline--fa.fa-stack-2x {\n  height: 2em;\n  width: 2.5em;\n}\n\n.fa-inverse {\n  color: var(--fa-inverse, #fff);\n}\n\n.sr-only,\n.fa-sr-only {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  margin: -1px;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0);\n  white-space: nowrap;\n  border-width: 0;\n}\n\n.sr-only-focusable:not(:focus),\n.fa-sr-only-focusable:not(:focus) {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  margin: -1px;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0);\n  white-space: nowrap;\n  border-width: 0;\n}\n\n.svg-inline--fa .fa-primary {\n  fill: var(--fa-primary-color, currentColor);\n  opacity: var(--fa-primary-opacity, 1);\n}\n\n.svg-inline--fa .fa-secondary {\n  fill: var(--fa-secondary-color, currentColor);\n  opacity: var(--fa-secondary-opacity, 0.4);\n}\n\n.svg-inline--fa.fa-swap-opacity .fa-primary {\n  opacity: var(--fa-secondary-opacity, 0.4);\n}\n\n.svg-inline--fa.fa-swap-opacity .fa-secondary {\n  opacity: var(--fa-primary-opacity, 1);\n}\n\n.svg-inline--fa mask .fa-primary,\n.svg-inline--fa mask .fa-secondary {\n  fill: black;\n}\n\n.fad.fa-inverse,\n.fa-duotone.fa-inverse {\n  color: var(--fa-inverse, #fff);\n}";
 
 	function css() {
-	  var dfp = DEFAULT_FAMILY_PREFIX;
+	  var dcp = DEFAULT_CSS_PREFIX;
 	  var drc = DEFAULT_REPLACEMENT_CLASS;
-	  var fp = config.familyPrefix;
+	  var fp = config.cssPrefix;
 	  var rc = config.replacementClass;
 	  var s = baseStyles;
 
-	  if (fp !== dfp || rc !== drc) {
-	    var dPatt = new RegExp("\\.".concat(dfp, "\\-"), 'g');
-	    var customPropPatt = new RegExp("\\--".concat(dfp, "\\-"), 'g');
+	  if (fp !== dcp || rc !== drc) {
+	    var dPatt = new RegExp("\\.".concat(dcp, "\\-"), 'g');
+	    var customPropPatt = new RegExp("\\--".concat(dcp, "\\-"), 'g');
 	    var rPatt = new RegExp("\\.".concat(drc), 'g');
 	    s = s.replace(dPatt, ".".concat(fp, "-")).replace(customPropPatt, "--".concat(fp, "-")).replace(rPatt, ".".concat(rc));
 	  }
@@ -30445,27 +30490,30 @@
 	    defineIcons('fa', icons);
 	  }
 	}
+
+	var _LONG_STYLE, _PREFIXES, _PREFIXES_FOR_FAMILY;
+
 	var styles = namespace.styles,
 	    shims = namespace.shims;
-	var LONG_STYLE = Object.values(PREFIX_TO_LONG_STYLE);
+	var LONG_STYLE = (_LONG_STYLE = {}, _defineProperty$1(_LONG_STYLE, FAMILY_CLASSIC, Object.values(PREFIX_TO_LONG_STYLE[FAMILY_CLASSIC])), _defineProperty$1(_LONG_STYLE, FAMILY_SHARP, Object.values(PREFIX_TO_LONG_STYLE[FAMILY_SHARP])), _LONG_STYLE);
 	var _defaultUsablePrefix = null;
 	var _byUnicode = {};
 	var _byLigature = {};
 	var _byOldName = {};
 	var _byOldUnicode = {};
 	var _byAlias = {};
-	var PREFIXES = Object.keys(PREFIX_TO_STYLE);
+	var PREFIXES = (_PREFIXES = {}, _defineProperty$1(_PREFIXES, FAMILY_CLASSIC, Object.keys(PREFIX_TO_STYLE[FAMILY_CLASSIC])), _defineProperty$1(_PREFIXES, FAMILY_SHARP, Object.keys(PREFIX_TO_STYLE[FAMILY_SHARP])), _PREFIXES);
 
 	function isReserved(name) {
 	  return ~RESERVED_CLASSES.indexOf(name);
 	}
 
-	function getIconName(familyPrefix, cls) {
+	function getIconName(cssPrefix, cls) {
 	  var parts = cls.split('-');
 	  var prefix = parts[0];
 	  var iconName = parts.slice(1).join('-');
 
-	  if (prefix === familyPrefix && iconName !== '' && !isReserved(iconName)) {
+	  if (prefix === cssPrefix && iconName !== '' && !isReserved(iconName)) {
 	    return iconName;
 	  } else {
 	    return null;
@@ -30551,11 +30599,15 @@
 	  });
 	  _byOldName = shimLookups.names;
 	  _byOldUnicode = shimLookups.unicodes;
-	  _defaultUsablePrefix = getCanonicalPrefix(config.styleDefault);
+	  _defaultUsablePrefix = getCanonicalPrefix(config.styleDefault, {
+	    family: config.familyDefault
+	  });
 	};
 
 	onChange(function (c) {
-	  _defaultUsablePrefix = getCanonicalPrefix(c.styleDefault);
+	  _defaultUsablePrefix = getCanonicalPrefix(c.styleDefault, {
+	    family: config.familyDefault
+	  });
 	});
 	build();
 
@@ -30603,30 +30655,54 @@
 	};
 
 	function getCanonicalPrefix(styleOrPrefix) {
-	  var style = PREFIX_TO_STYLE[styleOrPrefix];
-	  var prefix = STYLE_TO_PREFIX[styleOrPrefix] || STYLE_TO_PREFIX[style];
+	  var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+	  var _params$family = params.family,
+	      family = _params$family === void 0 ? FAMILY_CLASSIC : _params$family;
+	  var style = PREFIX_TO_STYLE[family][styleOrPrefix];
+	  var prefix = STYLE_TO_PREFIX[family][styleOrPrefix] || STYLE_TO_PREFIX[family][style];
 	  var defined = styleOrPrefix in namespace.styles ? styleOrPrefix : null;
 	  return prefix || defined || null;
 	}
 
+	var PREFIXES_FOR_FAMILY = (_PREFIXES_FOR_FAMILY = {}, _defineProperty$1(_PREFIXES_FOR_FAMILY, FAMILY_CLASSIC, Object.keys(PREFIX_TO_LONG_STYLE[FAMILY_CLASSIC])), _defineProperty$1(_PREFIXES_FOR_FAMILY, FAMILY_SHARP, Object.keys(PREFIX_TO_LONG_STYLE[FAMILY_SHARP])), _PREFIXES_FOR_FAMILY);
+
 	function getCanonicalIcon(values) {
+	  var _famProps;
+
 	  var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 	  var _params$skipLookups = params.skipLookups,
 	      skipLookups = _params$skipLookups === void 0 ? false : _params$skipLookups;
+	  var famProps = (_famProps = {}, _defineProperty$1(_famProps, FAMILY_CLASSIC, "".concat(config.cssPrefix, "-").concat(FAMILY_CLASSIC)), _defineProperty$1(_famProps, FAMILY_SHARP, "".concat(config.cssPrefix, "-").concat(FAMILY_SHARP)), _famProps);
 	  var givenPrefix = null;
+	  var family = FAMILY_CLASSIC;
+
+	  if (values.includes(famProps[FAMILY_CLASSIC]) || values.some(function (v) {
+	    return PREFIXES_FOR_FAMILY[FAMILY_CLASSIC].includes(v);
+	  })) {
+	    family = FAMILY_CLASSIC;
+	  }
+
+	  if (values.includes(famProps[FAMILY_SHARP]) || values.some(function (v) {
+	    return PREFIXES_FOR_FAMILY[FAMILY_SHARP].includes(v);
+	  })) {
+	    family = FAMILY_SHARP;
+	  }
+
 	  var canonical = values.reduce(function (acc, cls) {
-	    var iconName = getIconName(config.familyPrefix, cls);
+	    var iconName = getIconName(config.cssPrefix, cls);
 
 	    if (styles[cls]) {
-	      cls = LONG_STYLE.includes(cls) ? LONG_STYLE_TO_PREFIX[cls] : cls;
+	      cls = LONG_STYLE[family].includes(cls) ? LONG_STYLE_TO_PREFIX[family][cls] : cls;
 	      givenPrefix = cls;
 	      acc.prefix = cls;
-	    } else if (PREFIXES.indexOf(cls) > -1) {
+	    } else if (PREFIXES[family].indexOf(cls) > -1) {
 	      givenPrefix = cls;
-	      acc.prefix = getCanonicalPrefix(cls);
+	      acc.prefix = getCanonicalPrefix(cls, {
+	        family: family
+	      });
 	    } else if (iconName) {
 	      acc.iconName = iconName;
-	    } else if (cls !== config.replacementClass) {
+	    } else if (cls !== config.replacementClass && cls !== famProps[FAMILY_CLASSIC] && cls !== famProps[FAMILY_SHARP]) {
 	      acc.rest.push(cls);
 	    }
 
@@ -30650,6 +30726,19 @@
 
 	    return acc;
 	  }, emptyCanonicalIcon());
+
+	  if (values.includes('fa-brands') || values.includes('fab')) {
+	    canonical.prefix = 'fab';
+	  }
+
+	  if (values.includes('fa-duotone') || values.includes('fad')) {
+	    canonical.prefix = 'fad';
+	  }
+
+	  if (!canonical.prefix && family === FAMILY_SHARP && (styles['fass'] || config.autoFetchSvg)) {
+	    canonical.prefix = 'fass';
+	    canonical.iconName = byAlias(canonical.prefix, canonical.iconName) || canonical.iconName;
+	  }
 
 	  if (canonical.prefix === 'fa' || givenPrefix === 'fa') {
 	    // The fa prefix is not canonical. So if it has made it through until this point
@@ -30679,8 +30768,9 @@
 	      var additions = definitions.reduce(this._pullDefinitions, {});
 	      Object.keys(additions).forEach(function (key) {
 	        _this.definitions[key] = _objectSpread2$1(_objectSpread2$1({}, _this.definitions[key] || {}), additions[key]);
-	        defineIcons(key, additions[key]);
-	        var longPrefix = PREFIX_TO_LONG_STYLE[key];
+	        defineIcons(key, additions[key]); // TODO can we stop doing this? We can't get the icons by 'fa-solid' any longer so this probably needs to change
+
+	        var longPrefix = PREFIX_TO_LONG_STYLE[FAMILY_CLASSIC][key];
 	        if (longPrefix) defineIcons(longPrefix, additions[key]);
 	        build();
 	      });
@@ -30874,7 +30964,7 @@
 	      };
 	    }
 
-	    if (typeof _icon === 'string' && (_icon.indexOf("".concat(config.familyPrefix, "-")) > -1 || _icon.match(ICON_SELECTION_SYNTAX_PATTERN))) {
+	    if (typeof _icon === 'string' && (_icon.indexOf("".concat(config.cssPrefix, "-")) > -1 || _icon.match(ICON_SELECTION_SYNTAX_PATTERN))) {
 	      var canonicalIcon = getCanonicalIcon(_icon.split(' '), {
 	        skipLookups: true
 	      });
@@ -30968,7 +31058,7 @@
 	      children = _ref.children,
 	      attributes = _ref.attributes,
 	      symbol = _ref.symbol;
-	  var id = symbol === true ? "".concat(prefix, "-").concat(config.familyPrefix, "-").concat(iconName) : symbol;
+	  var id = symbol === true ? "".concat(prefix, "-").concat(config.cssPrefix, "-").concat(iconName) : symbol;
 	  return [{
 	    tag: 'svg',
 	    attributes: {
@@ -31004,7 +31094,7 @@
 	      height = _ref.height;
 
 	  var isUploadedIcon = prefix === 'fak';
-	  var attrClass = [config.replacementClass, iconName ? "".concat(config.familyPrefix, "-").concat(iconName) : ''].filter(function (c) {
+	  var attrClass = [config.replacementClass, iconName ? "".concat(config.cssPrefix, "-").concat(iconName) : ''].filter(function (c) {
 	    return extra.classes.indexOf(c) === -1;
 	  }).filter(function (c) {
 	    return c !== '' || !!c;
@@ -31181,19 +31271,19 @@
 	    element = {
 	      tag: 'g',
 	      attributes: {
-	        class: "".concat(config.familyPrefix, "-").concat(DUOTONE_CLASSES.GROUP)
+	        class: "".concat(config.cssPrefix, "-").concat(DUOTONE_CLASSES.GROUP)
 	      },
 	      children: [{
 	        tag: 'path',
 	        attributes: {
-	          class: "".concat(config.familyPrefix, "-").concat(DUOTONE_CLASSES.SECONDARY),
+	          class: "".concat(config.cssPrefix, "-").concat(DUOTONE_CLASSES.SECONDARY),
 	          fill: 'currentColor',
 	          d: vectorData[0]
 	        }
 	      }, {
 	        tag: 'path',
 	        attributes: {
-	          class: "".concat(config.familyPrefix, "-").concat(DUOTONE_CLASSES.PRIMARY),
+	          class: "".concat(config.cssPrefix, "-").concat(DUOTONE_CLASSES.PRIMARY),
 	          fill: 'currentColor',
 	          d: vectorData[1]
 	        }
@@ -31268,7 +31358,7 @@
 	  mark: noop$1,
 	  measure: noop$1
 	};
-	var preamble = "FA \"6.1.1\"";
+	var preamble = "FA \"6.2.0\"";
 
 	var begin = function begin(name) {
 	  p$1.mark("".concat(preamble, " ").concat(name, " begins"));
@@ -31379,7 +31469,7 @@
 	      return mutators.replace(mutation);
 	    }
 
-	    var forSvg = new RegExp("".concat(config.familyPrefix, "-.*"));
+	    var forSvg = new RegExp("".concat(config.cssPrefix, "-.*"));
 	    delete abstract[0].attributes.id;
 
 	    if (abstract[0].attributes.class) {
@@ -31555,6 +31645,10 @@
 	    val.iconName = byLigature(val.prefix, node.innerText) || byUnicode(val.prefix, toHex(node.innerText));
 	  }
 
+	  if (!val.iconName && config.autoFetchSvg && node.firstChild && node.firstChild.nodeType === Node.TEXT_NODE) {
+	    val.iconName = node.firstChild.data;
+	  }
+
 	  return val;
 	}
 
@@ -31651,6 +31745,14 @@
 	  }
 	}
 
+	var knownPrefixes = new Set();
+	FAMILIES.map(function (family) {
+	  knownPrefixes.add("fa-".concat(family));
+	});
+	Object.keys(PREFIX_TO_STYLE[FAMILY_CLASSIC]).map(knownPrefixes.add.bind(knownPrefixes));
+	Object.keys(PREFIX_TO_STYLE[FAMILY_SHARP]).map(knownPrefixes.add.bind(knownPrefixes));
+	knownPrefixes = _toConsumableArray$1(knownPrefixes);
+
 	function onTree(root) {
 	  var callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 	  if (!IS_DOM) return Promise.resolve();
@@ -31664,7 +31766,14 @@
 	    return htmlClassList.remove("".concat(HTML_CLASS_I2SVG_BASE_CLASS, "-").concat(suffix));
 	  };
 
-	  var prefixes = config.autoFetchSvg ? Object.keys(PREFIX_TO_STYLE) : Object.keys(styles$2);
+	  var prefixes = config.autoFetchSvg ? knownPrefixes : FAMILIES.map(function (f) {
+	    return "fa-".concat(f);
+	  }).concat(Object.keys(styles$2));
+
+	  if (!prefixes.includes('fa')) {
+	    prefixes.push('fa');
+	  }
+
 	  var prefixesDomQuery = [".".concat(LAYERS_TEXT_CLASSNAME, ":not([").concat(DATA_FA_I2SVG, "])")].concat(prefixes.map(function (p) {
 	    return ".".concat(p, ":not([").concat(DATA_FA_I2SVG, "])");
 	  })).join(', ');
@@ -31932,7 +32041,7 @@
 	          return [{
 	            tag: 'span',
 	            attributes: {
-	              class: ["".concat(config.familyPrefix, "-layers")].concat(_toConsumableArray$1(classes)).join(' ')
+	              class: ["".concat(config.cssPrefix, "-layers")].concat(_toConsumableArray$1(classes)).join(' ')
 	            },
 	            children: children
 	          }];
@@ -31968,7 +32077,7 @@
 	            extra: {
 	              attributes: attributes,
 	              styles: styles,
-	              classes: ["".concat(config.familyPrefix, "-layers-counter")].concat(_toConsumableArray$1(classes))
+	              classes: ["".concat(config.cssPrefix, "-layers-counter")].concat(_toConsumableArray$1(classes))
 	            }
 	          });
 	        });
@@ -32006,7 +32115,7 @@
 	            extra: {
 	              attributes: attributes,
 	              styles: styles,
-	              classes: ["".concat(config.familyPrefix, "-layers-text")].concat(_toConsumableArray$1(classes))
+	              classes: ["".concat(config.cssPrefix, "-layers-text")].concat(_toConsumableArray$1(classes))
 	            }
 	          });
 	        });
@@ -32084,7 +32193,8 @@
 	    } else if (fontFamily && content !== 'none' && content !== '') {
 	      var _content = styles.getPropertyValue('content');
 
-	      var prefix = ~['Solid', 'Regular', 'Light', 'Thin', 'Duotone', 'Brands', 'Kit'].indexOf(fontFamily[2]) ? STYLE_TO_PREFIX[fontFamily[2].toLowerCase()] : FONT_WEIGHT_TO_PREFIX[fontWeight];
+	      var family = ~['Sharp'].indexOf(fontFamily[2]) ? FAMILY_SHARP : FAMILY_CLASSIC;
+	      var prefix = ~['Solid', 'Regular', 'Light', 'Thin', 'Duotone', 'Brands', 'Kit'].indexOf(fontFamily[2]) ? STYLE_TO_PREFIX[family][fontFamily[2].toLowerCase()] : FONT_WEIGHT_TO_PREFIX[family][fontWeight];
 
 	      var _hexValueFromContent = hexValueFromContent(_content),
 	          hexValue = _hexValueFromContent.value,
@@ -33747,6 +33857,7 @@
 	    'fa-inverse': inverse,
 	    'fa-border': border,
 	    'fa-li': listItem,
+	    'fa-flip': flip === true,
 	    'fa-flip-horizontal': flip === 'horizontal' || flip === 'both',
 	    'fa-flip-vertical': flip === 'vertical' || flip === 'both'
 	  }, _defineProperty(_classes, "fa-".concat(size), typeof size !== 'undefined' && size !== null), _defineProperty(_classes, "fa-rotate-".concat(rotation), typeof rotation !== 'undefined' && rotation !== null && rotation !== 0), _defineProperty(_classes, "fa-pull-".concat(pull), typeof pull !== 'undefined' && pull !== null), _defineProperty(_classes, 'fa-swap-opacity', props.swapOpacity), _classes); // map over all the keys in the classes object
@@ -33961,6 +34072,7 @@
 	FontAwesomeIcon.propTypes = {
 	  beat: PropTypes.bool,
 	  border: PropTypes.bool,
+	  beatFade: PropTypes.bool,
 	  bounce: PropTypes.bool,
 	  className: PropTypes.string,
 	  fade: PropTypes.bool,
@@ -33969,7 +34081,7 @@
 	  maskId: PropTypes.string,
 	  fixedWidth: PropTypes.bool,
 	  inverse: PropTypes.bool,
-	  flip: PropTypes.oneOf(['horizontal', 'vertical', 'both']),
+	  flip: PropTypes.oneOf([true, false, 'horizontal', 'vertical', 'both']),
 	  icon: PropTypes.oneOfType([PropTypes.object, PropTypes.array, PropTypes.string]),
 	  listItem: PropTypes.bool,
 	  pull: PropTypes.oneOf(['right', 'left']),
@@ -33993,7 +34105,7 @@
 	  maskId: null,
 	  fixedWidth: false,
 	  inverse: false,
-	  flip: null,
+	  flip: false,
 	  icon: null,
 	  listItem: false,
 	  pull: null,
@@ -34001,6 +34113,8 @@
 	  rotation: null,
 	  size: null,
 	  spin: false,
+	  spinPulse: false,
+	  spinReverse: false,
 	  beat: false,
 	  fade: false,
 	  beatFade: false,
@@ -34014,95 +34128,49 @@
 	};
 	var convertCurry = convert.bind(null, React.createElement);
 
-	var faArrowUpFromBracket={prefix:'fas',iconName:'arrow-up-from-bracket',icon:[448,512,[],"e09a","M384 352v64c0 17.67-14.33 32-32 32H96c-17.67 0-32-14.33-32-32v-64c0-17.67-14.33-32-32-32s-32 14.33-32 32v64c0 53.02 42.98 96 96 96h256c53.02 0 96-42.98 96-96v-64c0-17.67-14.33-32-32-32S384 334.3 384 352zM201.4 9.375l-128 128c-12.51 12.51-12.49 32.76 0 45.25c12.5 12.5 32.75 12.5 45.25 0L192 109.3V320c0 17.69 14.31 32 32 32s32-14.31 32-32V109.3l73.38 73.38c12.5 12.5 32.75 12.5 45.25 0s12.5-32.75 0-45.25l-128-128C234.1-3.125 213.9-3.125 201.4 9.375z"]};var faMinus={prefix:'fas',iconName:'minus',icon:[448,512,[8722,10134,8211,"subtract"],"f068","M400 288h-352c-17.69 0-32-14.32-32-32.01s14.31-31.99 32-31.99h352c17.69 0 32 14.3 32 31.99S417.7 288 400 288z"]};var faNoteSticky={prefix:'fas',iconName:'note-sticky',icon:[448,512,[62026,"sticky-note"],"f249","M400 32h-352C21.49 32 0 53.49 0 80v352C0 458.5 21.49 480 48 480h245.5c16.97 0 33.25-6.744 45.26-18.75l90.51-90.51C441.3 358.7 448 342.5 448 325.5V80C448 53.49 426.5 32 400 32zM64 96h320l-.001 224H320c-17.67 0-32 14.33-32 32v64H64V96z"]};var faPersonCirclePlus={prefix:'fas',iconName:'person-circle-plus',icon:[576,512,[],"e541","M208 48C208 74.51 186.5 96 160 96C133.5 96 112 74.51 112 48C112 21.49 133.5 0 160 0C186.5 0 208 21.49 208 48zM152 352V480C152 497.7 137.7 512 120 512C102.3 512 88 497.7 88 480V256.9L59.43 304.5C50.33 319.6 30.67 324.5 15.52 315.4C.3696 306.3-4.531 286.7 4.573 271.5L62.85 174.6C80.2 145.7 111.4 128 145.1 128H174.9C208.6 128 239.8 145.7 257.2 174.6L302.1 249.3C285.1 266.9 273.4 287.7 265.5 310.8C263.6 308.9 261.1 306.8 260.6 304.5L232 256.9V480C232 497.7 217.7 512 200 512C182.3 512 168 497.7 168 480V352L152 352zM288 368C288 288.5 352.5 224 432 224C511.5 224 576 288.5 576 368C576 447.5 511.5 512 432 512C352.5 512 288 447.5 288 368zM448 303.1C448 295.2 440.8 287.1 432 287.1C423.2 287.1 416 295.2 416 303.1V351.1H368C359.2 351.1 352 359.2 352 367.1C352 376.8 359.2 383.1 368 383.1H416V431.1C416 440.8 423.2 447.1 432 447.1C440.8 447.1 448 440.8 448 431.1V383.1H496C504.8 383.1 512 376.8 512 367.1C512 359.2 504.8 351.1 496 351.1H448V303.1z"]};var faPlus={prefix:'fas',iconName:'plus',icon:[448,512,[10133,61543,"add"],"2b","M432 256c0 17.69-14.33 32.01-32 32.01H256v144c0 17.69-14.33 31.99-32 31.99s-32-14.3-32-31.99v-144H48c-17.67 0-32-14.32-32-32.01s14.33-31.99 32-31.99H192v-144c0-17.69 14.33-32.01 32-32.01s32 14.32 32 32.01v144h144C417.7 224 432 238.3 432 256z"]};
-
-	const PlayerSelect = props => {
-	  const user = react.exports.useContext(UserContext);
-	  const [viewState, setViewState] = react.exports.useState('all');
-	  const [allPlayers, setAllPlayers] = react.exports.useState([]);
-	  const [selectedPlayers, setSelectedPlayers] = react.exports.useState([]);
-	  react.exports.useEffect(() => fetch(`http://cards.leinsterhockey.ie/api/registration/list.json?s=${user.section}&t=${props.team}`, {
-	    headers: {
-	      'X-Auth-Token': `${sessionStorage.getItem("jwtToken")}`
-	    }
-	  }).then(res => res.json()).then(data => {
-	    const players = data.map(x => {
-	      const dates = x.history.map(y => moment(y.date));
-	      x['lastDate'] = Math.min(...dates);
-	      return x;
-	    });
-	    setAllPlayers(players);
-	  }), []);
-	  const players = [...allPlayers];
-
-	  if (viewState == 'all') {
-	    players.sort((a, b) => {
-	      return a.name.localeCompare(b.name);
-	    });
-	  } else if (viewState == 'recent') {
-	    players.sort((a, b) => {
-	      return a.lastDate ? a.lastDate - b.lastDate : 1;
-	    });
-	  }
-
-	  const addPlayersText = () => {
-	    if (selectedPlayers.length == 0) return "Add players";
-	    if (selectedPlayers.length == 1) return "Add 1 player";
-	    return "Add " + selectedPlayers.length + " players";
-	  };
-
-	  return /*#__PURE__*/React.createElement("div", {
-	    id: "player-select"
-	  }, /*#__PURE__*/React.createElement("div", {
-	    className: "buttons-bar"
-	  }, /*#__PURE__*/React.createElement("button", {
-	    className: "success",
-	    disabled: !selectedPlayers
-	  }, addPlayersText()), /*#__PURE__*/React.createElement("button", {
-	    className: "warning",
-	    onClick: () => props.setKicker(false)
-	  }, "Cancel")), /*#__PURE__*/React.createElement("div", {
-	    className: "buttons-bar"
-	  }, /*#__PURE__*/React.createElement("button", {
-	    onClick: () => setViewState('all')
-	  }, "All (A-Z)"), /*#__PURE__*/React.createElement("button", {
-	    onClick: () => setViewState('recent')
-	  }, "Recent")), /*#__PURE__*/React.createElement("div", {
-	    className: "players"
-	  }, viewState == 'free' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("label", null, "Player Name ", /*#__PURE__*/React.createElement("input", {
-	    type: "text"
-	  })), /*#__PURE__*/React.createElement("button", null, "Add Player")) : /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("tbody", null, players.map((p, i) => /*#__PURE__*/React.createElement("tr", {
-	    key: p.name
-	  }, /*#__PURE__*/React.createElement("td", {
-	    className: selectedPlayers.includes(p.name) ? 'selected' : '',
-	    onClick: () => {
-	      if (selectedPlayers.includes(p.name)) setSelectedPlayers(selectedPlayers.filter(x => x != p.name));else setSelectedPlayers([...selectedPlayers, p.name]);
-	    }
-	  }, p.name)))))));
-	};
+	var faArrowUpFromBracket={prefix:'fas',iconName:'arrow-up-from-bracket',icon:[448,512,[],"e09a","M246.6 9.4c-12.5-12.5-32.8-12.5-45.3 0l-128 128c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 109.3V320c0 17.7 14.3 32 32 32s32-14.3 32-32V109.3l73.4 73.4c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3l-128-128zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32v64c0 53 43 96 96 96H352c53 0 96-43 96-96V352c0-17.7-14.3-32-32-32s-32 14.3-32 32v64c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V352z"]};var faPersonCirclePlus={prefix:'fas',iconName:'person-circle-plus',icon:[576,512,[],"e541","M208 48c0 26.5-21.5 48-48 48s-48-21.5-48-48s21.5-48 48-48s48 21.5 48 48zM152 352V480c0 17.7-14.3 32-32 32s-32-14.3-32-32V256.9L59.4 304.5c-9.1 15.1-28.8 20-43.9 10.9s-20-28.8-10.9-43.9l58.3-97c17.4-28.9 48.6-46.6 82.3-46.6h29.7c33.7 0 64.9 17.7 82.3 46.6l44.9 74.7c-16.1 17.6-28.6 38.5-36.6 61.5c-1.9-1.8-3.5-3.9-4.9-6.3L232 256.9V480c0 17.7-14.3 32-32 32s-32-14.3-32-32V352H152zM432 512c-79.5 0-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144s-64.5 144-144 144zm16-208c0-8.8-7.2-16-16-16s-16 7.2-16 16v48H368c-8.8 0-16 7.2-16 16s7.2 16 16 16h48v48c0 8.8 7.2 16 16 16s16-7.2 16-16V384h48c8.8 0 16-7.2 16-16s-7.2-16-16-16H448V304z"]};var faNoteSticky={prefix:'fas',iconName:'note-sticky',icon:[448,512,[62026,"sticky-note"],"f249","M64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H290.7c17 0 33.3-6.7 45.3-18.7L429.3 368c12-12 18.7-28.3 18.7-45.3V96c0-35.3-28.7-64-64-64H64zm0 64H384V320H320c-17.7 0-32 14.3-32 32v64H64V96z"]};
 
 	const Matchcard = () => {
 	  const user = react.exports.useContext(UserContext);
 	  const [card, setCard] = react.exports.useState(null);
 	  const [selected, setSelected] = react.exports.useState(null);
-	  const [kicker, setKicker] = react.exports.useState(false);
+	  const [kicker, setKicker] = react.exports.useState(null);
+	  const [allPlayers, setAllPlayers] = react.exports.useState([]);
+	  const [selectedPlayers, setSelectedPlayers] = react.exports.useState([]);
 	  const {
 	    id
 	  } = useParams();
 	  react.exports.useEffect(() => {
 	    fetch(`http://cards.leinsterhockey.ie/api/fixtures/${id}`).then(res => res.json()).then(data => setCard(tweak(data.data)));
 	  }, []);
+	  react.exports.useEffect(() => {
+	    if (card != null) {
+	      const active = getActive(card, user);
+
+	      if (active) {
+	        fetch(`http://cards.leinsterhockey.ie/api/registration/list.json?s=${user.section}&t=${active.team}`, {
+	          headers: {
+	            'X-Auth-Token': `${sessionStorage.getItem("jwtToken")}`
+	          }
+	        }).then(res => res.json()).then(data => {
+	          const players = data.map(x => {
+	            const dates = x.history.map(y => moment(y.date));
+	            x['lastDate'] = Math.min(...dates);
+	            return x;
+	          });
+	          console.log("Found ", players);
+	          setAllPlayers(players);
+	        });
+	      }
+	    }
+	  }, []);
 	  if (card == null) return /*#__PURE__*/React.createElement("div", {
 	    className: "loading"
 	  }, "Loading...");
 	  const active = getActive(card, user);
-	  if (active) active.active = true;
 
-	  if (kicker) {
-	    return /*#__PURE__*/React.createElement(PlayerSelect, {
-	      setKicker: setKicker,
-	      team: active.team
-	    });
+	  if (active) {
+	    active.active = true;
 	  }
 
 	  const dt = moment(card.datetime);
@@ -34118,7 +34186,7 @@
 	    className: "detail"
 	  }, /*#__PURE__*/React.createElement("dl", null, /*#__PURE__*/React.createElement("dt", null, "Fixture ID"), /*#__PURE__*/React.createElement("dd", null, card.fixture_id)), /*#__PURE__*/React.createElement("dl", null, /*#__PURE__*/React.createElement("dt", null, "Date"), /*#__PURE__*/React.createElement("dd", null, dt.format('YYYY-MM-DD'))), /*#__PURE__*/React.createElement("dl", null, /*#__PURE__*/React.createElement("dt", null, "Time"), /*#__PURE__*/React.createElement("dd", null, dt.format('HH:mm'))))), /*#__PURE__*/React.createElement("ol", {
 	    className: "teams"
-	  }, /*#__PURE__*/React.createElement("li", {
+	  }, kicker == null ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("li", {
 	    className: "team"
 	  }, /*#__PURE__*/React.createElement(Team, {
 	    cardId: id,
@@ -34134,56 +34202,21 @@
 	    setKicker: setKicker,
 	    selected: selected,
 	    setSelected: setSelected
-	  }))), /*#__PURE__*/React.createElement("dialog", null, /*#__PURE__*/React.createElement("header", null, /*#__PURE__*/React.createElement("h1", null, "Player NAME")), /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("tbody", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, "12")), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-	    colSpan: 3
-	  }, "Shirt Number ", /*#__PURE__*/React.createElement("input", {
-	    type: "number",
-	    size: 3,
-	    onChange: event => {//player.number = event.target.valueAsNumber
-	      //setTrigger(f => !f)
-	    },
-	    style: {
-	      width: '3rem'
-	    },
-	    value: 0
-	  }), /*#__PURE__*/React.createElement("div", {
-	    className: "goals"
+	  }))) : /*#__PURE__*/React.createElement("li", {
+	    className: "team"
+	  }, /*#__PURE__*/React.createElement("header", null, /*#__PURE__*/React.createElement("h3", null, active.club, " ", active.team)), /*#__PURE__*/React.createElement("button", {
+	    className: "success",
+	    onClick: () => setKicker(null)
 	  }, /*#__PURE__*/React.createElement(FontAwesomeIcon, {
-	    icon: faPlus,
-	    style: {
-	      color: '#484'
-	    },
-	    onClick: event => modScore(event, true)
-	  }), /*#__PURE__*/React.createElement("span", null, "x", 0), /*#__PURE__*/React.createElement(FontAwesomeIcon, {
-	    icon: faMinus,
-	    onClick: event => modScore(event, false)
-	  })))), /*#__PURE__*/React.createElement("tr", {
-	    className: "roles"
-	  }, /*#__PURE__*/React.createElement("td", {
-	    colSpan: 3
-	  }, /*#__PURE__*/React.createElement("span", null, "//", roleOptions.map(r => /*#__PURE__*/React.createElement("button", {
-	    key: 'rolebutton' + r,
-	    onClick: () => setRole(r.key),
-	    style: {
-	      backgroundColor: r.back,
-	      color: r.fore
+	    icon: faPersonCirclePlus
+	  }), " Add Players..."), /*#__PURE__*/React.createElement("ul", null, allPlayers.map((px, ix) => /*#__PURE__*/React.createElement("li", {
+	    key: px.name
+	  }, /*#__PURE__*/React.createElement("span", {
+	    className: selectedPlayers.includes(px.name) ? 'selected' : '',
+	    onClick: () => {
+	      if (selectedPlayers.includes(px.name)) setSelectedPlayers(selectedPlayers.filter(x => x != px.name));else setSelectedPlayers([...selectedPlayers, px.name]);
 	    }
-	  }, r.text))))), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-	    colSpan: 3,
-	    className: "penalties"
-	  }, "Penalties ", /*#__PURE__*/React.createElement("select", {
-	    onChange: event => {//  player.penalties = player.penalties ?? []
-	      //  player.penalties.push(penalties.find(x => x.detail == event.target.value))
-	      //  setTrigger(f => !f)
-	    }
-	  }, /*#__PURE__*/React.createElement("option", null, "Select card to add")), /*#__PURE__*/React.createElement("br", null))), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-	    colSpan: 3
-	  })))), /*#__PURE__*/React.createElement("footer", null, /*#__PURE__*/React.createElement("button", {
-	    className: "danger",
-	    onClick: () => {//  player.removed = moment()
-	      //  setSelect(null)
-	    }
-	  }, "Remove Player"))));
+	  }, px.name)))))));
 	};
 
 	const p = {
@@ -34226,27 +34259,8 @@
 	  react.exports.useState(false);
 	  const team = props.team;
 	  const setSelect = props.setSelected;
-	  props.selected;
-	  const setKicker = props.setKicker; // const formatPlayer = (player) => {
-	  //   const modScore = (event, add) => {
-	  //     event.stopPropagation()
-	  //     if (add) {
-	  //       player.score = (player.score ?? 0) + 1
-	  //     } else {
-	  //       if (player.score) player.score = player.score - 1
-	  //     }
-	  //     setTrigger(f => !f)
-	  //   }
-	  //   const setRole = (role) => {
-	  //     if (player.roles && player.roles.includes(role)) {
-	  //       player.roles = player.roles.filter(x => x != role)
-	  //     } else {
-	  //       if (!player.roles) player.roles = []
-	  //       player.roles.push(role)
-	  //     }
-	  //     console.log("Roles", player.roles)
-	  //     setTrigger(f => !f)
-	  //   }
+	  const select = props.selected;
+	  const setKicker = props.setKicker;
 
 	  const roles = player => player.roles ? /*#__PURE__*/React.createElement(React.Fragment, null, player.roles.map(r => {
 	    const role = roleOptions.find(x => x.key == r.toLowerCase());
@@ -34266,22 +34280,7 @@
 	  const cards = player => player.penalties ? /*#__PURE__*/React.createElement(React.Fragment, null, player.penalties.map((x, i) => /*#__PURE__*/React.createElement("li", {
 	    key: 'pen' + i,
 	    className: 'pen-' + x.color
-	  }))) : null; //   const f = player.name.match(/(.*), ([^ ]*)/)
-	  //   return <React.Fragment key={player.name}>
-	  //     {select == player.name && team.active 
-	  //       ? <tr className='selected' onClick={(event) => {
-	  //         if (event.target.nodeName.startsWith('T')) setSelect(null) }}>
-	  //           <td colSpan={3}>
-	  //           </td>
-	  //         </tr>
-	  //       : <tr >
-	  //       <div>{player.number}</div>
-	  //       <div>{f[2]}</div>
-	  //       <div>{f[1]} <span className='detail'>{roles()}{cards()}{scorex}</span></div>
-	  //     }
-	  //   </React.Fragment>
-	  // }
-
+	  }))) : null;
 
 	  const score = player => {
 	    if (player) return player.score > 0 ? /*#__PURE__*/React.createElement("li", {
@@ -34297,18 +34296,41 @@
 	    className: "detail"
 	  }, /*#__PURE__*/React.createElement("output", null, score()))), team.active && /*#__PURE__*/React.createElement("button", {
 	    className: "success",
-	    onClick: () => setKicker(true)
+	    onClick: () => setKicker([])
 	  }, /*#__PURE__*/React.createElement(FontAwesomeIcon, {
 	    icon: faPersonCirclePlus
 	  }), " Add Players..."), /*#__PURE__*/React.createElement("ol", null, team.players.filter(x => !x.removed).map(pl => {
 	    const [fullName, lastName, firstName] = pl.name.match(/(.*), ([^ ]*)/);
+	    const selectName = team.club + team.team + pl.name;
+	    const selected = selectName == select;
 	    return /*#__PURE__*/React.createElement("li", {
-	      className: "player",
-	      onClick: () => setSelect(pl.name),
-	      key: pl.name
+	      className: 'player' + (selected ? ' selected' : ''),
+	      onClick: () => team.active && setSelect(selectName),
+	      key: selectName
 	    }, /*#__PURE__*/React.createElement("div", null, pl.number), /*#__PURE__*/React.createElement("div", null, firstName), /*#__PURE__*/React.createElement("div", null, lastName), /*#__PURE__*/React.createElement("ol", {
 	      className: "detail"
-	    }, roles(pl), cards(pl), score(pl)));
+	    }, roles(pl), cards(pl), score(pl)), selected ? /*#__PURE__*/React.createElement("div", {
+	      className: "edit"
+	    }, /*#__PURE__*/React.createElement("label", null, "Shirt Number"), /*#__PURE__*/React.createElement("input", {
+	      type: "number",
+	      value: pl.number
+	    }), /*#__PURE__*/React.createElement("label", null, "Goals"), /*#__PURE__*/React.createElement("input", {
+	      type: "number",
+	      value: pl.goals
+	    }), /*#__PURE__*/React.createElement("span", {
+	      className: "roles"
+	    }, roleOptions.map(r => /*#__PURE__*/React.createElement("button", {
+	      className: 'role-' + r.text.toLowerCase(),
+	      key: 'rolebutton' + r,
+	      onClick: () => setRole(r.key)
+	    }, r.text))), /*#__PURE__*/React.createElement("label", null, "Cards"), /*#__PURE__*/React.createElement("select", {
+	      onChange: event => {//  player.penalties = player.penalties ?? []
+	        //  player.penalties.push(penalties.find(x => x.detail == event.target.value))
+	        //  setTrigger(f => !f)
+	      }
+	    }, /*#__PURE__*/React.createElement("option", null, "Select card to add")), /*#__PURE__*/React.createElement("ul", null, (pl.penalties ?? []).map((x, i) => /*#__PURE__*/React.createElement("li", {
+	      key: 'pensel' + i
+	    }, x.color, " ", x.detail)))) : null);
 	  })));
 	};
 
@@ -34395,7 +34417,7 @@
 	  }, userData ? formatUser(userData.user) : /*#__PURE__*/React.createElement("button", null, "Login")), /*#__PURE__*/React.createElement("input", {
 	    type: "text",
 	    name: "search",
-	    placeholder: "Search for card by club, competition or date",
+	    placeholder: "Search for fixtures by club, competition or date",
 	    spellCheck: "false"
 	  }), /*#__PURE__*/React.createElement("nav", null, /*#__PURE__*/React.createElement(NavLink, {
 	    to: "/"

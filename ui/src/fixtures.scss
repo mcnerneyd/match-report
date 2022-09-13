@@ -16,7 +16,7 @@ header.fixtures {
     grid-template-columns: 2fr 3fr 3rem 3fr;
 }
 
-h3.day-break {
+h4.day-break {
     height: 0;
     overflow:visible;
     margin-top: 2mm;
@@ -39,7 +39,7 @@ h3.day-break {
     }
 }
 
-h4.time-break time {
+h5.time-break time {
     color: #445;
     font-size: 80%;
     font-weight: 300;
@@ -58,11 +58,11 @@ h4.time-break time {
         grid-template-columns: 4rem 1fr;
     }
 
-    h4.time-break time {
+    h5.time-break time {
         margin-left: 0;
     }
 
-    h3.day-break {
+    h4.day-break {
         height: auto;
         time {
             width: auto;

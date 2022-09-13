@@ -29,5 +29,7 @@ return array(
 	'api/fixtures/:id' => 'fixtureapi',
 	'api/admin/(:any)' => 'adminapi/$1',
 	'api/registration/(:any)' => 'registrationapi/$1',
+	'api/events' => 'eventapi',
+	'api/events/:id' => 'eventapi',
 
 );

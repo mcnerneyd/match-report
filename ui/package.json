@@ -42,7 +42,7 @@
     "rollup-plugin-img": "^1.1.0",
     "rollup-plugin-livereload": "^2.0.5",
     "rollup-plugin-scss": "^3.0.0",
-    "rollup-plugin-serve": "^1.1.0",
+    "rollup-plugin-serve": "^2.0.1",
     "sass": "^1.49.9"
   }
 }
