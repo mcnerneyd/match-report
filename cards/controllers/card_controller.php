@@ -72,6 +72,12 @@ class CardController {
                     $fixture = Card::getFixture($id);
             }
 
+            if (!in_array($club, $fixture)) {
+                // This club is not one of the clubs on the matchcard
+                require_once('views/card/matchcard.php');
+                return;
+            }
+
             $data = array(
                     'section' => $fixture['section'],
                     'club' => $club,

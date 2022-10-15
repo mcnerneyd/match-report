@@ -241,6 +241,8 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
   </form>
   <?php } ?>
 
+  <div class='smallprint'>IMPORTANT: The matchcard system is only a tool to assist in the completion of matchcards. It is up to clubs to check that their registrations are valid with respect to the LHA Bye-Laws, HI regulations and the Rules of Hockey</div>
+
   <div class="modal" id='upload-registration' tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
       <div class="modal-content">

@@ -121,8 +121,14 @@ return array(
 			'host'     => 'ssl://smtp.gmail.com',
 			'port'     => 465,
 			'username' => 'lhamcs@gmail.com',
-			'password' => 'k$xX3%ihX^gbS2HM^iV3c&itmRX&YxnW7A$',
+			'password' => 'nbzmuwzxnwkwwvzv',
 		),
+		/*'smtp' => array(
+			'host'     => 'smtp.mail.com',
+			'port'     => 465,
+			'username' => 'lhamcs@mail.com',
+			'password' => 'nbzmuwzxnwkwwvzv',
+		),*/
 		/*'smtp' => array(
 			'host'     => 'smtp.gmail.com',
 			'port'     => 587,

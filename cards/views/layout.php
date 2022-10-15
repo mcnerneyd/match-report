@@ -39,6 +39,7 @@
 		</div>
 
     <footer class='center-block'>
+	<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
       <div>
         <span>C</span>
         <span><?= substr(\Fuel::$env,0,1) ?></span>

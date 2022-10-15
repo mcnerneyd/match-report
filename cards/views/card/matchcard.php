@@ -145,7 +145,6 @@ if ($fixture['groups']) {
         <?php
 } */ ?>
 
-
   <detail data-timestamp='<?= $fixture['date'] ?>'>
 
     <dl id='fixtureid'>
@@ -319,6 +318,27 @@ if (isset($card['notes'])) {
 </div>
 
 <div class='spacer'></div>
+
+<script>
+  const UPDATE_FIXTURE_URL = "<?= \Config::get('base_url')."cardapi/result?id=".$card['id'] ?>";
+
+  function updateScore(event) {
+    fetch(UPDATE_FIXTURE_URL, {method: 'POST',cache: 'no-cache'})
+    .then((response) => {
+      Toastify({
+        text: "Results Updated",
+        duration: 2000,
+        close: true,
+        gravity: "top", // `top` or `bottom`
+        position: "right", // `left`, `center` or `right`
+        offset: { y: 50 },
+        stopOnFocus: true, // Prevents dismissing of toast on hover
+      }).showToast();
+    });
+  }
+</script>
+
+<span class='btn btn-warning' onclick='updateScore(event)'><i class="fas fa-chevron-circle-up"></i> Upload Score</span>
 
 <?php
 // ------------------------------------------------------------------------

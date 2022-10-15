@@ -5,7 +5,7 @@
         }
     },
     "require": {
-        "phpoffice/phpspreadsheet": "^1.18",
+        "phpoffice/phpspreadsheet": "^1.23",
         "sentry/sdk": "^3.1",
         "firebase/php-jwt": "^6.2"
     }

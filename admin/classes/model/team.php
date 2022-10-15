@@ -30,6 +30,11 @@ class Model_Team extends \Orm\Model
 
     public static function find_by_name($name, $section)
     {
+        if ($section == null || $name == null) {
+            \Log::error("No name/section provided");
+            return null;
+        }
+
         $matches = array();
         if (preg_match("/(.*) ([0-9]+)/i", $name, $matches)) {
             $rows = DB::query("SELECT t.id FROM team t JOIN club c ON t.club_id = c.id

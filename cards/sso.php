@@ -25,6 +25,7 @@ try {
 
 	$data = json_decode($src, true);
 	$site = $data['site'];
+	$baseUrl = $data['base'];
 	$username = $data['u'];
 	echo "Request received ($username@".($site || '-').")\n";
 	$root = dirname(__FILE__);
@@ -57,6 +58,7 @@ try {
 		$session = $data['session'];
 		//echo "(Session:".print_r($session,true).")\n";
 		session_start();
+		$_SESSION['base-url'] = $baseUrl;
 		$_SESSION['site'] = $site;
 		$_SESSION['section'] = $site;
 		$_SESSION['user'] = $session['user'];

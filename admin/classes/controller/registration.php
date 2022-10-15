@@ -82,10 +82,14 @@ class Controller_Registration extends Controller_Template
 			$thurs = strtotime("+1 day", $thurs);
 		}
 
+		$thursDate = Date::forge($thurs);
+		$info = array();
+
 		Model_Registration::flush($section, $club);
-		$registration = Model_Registration::find_between_dates($section, $club, $thurs, $date->get_timestamp());
+		$registration = Model_Registration::find_between_dates($section, $club, $thurs, $date->get_timestamp(), $info);
 		$this->template->title = "Registrations";
 		$this->template->content = View::forge('registration/list', array(
+			'info'=> $info,
 			'registration'=>$registration,
 			//'history'=>$history,
 			'club'=>$club,

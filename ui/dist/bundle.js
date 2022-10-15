@@ -7698,1430 +7698,7 @@
 
 	var ReactDOM = reactDom.exports;
 
-	function _extends$1() {
-	  _extends$1 = Object.assign ? Object.assign.bind() : function (target) {
-	    for (var i = 1; i < arguments.length; i++) {
-	      var source = arguments[i];
-
-	      for (var key in source) {
-	        if (Object.prototype.hasOwnProperty.call(source, key)) {
-	          target[key] = source[key];
-	        }
-	      }
-	    }
-
-	    return target;
-	  };
-	  return _extends$1.apply(this, arguments);
-	}
-
-	/**
-	 * Actions represent the type of change to a location value.
-	 *
-	 * @see https://github.com/remix-run/history/tree/main/docs/api-reference.md#action
-	 */
-
-	var Action;
-
-	(function (Action) {
-	  /**
-	   * A POP indicates a change to an arbitrary index in the history stack, such
-	   * as a back or forward navigation. It does not describe the direction of the
-	   * navigation, only that the current index changed.
-	   *
-	   * Note: This is the default action for newly created history objects.
-	   */
-	  Action["Pop"] = "POP";
-	  /**
-	   * A PUSH indicates a new entry being added to the history stack, such as when
-	   * a link is clicked and a new page loads. When this happens, all subsequent
-	   * entries in the stack are lost.
-	   */
-
-	  Action["Push"] = "PUSH";
-	  /**
-	   * A REPLACE indicates the entry at the current index in the history stack
-	   * being replaced by a new one.
-	   */
-
-	  Action["Replace"] = "REPLACE";
-	})(Action || (Action = {}));
-
-	var readOnly = function (obj) {
-	  return Object.freeze(obj);
-	} ;
-
-	function warning$1(cond, message) {
-	  if (!cond) {
-	    // eslint-disable-next-line no-console
-	    if (typeof console !== 'undefined') console.warn(message);
-
-	    try {
-	      // Welcome to debugging history!
-	      //
-	      // This error is thrown as a convenience so you can more easily
-	      // find the source for a warning that appears in the console by
-	      // enabling "pause on exceptions" in your JavaScript debugger.
-	      throw new Error(message); // eslint-disable-next-line no-empty
-	    } catch (e) {}
-	  }
-	}
-
-	var BeforeUnloadEventType = 'beforeunload';
-	var PopStateEventType = 'popstate';
-	/**
-	 * Browser history stores the location in regular URLs. This is the standard for
-	 * most web apps, but it requires some configuration on the server to ensure you
-	 * serve the same app at multiple URLs.
-	 *
-	 * @see https://github.com/remix-run/history/tree/main/docs/api-reference.md#createbrowserhistory
-	 */
-
-	function createBrowserHistory(options) {
-	  if (options === void 0) {
-	    options = {};
-	  }
-
-	  var _options = options,
-	      _options$window = _options.window,
-	      window = _options$window === void 0 ? document.defaultView : _options$window;
-	  var globalHistory = window.history;
-
-	  function getIndexAndLocation() {
-	    var _window$location = window.location,
-	        pathname = _window$location.pathname,
-	        search = _window$location.search,
-	        hash = _window$location.hash;
-	    var state = globalHistory.state || {};
-	    return [state.idx, readOnly({
-	      pathname: pathname,
-	      search: search,
-	      hash: hash,
-	      state: state.usr || null,
-	      key: state.key || 'default'
-	    })];
-	  }
-
-	  var blockedPopTx = null;
-
-	  function handlePop() {
-	    if (blockedPopTx) {
-	      blockers.call(blockedPopTx);
-	      blockedPopTx = null;
-	    } else {
-	      var nextAction = Action.Pop;
-
-	      var _getIndexAndLocation = getIndexAndLocation(),
-	          nextIndex = _getIndexAndLocation[0],
-	          nextLocation = _getIndexAndLocation[1];
-
-	      if (blockers.length) {
-	        if (nextIndex != null) {
-	          var delta = index - nextIndex;
-
-	          if (delta) {
-	            // Revert the POP
-	            blockedPopTx = {
-	              action: nextAction,
-	              location: nextLocation,
-	              retry: function retry() {
-	                go(delta * -1);
-	              }
-	            };
-	            go(delta);
-	          }
-	        } else {
-	          // Trying to POP to a location with no index. We did not create
-	          // this location, so we can't effectively block the navigation.
-	          warning$1(false, // TODO: Write up a doc that explains our blocking strategy in
-	          // detail and link to it here so people can understand better what
-	          // is going on and how to avoid it.
-	          "You are trying to block a POP navigation to a location that was not " + "created by the history library. The block will fail silently in " + "production, but in general you should do all navigation with the " + "history library (instead of using window.history.pushState directly) " + "to avoid this situation.") ;
-	        }
-	      } else {
-	        applyTx(nextAction);
-	      }
-	    }
-	  }
-
-	  window.addEventListener(PopStateEventType, handlePop);
-	  var action = Action.Pop;
-
-	  var _getIndexAndLocation2 = getIndexAndLocation(),
-	      index = _getIndexAndLocation2[0],
-	      location = _getIndexAndLocation2[1];
-
-	  var listeners = createEvents();
-	  var blockers = createEvents();
-
-	  if (index == null) {
-	    index = 0;
-	    globalHistory.replaceState(_extends$1({}, globalHistory.state, {
-	      idx: index
-	    }), '');
-	  }
-
-	  function createHref(to) {
-	    return typeof to === 'string' ? to : createPath(to);
-	  } // state defaults to `null` because `window.history.state` does
-
-
-	  function getNextLocation(to, state) {
-	    if (state === void 0) {
-	      state = null;
-	    }
-
-	    return readOnly(_extends$1({
-	      pathname: location.pathname,
-	      hash: '',
-	      search: ''
-	    }, typeof to === 'string' ? parsePath(to) : to, {
-	      state: state,
-	      key: createKey()
-	    }));
-	  }
-
-	  function getHistoryStateAndUrl(nextLocation, index) {
-	    return [{
-	      usr: nextLocation.state,
-	      key: nextLocation.key,
-	      idx: index
-	    }, createHref(nextLocation)];
-	  }
-
-	  function allowTx(action, location, retry) {
-	    return !blockers.length || (blockers.call({
-	      action: action,
-	      location: location,
-	      retry: retry
-	    }), false);
-	  }
-
-	  function applyTx(nextAction) {
-	    action = nextAction;
-
-	    var _getIndexAndLocation3 = getIndexAndLocation();
-
-	    index = _getIndexAndLocation3[0];
-	    location = _getIndexAndLocation3[1];
-	    listeners.call({
-	      action: action,
-	      location: location
-	    });
-	  }
-
-	  function push(to, state) {
-	    var nextAction = Action.Push;
-	    var nextLocation = getNextLocation(to, state);
-
-	    function retry() {
-	      push(to, state);
-	    }
-
-	    if (allowTx(nextAction, nextLocation, retry)) {
-	      var _getHistoryStateAndUr = getHistoryStateAndUrl(nextLocation, index + 1),
-	          historyState = _getHistoryStateAndUr[0],
-	          url = _getHistoryStateAndUr[1]; // TODO: Support forced reloading
-	      // try...catch because iOS limits us to 100 pushState calls :/
-
-
-	      try {
-	        globalHistory.pushState(historyState, '', url);
-	      } catch (error) {
-	        // They are going to lose state here, but there is no real
-	        // way to warn them about it since the page will refresh...
-	        window.location.assign(url);
-	      }
-
-	      applyTx(nextAction);
-	    }
-	  }
-
-	  function replace(to, state) {
-	    var nextAction = Action.Replace;
-	    var nextLocation = getNextLocation(to, state);
-
-	    function retry() {
-	      replace(to, state);
-	    }
-
-	    if (allowTx(nextAction, nextLocation, retry)) {
-	      var _getHistoryStateAndUr2 = getHistoryStateAndUrl(nextLocation, index),
-	          historyState = _getHistoryStateAndUr2[0],
-	          url = _getHistoryStateAndUr2[1]; // TODO: Support forced reloading
-
-
-	      globalHistory.replaceState(historyState, '', url);
-	      applyTx(nextAction);
-	    }
-	  }
-
-	  function go(delta) {
-	    globalHistory.go(delta);
-	  }
-
-	  var history = {
-	    get action() {
-	      return action;
-	    },
-
-	    get location() {
-	      return location;
-	    },
-
-	    createHref: createHref,
-	    push: push,
-	    replace: replace,
-	    go: go,
-	    back: function back() {
-	      go(-1);
-	    },
-	    forward: function forward() {
-	      go(1);
-	    },
-	    listen: function listen(listener) {
-	      return listeners.push(listener);
-	    },
-	    block: function block(blocker) {
-	      var unblock = blockers.push(blocker);
-
-	      if (blockers.length === 1) {
-	        window.addEventListener(BeforeUnloadEventType, promptBeforeUnload);
-	      }
-
-	      return function () {
-	        unblock(); // Remove the beforeunload listener so the document may
-	        // still be salvageable in the pagehide event.
-	        // See https://html.spec.whatwg.org/#unloading-documents
-
-	        if (!blockers.length) {
-	          window.removeEventListener(BeforeUnloadEventType, promptBeforeUnload);
-	        }
-	      };
-	    }
-	  };
-	  return history;
-	}
-
-	function promptBeforeUnload(event) {
-	  // Cancel the event.
-	  event.preventDefault(); // Chrome (and legacy IE) requires returnValue to be set.
-
-	  event.returnValue = '';
-	}
-
-	function createEvents() {
-	  var handlers = [];
-	  return {
-	    get length() {
-	      return handlers.length;
-	    },
-
-	    push: function push(fn) {
-	      handlers.push(fn);
-	      return function () {
-	        handlers = handlers.filter(function (handler) {
-	          return handler !== fn;
-	        });
-	      };
-	    },
-	    call: function call(arg) {
-	      handlers.forEach(function (fn) {
-	        return fn && fn(arg);
-	      });
-	    }
-	  };
-	}
-
-	function createKey() {
-	  return Math.random().toString(36).substr(2, 8);
-	}
-	/**
-	 * Creates a string URL path from the given pathname, search, and hash components.
-	 *
-	 * @see https://github.com/remix-run/history/tree/main/docs/api-reference.md#createpath
-	 */
-
-
-	function createPath(_ref) {
-	  var _ref$pathname = _ref.pathname,
-	      pathname = _ref$pathname === void 0 ? '/' : _ref$pathname,
-	      _ref$search = _ref.search,
-	      search = _ref$search === void 0 ? '' : _ref$search,
-	      _ref$hash = _ref.hash,
-	      hash = _ref$hash === void 0 ? '' : _ref$hash;
-	  if (search && search !== '?') pathname += search.charAt(0) === '?' ? search : '?' + search;
-	  if (hash && hash !== '#') pathname += hash.charAt(0) === '#' ? hash : '#' + hash;
-	  return pathname;
-	}
-	/**
-	 * Parses a string URL path into its separate pathname, search, and hash components.
-	 *
-	 * @see https://github.com/remix-run/history/tree/main/docs/api-reference.md#parsepath
-	 */
-
-
-	function parsePath(path) {
-	  var parsedPath = {};
-
-	  if (path) {
-	    var hashIndex = path.indexOf('#');
-
-	    if (hashIndex >= 0) {
-	      parsedPath.hash = path.substr(hashIndex);
-	      path = path.substr(0, hashIndex);
-	    }
-
-	    var searchIndex = path.indexOf('?');
-
-	    if (searchIndex >= 0) {
-	      parsedPath.search = path.substr(searchIndex);
-	      path = path.substr(0, searchIndex);
-	    }
-
-	    if (path) {
-	      parsedPath.pathname = path;
-	    }
-	  }
-
-	  return parsedPath;
-	}
-
-	/**
-	 * React Router v6.3.0
-	 *
-	 * Copyright (c) Remix Software Inc.
-	 *
-	 * This source code is licensed under the MIT license found in the
-	 * LICENSE.md file in the root directory of this source tree.
-	 *
-	 * @license MIT
-	 */
-	const NavigationContext = /*#__PURE__*/react.exports.createContext(null);
-
-	{
-	  NavigationContext.displayName = "Navigation";
-	}
-
-	const LocationContext = /*#__PURE__*/react.exports.createContext(null);
-
-	{
-	  LocationContext.displayName = "Location";
-	}
-
-	const RouteContext = /*#__PURE__*/react.exports.createContext({
-	  outlet: null,
-	  matches: []
-	});
-
-	{
-	  RouteContext.displayName = "Route";
-	}
-
-	function invariant(cond, message) {
-	  if (!cond) throw new Error(message);
-	}
-
-	function warning(cond, message) {
-	  if (!cond) {
-	    // eslint-disable-next-line no-console
-	    if (typeof console !== "undefined") console.warn(message);
-
-	    try {
-	      // Welcome to debugging React Router!
-	      //
-	      // This error is thrown as a convenience so you can more easily
-	      // find the source for a warning that appears in the console by
-	      // enabling "pause on exceptions" in your JavaScript debugger.
-	      throw new Error(message); // eslint-disable-next-line no-empty
-	    } catch (e) {}
-	  }
-	}
-
-	const alreadyWarned = {};
-
-	function warningOnce(key, cond, message) {
-	  if (!cond && !alreadyWarned[key]) {
-	    alreadyWarned[key] = true;
-	    warning(false, message) ;
-	  }
-	}
-	/**
-	 * A RouteMatch contains info about how a route matched a URL.
-	 */
-
-	/**
-	 * Matches the given routes to a location and returns the match data.
-	 *
-	 * @see https://reactrouter.com/docs/en/v6/api#matchroutes
-	 */
-
-
-	function matchRoutes(routes, locationArg, basename) {
-	  if (basename === void 0) {
-	    basename = "/";
-	  }
-
-	  let location = typeof locationArg === "string" ? parsePath(locationArg) : locationArg;
-	  let pathname = stripBasename(location.pathname || "/", basename);
-
-	  if (pathname == null) {
-	    return null;
-	  }
-
-	  let branches = flattenRoutes(routes);
-	  rankRouteBranches(branches);
-	  let matches = null;
-
-	  for (let i = 0; matches == null && i < branches.length; ++i) {
-	    matches = matchRouteBranch(branches[i], pathname);
-	  }
-
-	  return matches;
-	}
-
-	function flattenRoutes(routes, branches, parentsMeta, parentPath) {
-	  if (branches === void 0) {
-	    branches = [];
-	  }
-
-	  if (parentsMeta === void 0) {
-	    parentsMeta = [];
-	  }
-
-	  if (parentPath === void 0) {
-	    parentPath = "";
-	  }
-
-	  routes.forEach((route, index) => {
-	    let meta = {
-	      relativePath: route.path || "",
-	      caseSensitive: route.caseSensitive === true,
-	      childrenIndex: index,
-	      route
-	    };
-
-	    if (meta.relativePath.startsWith("/")) {
-	      !meta.relativePath.startsWith(parentPath) ? invariant(false, "Absolute route path \"" + meta.relativePath + "\" nested under path " + ("\"" + parentPath + "\" is not valid. An absolute child route path ") + "must start with the combined path of all its parent routes.")  : void 0;
-	      meta.relativePath = meta.relativePath.slice(parentPath.length);
-	    }
-
-	    let path = joinPaths([parentPath, meta.relativePath]);
-	    let routesMeta = parentsMeta.concat(meta); // Add the children before adding this route to the array so we traverse the
-	    // route tree depth-first and child routes appear before their parents in
-	    // the "flattened" version.
-
-	    if (route.children && route.children.length > 0) {
-	      !(route.index !== true) ? invariant(false, "Index routes must not have child routes. Please remove " + ("all child routes from route path \"" + path + "\"."))  : void 0;
-	      flattenRoutes(route.children, branches, routesMeta, path);
-	    } // Routes without a path shouldn't ever match by themselves unless they are
-	    // index routes, so don't add them to the list of possible branches.
-
-
-	    if (route.path == null && !route.index) {
-	      return;
-	    }
-
-	    branches.push({
-	      path,
-	      score: computeScore(path, route.index),
-	      routesMeta
-	    });
-	  });
-	  return branches;
-	}
-
-	function rankRouteBranches(branches) {
-	  branches.sort((a, b) => a.score !== b.score ? b.score - a.score // Higher score first
-	  : compareIndexes(a.routesMeta.map(meta => meta.childrenIndex), b.routesMeta.map(meta => meta.childrenIndex)));
-	}
-
-	const paramRe = /^:\w+$/;
-	const dynamicSegmentValue = 3;
-	const indexRouteValue = 2;
-	const emptySegmentValue = 1;
-	const staticSegmentValue = 10;
-	const splatPenalty = -2;
-
-	const isSplat = s => s === "*";
-
-	function computeScore(path, index) {
-	  let segments = path.split("/");
-	  let initialScore = segments.length;
-
-	  if (segments.some(isSplat)) {
-	    initialScore += splatPenalty;
-	  }
-
-	  if (index) {
-	    initialScore += indexRouteValue;
-	  }
-
-	  return segments.filter(s => !isSplat(s)).reduce((score, segment) => score + (paramRe.test(segment) ? dynamicSegmentValue : segment === "" ? emptySegmentValue : staticSegmentValue), initialScore);
-	}
-
-	function compareIndexes(a, b) {
-	  let siblings = a.length === b.length && a.slice(0, -1).every((n, i) => n === b[i]);
-	  return siblings ? // If two routes are siblings, we should try to match the earlier sibling
-	  // first. This allows people to have fine-grained control over the matching
-	  // behavior by simply putting routes with identical paths in the order they
-	  // want them tried.
-	  a[a.length - 1] - b[b.length - 1] : // Otherwise, it doesn't really make sense to rank non-siblings by index,
-	  // so they sort equally.
-	  0;
-	}
-
-	function matchRouteBranch(branch, pathname) {
-	  let {
-	    routesMeta
-	  } = branch;
-	  let matchedParams = {};
-	  let matchedPathname = "/";
-	  let matches = [];
-
-	  for (let i = 0; i < routesMeta.length; ++i) {
-	    let meta = routesMeta[i];
-	    let end = i === routesMeta.length - 1;
-	    let remainingPathname = matchedPathname === "/" ? pathname : pathname.slice(matchedPathname.length) || "/";
-	    let match = matchPath({
-	      path: meta.relativePath,
-	      caseSensitive: meta.caseSensitive,
-	      end
-	    }, remainingPathname);
-	    if (!match) return null;
-	    Object.assign(matchedParams, match.params);
-	    let route = meta.route;
-	    matches.push({
-	      params: matchedParams,
-	      pathname: joinPaths([matchedPathname, match.pathname]),
-	      pathnameBase: normalizePathname(joinPaths([matchedPathname, match.pathnameBase])),
-	      route
-	    });
-
-	    if (match.pathnameBase !== "/") {
-	      matchedPathname = joinPaths([matchedPathname, match.pathnameBase]);
-	    }
-	  }
-
-	  return matches;
-	}
-	/**
-	 * A PathPattern is used to match on some portion of a URL pathname.
-	 */
-
-	/**
-	 * Performs pattern matching on a URL pathname and returns information about
-	 * the match.
-	 *
-	 * @see https://reactrouter.com/docs/en/v6/api#matchpath
-	 */
-
-
-	function matchPath(pattern, pathname) {
-	  if (typeof pattern === "string") {
-	    pattern = {
-	      path: pattern,
-	      caseSensitive: false,
-	      end: true
-	    };
-	  }
-
-	  let [matcher, paramNames] = compilePath(pattern.path, pattern.caseSensitive, pattern.end);
-	  let match = pathname.match(matcher);
-	  if (!match) return null;
-	  let matchedPathname = match[0];
-	  let pathnameBase = matchedPathname.replace(/(.)\/+$/, "$1");
-	  let captureGroups = match.slice(1);
-	  let params = paramNames.reduce((memo, paramName, index) => {
-	    // We need to compute the pathnameBase here using the raw splat value
-	    // instead of using params["*"] later because it will be decoded then
-	    if (paramName === "*") {
-	      let splatValue = captureGroups[index] || "";
-	      pathnameBase = matchedPathname.slice(0, matchedPathname.length - splatValue.length).replace(/(.)\/+$/, "$1");
-	    }
-
-	    memo[paramName] = safelyDecodeURIComponent(captureGroups[index] || "", paramName);
-	    return memo;
-	  }, {});
-	  return {
-	    params,
-	    pathname: matchedPathname,
-	    pathnameBase,
-	    pattern
-	  };
-	}
-
-	function compilePath(path, caseSensitive, end) {
-	  if (caseSensitive === void 0) {
-	    caseSensitive = false;
-	  }
-
-	  if (end === void 0) {
-	    end = true;
-	  }
-
-	  warning(path === "*" || !path.endsWith("*") || path.endsWith("/*"), "Route path \"" + path + "\" will be treated as if it were " + ("\"" + path.replace(/\*$/, "/*") + "\" because the `*` character must ") + "always follow a `/` in the pattern. To get rid of this warning, " + ("please change the route path to \"" + path.replace(/\*$/, "/*") + "\".")) ;
-	  let paramNames = [];
-	  let regexpSource = "^" + path.replace(/\/*\*?$/, "") // Ignore trailing / and /*, we'll handle it below
-	  .replace(/^\/*/, "/") // Make sure it has a leading /
-	  .replace(/[\\.*+^$?{}|()[\]]/g, "\\$&") // Escape special regex chars
-	  .replace(/:(\w+)/g, (_, paramName) => {
-	    paramNames.push(paramName);
-	    return "([^\\/]+)";
-	  });
-
-	  if (path.endsWith("*")) {
-	    paramNames.push("*");
-	    regexpSource += path === "*" || path === "/*" ? "(.*)$" // Already matched the initial /, just match the rest
-	    : "(?:\\/(.+)|\\/*)$"; // Don't include the / in params["*"]
-	  } else {
-	    regexpSource += end ? "\\/*$" // When matching to the end, ignore trailing slashes
-	    : // Otherwise, match a word boundary or a proceeding /. The word boundary restricts
-	    // parent routes to matching only their own words and nothing more, e.g. parent
-	    // route "/home" should not match "/home2".
-	    // Additionally, allow paths starting with `.`, `-`, `~`, and url-encoded entities,
-	    // but do not consume the character in the matched path so they can match against
-	    // nested paths.
-	    "(?:(?=[.~-]|%[0-9A-F]{2})|\\b|\\/|$)";
-	  }
-
-	  let matcher = new RegExp(regexpSource, caseSensitive ? undefined : "i");
-	  return [matcher, paramNames];
-	}
-
-	function safelyDecodeURIComponent(value, paramName) {
-	  try {
-	    return decodeURIComponent(value);
-	  } catch (error) {
-	    warning(false, "The value for the URL param \"" + paramName + "\" will not be decoded because" + (" the string \"" + value + "\" is a malformed URL segment. This is probably") + (" due to a bad percent encoding (" + error + ").")) ;
-	    return value;
-	  }
-	}
-	/**
-	 * Returns a resolved path object relative to the given pathname.
-	 *
-	 * @see https://reactrouter.com/docs/en/v6/api#resolvepath
-	 */
-
-
-	function resolvePath(to, fromPathname) {
-	  if (fromPathname === void 0) {
-	    fromPathname = "/";
-	  }
-
-	  let {
-	    pathname: toPathname,
-	    search = "",
-	    hash = ""
-	  } = typeof to === "string" ? parsePath(to) : to;
-	  let pathname = toPathname ? toPathname.startsWith("/") ? toPathname : resolvePathname(toPathname, fromPathname) : fromPathname;
-	  return {
-	    pathname,
-	    search: normalizeSearch(search),
-	    hash: normalizeHash(hash)
-	  };
-	}
-
-	function resolvePathname(relativePath, fromPathname) {
-	  let segments = fromPathname.replace(/\/+$/, "").split("/");
-	  let relativeSegments = relativePath.split("/");
-	  relativeSegments.forEach(segment => {
-	    if (segment === "..") {
-	      // Keep the root "" segment so the pathname starts at /
-	      if (segments.length > 1) segments.pop();
-	    } else if (segment !== ".") {
-	      segments.push(segment);
-	    }
-	  });
-	  return segments.length > 1 ? segments.join("/") : "/";
-	}
-
-	function resolveTo(toArg, routePathnames, locationPathname) {
-	  let to = typeof toArg === "string" ? parsePath(toArg) : toArg;
-	  let toPathname = toArg === "" || to.pathname === "" ? "/" : to.pathname; // If a pathname is explicitly provided in `to`, it should be relative to the
-	  // route context. This is explained in `Note on `<Link to>` values` in our
-	  // migration guide from v5 as a means of disambiguation between `to` values
-	  // that begin with `/` and those that do not. However, this is problematic for
-	  // `to` values that do not provide a pathname. `to` can simply be a search or
-	  // hash string, in which case we should assume that the navigation is relative
-	  // to the current location's pathname and *not* the route pathname.
-
-	  let from;
-
-	  if (toPathname == null) {
-	    from = locationPathname;
-	  } else {
-	    let routePathnameIndex = routePathnames.length - 1;
-
-	    if (toPathname.startsWith("..")) {
-	      let toSegments = toPathname.split("/"); // Each leading .. segment means "go up one route" instead of "go up one
-	      // URL segment".  This is a key difference from how <a href> works and a
-	      // major reason we call this a "to" value instead of a "href".
-
-	      while (toSegments[0] === "..") {
-	        toSegments.shift();
-	        routePathnameIndex -= 1;
-	      }
-
-	      to.pathname = toSegments.join("/");
-	    } // If there are more ".." segments than parent routes, resolve relative to
-	    // the root / URL.
-
-
-	    from = routePathnameIndex >= 0 ? routePathnames[routePathnameIndex] : "/";
-	  }
-
-	  let path = resolvePath(to, from); // Ensure the pathname has a trailing slash if the original to value had one.
-
-	  if (toPathname && toPathname !== "/" && toPathname.endsWith("/") && !path.pathname.endsWith("/")) {
-	    path.pathname += "/";
-	  }
-
-	  return path;
-	}
-
-	function getToPathname(to) {
-	  // Empty strings should be treated the same as / paths
-	  return to === "" || to.pathname === "" ? "/" : typeof to === "string" ? parsePath(to).pathname : to.pathname;
-	}
-
-	function stripBasename(pathname, basename) {
-	  if (basename === "/") return pathname;
-
-	  if (!pathname.toLowerCase().startsWith(basename.toLowerCase())) {
-	    return null;
-	  }
-
-	  let nextChar = pathname.charAt(basename.length);
-
-	  if (nextChar && nextChar !== "/") {
-	    // pathname does not start with basename/
-	    return null;
-	  }
-
-	  return pathname.slice(basename.length) || "/";
-	}
-
-	const joinPaths = paths => paths.join("/").replace(/\/\/+/g, "/");
-
-	const normalizePathname = pathname => pathname.replace(/\/+$/, "").replace(/^\/*/, "/");
-
-	const normalizeSearch = search => !search || search === "?" ? "" : search.startsWith("?") ? search : "?" + search;
-
-	const normalizeHash = hash => !hash || hash === "#" ? "" : hash.startsWith("#") ? hash : "#" + hash;
-	/**
-	 * Returns the full href for the given "to" value. This is useful for building
-	 * custom links that are also accessible and preserve right-click behavior.
-	 *
-	 * @see https://reactrouter.com/docs/en/v6/api#usehref
-	 */
-
-
-	function useHref(to) {
-	  !useInRouterContext() ? invariant(false, // TODO: This error is probably because they somehow have 2 versions of the
-	  // router loaded. We can help them understand how to avoid that.
-	  "useHref() may be used only in the context of a <Router> component.")  : void 0;
-	  let {
-	    basename,
-	    navigator
-	  } = react.exports.useContext(NavigationContext);
-	  let {
-	    hash,
-	    pathname,
-	    search
-	  } = useResolvedPath(to);
-	  let joinedPathname = pathname;
-
-	  if (basename !== "/") {
-	    let toPathname = getToPathname(to);
-	    let endsWithSlash = toPathname != null && toPathname.endsWith("/");
-	    joinedPathname = pathname === "/" ? basename + (endsWithSlash ? "/" : "") : joinPaths([basename, pathname]);
-	  }
-
-	  return navigator.createHref({
-	    pathname: joinedPathname,
-	    search,
-	    hash
-	  });
-	}
-	/**
-	 * Returns true if this component is a descendant of a <Router>.
-	 *
-	 * @see https://reactrouter.com/docs/en/v6/api#useinroutercontext
-	 */
-
-
-	function useInRouterContext() {
-	  return react.exports.useContext(LocationContext) != null;
-	}
-	/**
-	 * Returns the current location object, which represents the current URL in web
-	 * browsers.
-	 *
-	 * Note: If you're using this it may mean you're doing some of your own
-	 * "routing" in your app, and we'd like to know what your use case is. We may
-	 * be able to provide something higher-level to better suit your needs.
-	 *
-	 * @see https://reactrouter.com/docs/en/v6/api#uselocation
-	 */
-
-
-	function useLocation() {
-	  !useInRouterContext() ? invariant(false, // TODO: This error is probably because they somehow have 2 versions of the
-	  // router loaded. We can help them understand how to avoid that.
-	  "useLocation() may be used only in the context of a <Router> component.")  : void 0;
-	  return react.exports.useContext(LocationContext).location;
-	}
-	/**
-	 * The interface for the navigate() function returned from useNavigate().
-	 */
-
-	/**
-	 * Returns an imperative method for changing the location. Used by <Link>s, but
-	 * may also be used by other elements to change the location.
-	 *
-	 * @see https://reactrouter.com/docs/en/v6/api#usenavigate
-	 */
-
-
-	function useNavigate() {
-	  !useInRouterContext() ? invariant(false, // TODO: This error is probably because they somehow have 2 versions of the
-	  // router loaded. We can help them understand how to avoid that.
-	  "useNavigate() may be used only in the context of a <Router> component.")  : void 0;
-	  let {
-	    basename,
-	    navigator
-	  } = react.exports.useContext(NavigationContext);
-	  let {
-	    matches
-	  } = react.exports.useContext(RouteContext);
-	  let {
-	    pathname: locationPathname
-	  } = useLocation();
-	  let routePathnamesJson = JSON.stringify(matches.map(match => match.pathnameBase));
-	  let activeRef = react.exports.useRef(false);
-	  react.exports.useEffect(() => {
-	    activeRef.current = true;
-	  });
-	  let navigate = react.exports.useCallback(function (to, options) {
-	    if (options === void 0) {
-	      options = {};
-	    }
-
-	    warning(activeRef.current, "You should call navigate() in a React.useEffect(), not when " + "your component is first rendered.") ;
-	    if (!activeRef.current) return;
-
-	    if (typeof to === "number") {
-	      navigator.go(to);
-	      return;
-	    }
-
-	    let path = resolveTo(to, JSON.parse(routePathnamesJson), locationPathname);
-
-	    if (basename !== "/") {
-	      path.pathname = joinPaths([basename, path.pathname]);
-	    }
-
-	    (!!options.replace ? navigator.replace : navigator.push)(path, options.state);
-	  }, [basename, navigator, routePathnamesJson, locationPathname]);
-	  return navigate;
-	}
-	/**
-	 * Returns an object of key/value pairs of the dynamic params from the current
-	 * URL that were matched by the route path.
-	 *
-	 * @see https://reactrouter.com/docs/en/v6/api#useparams
-	 */
-
-
-	function useParams() {
-	  let {
-	    matches
-	  } = react.exports.useContext(RouteContext);
-	  let routeMatch = matches[matches.length - 1];
-	  return routeMatch ? routeMatch.params : {};
-	}
-	/**
-	 * Resolves the pathname of the given `to` value against the current location.
-	 *
-	 * @see https://reactrouter.com/docs/en/v6/api#useresolvedpath
-	 */
-
-
-	function useResolvedPath(to) {
-	  let {
-	    matches
-	  } = react.exports.useContext(RouteContext);
-	  let {
-	    pathname: locationPathname
-	  } = useLocation();
-	  let routePathnamesJson = JSON.stringify(matches.map(match => match.pathnameBase));
-	  return react.exports.useMemo(() => resolveTo(to, JSON.parse(routePathnamesJson), locationPathname), [to, routePathnamesJson, locationPathname]);
-	}
-	/**
-	 * Returns the element of the route that matched the current location, prepared
-	 * with the correct context to render the remainder of the route tree. Route
-	 * elements in the tree must render an <Outlet> to render their child route's
-	 * element.
-	 *
-	 * @see https://reactrouter.com/docs/en/v6/api#useroutes
-	 */
-
-
-	function useRoutes(routes, locationArg) {
-	  !useInRouterContext() ? invariant(false, // TODO: This error is probably because they somehow have 2 versions of the
-	  // router loaded. We can help them understand how to avoid that.
-	  "useRoutes() may be used only in the context of a <Router> component.")  : void 0;
-	  let {
-	    matches: parentMatches
-	  } = react.exports.useContext(RouteContext);
-	  let routeMatch = parentMatches[parentMatches.length - 1];
-	  let parentParams = routeMatch ? routeMatch.params : {};
-	  let parentPathname = routeMatch ? routeMatch.pathname : "/";
-	  let parentPathnameBase = routeMatch ? routeMatch.pathnameBase : "/";
-	  let parentRoute = routeMatch && routeMatch.route;
-
-	  {
-	    // You won't get a warning about 2 different <Routes> under a <Route>
-	    // without a trailing *, but this is a best-effort warning anyway since we
-	    // cannot even give the warning unless they land at the parent route.
-	    //
-	    // Example:
-	    //
-	    // <Routes>
-	    //   {/* This route path MUST end with /* because otherwise
-	    //       it will never match /blog/post/123 */}
-	    //   <Route path="blog" element={<Blog />} />
-	    //   <Route path="blog/feed" element={<BlogFeed />} />
-	    // </Routes>
-	    //
-	    // function Blog() {
-	    //   return (
-	    //     <Routes>
-	    //       <Route path="post/:id" element={<Post />} />
-	    //     </Routes>
-	    //   );
-	    // }
-	    let parentPath = parentRoute && parentRoute.path || "";
-	    warningOnce(parentPathname, !parentRoute || parentPath.endsWith("*"), "You rendered descendant <Routes> (or called `useRoutes()`) at " + ("\"" + parentPathname + "\" (under <Route path=\"" + parentPath + "\">) but the ") + "parent route path has no trailing \"*\". This means if you navigate " + "deeper, the parent won't match anymore and therefore the child " + "routes will never render.\n\n" + ("Please change the parent <Route path=\"" + parentPath + "\"> to <Route ") + ("path=\"" + (parentPath === "/" ? "*" : parentPath + "/*") + "\">."));
-	  }
-
-	  let locationFromContext = useLocation();
-	  let location;
-
-	  if (locationArg) {
-	    var _parsedLocationArg$pa;
-
-	    let parsedLocationArg = typeof locationArg === "string" ? parsePath(locationArg) : locationArg;
-	    !(parentPathnameBase === "/" || ((_parsedLocationArg$pa = parsedLocationArg.pathname) == null ? void 0 : _parsedLocationArg$pa.startsWith(parentPathnameBase))) ? invariant(false, "When overriding the location using `<Routes location>` or `useRoutes(routes, location)`, " + "the location pathname must begin with the portion of the URL pathname that was " + ("matched by all parent routes. The current pathname base is \"" + parentPathnameBase + "\" ") + ("but pathname \"" + parsedLocationArg.pathname + "\" was given in the `location` prop."))  : void 0;
-	    location = parsedLocationArg;
-	  } else {
-	    location = locationFromContext;
-	  }
-
-	  let pathname = location.pathname || "/";
-	  let remainingPathname = parentPathnameBase === "/" ? pathname : pathname.slice(parentPathnameBase.length) || "/";
-	  let matches = matchRoutes(routes, {
-	    pathname: remainingPathname
-	  });
-
-	  {
-	    warning(parentRoute || matches != null, "No routes matched location \"" + location.pathname + location.search + location.hash + "\" ") ;
-	    warning(matches == null || matches[matches.length - 1].route.element !== undefined, "Matched leaf route at location \"" + location.pathname + location.search + location.hash + "\" does not have an element. " + "This means it will render an <Outlet /> with a null value by default resulting in an \"empty\" page.") ;
-	  }
-
-	  return _renderMatches(matches && matches.map(match => Object.assign({}, match, {
-	    params: Object.assign({}, parentParams, match.params),
-	    pathname: joinPaths([parentPathnameBase, match.pathname]),
-	    pathnameBase: match.pathnameBase === "/" ? parentPathnameBase : joinPaths([parentPathnameBase, match.pathnameBase])
-	  })), parentMatches);
-	}
-
-	function _renderMatches(matches, parentMatches) {
-	  if (parentMatches === void 0) {
-	    parentMatches = [];
-	  }
-
-	  if (matches == null) return null;
-	  return matches.reduceRight((outlet, match, index) => {
-	    return /*#__PURE__*/react.exports.createElement(RouteContext.Provider, {
-	      children: match.route.element !== undefined ? match.route.element : outlet,
-	      value: {
-	        outlet,
-	        matches: parentMatches.concat(matches.slice(0, index + 1))
-	      }
-	    });
-	  }, null);
-	}
-	/**
-	 * Declares an element that should be rendered at a certain URL path.
-	 *
-	 * @see https://reactrouter.com/docs/en/v6/api#route
-	 */
-
-
-	function Route(_props) {
-	  invariant(false, "A <Route> is only ever to be used as the child of <Routes> element, " + "never rendered directly. Please wrap your <Route> in a <Routes>.") ;
-	}
-	/**
-	 * Provides location context for the rest of the app.
-	 *
-	 * Note: You usually won't render a <Router> directly. Instead, you'll render a
-	 * router that is more specific to your environment such as a <BrowserRouter>
-	 * in web browsers or a <StaticRouter> for server rendering.
-	 *
-	 * @see https://reactrouter.com/docs/en/v6/api#router
-	 */
-
-
-	function Router(_ref3) {
-	  let {
-	    basename: basenameProp = "/",
-	    children = null,
-	    location: locationProp,
-	    navigationType = Action.Pop,
-	    navigator,
-	    static: staticProp = false
-	  } = _ref3;
-	  !!useInRouterContext() ? invariant(false, "You cannot render a <Router> inside another <Router>." + " You should never have more than one in your app.")  : void 0;
-	  let basename = normalizePathname(basenameProp);
-	  let navigationContext = react.exports.useMemo(() => ({
-	    basename,
-	    navigator,
-	    static: staticProp
-	  }), [basename, navigator, staticProp]);
-
-	  if (typeof locationProp === "string") {
-	    locationProp = parsePath(locationProp);
-	  }
-
-	  let {
-	    pathname = "/",
-	    search = "",
-	    hash = "",
-	    state = null,
-	    key = "default"
-	  } = locationProp;
-	  let location = react.exports.useMemo(() => {
-	    let trailingPathname = stripBasename(pathname, basename);
-
-	    if (trailingPathname == null) {
-	      return null;
-	    }
-
-	    return {
-	      pathname: trailingPathname,
-	      search,
-	      hash,
-	      state,
-	      key
-	    };
-	  }, [basename, pathname, search, hash, state, key]);
-	  warning(location != null, "<Router basename=\"" + basename + "\"> is not able to match the URL " + ("\"" + pathname + search + hash + "\" because it does not start with the ") + "basename, so the <Router> won't render anything.") ;
-
-	  if (location == null) {
-	    return null;
-	  }
-
-	  return /*#__PURE__*/react.exports.createElement(NavigationContext.Provider, {
-	    value: navigationContext
-	  }, /*#__PURE__*/react.exports.createElement(LocationContext.Provider, {
-	    children: children,
-	    value: {
-	      location,
-	      navigationType
-	    }
-	  }));
-	}
-	/**
-	 * A container for a nested tree of <Route> elements that renders the branch
-	 * that best matches the current location.
-	 *
-	 * @see https://reactrouter.com/docs/en/v6/api#routes
-	 */
-
-
-	function Routes(_ref4) {
-	  let {
-	    children,
-	    location
-	  } = _ref4;
-	  return useRoutes(createRoutesFromChildren(children), location);
-	} ///////////////////////////////////////////////////////////////////////////////
-	// UTILS
-	///////////////////////////////////////////////////////////////////////////////
-
-	/**
-	 * Creates a route config from a React "children" object, which is usually
-	 * either a `<Route>` element or an array of them. Used internally by
-	 * `<Routes>` to create a route config from its children.
-	 *
-	 * @see https://reactrouter.com/docs/en/v6/api#createroutesfromchildren
-	 */
-
-
-	function createRoutesFromChildren(children) {
-	  let routes = [];
-	  react.exports.Children.forEach(children, element => {
-	    if (! /*#__PURE__*/react.exports.isValidElement(element)) {
-	      // Ignore non-elements. This allows people to more easily inline
-	      // conditionals in their route config.
-	      return;
-	    }
-
-	    if (element.type === react.exports.Fragment) {
-	      // Transparently support React.Fragment and its children.
-	      routes.push.apply(routes, createRoutesFromChildren(element.props.children));
-	      return;
-	    }
-
-	    !(element.type === Route) ? invariant(false, "[" + (typeof element.type === "string" ? element.type : element.type.name) + "] is not a <Route> component. All component children of <Routes> must be a <Route> or <React.Fragment>")  : void 0;
-	    let route = {
-	      caseSensitive: element.props.caseSensitive,
-	      element: element.props.element,
-	      index: element.props.index,
-	      path: element.props.path
-	    };
-
-	    if (element.props.children) {
-	      route.children = createRoutesFromChildren(element.props.children);
-	    }
-
-	    routes.push(route);
-	  });
-	  return routes;
-	}
-
-	/**
-	 * React Router DOM v6.3.0
-	 *
-	 * Copyright (c) Remix Software Inc.
-	 *
-	 * This source code is licensed under the MIT license found in the
-	 * LICENSE.md file in the root directory of this source tree.
-	 *
-	 * @license MIT
-	 */
-
-	function _extends() {
-	  _extends = Object.assign || function (target) {
-	    for (var i = 1; i < arguments.length; i++) {
-	      var source = arguments[i];
-
-	      for (var key in source) {
-	        if (Object.prototype.hasOwnProperty.call(source, key)) {
-	          target[key] = source[key];
-	        }
-	      }
-	    }
-
-	    return target;
-	  };
-
-	  return _extends.apply(this, arguments);
-	}
-
-	function _objectWithoutPropertiesLoose$1(source, excluded) {
-	  if (source == null) return {};
-	  var target = {};
-	  var sourceKeys = Object.keys(source);
-	  var key, i;
-
-	  for (i = 0; i < sourceKeys.length; i++) {
-	    key = sourceKeys[i];
-	    if (excluded.indexOf(key) >= 0) continue;
-	    target[key] = source[key];
-	  }
-
-	  return target;
-	}
-
-	const _excluded$2 = ["onClick", "reloadDocument", "replace", "state", "target", "to"],
-	      _excluded2 = ["aria-current", "caseSensitive", "className", "end", "style", "to", "children"];
-	// COMPONENTS
-	////////////////////////////////////////////////////////////////////////////////
-
-	/**
-	 * A `<Router>` for use in web browsers. Provides the cleanest URLs.
-	 */
-
-
-	function BrowserRouter(_ref) {
-	  let {
-	    basename,
-	    children,
-	    window
-	  } = _ref;
-	  let historyRef = react.exports.useRef();
-
-	  if (historyRef.current == null) {
-	    historyRef.current = createBrowserHistory({
-	      window
-	    });
-	  }
-
-	  let history = historyRef.current;
-	  let [state, setState] = react.exports.useState({
-	    action: history.action,
-	    location: history.location
-	  });
-	  react.exports.useLayoutEffect(() => history.listen(setState), [history]);
-	  return /*#__PURE__*/react.exports.createElement(Router, {
-	    basename: basename,
-	    children: children,
-	    location: state.location,
-	    navigationType: state.action,
-	    navigator: history
-	  });
-	}
-
-	function isModifiedEvent(event) {
-	  return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
-	}
-	/**
-	 * The public API for rendering a history-aware <a>.
-	 */
-
-
-	const Link = /*#__PURE__*/react.exports.forwardRef(function LinkWithRef(_ref4, ref) {
-	  let {
-	    onClick,
-	    reloadDocument,
-	    replace = false,
-	    state,
-	    target,
-	    to
-	  } = _ref4,
-	      rest = _objectWithoutPropertiesLoose$1(_ref4, _excluded$2);
-
-	  let href = useHref(to);
-	  let internalOnClick = useLinkClickHandler(to, {
-	    replace,
-	    state,
-	    target
-	  });
-
-	  function handleClick(event) {
-	    if (onClick) onClick(event);
-
-	    if (!event.defaultPrevented && !reloadDocument) {
-	      internalOnClick(event);
-	    }
-	  }
-
-	  return (
-	    /*#__PURE__*/
-	    // eslint-disable-next-line jsx-a11y/anchor-has-content
-	    react.exports.createElement("a", _extends({}, rest, {
-	      href: href,
-	      onClick: handleClick,
-	      ref: ref,
-	      target: target
-	    }))
-	  );
-	});
-
-	{
-	  Link.displayName = "Link";
-	}
-	/**
-	 * A <Link> wrapper that knows if it's "active" or not.
-	 */
-
-
-	const NavLink = /*#__PURE__*/react.exports.forwardRef(function NavLinkWithRef(_ref5, ref) {
-	  let {
-	    "aria-current": ariaCurrentProp = "page",
-	    caseSensitive = false,
-	    className: classNameProp = "",
-	    end = false,
-	    style: styleProp,
-	    to,
-	    children
-	  } = _ref5,
-	      rest = _objectWithoutPropertiesLoose$1(_ref5, _excluded2);
-
-	  let location = useLocation();
-	  let path = useResolvedPath(to);
-	  let locationPathname = location.pathname;
-	  let toPathname = path.pathname;
-
-	  if (!caseSensitive) {
-	    locationPathname = locationPathname.toLowerCase();
-	    toPathname = toPathname.toLowerCase();
-	  }
-
-	  let isActive = locationPathname === toPathname || !end && locationPathname.startsWith(toPathname) && locationPathname.charAt(toPathname.length) === "/";
-	  let ariaCurrent = isActive ? ariaCurrentProp : undefined;
-	  let className;
-
-	  if (typeof classNameProp === "function") {
-	    className = classNameProp({
-	      isActive
-	    });
-	  } else {
-	    // If the className prop is not a function, we use a default `active`
-	    // class for <NavLink />s that are active. In v5 `active` was the default
-	    // value for `activeClassName`, but we are removing that API and can still
-	    // use the old default behavior for a cleaner upgrade path and keep the
-	    // simple styling rules working as they currently do.
-	    className = [classNameProp, isActive ? "active" : null].filter(Boolean).join(" ");
-	  }
-
-	  let style = typeof styleProp === "function" ? styleProp({
-	    isActive
-	  }) : styleProp;
-	  return /*#__PURE__*/react.exports.createElement(Link, _extends({}, rest, {
-	    "aria-current": ariaCurrent,
-	    className: className,
-	    ref: ref,
-	    style: style,
-	    to: to
-	  }), typeof children === "function" ? children({
-	    isActive
-	  }) : children);
-	});
-
-	{
-	  NavLink.displayName = "NavLink";
-	} ////////////////////////////////////////////////////////////////////////////////
-	// HOOKS
-	////////////////////////////////////////////////////////////////////////////////
-
-	/**
-	 * Handles the click behavior for router `<Link>` components. This is useful if
-	 * you need to create custom `<Link>` components with the same click behavior we
-	 * use in our exported `<Link>`.
-	 */
-
-
-	function useLinkClickHandler(to, _temp) {
-	  let {
-	    target,
-	    replace: replaceProp,
-	    state
-	  } = _temp === void 0 ? {} : _temp;
-	  let navigate = useNavigate();
-	  let location = useLocation();
-	  let path = useResolvedPath(to);
-	  return react.exports.useCallback(event => {
-	    if (event.button === 0 && ( // Ignore everything but left clicks
-	    !target || target === "_self") && // Let browser handle "target=_blank" etc.
-	    !isModifiedEvent(event) // Ignore clicks with modifier keys
-	    ) {
-	      event.preventDefault(); // If the URL hasn't changed, a regular <a> will do a replace instead of
-	      // a push, so do the same here.
-
-	      let replace = !!replaceProp || createPath(location) === createPath(path);
-	      navigate(to, {
-	        replace,
-	        state
-	      });
-	    }
-	  }, [location, navigate, path, replaceProp, state, target, to]);
-	}
-
-	var moment$1 = {exports: {}};
+	var moment$2 = {exports: {}};
 
 	(function (module, exports) {
 
@@ -14244,9 +12821,9 @@
 	  };
 	  return hooks;
 	});
-	}(moment$1));
+	}(moment$2));
 
-	var moment = moment$1.exports;
+	var moment$1 = moment$2.exports;
 
 	var dexieReactHooks = {exports: {}};
 
@@ -20111,29 +18688,565 @@
 
 	});
 
+	const createStoreImpl = createState => {
+	  let state;
+	  const listeners = /* @__PURE__ */new Set();
+
+	  const setState = (partial, replace) => {
+	    const nextState = typeof partial === "function" ? partial(state) : partial;
+
+	    if (nextState !== state) {
+	      const previousState = state;
+	      state = (replace != null ? replace : typeof nextState !== "object") ? nextState : Object.assign({}, state, nextState);
+	      listeners.forEach(listener => listener(state, previousState));
+	    }
+	  };
+
+	  const getState = () => state;
+
+	  const subscribe = listener => {
+	    listeners.add(listener);
+	    return () => listeners.delete(listener);
+	  };
+
+	  const destroy = () => listeners.clear();
+
+	  const api = {
+	    setState,
+	    getState,
+	    subscribe,
+	    destroy
+	  };
+	  state = createState(setState, getState, api);
+	  return api;
+	};
+
+	const createStore = createState => createState ? createStoreImpl(createState) : createStoreImpl;
+
+	var withSelector = {exports: {}};
+
+	var withSelector_development = {};
+
+	var shim = {exports: {}};
+
+	var useSyncExternalStoreShim_development = {};
+
+	/**
+	 * @license React
+	 * use-sync-external-store-shim.development.js
+	 *
+	 * Copyright (c) Facebook, Inc. and its affiliates.
+	 *
+	 * This source code is licensed under the MIT license found in the
+	 * LICENSE file in the root directory of this source tree.
+	 */
+
+	{
+	  (function () {
+	    /* global __REACT_DEVTOOLS_GLOBAL_HOOK__ */
+
+	    if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== 'undefined' && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === 'function') {
+	      __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(new Error());
+	    }
+
+	    var React = react.exports;
+
+	    var ReactSharedInternals = React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+
+	    function error(format) {
+	      {
+	        {
+	          for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+	            args[_key2 - 1] = arguments[_key2];
+	          }
+
+	          printWarning('error', format, args);
+	        }
+	      }
+	    }
+
+	    function printWarning(level, format, args) {
+	      // When changing this logic, you might want to also
+	      // update consoleWithStackDev.www.js as well.
+	      {
+	        var ReactDebugCurrentFrame = ReactSharedInternals.ReactDebugCurrentFrame;
+	        var stack = ReactDebugCurrentFrame.getStackAddendum();
+
+	        if (stack !== '') {
+	          format += '%s';
+	          args = args.concat([stack]);
+	        } // eslint-disable-next-line react-internal/safe-string-coercion
+
+
+	        var argsWithFormat = args.map(function (item) {
+	          return String(item);
+	        }); // Careful: RN currently depends on this prefix
+
+	        argsWithFormat.unshift('Warning: ' + format); // We intentionally don't use spread (or .apply) directly because it
+	        // breaks IE9: https://github.com/facebook/react/issues/13610
+	        // eslint-disable-next-line react-internal/no-production-logging
+
+	        Function.prototype.apply.call(console[level], console, argsWithFormat);
+	      }
+	    }
+	    /**
+	     * inlined Object.is polyfill to avoid requiring consumers ship their own
+	     * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
+	     */
+
+
+	    function is(x, y) {
+	      return x === y && (x !== 0 || 1 / x === 1 / y) || x !== x && y !== y // eslint-disable-line no-self-compare
+	      ;
+	    }
+
+	    var objectIs = typeof Object.is === 'function' ? Object.is : is; // dispatch for CommonJS interop named imports.
+
+	    var useState = React.useState,
+	        useEffect = React.useEffect,
+	        useLayoutEffect = React.useLayoutEffect,
+	        useDebugValue = React.useDebugValue;
+	    var didWarnOld18Alpha = false;
+	    var didWarnUncachedGetSnapshot = false; // Disclaimer: This shim breaks many of the rules of React, and only works
+	    // because of a very particular set of implementation details and assumptions
+	    // -- change any one of them and it will break. The most important assumption
+	    // is that updates are always synchronous, because concurrent rendering is
+	    // only available in versions of React that also have a built-in
+	    // useSyncExternalStore API. And we only use this shim when the built-in API
+	    // does not exist.
+	    //
+	    // Do not assume that the clever hacks used by this hook also work in general.
+	    // The point of this shim is to replace the need for hacks by other libraries.
+
+	    function useSyncExternalStore(subscribe, getSnapshot, // Note: The shim does not use getServerSnapshot, because pre-18 versions of
+	    // React do not expose a way to check if we're hydrating. So users of the shim
+	    // will need to track that themselves and return the correct value
+	    // from `getSnapshot`.
+	    getServerSnapshot) {
+	      {
+	        if (!didWarnOld18Alpha) {
+	          if (React.startTransition !== undefined) {
+	            didWarnOld18Alpha = true;
+	            error('You are using an outdated, pre-release alpha of React 18 that ' + 'does not support useSyncExternalStore. The ' + 'use-sync-external-store shim will not work correctly. Upgrade ' + 'to a newer pre-release.');
+	          }
+	        }
+	      } // Read the current snapshot from the store on every render. Again, this
+	      // breaks the rules of React, and only works here because of specific
+	      // implementation details, most importantly that updates are
+	      // always synchronous.
+
+	      var value = getSnapshot();
+	      {
+	        if (!didWarnUncachedGetSnapshot) {
+	          var cachedValue = getSnapshot();
+
+	          if (!objectIs(value, cachedValue)) {
+	            error('The result of getSnapshot should be cached to avoid an infinite loop');
+	            didWarnUncachedGetSnapshot = true;
+	          }
+	        }
+	      } // Because updates are synchronous, we don't queue them. Instead we force a
+	      // re-render whenever the subscribed state changes by updating an some
+	      // arbitrary useState hook. Then, during render, we call getSnapshot to read
+	      // the current value.
+	      //
+	      // Because we don't actually use the state returned by the useState hook, we
+	      // can save a bit of memory by storing other stuff in that slot.
+	      //
+	      // To implement the early bailout, we need to track some things on a mutable
+	      // object. Usually, we would put that in a useRef hook, but we can stash it in
+	      // our useState hook instead.
+	      //
+	      // To force a re-render, we call forceUpdate({inst}). That works because the
+	      // new object always fails an equality check.
+
+	      var _useState = useState({
+	        inst: {
+	          value: value,
+	          getSnapshot: getSnapshot
+	        }
+	      }),
+	          inst = _useState[0].inst,
+	          forceUpdate = _useState[1]; // Track the latest getSnapshot function with a ref. This needs to be updated
+	      // in the layout phase so we can access it during the tearing check that
+	      // happens on subscribe.
+
+
+	      useLayoutEffect(function () {
+	        inst.value = value;
+	        inst.getSnapshot = getSnapshot; // Whenever getSnapshot or subscribe changes, we need to check in the
+	        // commit phase if there was an interleaved mutation. In concurrent mode
+	        // this can happen all the time, but even in synchronous mode, an earlier
+	        // effect may have mutated the store.
+
+	        if (checkIfSnapshotChanged(inst)) {
+	          // Force a re-render.
+	          forceUpdate({
+	            inst: inst
+	          });
+	        }
+	      }, [subscribe, value, getSnapshot]);
+	      useEffect(function () {
+	        // Check for changes right before subscribing. Subsequent changes will be
+	        // detected in the subscription handler.
+	        if (checkIfSnapshotChanged(inst)) {
+	          // Force a re-render.
+	          forceUpdate({
+	            inst: inst
+	          });
+	        }
+
+	        var handleStoreChange = function () {
+	          // TODO: Because there is no cross-renderer API for batching updates, it's
+	          // up to the consumer of this library to wrap their subscription event
+	          // with unstable_batchedUpdates. Should we try to detect when this isn't
+	          // the case and print a warning in development?
+	          // The store changed. Check if the snapshot changed since the last time we
+	          // read from the store.
+	          if (checkIfSnapshotChanged(inst)) {
+	            // Force a re-render.
+	            forceUpdate({
+	              inst: inst
+	            });
+	          }
+	        }; // Subscribe to the store and return a clean-up function.
+
+
+	        return subscribe(handleStoreChange);
+	      }, [subscribe]);
+	      useDebugValue(value);
+	      return value;
+	    }
+
+	    function checkIfSnapshotChanged(inst) {
+	      var latestGetSnapshot = inst.getSnapshot;
+	      var prevValue = inst.value;
+
+	      try {
+	        var nextValue = latestGetSnapshot();
+	        return !objectIs(prevValue, nextValue);
+	      } catch (error) {
+	        return true;
+	      }
+	    }
+
+	    function useSyncExternalStore$1(subscribe, getSnapshot, getServerSnapshot) {
+	      // Note: The shim does not use getServerSnapshot, because pre-18 versions of
+	      // React do not expose a way to check if we're hydrating. So users of the shim
+	      // will need to track that themselves and return the correct value
+	      // from `getSnapshot`.
+	      return getSnapshot();
+	    }
+
+	    var canUseDOM = !!(typeof window !== 'undefined' && typeof window.document !== 'undefined' && typeof window.document.createElement !== 'undefined');
+	    var isServerEnvironment = !canUseDOM;
+	    var shim = isServerEnvironment ? useSyncExternalStore$1 : useSyncExternalStore;
+	    var useSyncExternalStore$2 = React.useSyncExternalStore !== undefined ? React.useSyncExternalStore : shim;
+	    useSyncExternalStoreShim_development.useSyncExternalStore = useSyncExternalStore$2;
+	    /* global __REACT_DEVTOOLS_GLOBAL_HOOK__ */
+
+	    if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== 'undefined' && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop === 'function') {
+	      __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(new Error());
+	    }
+	  })();
+	}
+
+	{
+	  shim.exports = useSyncExternalStoreShim_development;
+	}
+
+	/**
+	 * @license React
+	 * use-sync-external-store-shim/with-selector.development.js
+	 *
+	 * Copyright (c) Facebook, Inc. and its affiliates.
+	 *
+	 * This source code is licensed under the MIT license found in the
+	 * LICENSE file in the root directory of this source tree.
+	 */
+
+	{
+	  (function () {
+	    /* global __REACT_DEVTOOLS_GLOBAL_HOOK__ */
+
+	    if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== 'undefined' && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === 'function') {
+	      __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(new Error());
+	    }
+
+	    var React = react.exports;
+
+	    var shim$1 = shim.exports;
+	    /**
+	     * inlined Object.is polyfill to avoid requiring consumers ship their own
+	     * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
+	     */
+
+
+	    function is(x, y) {
+	      return x === y && (x !== 0 || 1 / x === 1 / y) || x !== x && y !== y // eslint-disable-line no-self-compare
+	      ;
+	    }
+
+	    var objectIs = typeof Object.is === 'function' ? Object.is : is;
+	    var useSyncExternalStore = shim$1.useSyncExternalStore; // for CommonJS interop.
+
+	    var useRef = React.useRef,
+	        useEffect = React.useEffect,
+	        useMemo = React.useMemo,
+	        useDebugValue = React.useDebugValue; // Same as useSyncExternalStore, but supports selector and isEqual arguments.
+
+	    function useSyncExternalStoreWithSelector(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
+	      // Use this to track the rendered snapshot.
+	      var instRef = useRef(null);
+	      var inst;
+
+	      if (instRef.current === null) {
+	        inst = {
+	          hasValue: false,
+	          value: null
+	        };
+	        instRef.current = inst;
+	      } else {
+	        inst = instRef.current;
+	      }
+
+	      var _useMemo = useMemo(function () {
+	        // Track the memoized state using closure variables that are local to this
+	        // memoized instance of a getSnapshot function. Intentionally not using a
+	        // useRef hook, because that state would be shared across all concurrent
+	        // copies of the hook/component.
+	        var hasMemo = false;
+	        var memoizedSnapshot;
+	        var memoizedSelection;
+
+	        var memoizedSelector = function (nextSnapshot) {
+	          if (!hasMemo) {
+	            // The first time the hook is called, there is no memoized result.
+	            hasMemo = true;
+	            memoizedSnapshot = nextSnapshot;
+
+	            var _nextSelection = selector(nextSnapshot);
+
+	            if (isEqual !== undefined) {
+	              // Even if the selector has changed, the currently rendered selection
+	              // may be equal to the new selection. We should attempt to reuse the
+	              // current value if possible, to preserve downstream memoizations.
+	              if (inst.hasValue) {
+	                var currentSelection = inst.value;
+
+	                if (isEqual(currentSelection, _nextSelection)) {
+	                  memoizedSelection = currentSelection;
+	                  return currentSelection;
+	                }
+	              }
+	            }
+
+	            memoizedSelection = _nextSelection;
+	            return _nextSelection;
+	          } // We may be able to reuse the previous invocation's result.
+	          // We may be able to reuse the previous invocation's result.
+
+
+	          var prevSnapshot = memoizedSnapshot;
+	          var prevSelection = memoizedSelection;
+
+	          if (objectIs(prevSnapshot, nextSnapshot)) {
+	            // The snapshot is the same as last time. Reuse the previous selection.
+	            return prevSelection;
+	          } // The snapshot has changed, so we need to compute a new selection.
+	          // The snapshot has changed, so we need to compute a new selection.
+
+
+	          var nextSelection = selector(nextSnapshot); // If a custom isEqual function is provided, use that to check if the data
+	          // has changed. If it hasn't, return the previous selection. That signals
+	          // to React that the selections are conceptually equal, and we can bail
+	          // out of rendering.
+	          // If a custom isEqual function is provided, use that to check if the data
+	          // has changed. If it hasn't, return the previous selection. That signals
+	          // to React that the selections are conceptually equal, and we can bail
+	          // out of rendering.
+
+	          if (isEqual !== undefined && isEqual(prevSelection, nextSelection)) {
+	            return prevSelection;
+	          }
+
+	          memoizedSnapshot = nextSnapshot;
+	          memoizedSelection = nextSelection;
+	          return nextSelection;
+	        }; // Assigning this to a constant so that Flow knows it can't change.
+	        // Assigning this to a constant so that Flow knows it can't change.
+
+
+	        var maybeGetServerSnapshot = getServerSnapshot === undefined ? null : getServerSnapshot;
+
+	        var getSnapshotWithSelector = function () {
+	          return memoizedSelector(getSnapshot());
+	        };
+
+	        var getServerSnapshotWithSelector = maybeGetServerSnapshot === null ? undefined : function () {
+	          return memoizedSelector(maybeGetServerSnapshot());
+	        };
+	        return [getSnapshotWithSelector, getServerSnapshotWithSelector];
+	      }, [getSnapshot, getServerSnapshot, selector, isEqual]),
+	          getSelection = _useMemo[0],
+	          getServerSelection = _useMemo[1];
+
+	      var value = useSyncExternalStore(subscribe, getSelection, getServerSelection);
+	      useEffect(function () {
+	        inst.hasValue = true;
+	        inst.value = value;
+	      }, [value]);
+	      useDebugValue(value);
+	      return value;
+	    }
+
+	    withSelector_development.useSyncExternalStoreWithSelector = useSyncExternalStoreWithSelector;
+	    /* global __REACT_DEVTOOLS_GLOBAL_HOOK__ */
+
+	    if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== 'undefined' && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop === 'function') {
+	      __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(new Error());
+	    }
+	  })();
+	}
+
+	{
+	  withSelector.exports = withSelector_development;
+	}
+
+	var useSyncExternalStoreExports = withSelector.exports;
+
+	const {
+	  useSyncExternalStoreWithSelector
+	} = useSyncExternalStoreExports;
+
+	function useStore(api, selector = api.getState, equalityFn) {
+	  const slice = useSyncExternalStoreWithSelector(api.subscribe, api.getState, api.getServerState || api.getState, selector, equalityFn);
+	  react.exports.useDebugValue(slice);
+	  return slice;
+	}
+
+	const createImpl = createState => {
+	  const api = typeof createState === "function" ? createStore(createState) : createState;
+
+	  const useBoundStore = (selector, equalityFn) => useStore(api, selector, equalityFn);
+
+	  Object.assign(useBoundStore, api);
+	  return useBoundStore;
+	};
+
+	const create = createState => createState ? createImpl(createState) : createImpl;
+
+	var create$1 = create;
+
+	const BASE = "http://cards.leinsterhockey.ie";
+	const API_BASE = BASE + "/api/";
+
+	const useMatchcardStore = create$1(set => ({
+	  card: null,
+	  active: null,
+	  playersToAdd: null,
+	  fetch: async id => {
+	    fetch(`${API_BASE}/fixtures/${id}`).then(res => res.json()).then(data => set(state => ({
+	      card: tweakCard(data.data)
+	    }))).then(() => fetchPlayers());
+	  },
+	  fetchPlayers: async () => {
+	    console.log("Fetch players");
+	    const user = useContext(UserContext);
+	    if (!user) return;
+	    if (!card) return;
+	    console.log("Fetch players", user, card);
+
+	    const activeGet = () => {
+	      if (card.section != user.section) {
+	        if (card.home.club == user.club) return card.home;
+	        if (card.away.club == user.club) return card.away;
+	      }
+
+	      return undefined;
+	    };
+
+	    const active = activeGet();
+	    if (active === undefined) return;
+	    fetch(`${API_BASE}/registration/list.json?s=${user.section}&t=${active.team}`, {
+	      headers: {
+	        'X-Auth-Token': user["jwt-token"]
+	      }
+	    }).then(res => res.json()).then(data => {
+	      const players = data.map(x => {
+	        const dates = x.history.map(y => moment(y.date));
+	        x['lastDate'] = Math.min(...dates);
+	        return x;
+	      });
+	      console.log("Found ", players);
+	      set(state => ({
+	        active: {
+	          players
+	        }
+	      }));
+	    });
+	  }
+	}));
+
+	const tweakCard = js => {
+	  const tweakTeam = jsTeam => {
+	    jsTeam.players = Object.keys(jsTeam.players).map(p => {
+	      const k = jsTeam.players[p];
+	      const d = k.detail ? JSON.parse(k.detail) : {};
+	      const player = {
+	        name: p,
+	        ...d,
+	        ts: k.date
+	      };
+	      const s = jsTeam.scorers[p];
+	      if (s) player.score = s;
+	      const n = k.number;
+	      if (n) player.number = n;
+	      return player;
+	    });
+	    delete jsTeam.scorers;
+	    delete jsTeam.captain;
+	    delete jsTeam.goals;
+	  };
+
+	  tweakTeam(js.home);
+	  delete js.away_id;
+	  delete js.away_name;
+	  delete js.away_team;
+	  tweakTeam(js.away);
+	  delete js.home_id;
+	  delete js.home_name;
+	  delete js.home_team;
+	  delete js.goals;
+	  delete js.comment;
+	  console.log("Card", js);
+	  return js;
+	};
+
 	const Fixtures = () => {
-	  const [section, setSection] = react.exports.useState('all');
-	  const [club, setClub] = react.exports.useState('all');
-	  const [competition, setCompetition] = react.exports.useState('all');
-	  const [team, setTeam] = react.exports.useState('all');
-	  const navigate = useNavigate();
+	  const [filter, setFilter] = react.exports.useState({
+	    section: null,
+	    club: null,
+	    competition: null,
+	    team: null
+	  });
 	  const fixtures = dexieReactHooks.exports.useLiveQuery(() => db.fixtures.orderBy('datetimeZ').toArray());
 	  const sections = [...new Set(fixtures?.map(x => x.section))];
 	  sections.sort();
-	  const clubs = [...new Set(fixtures?.filter(x => section == 'all' || section == x.section).map(x => x.home.club))];
+	  const clubs = [...new Set(fixtures?.filter(x => filter.section == 'all' || filter.section == x.section).map(x => x.home.club))];
 	  clubs.sort();
-	  const competitions = [...new Set(fixtures?.filter(x => section == 'all' || section == x.section).map(x => x.competition))];
+	  const competitions = [...new Set(fixtures?.filter(x => filter.section == null || filter.section == x.section).map(x => x.competition))];
 	  competitions.sort();
-	  const teams = [...new Set(fixtures?.filter(x => section == 'all' || section == x.section).filter(x => club == 'all' || club == x.home.club).map(x => x.home.club + " " + x.home.team))];
+	  const teams = [...new Set(fixtures?.filter(x => filter.section == null || filter.section == x.section).filter(x => filter.club == 'all' || filter.club == x.home.club).map(x => x.home.club + " " + x.home.team))];
 	  teams.sort();
 	  const selectedFixtures = fixtures?.filter(x => {
-	    if (club != 'all' && !(x.home.club == club || x.away.club == club)) return false;
-	    if (section != 'all' && x.section != section) return false;
-	    if (competition != 'all' && x.competition != competition) return false;
+	    if (filter.club != null && !(x.home.club == filter.club || x.away.club == filter.club)) return false;
+	    if (filter.section != null && x.section != filter.section) return false;
+	    if (filter.competition != null && x.competition != filter.competition) return false;
 	    return true;
 	  });
 	  selectedFixtures?.forEach((v, i, a) => {
-	    v.date = moment(v.datetimeZ);
+	    v.date = moment$1(v.datetimeZ);
 
 	    if (i > 0) {
 	      const prev = a[i - 1];
@@ -20154,28 +19267,37 @@
 	    }
 	  }); //selectedFixtures?.forEach(x => console.log(x))
 
+	  const fetch = useMatchcardStore(state => state.fetch);
 	  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h2", null, "Fixtures"), /*#__PURE__*/React.createElement("header", {
 	    className: "fixtures"
 	  }, /*#__PURE__*/React.createElement("select", {
-	    onChange: e => setSection(e.target.value)
+	    onChange: e => setFilter(filter => ({ ...filter,
+	      section: e.target.value
+	    }))
 	  }, /*#__PURE__*/React.createElement("option", {
 	    value: "all"
 	  }, "All Sections"), sections.map(x => /*#__PURE__*/React.createElement("option", {
 	    key: 'section:' + x
 	  }, x))), /*#__PURE__*/React.createElement("select", {
-	    onChange: e => setClub(e.target.value)
+	    onChange: e => setFilter(filter => ({ ...filter,
+	      club: e.target.value
+	    }))
 	  }, /*#__PURE__*/React.createElement("option", {
 	    value: "all"
 	  }, "All Clubs"), clubs.map(x => /*#__PURE__*/React.createElement("option", {
 	    key: 'club:' + x
 	  }, x))), /*#__PURE__*/React.createElement("select", {
-	    onChange: e => setCompetition(e.target.value)
+	    onChange: e => setFilter(filter => ({ ...filter,
+	      competition: e.target.value
+	    }))
 	  }, /*#__PURE__*/React.createElement("option", {
 	    value: "all"
 	  }, "All Competitions"), competitions.map(x => /*#__PURE__*/React.createElement("option", {
 	    key: 'comp:' + x
 	  }, x))), /*#__PURE__*/React.createElement("select", {
-	    onChange: e => setTeam(e.target.value)
+	    onChange: e => setFilter(filter => ({ ...filter,
+	      team: e.target.value
+	    }))
 	  }, /*#__PURE__*/React.createElement("option", {
 	    value: "all"
 	  }, "All Teams"), teams.map(x => /*#__PURE__*/React.createElement("option", {
@@ -20205,7 +19327,7 @@
 	      className: 'fixture' + (item.nextdaybreak ? ' day-break-after' : ''),
 	      key: item.id,
 	      onClick: () => {
-	        navigate(`/${item.id}`);
+	        fetch(item.id);
 	      }
 	    }, /*#__PURE__*/React.createElement("div", {
 	      className: "lg"
@@ -31354,22 +30476,22 @@
 
 	var noop$1 = function noop() {};
 
-	var p$1 = config.measurePerformance && PERFORMANCE && PERFORMANCE.mark && PERFORMANCE.measure ? PERFORMANCE : {
+	var p = config.measurePerformance && PERFORMANCE && PERFORMANCE.mark && PERFORMANCE.measure ? PERFORMANCE : {
 	  mark: noop$1,
 	  measure: noop$1
 	};
 	var preamble = "FA \"6.2.0\"";
 
 	var begin = function begin(name) {
-	  p$1.mark("".concat(preamble, " ").concat(name, " begins"));
+	  p.mark("".concat(preamble, " ").concat(name, " begins"));
 	  return function () {
 	    return end(name);
 	  };
 	};
 
 	var end = function end(name) {
-	  p$1.mark("".concat(preamble, " ").concat(name, " ends"));
-	  p$1.measure("".concat(preamble, " ").concat(name), "".concat(preamble, " ").concat(name, " begins"), "".concat(preamble, " ").concat(name, " ends"));
+	  p.mark("".concat(preamble, " ").concat(name, " ends"));
+	  p.measure("".concat(preamble, " ").concat(name), "".concat(preamble, " ").concat(name, " begins"), "".concat(preamble, " ").concat(name, " ends"));
 	};
 
 	var perf = {
@@ -34130,101 +33252,12 @@
 
 	var faArrowUpFromBracket={prefix:'fas',iconName:'arrow-up-from-bracket',icon:[448,512,[],"e09a","M246.6 9.4c-12.5-12.5-32.8-12.5-45.3 0l-128 128c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 109.3V320c0 17.7 14.3 32 32 32s32-14.3 32-32V109.3l73.4 73.4c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3l-128-128zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32v64c0 53 43 96 96 96H352c53 0 96-43 96-96V352c0-17.7-14.3-32-32-32s-32 14.3-32 32v64c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V352z"]};var faPersonCirclePlus={prefix:'fas',iconName:'person-circle-plus',icon:[576,512,[],"e541","M208 48c0 26.5-21.5 48-48 48s-48-21.5-48-48s21.5-48 48-48s48 21.5 48 48zM152 352V480c0 17.7-14.3 32-32 32s-32-14.3-32-32V256.9L59.4 304.5c-9.1 15.1-28.8 20-43.9 10.9s-20-28.8-10.9-43.9l58.3-97c17.4-28.9 48.6-46.6 82.3-46.6h29.7c33.7 0 64.9 17.7 82.3 46.6l44.9 74.7c-16.1 17.6-28.6 38.5-36.6 61.5c-1.9-1.8-3.5-3.9-4.9-6.3L232 256.9V480c0 17.7-14.3 32-32 32s-32-14.3-32-32V352H152zM432 512c-79.5 0-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144s-64.5 144-144 144zm16-208c0-8.8-7.2-16-16-16s-16 7.2-16 16v48H368c-8.8 0-16 7.2-16 16s7.2 16 16 16h48v48c0 8.8 7.2 16 16 16s16-7.2 16-16V384h48c8.8 0 16-7.2 16-16s-7.2-16-16-16H448V304z"]};var faNoteSticky={prefix:'fas',iconName:'note-sticky',icon:[448,512,[62026,"sticky-note"],"f249","M64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H290.7c17 0 33.3-6.7 45.3-18.7L429.3 368c12-12 18.7-28.3 18.7-45.3V96c0-35.3-28.7-64-64-64H64zm0 64H384V320H320c-17.7 0-32 14.3-32 32v64H64V96z"]};
 
-	const Matchcard = () => {
-	  const user = react.exports.useContext(UserContext);
-	  const [card, setCard] = react.exports.useState(null);
-	  const [selected, setSelected] = react.exports.useState(null);
-	  const [kicker, setKicker] = react.exports.useState(null);
-	  const [allPlayers, setAllPlayers] = react.exports.useState([]);
-	  const [selectedPlayers, setSelectedPlayers] = react.exports.useState([]);
-	  const {
-	    id
-	  } = useParams();
-	  react.exports.useEffect(() => {
-	    fetch(`http://cards.leinsterhockey.ie/api/fixtures/${id}`).then(res => res.json()).then(data => setCard(tweak(data.data)));
-	  }, []);
-	  react.exports.useEffect(() => {
-	    if (card != null) {
-	      const active = getActive(card, user);
-
-	      if (active) {
-	        fetch(`http://cards.leinsterhockey.ie/api/registration/list.json?s=${user.section}&t=${active.team}`, {
-	          headers: {
-	            'X-Auth-Token': `${sessionStorage.getItem("jwtToken")}`
-	          }
-	        }).then(res => res.json()).then(data => {
-	          const players = data.map(x => {
-	            const dates = x.history.map(y => moment(y.date));
-	            x['lastDate'] = Math.min(...dates);
-	            return x;
-	          });
-	          console.log("Found ", players);
-	          setAllPlayers(players);
-	        });
-	      }
-	    }
-	  }, []);
-	  if (card == null) return /*#__PURE__*/React.createElement("div", {
-	    className: "loading"
-	  }, "Loading...");
-	  const active = getActive(card, user);
-
-	  if (active) {
-	    active.active = true;
-	  }
-
-	  const dt = moment(card.datetime);
-	  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("header", {
-	    className: "matchcard"
-	  }, /*#__PURE__*/React.createElement("h2", null, card.competition), /*#__PURE__*/React.createElement("div", {
-	    className: "buttons"
-	  }, /*#__PURE__*/React.createElement("button", null, /*#__PURE__*/React.createElement(FontAwesomeIcon, {
-	    icon: faNoteSticky
-	  }), " Add Note..."), /*#__PURE__*/React.createElement("button", null, /*#__PURE__*/React.createElement(FontAwesomeIcon, {
-	    icon: faArrowUpFromBracket
-	  }), " Submit Card")), /*#__PURE__*/React.createElement("div", {
-	    className: "detail"
-	  }, /*#__PURE__*/React.createElement("dl", null, /*#__PURE__*/React.createElement("dt", null, "Fixture ID"), /*#__PURE__*/React.createElement("dd", null, card.fixture_id)), /*#__PURE__*/React.createElement("dl", null, /*#__PURE__*/React.createElement("dt", null, "Date"), /*#__PURE__*/React.createElement("dd", null, dt.format('YYYY-MM-DD'))), /*#__PURE__*/React.createElement("dl", null, /*#__PURE__*/React.createElement("dt", null, "Time"), /*#__PURE__*/React.createElement("dd", null, dt.format('HH:mm'))))), /*#__PURE__*/React.createElement("ol", {
-	    className: "teams"
-	  }, kicker == null ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("li", {
-	    className: "team"
-	  }, /*#__PURE__*/React.createElement(Team, {
-	    cardId: id,
-	    team: card.home,
-	    setKicker: setKicker,
-	    selected: selected,
-	    setSelected: setSelected
-	  })), /*#__PURE__*/React.createElement("li", {
-	    className: "team"
-	  }, /*#__PURE__*/React.createElement(Team, {
-	    cardId: id,
-	    team: card.away,
-	    setKicker: setKicker,
-	    selected: selected,
-	    setSelected: setSelected
-	  }))) : /*#__PURE__*/React.createElement("li", {
-	    className: "team"
-	  }, /*#__PURE__*/React.createElement("header", null, /*#__PURE__*/React.createElement("h3", null, active.club, " ", active.team)), /*#__PURE__*/React.createElement("button", {
-	    className: "success",
-	    onClick: () => setKicker(null)
-	  }, /*#__PURE__*/React.createElement(FontAwesomeIcon, {
-	    icon: faPersonCirclePlus
-	  }), " Add Players..."), /*#__PURE__*/React.createElement("ul", null, allPlayers.map((px, ix) => /*#__PURE__*/React.createElement("li", {
-	    key: px.name
-	  }, /*#__PURE__*/React.createElement("span", {
-	    className: selectedPlayers.includes(px.name) ? 'selected' : '',
-	    onClick: () => {
-	      if (selectedPlayers.includes(px.name)) setSelectedPlayers(selectedPlayers.filter(x => x != px.name));else setSelectedPlayers([...selectedPlayers, px.name]);
-	    }
-	  }, px.name)))))));
-	};
-
-	const p = {
+	const penaltyCards = {
 	  'green': ['Green Card'],
 	  'yellow': ['Technical - Breakdown', 'Technical - Delay/Time Wasting', 'Technical - Dissent', 'Technical - Foul/Abusive Language', 'Technical - Bench/Coach/Team Foul', 'Physical - Tackle', 'Physical - Dangerous/Reckless Play'],
 	  'red': ['Red Card']
 	};
-	Object.keys(p).flatMap(x => p[x].map(y => ({
+	Object.keys(penaltyCards).flatMap(x => penaltyCards[x].map(y => ({
 	  detail: y,
 	  color: x
 	})));
@@ -34255,12 +33288,69 @@
 	  charText: 'CC'
 	}];
 
+	const Matchcard = () => {
+	  const user = react.exports.useContext(UserContext$1);
+	  const card = useMatchcardStore(state => state.card);
+	  useMatchcardStore(state => state.playersToAdd);
+	  react.exports.useEffect(() => {
+	    if (card != null) {
+	      const active = getActive(card, user);
+
+	      if (active) {
+	        fetch(`${API_BASE}/registration/list.json?s=${user.section}&t=${active.team}`, {
+	          headers: {
+	            'X-Auth-Token': `${sessionStorage.getItem("jwtToken")}`
+	          }
+	        }).then(res => res.json()).then(data => {
+	          const players = data.map(x => {
+	            const dates = x.history.map(y => moment$1(y.date));
+	            x['lastDate'] = Math.min(...dates);
+	            return x;
+	          });
+	          console.log("Found ", players);
+	          setAllPlayers(players);
+	        });
+	      }
+	    }
+	  }, []);
+	  if (card == null) return /*#__PURE__*/React.createElement("div", {
+	    className: "loading"
+	  }, "Loading...");
+	  const active = getActive(card, user);
+
+	  if (active) {
+	    active.active = true;
+	  }
+
+	  const dt = moment$1(card.datetime);
+	  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("header", {
+	    className: "matchcard"
+	  }, /*#__PURE__*/React.createElement("h2", null, card.competition), /*#__PURE__*/React.createElement("div", {
+	    className: "buttons"
+	  }, /*#__PURE__*/React.createElement("button", null, /*#__PURE__*/React.createElement(FontAwesomeIcon, {
+	    icon: faNoteSticky
+	  }), " Add Note..."), /*#__PURE__*/React.createElement("button", null, /*#__PURE__*/React.createElement(FontAwesomeIcon, {
+	    icon: faArrowUpFromBracket
+	  }), " Submit Card")), /*#__PURE__*/React.createElement("div", {
+	    className: "detail"
+	  }, /*#__PURE__*/React.createElement("dl", null, /*#__PURE__*/React.createElement("dt", null, "Fixture ID"), /*#__PURE__*/React.createElement("dd", null, card.fixture_id)), /*#__PURE__*/React.createElement("dl", null, /*#__PURE__*/React.createElement("dt", null, "Date"), /*#__PURE__*/React.createElement("dd", null, dt.format('YYYY-MM-DD'))), /*#__PURE__*/React.createElement("dl", null, /*#__PURE__*/React.createElement("dt", null, "Time"), /*#__PURE__*/React.createElement("dd", null, dt.format('HH:mm'))))), /*#__PURE__*/React.createElement("ol", {
+	    className: "teams"
+	  }, /*#__PURE__*/React.createElement("li", {
+	    className: "team"
+	  }, /*#__PURE__*/React.createElement(Team, {
+	    cardId: card.id,
+	    team: card.home
+	  })), /*#__PURE__*/React.createElement("li", {
+	    className: "team"
+	  }, /*#__PURE__*/React.createElement(Team, {
+	    cardId: card.id,
+	    team: card.away
+	  }))));
+	};
+
 	const Team = props => {
 	  react.exports.useState(false);
 	  const team = props.team;
-	  const setSelect = props.setSelected;
-	  const select = props.selected;
-	  const setKicker = props.setKicker;
 
 	  const roles = player => player.roles ? /*#__PURE__*/React.createElement(React.Fragment, null, player.roles.map(r => {
 	    const role = roleOptions.find(x => x.key == r.toLowerCase());
@@ -34334,41 +33424,6 @@
 	  })));
 	};
 
-	const tweak = js => {
-	  const tweakTeam = jsTeam => {
-	    jsTeam.players = Object.keys(jsTeam.players).map(p => {
-	      const k = jsTeam.players[p];
-	      const d = k.detail ? JSON.parse(k.detail) : {};
-	      const player = {
-	        name: p,
-	        ...d,
-	        ts: k.date
-	      };
-	      const s = jsTeam.scorers[p];
-	      if (s) player.score = s;
-	      const n = k.number;
-	      if (n) player.number = n;
-	      return player;
-	    });
-	    delete jsTeam.scorers;
-	    delete jsTeam.captain;
-	    delete jsTeam.goals;
-	  };
-
-	  tweakTeam(js.home);
-	  delete js.away_id;
-	  delete js.away_name;
-	  delete js.away_team;
-	  tweakTeam(js.away);
-	  delete js.home_id;
-	  delete js.home_name;
-	  delete js.home_team;
-	  delete js.goals;
-	  delete js.comment;
-	  console.log("Card", js);
-	  return js;
-	};
-
 	function getActive(card, user) {
 	  if (user) {
 	    if (card.section == user.section) {
@@ -34380,7 +33435,7 @@
 	  }
 	}
 
-	const UserContext = /*#__PURE__*/React.createContext(null);
+	const UserContext$1 = /*#__PURE__*/React.createContext(null);
 
 	function App() {
 	  const [userData, setUserData] = react.exports.useState();
@@ -34393,7 +33448,7 @@
 	  }
 
 	  if (!userData) {
-	    fetch("http://cards.leinsterhockey.ie/api/users", {
+	    fetch(`${API_BASE}/users`, {
 	      headers: {
 	        'X-Auth-Token': `${sessionStorage.getItem("jwtToken")}`
 	      }
@@ -34408,9 +33463,10 @@
 	    return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", null, v[1]), /*#__PURE__*/React.createElement("span", null, v[2]));
 	  }
 
-	  react.exports.useEffect(() => {//reloadDb(0)
+	  react.exports.useEffect(() => {// reloadDb(0)
 	  });
-	  return /*#__PURE__*/React.createElement(BrowserRouter, null, /*#__PURE__*/React.createElement(UserContext.Provider, {
+	  const card = useMatchcardStore(state => state.card);
+	  return /*#__PURE__*/React.createElement(UserContext$1.Provider, {
 	    value: userData
 	  }, /*#__PURE__*/React.createElement("header", null, /*#__PURE__*/React.createElement("h1", null, "Leinster Hockey Matchcards"), /*#__PURE__*/React.createElement("span", {
 	    className: "login"
@@ -34419,21 +33475,9 @@
 	    name: "search",
 	    placeholder: "Search for fixtures by club, competition or date",
 	    spellCheck: "false"
-	  }), /*#__PURE__*/React.createElement("nav", null, /*#__PURE__*/React.createElement(NavLink, {
-	    to: "/"
-	  }, "Fixtures"), /*#__PURE__*/React.createElement(NavLink, {
-	    to: "/"
-	  }, "Reports"), /*#__PURE__*/React.createElement("span", {
+	  }), /*#__PURE__*/React.createElement("nav", null, /*#__PURE__*/React.createElement("span", {
 	    className: "user-info"
-	  }))), /*#__PURE__*/React.createElement("main", null, /*#__PURE__*/React.createElement(Routes, null, /*#__PURE__*/React.createElement(Route, {
-	    path: "/:id",
-	    element: /*#__PURE__*/React.createElement(Matchcard, null)
-	  }), /*#__PURE__*/React.createElement(Route, {
-	    path: "/",
-	    element: /*#__PURE__*/React.createElement(Fixtures, null)
-	  }), /*#__PURE__*/React.createElement(Route, {
-	    render: () => /*#__PURE__*/React.createElement("h1", null, "Page not found")
-	  })))));
+	  }))), /*#__PURE__*/React.createElement("main", null, card != null ? /*#__PURE__*/React.createElement(Matchcard, null) : /*#__PURE__*/React.createElement(Fixtures, null)));
 	}
 
 	ReactDOM.render( /*#__PURE__*/React.createElement(App, null), document.querySelector('#root'));

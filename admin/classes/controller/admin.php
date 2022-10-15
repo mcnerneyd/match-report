@@ -816,14 +816,14 @@ class Controller_Admin extends Controller_Hybrid
         if (!$id) {
             Log::debug("New competition: " . Input::post('competitionname'));
             $competition = new Model_Competition();
-            $competition->name = Input::post('competitionname');
+            $competition->name = trim(Input::post('competitionname'));
+            $competition->section = Model_Section::find_by_id(Input::post('section'));
         } else {
             Log::debug("Updating competition: $id");
             $competition = Model_Competition::find($id);
         }
 
-        $competition->section = Model_Section::find_by_id(Input::post('section'));
-        $competition->code = Input::post('competitioncode');
+        $competition->code = trim(Input::post('competitioncode'));
         $competition->format = Input::post('option_type');
         $competition->teamsize = Input::post('competition-teamsize', '');
         if ($competition->teamsize == '') {

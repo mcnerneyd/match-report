@@ -13,9 +13,11 @@
 		});
 		$('#competitions-table tbody').show();
 		$('#competitions-table').on('click','a[rel=edit]',function(e) {
-			var code = $(this).closest('tr').data('code');
-			var data = competitions[code];
-			$('#add-competition [name=id]').val(data['id']);
+			var id = $(this).closest('tr').data('id');
+			var data = competitions[id];
+			console.log("Editing: id=" + id)
+			$('#add-competition [name=id]').val(id);
+			$('#add-competition [name=section]').val(data['section_id']).attr('disabled', true);
 			$('#add-competition [name=competitionname]').val(data['name']).attr('readonly', true);
 			$('#add-competition [name=competitioncode]').val(data['code']);
 			$('#add-competition [name=age-group]').val(data['groups']);
@@ -41,10 +43,12 @@
 	});
 
 	<?php $lightCompetitions = array();
-	foreach ($competitions as $competition) {
-		$arr = $competition->to_array();
-		$lightCompetitions[$arr['code']] = $arr;
-	} ?>
+			foreach ($competitions as $competition) {
+			    $arr = $competition->to_array();
+				$key = $competition['id'];
+			    $lightCompetitions[$key] = $arr;
+				$lightCompetitions[$key]['zsection'] = $competition['section']['name'];
+			} ?>
 	var competitions = <?= json_encode($lightCompetitions) ?>;
 </script>
 
@@ -68,17 +72,17 @@
 
 	<tbody style='display:none'>
 	<?php foreach ($competitions as $competition) {
-		echo "<tr data-code='${competition['code']}'>
-			<td>".($competition->section ? $competition->section->getProperty('shorttitle'):"")."</td>
+	    echo "<tr data-code='${competition['code']}' data-id='{$competition['id']}'>
+			<td>".($competition->section ? $competition->section->getProperty('shorttitle') : "")."</td>
 			<td>${competition['name']}</td>
 			<td>${competition['code']}</td>
 			<td>${competition['teamsize']}</td>
 			<td>${competition['teamstars']}</td>
 			<td class='label-list'><div>";
-		foreach ($competition->team as $team) {
-			echo "<span class='badge label-team'>".$team['club']['code'].$team['team']."</span>";
-		}
-		echo "</div></td>
+	    foreach ($competition->team as $team) {
+	        echo "<span class='badge label-team'>".$team['club']['code'].$team['team']."</span>";
+	    }
+	    echo "</div></td>
 				<td class='command-group'>
 					<a class='btn btn-xs btn-sm btn-warning' rel='edit'><i class='fas fa-edit'></i></a>
 					<a class='btn btn-xs btn-sm btn-danger' rel='delete'><i class='fas fa-trash-alt'></i></a>
@@ -102,7 +106,9 @@
 						<div class='form-group col-md-12'>
 							<select class='form-control' id='section-select' name='section' required>
 								<option>Select Section...</option>
-								<?php foreach ($sections as $s) echo "<option value='".$s['id']."'>".$s['name']."</option>"; ?>
+								<?php foreach ($sections as $s) {
+								    echo "<option value='".$s['id']."'>".$s['name']."</option>";
+								} ?>
 							</select>
 						</div>
 

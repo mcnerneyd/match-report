@@ -45,11 +45,11 @@ function loadPage(row) {
 	// results are page<0, fixtures>=0
 
 	$.get('<?= Uri::create('fixtureapi.json') ?>?c='+$('#pills-club').val()+'&p=' + page +'&n=50', function(datax) {
-    if (!datax) {
-      console.log("No results");
-    }
-		if (datax) {
-      const data = datax['fixtures'];
+		if (!datax) {
+		console.log("No results");
+		}
+		if (datax && datax['fixtures'].length > 0) {
+      		const data = datax['fixtures'];
 			var anchorRow;
 			var anchorTop = 0;
 			var anchorScrollTopBefore = $('#fixtures-container').scrollTop();
@@ -74,7 +74,7 @@ function loadPage(row) {
 				var dt = moment(item['datetimeZ']);
 				var title = `#${fixtureID}:${item['competition']} - ${item['home']['name']} v ${item['away']['name']}`;
 				var key = `${item['section']}.${item['competition']}.${item['home']['name']}.${item['away']['name']}`;
-        if (key) key = key.replace(/ /g, "").toLowerCase();
+        		if (key) key = key.replace(/ /g, "").toLowerCase();
 
 				const rowStr = `<tr id="${fixtureID}" title="${title}" data-key='${key}' data-result='${item['played']}'></tr>`
 				if (page < 0) {
@@ -115,6 +115,7 @@ function loadPage(row) {
 				//if (item['away_info']['signed']) tds += ' <i class="fas fa-check-square"></i>';
 				//else if (item['away_info']['locked']) tds += ' <i class="fas fa-lock"></i>';
 				tds += `</td>
+				<td class='d-none d-md-table-cell mail-btn'><i class='fa fa-envelope'></i></td>
 				<td class="d-md-none">${item['home']['name']} `;
 
 				if (item['played'] === 'yes') tds += "<span class='score'>" + item['home']['score'] + "-" + item['away']['score'] + "</span> ";
@@ -255,9 +256,14 @@ $(document).ready(function() {
 	});
 
   $("#fixtures").on("click", ".mail-btn", function(evt) {
-		var tr = $(this).closest("tr.fixture");
-    window.document.location = "<?= Uri::create("/Card/Sendmail") ?>?id="+tr.attr("id");
 		evt.stopPropagation();
+		const BASE_URL = "<?= \Config::get('base_url') ?>";
+		var tr = $(this).closest("tr.fixture");
+		fetch(BASE_URL + "fixtureapi/contact?id=" + tr.attr('id'))
+		.then((response) => response.json())
+		.then((data) => {
+	    	location.href = "mailto:" + data.to.join() + "?cc="+data.cc.join()+"&subject="+data.subject;
+		});
 	});
 
   $("#fixtures").on("click", "tr.fixture", function() {

@@ -182,78 +182,6 @@ button.success {
   border-bottom-right-radius: 0;
 }
 
-header.fixtures {
-  display: flex;
-  gap: 1mm;
-  margin-bottom: 5mm;
-  flex-wrap: wrap;
-}
-header.fixtures select {
-  flex-grow: 1;
-}
-
-.fixture {
-  margin-left: 20mm;
-  display: grid;
-  grid-template-columns: 2fr 3fr 3rem 3fr;
-}
-
-h4.day-break {
-  height: 0;
-  overflow: visible;
-  margin-top: 2mm;
-}
-h4.day-break time {
-  padding-top: 4px;
-  width: 20mm;
-  font-size: 10px;
-  font-weight: 400;
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-}
-h4.day-break time .date {
-  font-size: 150%;
-  font-weight: 600;
-}
-h4.day-break time .day-date {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-h5.time-break time {
-  color: #445;
-  font-size: 80%;
-  font-weight: 300;
-  font-style: italic;
-  width: 2.5rem;
-  margin-left: 20mm;
-}
-
-.day-break-after {
-  margin-bottom: 30px;
-}
-
-@media only screen and (max-width: 600px) {
-  .fixture {
-    margin-left: 0;
-    grid-template-columns: 4rem 1fr;
-  }
-  h5.time-break time {
-    margin-left: 0;
-  }
-  h4.day-break {
-    height: auto;
-  }
-  h4.day-break time {
-    width: auto;
-    text-align: left;
-  }
-}
-ol.fixtures {
-  border: 1px solid blue;
-}
-
 dialog {
   position: fixed;
   inset: 0;
@@ -571,4 +499,75 @@ header .detail output li.score {
   header.matchcard .detail {
     grid-column: 1;
   }
+}
+header.fixtures {
+  display: flex;
+  gap: 1mm;
+  margin-bottom: 5mm;
+  flex-wrap: wrap;
+}
+header.fixtures select {
+  flex-grow: 1;
+}
+
+.fixture {
+  margin-left: 20mm;
+  display: grid;
+  grid-template-columns: 2fr 3fr 3rem 3fr;
+}
+
+h4.day-break {
+  height: 0;
+  overflow: visible;
+  margin-top: 2mm;
+}
+h4.day-break time {
+  padding-top: 4px;
+  width: 20mm;
+  font-size: 10px;
+  font-weight: 400;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+h4.day-break time .date {
+  font-size: 150%;
+  font-weight: 600;
+}
+h4.day-break time .day-date {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+h5.time-break time {
+  color: #445;
+  font-size: 80%;
+  font-weight: 300;
+  font-style: italic;
+  width: 2.5rem;
+  margin-left: 20mm;
+}
+
+.day-break-after {
+  margin-bottom: 30px;
+}
+
+@media only screen and (max-width: 600px) {
+  .fixture {
+    margin-left: 0;
+    grid-template-columns: 4rem 1fr;
+  }
+  h5.time-break time {
+    margin-left: 0;
+  }
+  h4.day-break {
+    height: auto;
+  }
+  h4.day-break time {
+    width: auto;
+    text-align: left;
+  }
+}
+ol.fixtures {
+  border: 1px solid blue;
 }

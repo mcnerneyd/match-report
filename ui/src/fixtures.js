@@ -1,35 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react';
 import moment from "moment";
-import { useNavigate } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from './db'
 import './fixtures.scss'
+import useMatchcardStore from './matchcardStore';
 
 const Fixtures = () => {
 
-    const [section, setSection] = useState('all')
-    const [club, setClub] = useState('all')
-    const [competition, setCompetition] = useState('all')
-    const [team, setTeam] = useState('all')
+    const [filter, setFilter] = useState({
+        section: null,
+        club: null,
+        competition: null,
+        team: null
+    })
 
-    const navigate = useNavigate()
     const fixtures = useLiveQuery(() => db.fixtures.orderBy('datetimeZ').toArray());
 
     const sections = [...new Set(fixtures?.map(x => x.section))]
     sections.sort()
-    const clubs = [...new Set(fixtures?.filter(x => section == 'all' || section == x.section).map(x => x.home.club))]
+    const clubs = [...new Set(fixtures?.filter(x => filter.section == 'all' || filter.section == x.section).map(x => x.home.club))]
     clubs.sort()
-    const competitions = [...new Set(fixtures?.filter(x => section == 'all' || section == x.section).map(x => x.competition))]
+    const competitions = [...new Set(fixtures?.filter(x => filter.section == null || filter.section == x.section).map(x => x.competition))]
     competitions.sort()
-    const teams = [...new Set(fixtures?.filter(x => section == 'all' || section == x.section)
-        .filter(x => club == 'all' || club == x.home.club)
+    const teams = [...new Set(fixtures?.filter(x => filter.section == null || filter.section == x.section)
+        .filter(x => filter.club == 'all' || filter.club == x.home.club)
         .map(x => x.home.club + " " + x.home.team))]
     teams.sort()
 
     const selectedFixtures = fixtures?.filter(x => {
-        if (club != 'all' && !(x.home.club == club || x.away.club == club)) return false;
-        if (section != 'all' && x.section != section) return false;
-        if (competition != 'all' && x.competition != competition) return false;
+        if (filter.club != null && !(x.home.club == filter.club || x.away.club == filter.club)) return false;
+        if (filter.section != null && x.section != filter.section) return false;
+        if (filter.competition != null && x.competition != filter.competition) return false;
         return true;
     })
 
@@ -55,22 +56,24 @@ const Fixtures = () => {
 
     //selectedFixtures?.forEach(x => console.log(x))
 
+    const fetch = useMatchcardStore((state) => state.fetch)
+
     return <>
         <h2>Fixtures</h2>
         <header className='fixtures'>
-            <select onChange={e => setSection(e.target.value)}>
+            <select onChange={e => setFilter(filter => ({ ...filter, section: e.target.value}))}>
                 <option value='all'>All Sections</option>
                 {sections.map(x => <option key={'section:' + x}>{x}</option>)}
             </select>
-            <select onChange={e => setClub(e.target.value)}>
+            <select onChange={e => setFilter(filter => ({ ...filter, club: e.target.value}))}>
                 <option value='all'>All Clubs</option>
                 {clubs.map(x => <option key={'club:' + x}>{x}</option>)}
             </select>
-            <select onChange={e => setCompetition(e.target.value)}>
+            <select onChange={e => setFilter(filter => ({ ...filter, competition: e.target.value}))}>
                 <option value='all'>All Competitions</option>
                 {competitions.map(x => <option key={'comp:' + x}>{x}</option>)}
             </select>
-            <select onChange={e => setTeam(e.target.value)}>
+            <select onChange={e => setFilter(filter => ({ ...filter, team: e.target.value}))}>
                 <option value='all'>All Teams</option>
                 {teams.map(x => <option key={'team:' + x}>{x}</option>)}
             </select>
@@ -98,7 +101,7 @@ const Fixtures = () => {
                 ? <h5 className='time-break'><time dateTime={item.date.format('HH:mm')}>{item.date.format('h:mm')}</time></h5>
                 : null}
 
-            <li className={'fixture' + (item.nextdaybreak ? ' day-break-after' : '')} key={item.id} onClick={() => { navigate(`/${item.id}`)}}>
+            <li className={'fixture' + (item.nextdaybreak ? ' day-break-after' : '')} key={item.id} onClick={() => { fetch(item.id)}}>
                 <div className='lg'>{item.competition}</div>
                 <div className='sm'>{item['competition-code']}</div>
                 <div className='lg'>{item.home.name}</div>

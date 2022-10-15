@@ -1,5 +1,8 @@
 	<title>Matchcards</title>
 
+	<!-- Environment: <?= \Fuel::$env ?> --> 
+	<!-- Base Path: <?= \Config::get('base_url') ?> --> 
+
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1"/>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -18,6 +21,7 @@
 	<link rel='icon' type='image/png' sizes='96x96' href='<?= Uri::create('assets/favicon/favicon-96x96.png')?>'>
 	<link rel='icon' type='image/png' sizes='16x16' href='<?= Uri::create('assets/favicon/favicon-16x16.png')?>'>
 	<link rel='manifest' href='<?= Uri::create('assets/favicon/manifest.json')?>'>
+	<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 	<meta name='msapplication-TileColor' content='#ffffff'>
 	<meta name='msapplication-TileImage' content='<?= Uri::create('assets/favicon/ms-icon-144x144.png')?>'>
 	<meta name='theme-color' content='#ffffff'> 

@@ -247,7 +247,8 @@ class Controller_User extends Controller_Template
         $username = Session::get('username', null);
 
         $data['u'] = $username;
-        $user = Session::get('user');
+	    $user = Session::get('user');
+	    $data['base'] = \Config::get('base_url');
         $data['site'] = $user->section ? $user->section['name'] : null;
         $data['session']['user'] = $username;
         $data['session']['user-title'] = $user->getName();

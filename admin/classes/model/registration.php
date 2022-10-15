@@ -269,8 +269,8 @@ class Model_Registration
     return strftime('%F', $date)."/".$date;
   }
 
-	public static function find_between_dates($sectionName, $clubName, $initialDate, $currentDate) {
-		Log::debug("Request for registration for $clubName: between ".self::fmt($initialDate)." and ".self::fmt($currentDate));
+	public static function find_between_dates($sectionName, $clubName, $initialDate, $currentDate, &$info = array()) {
+		Log::debug("Request for registration for $sectionName/$clubName: between ".self::fmt($initialDate)." and ".self::fmt($currentDate));
 		$current = Model_Registration::find_before_date($sectionName, $clubName, $currentDate);
 		$restrictionDate = Config::get('section.date.restrict', null);
 		$initial = null;
@@ -286,6 +286,12 @@ class Model_Registration
 		$club = Model_Club::find_by_name($clubName);
 		$teamSizes = $club ? $club->getTeamSizes($sectionName) : array();
 		$history = Model_Player::getHistory($clubName, $currentDate);
+
+		$info['initial'] = $initialDate;
+		$info['current'] = $currentDate;
+		$info['teamSizes'] = $teamSizes;
+		$info['club'] = $clubName;
+		$info['section'] = $sectionName;
 
 		return self::buildRegistration($current, $initial, $teamSizes, $history, \Config::get("section.registration.placeholders", true));
 	}

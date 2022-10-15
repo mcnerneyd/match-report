@@ -1,5 +1,4 @@
-<?php
-
+<?php 
 class Model_Club extends \Orm\Model
 {
 	protected static $_properties = array(
@@ -21,18 +20,25 @@ class Model_Club extends \Orm\Model
 	public function getTeamSizes($sectionName, $stars = true) {
 		$result = array();
 
+		$teams = $this->team;
+		usort($teams, function($a, $b) {
+			return ($a->name - $b->name);
+		});
+		
 		$carry = 0;
-		foreach ($this->team as $team) {
-        Log::debug("Team; ".$team->name);
+		foreach ($teams as $team) {
+        	Log::debug("Team; ".$team->name);
 			foreach ($team->competition as $competition) {
 				if ($competition->section['name'] != $sectionName) continue;
 
 				$size = $competition['teamsize'];
-        Log::debug("Competition; $size ".$competition->name);
+				$starSize = $competition['teamstars'];
+				if (!$starSize) $starSize = 0;
+        		Log::debug("Competition: ".$competition->name." size=$size stars=$starSize");
 				if ($size) {
 					if ($stars) {
 						$size += $carry;
-						$carry = $competition['teamstars'] || 0;
+						$carry = $starSize;
 						$size -= $carry;
 					}
 					$result[] = $size;

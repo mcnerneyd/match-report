@@ -94,4 +94,22 @@ const format = (d) => {
   ?>
     </tbody>
   </table>
+
+  <p class='subinfo'>Valid from <?= Date::forge($info['initial'])->format('%Y-%m-%d') ?>
+    to <?= Date::forge($info['current'])->format('%Y-%m-%d') ?></p>
+  <table class='subinfo'>
+  <?php 
+  function ordinal($n) {
+    if ($n == 1) return "1st";
+    if ($n == 2) return "2nd";
+    if ($n == 3) return "3rd";
+    return $n."th";
+  }
+  
+  foreach ($info['teamSizes'] as $k => $v) { ?>
+    <tr><td><?= ordinal($k+1)." team" ?></td>
+    <td><?= "$v players" ?></td></tr>
+  <?php } ?>
+  </table>
+
 </div>

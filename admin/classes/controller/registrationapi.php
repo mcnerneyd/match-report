@@ -8,14 +8,14 @@ class Controller_RegistrationApi extends Controller_Rest
     
     public function get_list()
     {
-        $dateS = \Input::param('d', Date::forge()->format("%Y%m%d"));
         $clubId = \Auth::get('club_id');
-        Log::debug("Club ID:$clubId");
         $club = Model_Club::find_by_id($clubId);
         if ($club === null) {
             Log::error("Unable to find club for id: $clubId");
+            return new Response("User not authorized: no club", 401);
         }
         $club = $club['name'];
+        $dateS = \Input::param('d', Date::forge()->format("%Y%m%d"));
         $team = \Input::param('t', 1);
         $section = \Input::param('s', 1);
         $groups = \Input::param('g', null);

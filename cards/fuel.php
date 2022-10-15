@@ -97,6 +97,10 @@ function site() {
 
 class Config {
 	public static function get($path, $def = null) {
+		if ($path === 'base_url') {
+			return $_SESSION['base-url'];
+		}
+
 		$configFile = realpath(DATAPATH.'/config.json');
 
 		$json = file_get_contents($configFile);

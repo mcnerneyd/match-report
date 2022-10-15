@@ -22,6 +22,12 @@ footer div {
   padding: 2px;
 }
 
+.smallprint {
+  color: darkred;
+  text-align: center;
+  margin-top: 10rem;
+}
+
 /* ---------- Navbar ------------------------------------------- */
 .tab-pane {
   padding: 20px 10px;
@@ -328,7 +334,7 @@ td.command-group {
 }
 #match-card .deleted td {
   position: relative;
-  color: #d9534f80;
+  color: rgba(217, 83, 79, 0.5019607843);
 }
 #match-card .deleted td:after {
   content: "";
@@ -337,7 +343,7 @@ td.command-group {
   height: 1px;
   position: absolute;
   top: 50%;
-  background: #d9534f80;
+  background: rgba(217, 83, 79, 0.5019607843);
 }
 #match-card div.figures {
   padding-top: 5px;
