@@ -1,34 +1,41 @@
 @import url("https://fonts.googleapis.com/css?family=Montserrat");
 
-$gap: 5px;
+$gap: 3mm;
+$buttonGap: 1mm;
+$smallWidth: 768px;
+$normalWidth: 992px;
 
 html {
-    overflow-y: scroll;
+    height: 100%;
 }
 
 body {
+    height: 100%;
+    width: 100vw;
+
+    overflow: hidden;
     font-family: "Montserrat", sans-serif;
     font-size: 11pt;
 }
 
-.container {
-    margin-top: 80px;
+.xcontainer {
+    display: grid;
+    grid-template-rows: 3.5rem 2rem min-content 1fr 4rem;
+    grid-template-columns: 1fr $normalWidth 1fr;
+
+    height: 100%;
 }
 
-footer div {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    background: black;
-    color: white;
-    font-size: 60%;
-    padding: 2px;
+@media screen and (max-width: $normalWidth) {
+    .xcontainer {
+        grid-template-columns: 1rem 1fr 1rem;
+    }
 }
 
 .smallprint {
-  color: darkred;
-  text-align: center;
-  margin-top: 10rem;
+    color: darkred;
+    text-align: center;
+    margin-top: 10rem;
 }
 
 /* ---------- Navbar ------------------------------------------- */
@@ -37,14 +44,14 @@ footer div {
 }
 
 #user {
-    position: absolute;
-    min-height: 18px;
+    grid-area: 2/2/3/4;
+    height: 2rem;
     font-size: 12px;
     font-weight: bold;
     padding: 5px;
+    padding-right: 1rem;
     color: crimson;
-    right: 0;
-    top: 55px;
+    text-align: right;
 }
 
 #user select {
@@ -59,15 +66,73 @@ footer div {
 .objecttable {
     margin: 20px 0;
 }
-.table > thead > tr > th {
+
+.table>thead>tr>th {
     border-bottom-color: black;
 }
+
 .table td {
     padding: 0.5rem 0.25rem 0.15rem;
 }
 
 td.number {
     text-align: center
+}
+
+#fixtures-tab {
+    grid-area: 3/2/4/3;
+
+    display: flex;
+    gap: 2mm;
+
+    label {
+        height: 2.4rem;
+        margin-top: 0;
+    }
+}
+
+.xcontainer>h1,
+.command-group {
+    grid-area: 3/2/4/3;
+}
+
+.legacy,
+#fixtures-container,
+#registration,
+#configform,
+#competitions-table_wrapper,
+#clubs-table_wrapper,
+#fixtures-table_wrapper,
+#fines-table_wrapper,
+#users-table_wrapper,
+#registration-info {
+    grid-area: 4/2/6/3;
+}
+
+#fixture,
+#results-table_wrapper,
+#login {
+    grid-area: 3/2/6/3;
+}
+
+#registration {
+    overflow: hidden auto;
+}
+
+#match-card {
+    grid-area: 3/1/5/4;
+    padding-inline: calc((100vw - $normalWidth)/2);
+    padding-bottom: 2cm;
+}
+
+@media screen and (max-width: $normalWidth) {
+    #match-card {
+        padding-inline: 1rem;
+    }
+}
+
+.btn-group {
+    gap: 2px;
 }
 
 /* ---------- General Styles ----------------------------------- */
@@ -77,14 +142,10 @@ th {
 }
 
 div.command-group {
-    margin-top: -50px;
-    margin-bottom: 0;
-    float: right;
     display: inline-flex;
+    justify-content: end;
 
-    * {
-        margin-left: $gap;
-    }
+    gap: $buttonGap;
 }
 
 td.command-group {
@@ -105,7 +166,7 @@ td.command-group {
 }
 
 .hints {
-    font-style:italic;
+    font-style: italic;
     font-size: 0.9;
     padding-top: 1rem;
     padding-bottom: 1rem;
@@ -119,7 +180,7 @@ td.command-group {
     border: 1px solid #7ab733;
     padding: 5px 5px 3px;
     margin-right: 2px;
-    display: inline-block!important;
+    display: inline-block !important;
 }
 
 .label-league {
@@ -156,63 +217,84 @@ td.command-group {
     }
 
     #teams {
-        margin-right: 0;
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        gap: $gap;
     }
+
     .team {
         width: 100%;
         margin-bottom: 30px;
     }
-    @media(min-width: 768px) {
+
+    @media(max-width: $smallWidth) {
         #teams {
-            margin-right: -20px;
-        }
-        .team {
-            width: 50%;
-            padding-right: 20px;
-            float: left;
+            flex-direction: column;
         }
     }
+
     table {
         width: 100%;
     }
+
     tr td {
         padding: 5px 10px 5px 0;
         border-bottom: 1px solid #ddd;
+
         &:nth-child(2) {
             font-style: italic;
         }
+
         &:nth-child(3) {
             width: 60%;
         }
     }
+
     detail {
         width: 100%;
         clear: both;
-        display: block;
+        display: flex;
         float: left;
+
         dl {
             padding-right: 30px;
             float: left;
             margin-bottom: 0;
         }
+
+        a {
+            flex-grow: 1;
+            text-align: right;
+
+            i {
+                padding: 5px;
+            }
+        }
     }
+
     #lock-code {
         float: right;
         padding-right: 0;
+
         * {
             text-align: right;
         }
     }
+
     tr {
         height: 2em;
+
         &.filler {
             background: repeating-linear-gradient(45deg, white, white 9px, #eee 2px, #eee 11px);
         }
     }
+
     span.card-penalty img {
         width: 1.5em;
         margin: -1.5em -0.3em -0.5em 0.5em;
     }
+
     thead tr {
         font-size: 20px;
         color: black;
@@ -228,6 +310,7 @@ td.command-group {
             height: 20px;
         }
     }
+
     .ineligible {
         background: repeating-linear-gradient(45deg, white, white 10px, #fea 10px, #fea 20px);
     }
@@ -245,23 +328,27 @@ td.command-group {
             top: 5px;
             right: 8px;
         }
+
         .number {
             width: 15px;
             text-align: center;
             display: block;
         }
     }
+
     figcaption {
         margin-top: -19px;
         font-size: 70%;
         text-align: left;
         margin-left: 18px;
         height: 1.6rem;
+
         &:first-line {
             font-size: 60%;
             font-style: italic;
         }
     }
+
     width: 100%;
     overflow-x: hidden;
     position: relative;
@@ -270,64 +357,80 @@ td.command-group {
     h2 {
         font-size: 25px;
     }
+
     #headshot {
-        position: absolute;
-        right: 0;
+        float: right;
     }
+
     tr th {
         padding: 5px 10px 5px 0;
         border-bottom: 1px solid #ddd;
     }
+
     #fixture tr {
         height: 2em;
     }
+
     thead tr th,
     #fixture thead tr th {
         text-align: left;
         width: 2em;
     }
+
     tbody tr th:first-child {
         text-align: center;
         width: 3em;
     }
+
     tr .player-annotations {
         display: inline;
         float: right;
     }
+
     #fixture table#players {
         margin-top: 20px;
     }
+
     .score {
-      font-weight: bold;
-      &:nth-child(1) {
-          color: #484;
-          &:before {
-              content: "x";
-          }
-      }
+        font-weight: bold;
+
+        &:nth-child(1) {
+            color: #484;
+
+            &:before {
+                content: "x";
+            }
+        }
     }
+
     .team-table thead tr {
         font-size: 20px;
         color: black;
         padding: 5px 10px 5px 0;
         border-bottom: 1px solid black;
         border-top: 1px solid black;
+
         .scores {
             float: right;
             position: relative;
             margin-right: 10px;
+
             span {
                 font-weight: bold;
+
                 &:nth-child(1) {
                     color: #484;
+
                     &:before {
                         content: "x";
                     }
                 }
+
                 &:nth-child(2) {
                     &:before {
                         content: "\\";
                     }
+
                     position: absolute;
                     top:0;
                     color: #aca;
@@ -337,12 +440,15 @@ td.command-group {
             }
         }
     }
+
     .late {
         color: #d9534f;
     }
+
     .deleted td {
         position: relative;
         color: #d9534f80;
+
         &:after {
             content: "";
             display: block;
@@ -353,9 +459,11 @@ td.command-group {
             background: #d9534f80;
         }
     }
+
     div.figures {
         padding-top: 5px;
     }
+
     figure {
         float: left;
         margin: 5px 5px 0 0;
@@ -364,8 +472,10 @@ td.command-group {
         position: relative;
         overflow: hidden;
         box-shadow: 2px 2px 2px #ccc;
+
         img {
             width: 100%;
+
             &.card {
                 width: 1.5em;
                 position: absolute;
@@ -373,12 +483,14 @@ td.command-group {
                 left: 4px;
             }
         }
+
         .number {
             width: 15px;
             text-align: center;
             display: block;
         }
     }
+
     figcaption {
         margin-top: -19px;
         font-size: 70%;
@@ -399,75 +511,89 @@ td.command-group {
     .flash {
         background-color: white !important;
         color: green;
-      }
-      .spacer {
+    }
+
+    .spacer {
         height: 80px;
-      }
-      
-      .alert-small {
+    }
+
+    .alert-small {
         font-size: 90% !important;
         text-align: center !important;
         padding: 2px 5px !important;
         margin-bottom: 10px !important;
-      }
-      
-      #context-menu {
+    }
+
+    #context-menu {
         padding-top: 0px;
-      }
-      
-      #context-menu form {
+    }
+
+    #context-menu form {
         padding: 0 1.5em;
-      }
-      
-      #context-menu .modal-header {
+    }
+
+    #context-menu .modal-header {
         margin-bottom: 7px;
-      }
-      
-      #card-addx {
+    }
+
+    #card-addx {
         max-width: 80%;
-      }
-      
-      #submit-card a.float-right {
-          margin-left: 10px;
-        }
-      h2 { margin-top: 0.5rem; font-size: 0.75em !important; font-style: italic; }
-      .role {
+    }
+
+    #submit-card a.float-right {
+        margin-left: 10px;
+    }
+
+    h2 {
+        margin-top: 0.5rem;
+        font-size: 0.75em !important;
+        font-style: italic;
+    }
+
+    .role {
         font-size: 0.7em;
         font-weight: bold;
         padding: 0 4px;
-        width:30px;
-        text-align:center;
-        color:white;
+        width: 30px;
+        text-align: center;
+        color: white;
         border-radius: 2px;
         margin-left: 3px;
         margin-top: 3px;
-      }
-      #select-role {
-        xdisplay:none;
-      }
-      #select-role label {
-        color:white;
-        border:0;
-        border-radius:0;
+    }
+
+    #select-role {
+        xdisplay: none;
+    }
+
+    #select-role label {
+        color: white;
+        border: 0;
+        border-radius: 0;
         padding: 2px 4px;
         font-size: 80%;
-      }
-      .role-goalkeeper {
+    }
+
+    .role-goalkeeper {
         background: green;
-      }
-      .role-captain {
-        background:black;
-      }
-      div.role-captain {
+    }
+
+    .role-captain {
+        background: black;
+    }
+
+    div.role-captain {
         border-radius: 0;
-      }
-      .role-manager {
+    }
+
+    .role-manager {
         background: blue;
-      }
-      .role-physio {
+    }
+
+    .role-physio {
         background: red;
-      }
-     
+    }
+
 }
 
 .waiting {
@@ -546,22 +672,27 @@ header {
         width: 1em;
         margin-right: 2px;
     }
+
     .card {
         display: inline-block;
         border: none;
     }
+
     .dropdown-title {
         font-size: 140%;
         font-weight: bold;
         border-radius: 5px 5px 0 0;
     }
+
     li {
         white-space: nowrap;
         padding: 2px 10px;
+
         .divider {
             padding: 0;
         }
     }
+
     #context-close {
         display: inline;
         margin-left: 20px;
@@ -572,6 +703,7 @@ header {
     div {
         position: relative;
         margin-top: 15px;
+
         span {
             position: absolute;
             top: 0;
@@ -579,6 +711,7 @@ header {
             text-align: right;
             color: red;
         }
+
         img {
             max-width: 300px;
             max-height: 100px;
@@ -595,12 +728,14 @@ header {
     right: 0;
     bottom: 0;
     z-index: 10000;
+
     .button-box {
         position: absolute;
         bottom: 10px;
         right: 10px;
         transform: rotate(-90deg);
     }
+
     h5 {
         position: absolute;
         top: 10px;
@@ -610,10 +745,12 @@ header {
 }
 
 #submit-card {
-    position: fixed;
+    /*position: fixed;
     bottom: 0;
     right: 0;
-    left: 0;
+    left: 0;*/
+    grid-area: 5/1/6/4;
+
     background-color: #444;
     padding: 10px;
     z-index: 500;
@@ -636,7 +773,7 @@ header {
 }
 
 #login {
-    max-width: 330px;
+    width: 300px;
     padding: 15px;
     margin: 0 auto;
 
@@ -644,6 +781,7 @@ header {
         font-weight: normal;
         font-size: 90%;
     }
+
     .form-control {
         position: relative;
         height: auto;
@@ -653,6 +791,7 @@ header {
         padding: 10px;
         font-size: 14px;
     }
+
     #user-select {
         height: 45px;
         margin-top: 22px;
@@ -667,18 +806,22 @@ header {
         border-top-right-radius: 0;
         border-top: 0;
     }
+
     button {
         margin-top: 20px;
     }
+
     img {
         width: 10em;
         margin-left: -5em;
         left: 50%;
         position: relative;
     }
+
     h2 {
         width: 100%;
         text-align: center;
+
         a {
             color: black;
         }
@@ -691,18 +834,22 @@ header {
     input.pin {
         -webkit-text-security: disc;
     }
+
     input.pin::-webkit-inner-spin-button,
     input.pin::-webkit-outer-spin-button {
         -webkit-appearance: none;
         margin: 0;
     }
+
     div#site-select {
         max-width: 330px;
         margin: 0 auto;
+
         a {
             margin: 5px;
         }
     }
+
     .switch-login {
         text-align: center;
         margin-top: 8px;
@@ -719,31 +866,39 @@ header {
     }
 
     #registration-table {
+
         th,
         td {
             text-align: center;
+
             &:nth-child(1) {
                 width: 32px;
             }
+
             &:nth-child(2) {
                 width: 24px;
             }
+
             &:nth-child(3) {
                 text-align: left;
             }
         }
+
         .deleted {
             text-decoration: line-through;
             color: red;
         }
+
         .added {
             font-style: italic;
             color: green;
         }
+
         .match-pill {
             margin: 2px;
             display: block;
             float: left;
+
             span {
                 font-size: 80%;
                 color: black;
@@ -753,6 +908,7 @@ header {
                 border-left: 0;
                 border-radius: 0 5px 5px 0;
             }
+
             span:first-child {
                 border-radius: 5px 0 0 5px;
                 background: #b08080;
@@ -761,12 +917,15 @@ header {
                 border-right: 0;
             }
         }
+
         .match-pill-cup span {
             border-color: #8080b0 !important;
         }
+
         .match-pill-cup span:first-child {
             background: #8080b0;
         }
+
         img.membership {
             width: 20px;
             height: 20px;
@@ -777,6 +936,7 @@ header {
     .form-confirmation {
         position: relative;
         height: 45px;
+
         p {
             position: absolute;
             top: 2px;
@@ -785,29 +945,41 @@ header {
             font-style: italic;
         }
     }
+
     .form-control label {
         margin-bottom: 0;
         font-size: 80%;
     }
+
     tr.error td {
         color: red;
     }
+
     .dt-right {
         text-align: right;
     }
+
     #errors {
         display: none;
 
         .error {
             color: red;
         }
+
         .warn {
             color: orange;
         }
     }
 }
 
-#users-select { padding-left: 20px; float:left; }
+#users-select {
+    padding-left: 20px;
+    float: left;
+}
+
+#section-select {
+    width: 20rem;
+}
 
 #fixtures-table {
     tr.hidden {
@@ -817,5 +989,65 @@ header {
 }
 
 #fixtures {
-    .date { padding-right: 4px; }
+    .date {
+        padding-right: 4px;
+    }
+
+    tr.error {
+        background-color: #ffd9d9;
+    }
 }
+
+#configform {
+    /*max-height: 100%;
+    padding-bottom: 1rem;
+    display: flex;
+    flex-direction: column;*/
+
+    .tab-content {
+        //overflow-y: auto;
+
+        .tab-pane {
+            display: none;
+        }
+
+        .active {
+            display: grid;
+            grid-gap: 3mm;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: repeat(10, min-content);
+        }
+
+        fieldset {
+            label {
+                padding-left: 2rem;
+            }
+
+            label:nth(4) {
+                margin-top: 1rem;
+            }
+        }
+
+        #fixtures {
+            div:first-child {
+                grid-area: 1/1/2/3;
+            }
+        }
+    }
+}
+
+/* ----- Overrides ----- */
+body.admin {
+
+    display: grid;
+    grid-template-rows: 3.5rem 1fr;
+
+    nav {
+        position: relative;
+    }
+    .xcontainer {
+        grid-template-rows: 0 2rem min-content 1fr 4rem;
+        overflow-y: auto;
+    }
+}
+

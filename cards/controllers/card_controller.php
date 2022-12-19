@@ -14,12 +14,17 @@ class CardController {
         }
         usort($competitions, function($a, $b) { return strcmp($a['name'], $b['name']); });
 
-        $clubs = array_column(Club::all(), "name");
+        $clubs = array();
+        
+        foreach (Club::all() as $club) $clubs[] = array('id'=>$club['id'], 'name'=>$club['name']);
+        /*$clubs = array_column(Club::all(), "name");
 
         if (Arr::get($_SESSION, 'club', null) && !in_array($_SESSION['club'], $clubs)) {
           $clubs[] = $_SESSION['club'];
         }
-        sort($clubs);
+        sort($clubs);*/
+        $entries = array();
+        foreach (Competition::entries() as $entry) $entries[] = array($entry['competition_id'], $entry['club_id']);
 
         require_once('views/card/index.php');
     }
@@ -27,7 +32,7 @@ class CardController {
     // ------------------------------------------------------------------------
     // Get a matchcard based on its id
     public function get() {
-        checkuser();
+        //checkuser();
 
         $id = $_REQUEST['fid'];
 
@@ -39,6 +44,8 @@ class CardController {
 
         if (!$fixture)
             throw new Exception("No such fixture (fid=$id)");
+
+        Log::debug("Fixture: ".print_r($fixture, true));
 
         if (user('umpire')) {
             if (!isset($fixture['card'])) {
@@ -72,17 +79,21 @@ class CardController {
                     $fixture = Card::getFixture($id);
             }
 
-            if (!in_array($club, $fixture)) {
+            if (!isset($fixture[$club])) {
                 // This club is not one of the clubs on the matchcard
+                Log::debug("Club $club is not part of this fixture");
                 require_once('views/card/matchcard.php');
                 return;
             }
+
+            $location = $fixture[$club];
+            Log::debug("For fixture {$fixture['id']}: $club is $location");
 
             $data = array(
                     'section' => $fixture['section'],
                     'club' => $club,
                     'date' => date('Ymd', $fixture['date']),
-                    'team' => $fixture[$fixture[$club]]['teamnumber'],
+                    'team' => $fixture[$location]['teamnumber'],
                     'groups' => $fixture['groups']);
 
             $teamcard = $fixture['card'][$fixture[$club]];

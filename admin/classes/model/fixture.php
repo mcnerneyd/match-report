@@ -109,6 +109,16 @@ class Model_Fixture extends \Model
 
         file_put_contents(DATAPATH.'/fixtures.json', json_encode($allfixtures));
 
+        $csvFile = fopen(DATAPATH."/fixtures.csv", "w");
+        foreach ($allfixtures as $fixture) {
+            fputcsv($csvFile, array($fixture['fixtureID'], strtotime($fixture['datetimeZ']), time(),
+                $fixture['section'], $fixture['competition'],
+                $fixture['home_club'], $fixture['home_team'],
+                $fixture['away_club'], $fixture['away_team'],
+                $fixture['played'] == 'yes' ? 'y' : 'n', 0, 0, 0, 0));
+        }
+        fclose($csvFile);
+
         Cache::set('fixtures', $allfixtures, 600);
         try {
             Cache::delete('fixtures.processing');
@@ -206,18 +216,18 @@ class Model_Fixture extends \Model
                   $fixtures = array($fixture);
               } else {
                   $src = file_get_contents($feed);
-                  $pt=microtime(true);
+                  $pt = microtime(true);
 
                   $fixtures = json_decode($src, true);
                   if ($fixtures == null) {
                       Log::warning("Cannot process $feed - response is not Json");
+                      $fixtures = array();
                   }
               }
 
               foreach ($fixtures as $fixture) {
                   $aFixture = (array)$fixture;
                   $aFixture['feed'] = $feed;
-                  //$allfixtures[$fixture['fixtureID']] = (array)$fixture;
                   $allfixtures[$section['name'].":".$aFixture['fixtureID']] = $aFixture;
               }
           } catch (Exception $e) {

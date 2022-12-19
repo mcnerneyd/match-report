@@ -5,8 +5,22 @@ import Matchcard from './matchcard';
 import { db } from './db'
 import useMatchcardStore from './matchcardStore'
 import { API_BASE } from './constants'
+import { makeAutoObservable } from "mobx"
+import { observer } from "mobx-react"
 
 export const UserContext = React.createContext(null)
+
+class Card {
+  constructor() {
+    makeAutoObservable(this)
+  }
+
+  card = null
+
+  setCard(id) {
+    card = id
+  }
+}
 
 function App() {
 
@@ -64,6 +78,8 @@ function App() {
   })
 
   const card = useMatchcardStore((state) => state.card)
+  const myCard = new Card()
+  const CardView = observer(({ card }) => <div>Card {card.card}</div>)
 
   return <UserContext.Provider value={userData}>
     <header>
@@ -80,6 +96,8 @@ function App() {
       </nav>
     </header>
     <main>
+      <CardView card={myCard}/>
+      <button onClick={() => myCard.card=5}/>
       { card != null 
         ? <Matchcard />
         : <Fixtures />

@@ -26,7 +26,7 @@
 	#count { position: fixed; top:80px; right:0; left:0; text-align:center; 
 		color: #120; font-size: 200pt; font-weight: bold; }
 	.xbuttons { position:absolute; top:0; right:0; }
-	#fixture { position:relative; }
+	#fixture { position:relative; overflow-y: scroll; }
 	.alert { margin-top: 10px; margin-bottom: 10px; }
 	img.membership {
 		width: 20px;

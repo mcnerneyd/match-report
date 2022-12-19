@@ -81,6 +81,7 @@ class Controller_AdminApi extends Controller_RestApi
             ),
             'cards'=>array(
                 'post_results'=>Config::get("$section.result.submit", 'no'),
+                'results_button'=>Config::get("$section.result.button", 'yes'),
             ),
         );
 
@@ -110,6 +111,7 @@ class Controller_AdminApi extends Controller_RestApi
             Config::set("$section.allowassignment", Input::post('allow_assignment') == 'on');
             Config::set("$section.registration.placeholders", Input::post('allow_placeholders') == 'on');
             Config::set("$section.result.submit", Input::post("resultsubmit"));
+            Config::set("$section.result.button", Input::post("resultbutton") == 'on');
             Config::set("$section.blockerrors", Input::post("block_errors"));
             Config::set("$section.registration.mandatoryhi", Input::post("mandatory_hi"));
             //Config::set("$section.date.start", Input::post("seasonstart"));

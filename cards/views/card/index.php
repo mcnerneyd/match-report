@@ -65,6 +65,8 @@ function loadPage(row) {
 				anchorTop = ofs.top;
 			}
 			console.log(`Loaded page: ${page} ${data.length} entry/s.`);
+			currentDate = moment();
+
 			for (var i=0;i<data.length;i++) {
 				var item = data[i];
 
@@ -76,7 +78,18 @@ function loadPage(row) {
 				var key = `${item['section']}.${item['competition']}.${item['home']['name']}.${item['away']['name']}`;
         		if (key) key = key.replace(/ /g, "").toLowerCase();
 
-				const rowStr = `<tr id="${fixtureID}" title="${title}" data-key='${key}' data-result='${item['played']}'></tr>`
+				const noPlayers = (teamItem) => {
+					if (teamItem === undefined) return true;
+					if (teamItem['players'] === undefined) return true;
+					return teamItem['players'] === 0;
+				} 
+
+				const homeError = item['home']['score'] != item['home']['match_score']
+				const awayError = item['away']['score'] != item['away']['match_score']
+				const lateError = (noPlayers(item['home']) || noPlayers(item['away'])) && currentDate.isAfter(dt.endOf("day"))
+				const errorClass = (homeError || awayError || lateError) ? "error" : ""
+
+				const rowStr = `<tr id="${fixtureID}" class="${errorClass}" title="${title}" data-key='${key}' data-result='${item['played']}' data-page='${page}'></tr>`
 				if (page < 0) {
 					row.after(rowStr);
 				} else {
@@ -101,10 +114,6 @@ function loadPage(row) {
 					<td class="d-table-cell d-md-none"><span class="badge label-league">${item['competition-code']}</span></td>
 					<td class="d-none d-md-table-cell">${item['home']['name']}`;
 
-        /*
-				if (item['home_info']['signed']) tds += ' <i class="fas fa-check-square"></i>';
-				else if (item['home_info']['locked']) tds += ' <i class="fas fa-lock"></i>';
-        */
 				tds += '</td>';
 
 				tds += "<td class='d-none d-md-table-cell'>";
@@ -112,8 +121,6 @@ function loadPage(row) {
 				tds += "</td>";
 
 				tds += '<td class="d-none d-md-table-cell">' + item['away']['name'];
-				//if (item['away_info']['signed']) tds += ' <i class="fas fa-check-square"></i>';
-				//else if (item['away_info']['locked']) tds += ' <i class="fas fa-lock"></i>';
 				tds += `</td>
 				<td class='d-none d-md-table-cell mail-btn'><i class='fa fa-envelope'></i></td>
 				<td class="d-md-none">${item['home']['name']} `;
@@ -126,7 +133,17 @@ function loadPage(row) {
 				current.data('time', dt);
 				current.data('id', fixtureID);
 
-				if (page > 0) {
+				if (page < 0) {
+					if (current.next()) {
+						var nextDate = current.next().data('time');
+						if (nextDate && dt.format('MMMM YYYY') != nextDate.format('MMMM YYYY')) {
+							addMonthYear(current.next());
+						}
+					}
+
+					$(window).scrollTop(row.position().top + row.height() + 5);
+					$(window).scroll(triggerLoad);
+				} else {
 					var prevDate = null;
 					if (current.prev()) {
 						prevDate = current.prev().data('time');
@@ -134,18 +151,6 @@ function loadPage(row) {
 					if (!prevDate || dt.format('MMMM YYYY') != prevDate.format('MMMM YYYY')) {
 						addMonthYear(current);
 					}
-				} else {
-					if (current.next()) {
-						var nextDate = current.next().data('time');
-						if (nextDate && dt.format('MMMM YYYY') != nextDate.format('MMMM YYYY')) {
-							addMonthYear(current.next());
-						}
-					}
-				}
-
-				if (page < 0) {
-					$(window).scrollTop(row.position().top + row.height() + 5);
-					$(window).scroll(triggerLoad);
 				}
 			}
 
@@ -153,7 +158,7 @@ function loadPage(row) {
 				row.find("i:first").hide();
 				row.find("i.fa-sync-alt").show();
 				$(".scrollrow").show();
-				if (page<0) {
+				if (page < 0) {
 					row.data('page', page-1);
 				} else {
 					row.data('page', page+1);
@@ -198,7 +203,7 @@ function filter(fixtureRow) {
 
 function addMonthYear(firstRow) {
 	var dt = firstRow.data('time');
-	firstRow.before("<tr class='month-marker'><th colspan='20'>" + dt.format('MMMM YYYY') + "</th></tr>");
+	firstRow.before("<tr class='month-marker'><th colspan='20'>" + (dt ? dt.format('MMMM YYYY') : "-") + "</th></tr>");
 }
 
 function triggerLoad() {
@@ -262,7 +267,11 @@ $(document).ready(function() {
 		fetch(BASE_URL + "fixtureapi/contact?id=" + tr.attr('id'))
 		.then((response) => response.json())
 		.then((data) => {
-	    	location.href = "mailto:" + data.to.join() + "?cc="+data.cc.join()+"&subject="+data.subject;
+				body = "Link to card: " + BASE_URL + "/card/" + tr.attr('id');
+	    	window.open("mailto:" + data.to.join() + "?cc="+data.cc.join()
+				+"&subject="+ encodeURIComponent(data.subject)
+				+"&body="+ encodeURIComponent(body),
+				"_blank");
 		});
 	});
 
@@ -284,27 +293,30 @@ $(document).ready(function() {
 		}
 	})
 });
+
+const entryMap = [
+<?php foreach ($entries as $i => $entry) {
+	echo "(".$entry[0].",".$entry[1]."),"; 
+	if ($i%20 == 19) echo "\n";
+	}?>
+]
+
 </script>
 
-<form id='fixtures-tab' style='flex: 0 1 auto'>
-  <div class='form-row'>
-    <div class='col-12 col-md-5'>
+<form id='fixtures-tab'>
     <select id='pills-club' class='custom-select'>
       <option selected value=''>All Clubs</option>
-      <?php foreach ($clubs as $club) echo "<option value=\"$club\">$club</option>\n" ?>
+      <?php foreach ($clubs as $i => $club) echo "<option data-index='{$club['id']}' value=\"{$club['name']}\">{$club['name']}</option>\n" ?>
     </select>
-    </div>
-    <div class='col-12 col-md-5'>
     <select id='pills-competition' class='filter custom-select'>
       <option selected value="">All Competitions</option>
-      <?php foreach ($competitions as $competition) {
+      <?php foreach ($competitions as $i => $competition) {
 				$name = $competition['name'];
 				if (!$_SESSION['section']) $name .= " (".$competition['section'].")";
-				echo "<option value='".$competition['name']."'>$name</option>\n";
+				echo "<option data-index='{$competition['id']}' value='".$competition['name']."'>$name</option>\n";
 			 } ?>
     </select>
-    </div>
-    <div id='toggle-buttons' class="btn-group btn-group-toggle col-12 col-md-2" data-toggle="buttons">
+    <div class="btn-group btn-group-toggle" data-toggle="buttons">
       <label class="btn btn-secondary active btn-block">
         <input type="checkbox" name='view-results' checked autocomplete="off"> Results
       </label>
@@ -312,7 +324,6 @@ $(document).ready(function() {
         <input type="checkbox" name='view-fixtures' checked autocomplete="off"> Fixtures
       </label>
     </div>
-  </div>
 </form>
 
 <div id='fixtures-container' style='position: fixed; bottom: 10px; left: 0; right: 0; top: 95px; margin-top: 20px; border-top: 1px solid lightgray; border-bottom: 1px solid lightgray;'>

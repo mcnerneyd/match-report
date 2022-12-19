@@ -1,4 +1,4 @@
-<?php $link = Uri::create("/User/ForgottenPassword?e=$email&ts=$timestamp&h=$hash&site=$site");
+<?php $link = Uri::create("/User/ForgottenPassword?e=$email&ts=$timestamp&h=$hash");
 
 Log::info("Link: $link"); ?>
 <p>A request was made to reset the password on cards.leinsterhockey.ie for

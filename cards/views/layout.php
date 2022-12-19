@@ -4,7 +4,7 @@
 			<?php require_once(APPPATH.'/views/head.php'); ?>
   </head>
 
-  <body>
+  <body class='cards'>
 			<script>
 				Raven.config('https://773a5c2c3fc64be3961a669bf217015c@sentry.io/103038').install();
 
@@ -26,28 +26,22 @@
 
 			<?php require_once(APPPATH.'/views/nav.php'); ?>
 
-		<div class='container' data-controller='<?= $controller ?>' data-action='<?= $action ?>'>
-			<?php 
-
-			if (isset($_SESSION['lastpage'])) {
-				echo "<script>window.location='".$_SESSION['lastpage']."'</script>";
-			} else {
-				require_once('routes.php'); 
-			}
+		<div class='xcontainer' data-controller='<?= $controller ?>' data-action='<?= $action ?>'>
+			<?php if (\Session::get('user-title')) { ?>
+				<div id='user'><?= \Session::get('user-title') ?></div>
+			<?php }
+	
+            if (isset($_SESSION['lastpage'])) {
+                echo "<script>window.location='".$_SESSION['lastpage']."'</script>";
+            } else {
+                require_once('routes.php');
+            }
 
 			?>
 		</div>
 
-    <footer class='center-block'>
-	<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-      <div>
-        <span>C</span>
-        <span><?= substr(\Fuel::$env,0,1) ?></span>
-        <span class='.d-none.d-xs-block.d-sm-none'>X</span>
-        <span class='visible-sm-block'>S</span>
-        <span class='visible-md-block'>M</span>
-        <span class='visible-lg-block'>L</span>
-      </div>
+    	<footer class='center-block'>
+			<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 		</footer>
 
 		<div class="modal" id='help-modal' tabindex="-1" role="dialog">
@@ -80,12 +74,16 @@
 			$('#alert-modal').modal('show');
 		}
 
-		$(document).ready(function() {
+			$(document).ready(function() {
+<?php // Auto Logout User after 30 seconds
+    if (user()) { ?>
 			setInterval(function() {
 				$.get('<?= Uri::create('UserAPI') ?>').fail(function() {
+					console.log("User [<?php user() ?>] is no longer logged in");
 					window.location = '<?= Uri::create('User/Login') ?>';
 				});
 			}, 30000);
+<?php } ?>
 
 			$('[data-help]').each(function () {
 				$(this).append("<span class='help glyphicon glyphicon-question-sign' data-helpid='"+$(this).data("help")+"'></span>");

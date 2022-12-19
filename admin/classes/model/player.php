@@ -2,9 +2,9 @@
 
 class Model_Player extends \Model
 {
-
-	public static function getHistory($club, $beforeDate = null) {
-		$sql = "select distinct i.player, x.code, x.name, m.date, t.name team, m.id, m.fixture_id, i.date, ch.name home_name, ca.name away_name, c.name club_name
+    public static function getHistory($club, $beforeDate = null)
+    {
+        $sql = "select distinct i.player, x.code, x.name, m.date, t.name team, m.id, m.fixture_id, i.date, ch.name home_name, ca.name away_name, c.name club_name
 					from incident i join matchcard m on i.matchcard_id = m.id
 					join competition x on m.competition_id = x.id
 					join club c on i.club_id = c.id
@@ -18,39 +18,47 @@ class Model_Player extends \Model
 				and t.name is not null
 				and i.type = 'Played'
 				and c.name = :club ";
-				if ($beforeDate) {
-					$sql .= " and i.date > '".date("Y-m-d", seasonStart($beforeDate)->get_timestamp())."'
+        if ($beforeDate) {
+            $sql .= " and i.date > '".date("Y-m-d", seasonStart($beforeDate)->get_timestamp())."'
 						 and i.date < '".date("Y-m-d", $beforeDate)."' ";
-				} else {
-					$sql .= " and i.date > '".date("Y-m-d", currentSeasonStart()->get_timestamp())."'";
-				}
+        } else {
+            $sql .= " and i.date > '".date("Y-m-d", currentSeasonStart()->get_timestamp())."'";
+        }
 
-				$sql .= " ORDER BY i.date DESC";
+        $sql .= " ORDER BY i.date DESC";
 
-				$result = array();
+        $result = array();
 
-				foreach (\DB::query($sql)->bind('club', $club)->execute() as $row) {
-					$player = cleanName($row['player']);
-					if ($row['club_name'] == $row['home_name']) $row['opposition'] = $row['away_name'];
-					else $row['opposition'] = $row['home_name'];
-					if (!isset($result[$player])) $result[$player] = array();
-					$result[$player][] = $row;
-				}
+        foreach (\DB::query($sql)->bind('club', $club)->execute() as $row) {
+            $player = cleanName($row['player']);
+            if ($row['club_name'] == $row['home_name']) {
+                $row['opposition'] = $row['away_name'];
+            } else {
+                $row['opposition'] = $row['home_name'];
+            }
+            if (!isset($result[$player])) {
+                $result[$player] = array();
+            }
+            $result[$player][] = $row;
+        }
 
-				return $result;
-		}
+        return $result;
+    }
 
 
-		// ------------------------------------------------------------------------
-		public static function archive() {
-				$siteDir = DATAPATH."/sections/".Session::get('site');
-				print_r(static::listAllFiles($siteDir."/registration/"));
+        // ------------------------------------------------------------------------
+        public static function archive()
+        {
+            $siteDir = DATAPATH."/sections/".Session::get('site');
+            print_r(static::listAllFiles($siteDir."/registration/"));
 
-				$archiveDir = $siteDir."/tmp/archive/";
-				if (!file_exists($archiveDir)) mkdir($archiveDir, 0777, true);
-				$files = array();
+            $archiveDir = $siteDir."/tmp/archive/";
+            if (!file_exists($archiveDir)) {
+                mkdir($archiveDir, 0777, true);
+            }
+            $files = array();
 
-				$sql = "select i.Date, i.Type, i.Player, c.code Club, 
+            $sql = "select i.Date, i.Type, i.Player, c.code Club, 
 										 coalesce(x.code,'') Competition, 
 										 coalesce(concat(ch.code, th.team),'') Home, 
 										 coalesce(concat(ca.code, ta.team),'') Away, 
@@ -64,14 +72,14 @@ class Model_Player extends \Model
 										left join team ta on m.away_id = ta.id
 										left join club ca on ta.club_id = ca.id";
 
-				$f = fopen($archiveDir."incidents.csv", 'w');
-				fwrite($f, "date, type, player, club, competition, home, away, detail, id, cancelled\n");
-				foreach (\DB::query($sql)->execute() as $row) {
-					fputcsv($f, $row);
-				}
-				fclose($f);
+            $f = fopen($archiveDir."incidents.csv", 'w');
+            fwrite($f, "date, type, player, club, competition, home, away, detail, id, cancelled\n");
+            foreach (\DB::query($sql)->execute() as $row) {
+                fputcsv($f, $row);
+            }
+            fclose($f);
 
-				$sql = "select m.date, ch.code, 
+            $sql = "select m.date, ch.code, 
 										 coalesce(x.code,'') Competition, 
 										 coalesce(concat(ch.code, th.team),'') Home, 
 										 coalesce(concat(ca.code, ta.team),'') Away, 
@@ -83,47 +91,50 @@ class Model_Player extends \Model
 										left join team ta on m.away_id = ta.id
 										left join club ca on ta.club_id = ca.id";
 
-				$f = fopen($archiveDir."matchcards.csv", 'w');
-				fwrite($f, "date, club, competition, home, away, id\n");
-				foreach (\DB::query($sql)->execute() as $row) {
-					fputcsv($f, $row);
-				}
-				fclose($f);
+            $f = fopen($archiveDir."matchcards.csv", 'w');
+            fwrite($f, "date, club, competition, home, away, id\n");
+            foreach (\DB::query($sql)->execute() as $row) {
+                fputcsv($f, $row);
+            }
+            fclose($f);
 
-				$configFile = $siteDir."/config.json";
+            $configFile = $siteDir."/config.json";
 
-				$zipFile = $siteDir."/tmp/archive.zip";
-				$zip = new ZipArchive;
-				$zip->open($zipFile, ZipArchive::OVERWRITE);
-				foreach (static::listAllFiles($siteDir."/registration") as $file) {
-					$zip->addFile($file, substr($file, strlen($siteDir)));
-				}
-				$zip->addFile($archiveDir."incidents.csv", "incidents.csv");
-				$zip->addFile($archiveDir."matchcards.csv", "matchcards.csv");
-				if (file_exists($configFile)) {
-					$zip->addFile($configFile, "config.json");
-				}
+            $zipFile = $siteDir."/tmp/archive.zip";
+            $zip = new ZipArchive();
+            $zip->open($zipFile, ZipArchive::OVERWRITE);
+            foreach (static::listAllFiles($siteDir."/registration") as $file) {
+                $zip->addFile($file, substr($file, strlen($siteDir)));
+            }
+            $zip->addFile($archiveDir."incidents.csv", "incidents.csv");
+            $zip->addFile($archiveDir."matchcards.csv", "matchcards.csv");
+            if (file_exists($configFile)) {
+                $zip->addFile($configFile, "config.json");
+            }
 
-				$zip->close();
+            $zip->close();
 
-				return $zipFile;
-		}
+            return $zipFile;
+        }
 
-		static function listAllFiles($root) {
-			$result = array();
+        public static function listAllFiles($root)
+        {
+            $result = array();
 
-			if (file_exists($root)) {
-				foreach (scandir($root) as $file) {
-					if ($file[0] == '.') continue;
-					$path = $root."/".$file;
-					if (is_dir($path)) {
-						$result = array_merge($result, static::listAllFiles($path));
-					} else {
-						$result[] = realpath($path);
-					}
-				}
-			}
+            if (file_exists($root)) {
+                foreach (scandir($root) as $file) {
+                    if ($file[0] == '.') {
+                        continue;
+                    }
+                    $path = $root."/".$file;
+                    if (is_dir($path)) {
+                        $result = array_merge($result, static::listAllFiles($path));
+                    } else {
+                        $result[] = realpath($path);
+                    }
+                }
+            }
 
-			return $result;
-		}
+            return $result;
+        }
 }

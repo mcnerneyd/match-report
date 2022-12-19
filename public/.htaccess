@@ -1,18 +1,19 @@
 ###  .htaccess
 
 <IfModule mod_rewrite.c>
-		RewriteEngine on
+    RewriteEngine on
     RewriteBase /
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^cards/fuel/public/Login / [R,L]
-		RewriteRule ^check.php - [L]
+    RewriteRule ^check.php - [L]
+    RewriteRule ^card/([0-9]+)$ cards/index.php?controller=card&action=get&fid=$1
     RewriteRule ^cards/.*$ - [L]
     RewriteRule ^assets/.*$ - [L]
     RewriteRule ^index.php/.* - [L]
     RewriteRule ^$ user/login
-		RewriteRule ^api/1.0/(.*)$ api/$1 [DPI]
-		RewriteRule ^(.*)$ index.php/$1
+    RewriteRule ^api/1.0/(.*)$ api/$1 [DPI]
+    RewriteRule ^(.*)$ index.php/$1
 </IfModule>
 
 #<IfModule mod_headers.c>

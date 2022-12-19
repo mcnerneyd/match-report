@@ -7,6 +7,10 @@ class Controller_Card extends Controller_Template
 		$query = \Input::get('q', false);
 
 		if ($cardId) {
+            if (!preg_match('/n?[0-9]+/', $cardId)) {
+                return new Response("Card/Fixture does not exist: $cardId", 404);
+            }
+
 			if (substr($cardId,0,1) == "n") {
 				$card = Model_Matchcard::card(substr($cardId, 1));
 			} else {

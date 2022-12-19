@@ -6,6 +6,8 @@
 		{ target: "#login .switch-login", message: "If you are trying to login as a club/registration secretary, click here to switch to 'Secretary Login'", dir:"bottom" },
 		];
 
+	// Clear Session
+	document.cookie = "PHPSESSID=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 </script>
 
 <?php 

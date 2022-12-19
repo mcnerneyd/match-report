@@ -33,7 +33,7 @@ for (;$pin<10000;$pin++) {
 	DB::query("insert into pins (pin, hash) values ('$pinZ', '$hash')")->execute();
 }
 ?>
-
+<div id='registration-info'>
 <table>
 	<?php
 foreach ($users as $user) {
@@ -47,9 +47,10 @@ foreach ($users as $user) {
 	</tr>\n";
 }
 ?>
+</table>
 
 
 <!-- <p>Your Club PIN Number is: <span id='pin'><?= $pinZ ?></span> <button class='btn btn-warning' type='reset'>Reset PIN <i class="fas fa-sync-alt"></i></button></p> -->
 
 <p>Important: if you reset the PIN, you will have to inform all your team captains of the new PIN - or they will not be able to access the matchcard system.</p>
-
+</div>

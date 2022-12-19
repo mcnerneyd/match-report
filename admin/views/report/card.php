@@ -8,6 +8,7 @@
 #teams  tr th { font-weight: bold; width: 8rem; }
 #teams th { background: #def; }
 #incidents td { white-space: nowrap; padding-right: 12px; }
+#incidents tr.delete * { text-decoration: line-through; color: #888; }
 .delete { color: red; }
 </style>
 <script>
@@ -66,7 +67,8 @@ $(document).ready(function() {
 	$description = trim("$description ${incident['player']}");
 	$description = trim("$description ${incident['name']}");
 	$description = trim("$description ${incident['detail']}");
-	echo "<tr data-description='$description' data-id='${incident['id']}'>";
+	$class = $incident['resolved'] == 1 ? "deleted" : "";
+	echo "<tr class='$class' data-description='$description' data-id='${incident['id']}'>";
 	echo "<td>".$incident['id'];
 	if (\Auth::has_access('incident.delete')) {
 		echo " <a class='delete'>[delete]</a>";

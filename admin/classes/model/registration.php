@@ -1,523 +1,585 @@
 <?php
+
 ini_set("auto_detect_line_endings", true);
 
-class Model_Registration 
+class Model_Registration
 {
-	private static $cache;
-	private static $codes;
-	static function init() {
-		$path = DATAPATH."/sections/".Session::get('site')."/tmp/cache";
-		if (!file_exists($path)) mkdir($path, 0777, true);
-		static::$cache = Cache::forge("membership", array('file'=>array('path'=>$path),'driver'=>'file','expiration'=>3600*24)); 
-		$codes = file_exists(APPPATH."/classes/model/clublist.ini") ? parse_ini_file(APPPATH."/classes/model/clublist.ini") : array();
-
-	}
-
-	public static function addRegistration($section, $file, $club) {
-		$ts = Date::forge()->format("%y%m%d%H%M%S");
-		$arcDir = self::getRoot($section, $club);
-		$newName = "$arcDir/$ts.csv";
-
-		File::rename($file, $newName);
-
-		return $newName;
-	}
-
-	public static function getRoot($section, $club = null, $file = null) {
-    if ($section == null) {
-      throw new Exception("No section");
+    private static $cache;
+    private static $codes;
+    public static function init()
+    {
+        $path = DATAPATH."/sections/".Session::get('site')."/tmp/cache";
+        if (!file_exists($path)) {
+            mkdir($path, 0777, true);
+        }
+        static::$cache = Cache::forge("membership", array('file'=>array('path'=>$path),'driver'=>'file','expiration'=>3600*24));
+        $codes = file_exists(APPPATH."/classes/model/clublist.ini") ? parse_ini_file(APPPATH."/classes/model/clublist.ini") : array();
     }
-		$root = DATAPATH."/sections/$section/registration";
 
-		if ($club) $root .= "/".strtolower($club);
+    public static function addRegistration($section, $file, $club)
+    {
+        $ts = Date::forge()->format("%y%m%d%H%M%S");
+        $arcDir = self::getRoot($section, $club);
+        $newName = "$arcDir/$ts.csv";
 
-		if (!file_exists($root)) {
-			mkdir($root,0777,TRUE);
-		}
+        File::rename($file, $newName);
 
-		if ($file) $root .= "/$file";
+        return $newName;
+    }
 
-		return realpath($root);
-	}
+    public static function getRoot($section, $club = null, $file = null)
+    {
+        if ($section == null) {
+            throw new Exception("No section");
+        }
+        $root = DATAPATH."/sections/$section/registration";
 
-	public static function flush($section, $club) {
-		$root = self::getRoot($section, $club);
-		Log::debug("Flushing root: $root");
-		$files = glob("$root/*.json");
-		
-		if ($files) {
-			foreach ($files as $file) {
-				Log::debug("Flush $file");
-				unlink($file);
-			}	
-		}
-	}
+        if ($club) {
+            $root .= "/".strtolower($club);
+        }
 
-	public static function writeErrors($section, $club, $errors) {
-		$root = self::getRoot($section, $club);
-		$files = glob("$root/*.csv");
-		$file = end($files);
-		file_put_contents($file.".err", implode("\n", $errors));
-	}
+        if (!file_exists($root)) {
+            mkdir($root, 0777, true);
+        }
 
-	public static function delete($section, $club, $filename) {
-		$file = self::getRoot($section, $club, $filename);
+        if ($file) {
+            $root .= "/$file";
+        }
 
-		Log::info("delete file: $file");
+        return realpath($root);
+    }
 
-		unlink($file);
-	}
+    public static function flush($section, $club)
+    {
+        $root = self::getRoot($section, $club);
+        Log::debug("Flushing root: $root");
+        $files = glob("$root/*.json");
 
-	public static function find_all_players($section, $time = null) {
+        if ($files) {
+            foreach ($files as $file) {
+                Log::debug("Flush $file");
+                unlink($file);
+            }
+        }
+    }
 
-		if ($time == null) $time = time();
+    public static function writeErrors($section, $club, $errors)
+    {
+        $root = self::getRoot($section, $club);
+        $files = glob("$root/*.csv");
+        $file = end($files);
+        file_put_contents($file.".err", implode("\n", $errors));
+    }
 
-		$result = array();
+    public static function delete($section, $club, $filename)
+    {
+        $file = self::getRoot($section, $club, $filename);
 
-		Log::info("Full player list requested: ".date('Y-m-d H:i', $time));
+        Log::info("delete file: $file");
 
-		foreach (glob(self::getRoot($section)."/*") as $club) {
-			if (!preg_match("/^[A-Za-z ]*$/", $club)) continue;
-			$club = basename($club);
-			$clubReg = self::find_before_date($club, $time);
-			$result = array_merge($result, $clubReg);
-		}
+        unlink($file);
+    }
 
-		return $result;
-	}
+    public static function find_all_players($section, $time = null)
+    {
+        if ($time == null) {
+            $time = time();
+        }
 
-	public static function clearErrors($section, $club) {
-		$root = self::getRoot($section, $club);
-		if (is_dir($root)) {
-			$files = glob("$root/*.csv.err");
-			if ($files) {
-				foreach ($files as $name) {
-					if (!is_file($name)) continue;
-					unlink($name);
-					Log::debug("Deleted errors file: $name");
-				}
-			}
-		}
+        $result = array();
 
-		try {
-			$ids = self::$cache->get();
-		} catch (\CacheNotFoundException $e) {
-			$ids = array();
-		}
+        Log::info("Full player list requested: ".date('Y-m-d H:i', $time));
 
-		foreach ($ids as $membershipId=>$detail) {
-			if (strpos($detail, "$club:") === 0) {
-				unset($ids[$membershipId]);
-			}
-		}
+        foreach (glob(self::getRoot($section)."/*") as $club) {
+            if (!preg_match("/^[A-Za-z ]*$/", $club)) {
+                continue;
+            }
+            $club = basename($club);
+            $clubReg = self::find_before_date($club, $time);
+            $result = array_merge($result, $clubReg);
+        }
 
-		self::$cache->set($ids, 30 * 24 * 3600);	// 30 days
-	}
+        return $result;
+    }
 
-	public static function find_all($section, $club) {
-		$result = array();
-		$club = strtolower($club);
-		$root = self::getRoot($section, $club);
-		$seasonStart = currentSeasonStart()->get_timestamp();
-		Log::debug("loading $root (".strftime('%F', $seasonStart)."/$seasonStart)");
+    public static function clearErrors($section, $club)
+    {
+        $root = self::getRoot($section, $club);
+        if (is_dir($root)) {
+            $files = glob("$root/*.csv.err");
+            if ($files) {
+                foreach ($files as $name) {
+                    if (!is_file($name)) {
+                        continue;
+                    }
+                    unlink($name);
+                    Log::debug("Deleted errors file: $name");
+                }
+            }
+        }
 
-		if (is_dir($root)) {
-			$files = glob("$root/*.csv");
-			if ($files) {
-				foreach ($files as $name) {
-					if (!is_file($name)) continue;
+        try {
+            $ids = self::$cache->get();
+        } catch (\CacheNotFoundException $e) {
+            $ids = array();
+        }
+
+        foreach ($ids as $membershipId=>$detail) {
+            if (strpos($detail, "$club:") === 0) {
+                unset($ids[$membershipId]);
+            }
+        }
+
+        self::$cache->set($ids, 30 * 24 * 3600);	// 30 days
+    }
+
+    public static function find_all($section, $club)
+    {
+        $result = array();
+        $club = strtolower($club);
+        $root = self::getRoot($section, $club);
+        $seasonStart = currentSeasonStart()->get_timestamp();
+        Log::debug("loading $root (".strftime('%F', $seasonStart)."/$seasonStart)");
+
+        if (is_dir($root)) {
+            $files = glob("$root/*.csv");
+            if ($files) {
+                foreach ($files as $name) {
+                    if (!is_file($name)) {
+                        continue;
+                    }
                     Log::debug("Checking file $name");
-					$ts=Date::create_from_string(basename($name), '%y%m%d%H%M%S.csv');
-					$finfo=finfo_open(FILEINFO_MIME);
-					$ftype = "";
-					if ($finfo) {
-						$ftype = finfo_file($finfo, $name);
-						finfo_close($finfo);
-					}
-					$fileData = array("club"=>$club,
-						"name"=>basename($name),
-						"timestamp"=>$ts->get_timestamp(),
-						"type"=>$ftype,
-						"cksum"=>md5_file($name));
-					if (file_exists($name.".err")) {
-						$fileData['errors'] = file($name.".err");
-					}
+                    $ts=Date::create_from_string(basename($name), '%y%m%d%H%M%S.csv');
+                    $finfo=finfo_open(FILEINFO_MIME);
+                    $ftype = "";
+                    if ($finfo) {
+                        $ftype = finfo_file($finfo, $name);
+                        finfo_close($finfo);
+                    }
+                    $fileData = array("club"=>$club,
+                        "name"=>basename($name),
+                        "timestamp"=>$ts->get_timestamp(),
+                        "type"=>$ftype,
+                        "cksum"=>md5_file($name));
+                    if (file_exists($name.".err")) {
+                        $fileData['errors'] = file($name.".err");
+                    }
 
-					$result[] = $fileData;
-				}
-			}
-		}
+                    $result[] = $fileData;
+                }
+            }
+        }
 
-    Log::debug("Files ".count($result));
+        Log::debug("Files ".count($result));
 
-		return $result;
-	}
+        return $result;
+    }
 
-	private static function buildRegistration($current, $initial = null, $teamSizes = null, $history = null, $allowPlaceholders = false) {
-		$currentNames = array();
-		$currentLookup = array();
+    private static function buildRegistration($current, $initial = null, $teamSizes = null, $history = null, $allowPlaceholders = false)
+    {
+        $currentNames = array();
+        $currentLookup = array();
 
         Log::debug("Current players: ".count($current)." teamSizes=".print_r($teamSizes, true));
 
-		foreach ($current as $player) {
-			$currentNames[] = $player['name'];
-			$currentLookup[$player['name']] = $player;
-		}
+        foreach ($current as $player) {
+            $currentNames[] = $player['name'];
+            $currentLookup[$player['name']] = $player;
+        }
 
-		$order = 0;
-		$result = array();
-		if ($initial) {
-			foreach ($initial as $player) {
-				if (($key = array_search($player['name'], $currentNames)) !== false) {
-					if (isset($currentLookup[$player['name']]['membershipid'])) {
-						$player['membershipid'] = $currentLookup[$player['name']]['membershipid'];
-					}
-					unset($currentNames[$key]);
-				} else {
-					$player['status'] = "deleted";
-				}
+        $order = 0;
+        $result = array();
+        if ($initial) {
+            foreach ($initial as $player) {
+                if (($key = array_search($player['name'], $currentNames)) !== false) {
+                    if (isset($currentLookup[$player['name']]['membershipid'])) {
+                        $player['membershipid'] = $currentLookup[$player['name']]['membershipid'];
+                    }
+                    unset($currentNames[$key]);
+                } else {
+                    $player['status'] = "deleted";
+                }
 
-				$player['order'] = $order++;
-				$result[] = $player;
-			}
-		}
+                $player['order'] = $order++;
+                $result[] = $player;
+            }
+        }
 
-		foreach ($currentNames as $name) {
-			$player = $currentLookup[$name];
-			$player['status'] = "added";
-			$player['order'] = $order++;
-			$result[] = $player;
-		}
+        foreach ($currentNames as $name) {
+            $player = $currentLookup[$name];
+            $player['status'] = "added";
+            $player['order'] = $order++;
+            $result[] = $player;
+        }
 
-		// generate player history
-		foreach ($result as &$player) {
-			$player['score'] = 99;
-			if (!isset($history[$player['name']])) {
-				$player['history'] = array();	
-				$placeholders[] = $player;
-				continue;
-			}
-			$player['history'] = $history[$player['name']];
-			$teams = array_map(function($a) { return $a['team']; }, $player['history']);
-			if ($teams) {
-				$first = min($teams);
-				$firstCount = array_count_values($teams);
-				$firstCount = $firstCount[$first];
-				$player['score'] = round($first + (1 - ($firstCount/count($teams))), 2);
-			}
-		}
+        // generate player history
+        foreach ($result as &$player) {
+            $player['score'] = 99;
+            if (!isset($history[$player['name']])) {
+                $player['history'] = array();
+                $placeholders[] = $player;
+                continue;
+            }
+            $player['history'] = $history[$player['name']];
+            $teams = array_map(function ($a) {
+                return $a['team'];
+            }, $player['history']);
+            if ($teams) {
+                $first = min($teams);
+                $firstCount = array_count_values($teams);
+                $firstCount = $firstCount[$first];
+                $player['score'] = round($first + (1 - ($firstCount/count($teams))), 2);
+            }
+        }
 
-		if (!$allowPlaceholders) {
-			// move placeholders to end of list
-			$placeholders = array_filter($result, function($a) { return count($a['history']) == 0; });
-			$result = array_filter($result, function($a) { return count($a['history']) > 0; });
-			$result = array_merge($result, $placeholders);
-		}
+        if (!$allowPlaceholders) {
+            // move placeholders to end of list
+            $placeholders = array_filter($result, function ($a) {
+                return count($a['history']) == 0;
+            });
+            $result = array_filter($result, function ($a) {
+                return count($a['history']) > 0;
+            });
+            $result = array_merge($result, $placeholders);
+        }
 
         Log::debug("Players for assignment: ".count($result));
 
-		// assign players to teams
-		$lastTeam = 1;
-		$teamsAllocation = array();
-		if ($teamSizes) {
-			for ($i=0;$i<count($teamSizes);$i++) {
-				$lastTeam = $i+1;
-				for ($j=0;$j<$teamSizes[$i];$j++) {
-					$teamsAllocation[] = $lastTeam;
-				}
-			}
-		}
+        // assign players to teams
+        $lastTeam = 1;
+        $teamsAllocation = array();
+        if ($teamSizes) {
+            for ($i=0;$i<count($teamSizes);$i++) {
+                $lastTeam = $i+1;
+                for ($j=0;$j<$teamSizes[$i];$j++) {
+                    $teamsAllocation[] = $lastTeam;
+                }
+            }
+        }
 
-		foreach ($result as &$player) {
-			if ($player['team'] > $lastTeam) $lastTeam = $player['team'];
-		}
+        foreach ($result as &$player) {
+            if ($player['team'] > $lastTeam) {
+                $lastTeam = $player['team'];
+            }
+        }
 
-		if (!is_numeric($lastTeam)) $lastTeam = null;
+        if (!is_numeric($lastTeam)) {
+            $lastTeam = null;
+        }
 
-		foreach ($result as &$player) {
-			if ($player['team']) {
-				$key = array_search($player['team'], $teamsAllocation);
-				if ($key !== FALSE) {
-					unset($teamsAllocation[$key]);
-				}
-			} else {
-				$player['team'] = $teamsAllocation ? array_shift($teamsAllocation) : $lastTeam;
-			}
-		}
+        foreach ($result as &$player) {
+            if ($player['team']) {
+                $key = array_search($player['team'], $teamsAllocation);
+                if ($key !== false) {
+                    unset($teamsAllocation[$key]);
+                }
+            } else {
+                $player['team'] = $teamsAllocation ? array_shift($teamsAllocation) : $lastTeam;
+            }
+        }
 
-		// sort players by team
-		usort($result, function($a, $b) {
-			if ($a['team'] == $b['team']) {
-				return $a['order'] - $b['order'];
-			}
-			if ($a['team'] === null) return $b['team'] === null ? 0 : 1;
-			if ($b['team'] === null) return $a['team'] === null ? 0 : -1;
+        // sort players by team
+        usort($result, function ($a, $b) {
+            if ($a['team'] == $b['team']) {
+                return $a['order'] - $b['order'];
+            }
+            if ($a['team'] === null) {
+                return $b['team'] === null ? 0 : 1;
+            }
+            if ($b['team'] === null) {
+                return $a['team'] === null ? 0 : -1;
+            }
 
-			if (is_numeric($a['team']) and is_numeric($b['team'])) {
-				return $a['team'] - $b['team'];
-			} else {
-				return strcasecmp($a['team'], $b['team']);
-			}
-		});
+            if (is_numeric($a['team']) and is_numeric($b['team'])) {
+                return $a['team'] - $b['team'];
+            } else {
+                return strcasecmp($a['team'], $b['team']);
+            }
+        });
 
-		Log::debug("Registration has ".count($result). " valid player(s)");
+        Log::debug("Registration has ".count($result). " valid player(s)");
 
-		return $result;
-	}
+        return $result;
+    }
 
-  private static function fmt($date) {
-    return strftime('%F', $date)."/".$date;
+  private static function fmt($date)
+  {
+      return strftime('%F', $date)."/".$date;
   }
 
-	public static function find_between_dates($sectionName, $clubName, $initialDate, $currentDate, &$info = array()) {
-		Log::debug("Request for registration for $sectionName/$clubName: between ".self::fmt($initialDate)." and ".self::fmt($currentDate));
-		$current = Model_Registration::find_before_date($sectionName, $clubName, $currentDate);
-		$restrictionDate = Config::get('section.date.restrict', null);
-		$initial = null;
-		
-		if ($restrictionDate) {
-			$restrictionDate = strtotime($restrictionDate);
-			if ($currentDate > $restrictionDate) {
-				Log::debug("Restrictions in place");
-				$initial = Model_Registration::find_before_date($sectionName, $clubName, $initialDate);
-			}
-		}
+    public static function find_between_dates($sectionName, $clubName, $initialDate, $currentDate, &$info = array())
+    {
+        Log::debug("Request for registration for $sectionName/$clubName: between ".self::fmt($initialDate)." and ".self::fmt($currentDate));
+        $current = Model_Registration::find_before_date($sectionName, $clubName, $currentDate);
+        $restrictionDate = Config::get('section.date.restrict', null);
+        $initial = null;
 
-		$club = Model_Club::find_by_name($clubName);
-		$teamSizes = $club ? $club->getTeamSizes($sectionName) : array();
-		$history = Model_Player::getHistory($clubName, $currentDate);
+        if ($restrictionDate) {
+            $restrictionDate = strtotime($restrictionDate);
+            if ($currentDate > $restrictionDate) {
+                Log::debug("Restrictions in place");
+                $initial = Model_Registration::find_before_date($sectionName, $clubName, $initialDate);
+            }
+        }
 
-		$info['initial'] = $initialDate;
-		$info['current'] = $currentDate;
-		$info['teamSizes'] = $teamSizes;
-		$info['club'] = $clubName;
-		$info['section'] = $sectionName;
+        $club = Model_Club::find_by_name($clubName);
+        $teamSizes = $club ? $club->getTeamSizes($sectionName) : array();
+        $history = Model_Player::getHistory($clubName, $currentDate);
 
-		return self::buildRegistration($current, $initial, $teamSizes, $history, \Config::get("section.registration.placeholders", true));
-	}
+        $info['initial'] = $initialDate;
+        $info['current'] = $currentDate;
+        $info['teamSizes'] = $teamSizes;
+        $info['club'] = $clubName;
+        $info['section'] = $sectionName;
+
+        return self::buildRegistration($current, $initial, $teamSizes, $history, \Config::get("section.registration.placeholders", true));
+    }
 
 
-	 /**
-	  * Returns a list of players that are elgible to play before a specific date.
-		*
-		* @param $club The club being searched
-		* @param $date The date before which players must be elgible
-		* @param $firstAsNecessary If there is no registration available then allow
-		*            the first available registration instead
-		* @return A list of players
+     /**
+      * Returns a list of players that are elgible to play before a specific date.
+        *
+        * @param $club The club being searched
+        * @param $date The date before which players must be elgible
+        * @param $firstAsNecessary If there is no registration available then allow
+        *            the first available registration instead
+        * @return A list of players
     */
-	public static function find_before_date($sectionName, $club, $date) {
-		$match = null;
-		$club = strtolower($club);
-		foreach (self::find_all($sectionName, $club) as $registration) {
-			if ($match == null) $match = $registration['name'];	// At least get one, i.e. the first one
-			if ($registration['timestamp'] < $date) {		// If there's a newer one before the date use that
-				$match = $registration['name'];
-			}
-		}
+    public static function find_before_date($sectionName, $club, $date)
+    {
+        $match = null;
+        $club = strtolower($club);
+        foreach (self::find_all($sectionName, $club) as $registration) {
+            if ($match == null) {
+                $match = $registration['name'];
+            }	// At least get one, i.e. the first one
+            if ($registration['timestamp'] < $date) {		// If there's a newer one before the date use that
+                $match = $registration['name'];
+            }
+        }
 
-		$result = array();
-		if ($match != null) {
-			$file = self::getRoot($sectionName, $club, $match);
+        $result = array();
+        if ($match != null) {
+            $file = self::getRoot($sectionName, $club, $match);
 
-			Log::debug("Find: $club ".date('Y-m-d H:i:s', $date)." = $file");
+            Log::debug("Find: $club ".date('Y-m-d H:i:s', $date)." = $file");
 
-			if ($sectionName) loadSectionConfig($sectionName);
-			$result = self::readRegistrationFile($file, $club);
-		}
+            if ($sectionName) {
+                loadSectionConfig($sectionName);
+            }
+            $result = self::readRegistrationFile($file, $club);
+        }
 
-		return $result;
-	}
+        return $result;
+    }
 
-	/**
-	 * Open a file and read a list of players from it. Strips headers
-	 * and assigns teams as required.
-	 */
-	private static function readRegistrationFile($file, $rclub = null) {
-		$jsonFile = "$file.json";
-		if (file_exists($jsonFile)) {
-			$json_data = file_get_contents($jsonFile);
-			return json_decode($json_data, TRUE);
-		}
+    /**
+     * Open a file and read a list of players from it. Strips headers
+     * and assigns teams as required.
+     */
+    private static function readRegistrationFile($file, $rclub = null)
+    {
+        $jsonFile = "$file.json";
+        if (file_exists($jsonFile)) {
+            $json_data = file_get_contents($jsonFile);
+            return json_decode($json_data, true);
+        }
 
-		$groups = null;
-		if (Config::get("section.allowassignment")) {
-			$groups = array();
-			foreach (Model_Competition::find('all') as $comp) {
-				if ($comp['groups']) {
-					foreach (explode(',', $comp['groups']) as $group) {
-						$groups[trim(strtolower($group))] = trim($group);
-					}
-				}
-			}
-		}
+        $groups = null;
+        if (Config::get("section.allowassignment")) {
+            $groups = array();
+            foreach (Model_Competition::find('all') as $comp) {
+                if ($comp['groups']) {
+                    foreach (explode(',', $comp['groups']) as $group) {
+                        $groups[trim(strtolower($group))] = trim($group);
+                    }
+                }
+            }
+        }
 
-		Log::debug("readRegistrationFile: club=$rclub file=$file: groups=".print_r($groups, true));
+        Log::debug("readRegistrationFile: club=$rclub file=$file: groups=".print_r($groups, true));
 
-		$result = self::parse(file($file), $rclub, $groups);
+        $result = self::parse(file($file), $rclub, $groups);
 
-		//$json_data = xjson_encode($result, JSON_PRETTY_PRINT);
-		file_put_contents("$file.json", Format::forge($result)->to_json());
+        //$json_data = xjson_encode($result, JSON_PRETTY_PRINT);
+        file_put_contents("$file.json", Format::forge($result)->to_json());
 
-		return $result;
-	}
+        return $result;
+    }
 
-	/**
-	 * Parse a registration providered as an array of lines.
-	 */
-	private static function parse($lines, $rclub, $groups) {
+    /**
+     * Parse a registration providered as an array of lines.
+     */
+    private static function parse($lines, $rclub, $groups)
+    {
+        $result = array();
+        $pastHeaders = false;
+        $team = null;
+        $lastline = null;
+        foreach ($lines as $player) {
+            $player = trim($player);
 
-		$result = array();
-		$pastHeaders = false;
-		$team = null;
-		$lastline = null;
-		foreach ($lines as $player) {
-			$player = trim($player);
+            if (!$player) {
+                continue;
+            }		// ignore empty lines
 
-			if (!$player) continue;		// ignore empty lines
+            // Join broken lines
+            if ($player[0] == '"' and substr($player, -1) != '"') {
+                $lastline = $player;
+                continue;
+            }
+            if ($lastline and substr($player, -1) != '"') {
+                $lastline .= $player;
+                continue;
+            }
+            if ($lastline) {
+                $player = $lastline.$player;
+                $lastline = null;
+            }
 
-			// Join broken lines
-			if ($player[0] == '"' and substr($player, -1) != '"') {
-				$lastline = $player;
-				continue;
-			}
-			if ($lastline and substr($player, -1) != '"') {
-				$lastline .= $player;
-				continue;
-			}
-			if ($lastline) {
-				$player = $lastline.$player;
-				$lastline = null;
-			}
+            // Remove comments
+            if ($player[0] == '#') {
+                continue;
+            }
 
-			// Remove comments
-			if ($player[0] == '#') continue;
+            $membershipId = null;
+            $matches = array();
+            if (preg_match('/\b([a-z]{2}[0-9]{4,})\b/i', $player, $matches)) {
+                $membershipId = $matches[1];
+                $player = str_replace($membershipId, "", $player);
+            }
 
-			$membershipId = null;
-			$matches = array();
-			if (preg_match('/\b([a-z]{2}[0-9]{4,})\b/i', $player, $matches)) {
-				$membershipId = $matches[1];
-				$player = str_replace($membershipId, "", $player);	
-			}
+            $matches = array();
+            if (preg_match('/^\s*"([^"]+)"\s*$/', $player, $matches)) {
+                $player = $matches[1];
+            }
+            $arr = str_getcsv($player);
 
-			$matches = array();
-			if (preg_match('/^\s*"([^"]+)"\s*$/', $player, $matches)) {
-				$player = $matches[1];
-			}
-			$arr = str_getcsv($player);
+            // Strip empty values from left
+            while ($arr && !$arr[0]) {
+                array_shift($arr);
+            }
+            if (!$arr) {
+                continue;
+            }
 
-			// Strip empty values from left
-			while ($arr && !$arr[0]) array_shift($arr);
-			if (!$arr) continue;
+            if (!$pastHeaders) {
+                if (stripos($arr[0], '------') === 0) {
+                    $pastHeaders = true;
+                    continue;
+                }
 
-			if (!$pastHeaders) {
+                if (preg_match('/club:|last name|first name|name|do not delete/i', $arr[0])) {
+                    continue;
+                }
+                if ($rclub && stripos($arr[0], $rclub) === 0) {
+                    continue;
+                }
+            }
+            $pastHeaders = true;
+            while ($arr && is_numeric($arr[0])) {
+                array_shift($arr);
+            }
 
-				if (stripos($arr[0], '------') === 0) {
-					$pastHeaders = true;
-					continue;
-				}
+            if (!$arr) {
+                continue;
+            }
 
-				if (preg_match('/club:|last name|first name|name|do not delete/i', $arr[0])) {
-					continue;
-				}
-				if ($rclub && stripos($arr[0], $rclub) === 0) continue;
+            if (stripos($arr[0], 'team:')) {
+                $team = trim(substr($arr[0], 5));
+                continue;
+            }
 
-			}
-			$pastHeaders = true;
-			while ($arr && is_numeric($arr[0])) array_shift($arr);
+            $player = $arr[0];
 
-			if (!$arr) continue;
+            if (count($arr) > 1) {
+                if (preg_replace('/[^A-Za-z]/', "", $arr[1])) {
+                    $player .= ",".$arr[1];
+                }
+            }
 
-			if (stripos($arr[0], 'team:')) {
-				$team = trim(substr($arr[0], 5));
-				continue;
-			}
+            $player = cleanName($player);
+            $pt = null;
 
-			$player = $arr[0];
+            $playerTeam = is_numeric($team) ? $team : null;
 
-			if (count($arr) > 1) {
-				if (preg_replace('/[^A-Za-z]/',"", $arr[1])) {
-					$player .= ",".$arr[1];
-				}
-			}
+            if (Config::get("section.allowassignment")) {
+                for ($i=count($arr)-1;$i>0;$i--) {
+                    if ($arr[$i]) {
+                        $group = trim(strtolower($arr[$i]));
+                        if (isset($groups[$group])) {
+                            $playerTeam = $groups[$group];
+                            $pt = $groups[$group];
+                            Log::debug("PT = $playerTeam $i");
+                        } else {
+                            $matches = array();
+                            if (preg_match('/^([0-9]+)(?:(st|nd|rd|th)(s)?)?$/', $arr[$i], $matches)) {
+                                $playerTeam = $matches[1];
+                                $pt = $arr[$i];
+                            }
+                        }
+                        // even if no team is matched scan is finished
+                        break;
+                    }
+                }
+            }
 
-			$player = cleanName($player);
-			$pt = null;
+            $playerArr = cleanName($player, "[Fn][LN]");
 
-			$playerTeam = is_numeric($team) ? $team : null;
+            if ($player) {
+                if (!self::validateMembership($rclub, $playerArr['Fn'], $playerArr['LN'], $membershipId)) {
+                    if (Config::get("section.registration.mandatoryhi", "noselect") === 'noregister') {
+                        continue;
+                    }
+                    $membershipId = null;
+                }
 
-			if (Config::get("section.allowassignment")) {
-				for ($i=count($arr)-1;$i>0;$i--) {
-					if ($arr[$i]) {
-						$group = trim(strtolower($arr[$i]));
-						if (isset($groups[$group])) {
-							$playerTeam = $groups[$group];
-							$pt = $groups[$group];
-							Log::debug("PT = $playerTeam $i");
-						} else {
-							$matches = array();
-							if (preg_match('/^([0-9]+)(?:(st|nd|rd|th)(s)?)?$/', $arr[$i], $matches)) {
-								$playerTeam = $matches[1];
-								$pt = $arr[$i];
-							}
-						}
-						// even if no team is matched scan is finished
-						break;
-					}
-				}
-			}
+                $result[] = array("name"=>$player,
+                    "lastname"=>$playerArr['LN'],
+                    "firstname"=>$playerArr['Fn'],
+                    "membershipid"=>$membershipId,
+                    "status"=>"registered",
+                    "phone"=>phone($player),
+                    "team"=>$playerTeam,
+                    "pt"=>$pt,
+                    "club"=>$rclub);
+            }
+        }
 
-			$playerArr = cleanName($player, "[Fn][LN]");
+        return $result;
+    }
 
-			if ($player) {
-				if (!self::validateMembership($rclub, $playerArr['Fn'], $playerArr['LN'], $membershipId)) {
-					if (Config::get("section.registration.mandatoryhi", "noselect") === 'noregister') continue;
-					$membershipId = null;
-				}
+    private static function validateMembership($club, $firstName, $lastName, $membershipId)
+    {
+        if (!self::$codes) {
+            return true;
+        }
 
-				$result[] = array("name"=>$player,
-					"lastname"=>$playerArr['LN'],
-					"firstname"=>$playerArr['Fn'],
-					"membershipid"=>$membershipId,
-					"status"=>"registered",
-					"phone"=>phone($player), 
-					"team"=>$playerTeam,
-					"pt"=>$pt,
-					"club"=>$rclub);
-			}
-		}
+        $clubId = self::$codes[$club];
 
-		return $result;
-	}
+        $url="http://portal.azolve.com/azolveapi/AzolveService/Neptune2?clientReference=HockeyIreland".
+            "&objectName=Cus_ValidateClubMembers&objectType=sp".
+            "&parameters=MID%7C$membershipId;Firstname%7CXX;Surname%7CXX;ClubID%7C$clubId;DOB%7C1970-01-01".
+            "&password=0O34zW934rVC&userId=AzolveAPI";
 
-	private static function validateMembership($club, $firstName, $lastName, $membershipId) {
-    if (!self::$codes) return true;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        // Set so curl_exec returns the result instead of outputting it.
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        // Get the response and close the channel.
+        $response = curl_exec($ch);
+        curl_close($ch);
 
-		$clubId = self::$codes[$club];
+        $response = json_decode($response);
+        if (!is_array($response) || $response[1][0] === 0) {
+            Log::warn("Invalid membership ID: $membershipId = $club:$firstName:$lastName ".print_r($response, true));
+            return false;
+        }
 
-		$url="http://portal.azolve.com/azolveapi/AzolveService/Neptune2?clientReference=HockeyIreland".
-			"&objectName=Cus_ValidateClubMembers&objectType=sp".
-			"&parameters=MID%7C$membershipId;Firstname%7CXX;Surname%7CXX;ClubID%7C$clubId;DOB%7C1970-01-01".
-			"&password=0O34zW934rVC&userId=AzolveAPI";
-        
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		// Set so curl_exec returns the result instead of outputting it.
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		// Get the response and close the channel.
-		$response = curl_exec($ch);
-		curl_close($ch);
+        Log::debug("Valid membership ID: $membershipId = $club:$firstName:$lastName");
 
-		$response = json_decode($response);
-		if (!is_array($response) || $response[1][0] === 0) {
-			Log::warn("Invalid membership ID: $membershipId = $club:$firstName:$lastName ".print_r($response, true));
-			return false;
-		}
-
-		Log::debug("Valid membership ID: $membershipId = $club:$firstName:$lastName");
-
-		return true;
-	}
+        return true;
+    }
 }
 
 Model_Registration::init();

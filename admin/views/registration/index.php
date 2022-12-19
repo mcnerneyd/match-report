@@ -118,7 +118,6 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
 		];
 </script>
 
-<div id='registration'>
   <div class='command-group form'>
     <div class='form-row'>
       <?php if ($registrationAllowed === 'all') { ?>
@@ -142,7 +141,8 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
 
       <div class='col'>
       <?php if ($registrationAllowed) { ?>
-      <a class='btn btn-primary' id='upload-button' tabindex='1' data-target='#upload-registration' data-toggle='modal'><i class="fas fa-upload"></i><span class='d-none d-sm-inline'> Upload</span></a> 
+      <a class='btn btn-primary' id='upload-button' tabindex='1' data-target='#upload-registration' data-toggle='modal'>
+        <i class="fas fa-upload"></i><span class='d-none d-sm-inline'> Upload</span></a> 
       <?php } ?>
       </div>
 
@@ -154,6 +154,7 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
     </div>	<!-- .form-row -->
   </div>
 
+  <div id='registration'>
   <?php 
       $currentDate = time();
       $restrictionDate = Config::get('section.date.restrict', null);

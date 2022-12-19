@@ -61,10 +61,6 @@ $(document).ready(function() {
 #fines-table tr {
 	cursor: pointer;
 }
-.command-group {
-	margin-top: -40px;
-	float:right;
-}
 .note {
 	color: red;
 }

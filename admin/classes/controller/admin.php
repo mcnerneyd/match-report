@@ -900,6 +900,7 @@ class Controller_Admin extends Controller_Hybrid
                 "fixesteam" => join("\r\n", Config::get("$section.pattern.team", array())),
                 "fixtures" => join("\r\n", Config::get("$section.fixtures", array())),
                 "resultsubmit" => Config::get("$section.result.submit", 'no'),
+                "resultbutton" => Config::get("$section.result.button", false),
                 //"seasonstart" => Config::get("$section.date.start"),
                 "regrestdate" => Config::get("$section.date.restrict"),
                 "block_errors" => Config::get("$section.registration.blockerrors"),

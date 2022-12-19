@@ -83,7 +83,3 @@
     </div>
 </nav>
 
-<?php if (\Session::get('user-title')) { ?>
-<div id='user'><?= \Session::get('user-title') ?></div>
-<?php } ?>
-

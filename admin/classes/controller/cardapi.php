@@ -607,7 +607,10 @@ class Controller_CardApi extends Controller_RestApi
                 } else {
                     Log::warning("Card not signed by user");
                 }
-                $signatories[] = $signature->club->name;
+                
+                if ($signature->club) {
+                    $signatories[] = $signature->club['name'];
+                }
                 continue;
             }
 
@@ -690,12 +693,12 @@ class Controller_CardApi extends Controller_RestApi
             $date = Date::forge()->format('mysql');
         }
         $idq = Db::query("select distinct m.id from incident i 
-													join matchcard m on i.matchcard_id = m.id
-                                                    join competition x on m.competition_id = x.id
-                                                    join section s on x.section_id = s.id
-												where i.type = 'Signed' and m.open < 50 and m.date < :date and (:section is null or s.name = :section)")
-                                                ->bind('section', $section)
-                                                ->bind('date', $date);
+                join matchcard m on i.matchcard_id = m.id
+                join competition x on m.competition_id = x.id
+                join section s on x.section_id = s.id
+                where i.type = 'Signed' and m.open < 50 and m.date < :date and (:section is null or s.name = :section)")
+                ->bind('section', $section)
+                ->bind('date', $date);
 
         foreach ($idq->execute() as $cardId) {
             #$c = Model_Matchcard::card($cardId['id']);

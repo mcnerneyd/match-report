@@ -81,7 +81,6 @@ class Controller_User extends Controller_Template
             return new Response("Cannot reset matchcard user password (only secretaries/admins)", 403);
         }
 
-        $site = \Session::get('site');
         $salt = Config::get("section.salt");
         $autoEmail = Config::get("section.automation.email");
         $title = Config::get("section.title");
@@ -89,14 +88,13 @@ class Controller_User extends Controller_Template
 
         if (!isset($hash)) {
             $ts = Date::forge()->get_timestamp();
-            $hash = md5("$site $username $ts $salt");
+            $hash = md5("$username $ts $salt");
 
             $email = Email::forge();
             $email->to($username);
             $email->subject("Leinster Hockey Cards - Password Reset");
             $email->html_body(View::forge("user/resetemail", array(
                 "email"=>$username,
-                "site"=>$site,
                 "timestamp"=>$ts,
                 "hash"=>$hash)));
             $email->send();
@@ -117,7 +115,7 @@ class Controller_User extends Controller_Template
             return new Response("Expired hash", 401);
         }
 
-        if ($hash != md5("$site $username $ts $salt")) {
+        if ($hash != md5("$username $ts $salt")) {
             return new Response("Invalid hash", 401);
         }
 
@@ -154,11 +152,10 @@ class Controller_User extends Controller_Template
         }
 
         $salt = Config::get("section.salt");
-        $site = \Session::get('site');
         $ts = Date::forge()->get_timestamp() + (24 * 60 * 60);
         $hash = md5("$site $username $ts $salt");
 
-        $url = Uri::create("/User/ForgottenPassword?e=$username&ts=$ts&h=$hash&site=$site");
+        $url = Uri::create("/User/ForgottenPassword?e=$username&ts=$ts&h=$hash");
         return new Response($url, 200);
     }
 

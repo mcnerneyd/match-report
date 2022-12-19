@@ -8,6 +8,7 @@ define('APPPATH', DOCROOT.'/fuel/app/');
 define("ADMIN_ROOT", "/");
 define("DATAPATH", DOCROOT."/data");
 
+
 class Fuel {
   static $env = "development";
 }
@@ -98,10 +99,19 @@ function site() {
 class Config {
 	public static function get($path, $def = null) {
 		if ($path === 'base_url') {
-			return $_SESSION['base-url'];
+			return isset($_SESSION['base-url']) ? $_SESSION['base-url'] : null;
 		}
 
-		$configFile = realpath(DATAPATH.'/config.json');
+		if (strpos($path, "section.") === 0) {
+			if (!isset($_SESSION['site'])) {
+				return $def;
+			}
+			$site = $_SESSION['site'];
+
+			$configFile = realpath(DATAPATH.'/sections/'.$site.'/config.json');
+		} else {
+			$configFile = realpath(DATAPATH.'/config.json');
+		}
 
 		$json = file_get_contents($configFile);
 
@@ -113,7 +123,7 @@ class Config {
 		$value = $config;
 		foreach ($keys as $key) {
 			if (!isset($value[$key])) {
-				Log::warn("No such key $key from $path");
+				Log::warn("No such key $key from $path in $configFile");
 				return $def;
 			}
 			$value = $value[$key];
@@ -124,7 +134,7 @@ class Config {
 }
 
 class Arr {
-	public static function get($arr, $key, $def) {
+	public static function get($arr, $key, $def = false) {
 		if (isset($arr[$key])) {
 			return $arr[$key];
 		}

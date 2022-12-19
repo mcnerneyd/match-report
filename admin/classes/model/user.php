@@ -25,23 +25,23 @@ class Model_User extends \Orm\Model
     public function getName2()
     {
         switch ($this->group) {
-          case 1:   // user
-            if (!$this->club) {
-                return "Bad name (1/club)";
-            }
+            case 1:   // user
+                if (!$this->club) {
+                    return "Bad name (1/club)";
+                }
 
-            return $this->club['name'].($this->section ? " (".$this->section['name'].")" : "");
-          case 2:
-            return $this->username;
-          case 25:
-            $s = $this->section ? "/".$this->section['name'] : "";
-            if (!$this->club) {
-                return "Bad name (25/club)";
-            }
-            return $this->email." (".$this->club['name'].$s.")";
-          case 99:
-            $s = $this->section ? " (".$this->section['name'].")": "";
-            return $this->email.$s;
+                return $this->club['name'].($this->section ? " (".$this->section['name'].")" : "");
+            case 2:
+                return $this->username;
+            case 25:
+                $s = $this->section ? "/".$this->section['name'] : "";
+                if (!$this->club) {
+                    return "Bad name (25/club)";
+                }
+                return $this->email." (".$this->club['name'].$s.")";
+            case 99:
+                $s = $this->section ? " (".$this->section['name'].")" : "";
+                return $this->email.$s;
         }
     }
 

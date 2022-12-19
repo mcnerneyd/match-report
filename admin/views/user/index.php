@@ -130,12 +130,11 @@
 			<a class='dropdown-item' id='add-admin'>Admin User&hellip;</a>
 			<div class='dropdown-divider'></div>
 			<a class='dropdown-item' id='add-all-club-users'>Add missing club users</a>
-			<a class='dropdown-item' id='import-users'>Import Users&hellip;<a>
+			<a class='dropdown-item' id='import-users'>Import Users&hellip;</a>
 		</div>
 	</div>	<!-- .btn-group -->
 </div>
 
-<div class='objecttable'>
 <table id='users-table' class='table table-condensed table-striped nowrap'>
 	<thead>
 		<tr>
@@ -174,7 +173,6 @@
 } ?>
 	</tbody>
 </table>
-</div>
 
 
 <!-- Create User Modal -->

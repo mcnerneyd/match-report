@@ -12,9 +12,10 @@ class Model_Matchcard extends \Orm\Model
         'open',
     );
 
-    public function __toString() {
+    public function __toString()
+    {
         return "Card(${this['fixture_id']}/${this['id']}=".$this['competition']['name'].":".$this['home']['club']['name']."^".$this['away']['club']['name'].")";
-      }
+    }
 
     protected static $_table_name = 'matchcard';
 
@@ -42,8 +43,32 @@ class Model_Matchcard extends \Orm\Model
         ),
     );
 
-    public static function getx($fixtureId) {
+    public static function getAll($fixtureIds)
+    {
+        if (!$fixtureIds) {
+            return array();
+        }
 
+        $sql = "select type, fixture_id, c.name, sum(case when type = 'Scored' then detail else 1 end) value
+                    from incident i
+                    join matchcard m on m.id = i.matchcard_id
+                    join club c on c.id = i.club_id
+                where type in ('Played', 'Scored') and fixture_id in (".join(",", $fixtureIds).")
+                group by type, fixture_id, c.name";
+
+        $rows = DB::query($sql)->execute();
+
+        $result = array();
+        foreach ($rows as $row) {
+            $result[$row['type'].$row['fixture_id'].$row['name']] = $row['value'];
+        }
+
+        return $result;
+    }
+
+
+    public static function getx($fixtureId)
+    {
         if (!self::createMatchcard($fixtureId)) {
             return null;
         }
@@ -54,7 +79,6 @@ class Model_Matchcard extends \Orm\Model
     public static function createMatchcard($fixtureId)
     {
         try {
-
             $fixture = Model_Fixture::get($fixtureId);
             $comp = Model_Competition::find_by_name($fixture['competition'])->id;
             $home = Model_Team::find_by_name($fixture['section'], $fixture['home'])->id;
@@ -250,7 +274,7 @@ class Model_Matchcard extends \Orm\Model
             $away_id = 'null';
         }
         $competition_id = static::first("SELECT id FROM competition WHERE name = '${xFixture['competition']}'");
-            
+
         $sql="INSERT INTO matchcard (fixture_id, competition_id, home_id, away_id)
 					VALUES ($fixtureid, $competition_id, $home_id, $away_id)";
 
@@ -303,7 +327,7 @@ class Model_Matchcard extends \Orm\Model
     public static function card2($id)
     {
         $card = Model_Matchcard::find_by_id($id);
-        
+
         $result = $card->to_array();
 
         $result['home'] = $card->home->to_array();
@@ -414,7 +438,9 @@ class Model_Matchcard extends \Orm\Model
         foreach ($cards as $card) {
             $fixture = $fixtureIds[$card['fixture_id']];
             if (($card['home_score'] == $fixture['home_score']) &&
-                ($card['away_score'] == $fixture['away_score'])) continue;
+                ($card['away_score'] == $fixture['away_score'])) {
+                continue;
+            }
             Log::debug("Score: ".$card['home_score']." ".$card['away_score'].
                 " == ".$fixture["home_score"]." ".$fixture["away_score"]);
             $fixture['card'] = self::build_card($card, $fixture);
@@ -424,8 +450,8 @@ class Model_Matchcard extends \Orm\Model
         return $fixtures;
     }
 
-    private static function build_card($card, $fixture) {
-
+    private static function build_card($card, $fixture)
+    {
         $t0 = milliseconds();
 
         if ($fixture != null) {
@@ -438,7 +464,6 @@ class Model_Matchcard extends \Orm\Model
         $t2 = milliseconds();
 
         if ($card['date']) {
-
             // Bad date goes to end of season
             if ($card['date'] == '0000-00-00 00:00:00') {
                 $card['date'] = '2050-07-31 07:00:00';

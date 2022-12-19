@@ -1,5 +1,7 @@
 <?php
 
+session_start();
+
 require_once('util.php');
 require_once('fuel.php');
 
@@ -124,8 +126,7 @@ function redirect($controller, $action, $query = null) {
 ob_start();
 
 try {
-	session_start();
-
+	
 	if (isset($_REQUEST['debug'])) {
 			if ($_REQUEST['debug'] == 'off') {
 				unset($_SESSION['debug']);
@@ -137,47 +138,32 @@ try {
 	}
 
 	$site = null;
-	$controller = null;
-	$action = null;
-
-	if (isset($_REQUEST['controller'])) {
-		$controller = $_REQUEST['controller'];
-	}
-
-	if (isset($_REQUEST['action'])) {
-		$action = $_REQUEST['action'];
-	}
+	$controller = Arr::get($_REQUEST, "controller", null);
+	$action = Arr::get($_REQUEST, "action", null);
 
 	require_once('model/connection.php');
 	require_once('secure.php');
 
-	if (isset($_COOKIE['site']) && !isset($_REQUEST['site'])) {
+	if (isset($_COOKIE['site']) && !isset($_REQUEST['site']) && !isset($_SESSION['site'])) {
 		$site = $_COOKIE['site'];
-			throw new RedirectException("User logged in", url("site=$site", 'index', 'card'));
+		throw new RedirectException("User logged in (1)", url("site=$site", 'index', 'card'));
 	}
+
+	$username =  isset($_SESSION['username']) ? $_SESSION['user'] : "<unknown user>";
 
 	if (isset($_COOKIE['key']) && !isset($_SESSION['user'])) {
 		$username = $_COOKIE['username'];
 		$site = $_REQUEST['site'];
 		if ($_COOKIE['key'] == createsecurekey($site + "cookie" + $username)) {
 			$x = createsecurekey('secretarylogin'.$username);
-			throw new RedirectException("User logged in", url("site=$site&x=$x&u=$username", 'loginUC', 'club'));
+			throw new RedirectException("User logged in (2)", url("site=$site&x=$x&u=$username", 'loginUC', 'club'));
 		}
 	}
 
 	if (isset($_SESSION['site'])) $site = $_SESSION['site'];
 
-	if (!$site) Log::error("User does not have a site associated");
-  /*
-	if (!$site) {
-		unset($_SESSION['site']);
-		unset($_SESSION['user']);
-		unset($_SESSION['club']);
-		unset($_SESSION['roles']);
-		throw new LoginException("User not logged in");
-	}
-  */
-
+	if (!$site) Log::error("User ($username) does not have a site associated");
+  
 	$layout = 'layout';
 	if (isset($_REQUEST['layout'])) $layout = $_REQUEST['layout'];
 
@@ -202,15 +188,6 @@ try {
 	echo "<pre>".print_r($e, true)."</pre>";
 }
 
-/*
-if (!isset($_COOKIE['noremember']) and user()) {
-	$expiry = time()+60*60*24*3;
-	setCookie("username", user(), $expiry, "/");
-	setCookie("site", site(), $expiry, "/");
-	setCookie("key", createsecurekey(site() . "cookie" . user()), $expiry, "/");
-}
-*/
-
 ob_end_flush();
 
 if (count($warnings)) { ?>
@@ -233,6 +210,6 @@ $(document).ready(function() {
 </script>
 	<?php }
 
-	echo "<!-- Site=$site Controller=$controller Action=$action User=".user()." Club=".\Arr::get($_SESSION, 'club', 'No club')." Roles=".join($_SESSION['roles'])."-->";
+	echo "<!-- Site=$site Controller=[$controller] Action=[$action] User=[".user()."] Club=[".\Arr::get($_SESSION, 'club', 'No club')."] Roles=".(isset($_SESSION['roles']) ? join($_SESSION['roles']):"no roles")."-->";
 	echo "<!-- ".print_r($_SESSION, true)." -->";
 ?>

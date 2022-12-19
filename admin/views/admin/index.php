@@ -1,4 +1,4 @@
-<div class='row'>
+<div class='row legacy'>
 
 <div class='col-md-4 col-12'>
 <div class='card bg-warning'>
@@ -10,9 +10,7 @@
       <div class='row'>
         <div class='input-group col'>
           <select class='form-control' name='u'>
-          <?php foreach ($users as $user) {
-    echo "<option value='".$user['username']."'>".$user->getName()."</option>";
-} ?>
+          <?php foreach ($users as $user) { echo "<option value='".$user['username']."'>".$user->getName()."</option>"; } ?>
           </select>
         </div>
       </div>

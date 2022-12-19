@@ -11,7 +11,7 @@
 			$list = array();
 			$db = Db::getInstance();
 
-			$req = $db->query("select distinct c.name, c.code
+			$req = $db->query("select distinct c.id, c.name, c.code
 				from club c
 					inner join team t on c.id = t.club_id
 					inner join team__competition e on t.id = e.team_id

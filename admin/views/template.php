@@ -68,7 +68,7 @@
 	</script>
 </head>
 
-<body>
+<body class='admin'>
 	<?php require_once('nav.php'); 
 
 	if (!Cookie::get('CONSENT', null)) { ?>
@@ -115,8 +115,11 @@
 	</div>
 	<?php } /* Consent */ ?>
 
-	<div class='container'>
-		<?php 
+	<div class='xcontainer'>
+		<?php if (\Session::get('user-title')) { ?>
+			<div id='user'><?= \Session::get('user-title') ?></div>
+		<?php }  
+
 		if (isset($title)) echo "<h1>$title</h1>"; 
 
 		$flash = Session::get_flash("message");

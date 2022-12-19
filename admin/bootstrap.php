@@ -17,7 +17,10 @@ require APPPATH.'vendor/autoload.php';
         // Ignore the event if the original exception is an instance of MyException
         if ($hint !== null && $hint->exception instanceof HttpNotFoundException) {
         return null;
-        }
+	}
+        if (strpos($event->getMessage(), "Module 'curl' already loaded") !== false) { 
+        return null;
+	}
         
         return $event;
     }]);

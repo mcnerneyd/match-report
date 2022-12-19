@@ -1,6 +1,6 @@
 <?php
 // vim: et:ts=2:sw=2
-$club = Arr::get($_SESSION,'club',null);
+$club = Arr::get($_SESSION, 'club', null);
 
 if (isset($fixture['card'])) {
     $card = $fixture['card'];
@@ -21,30 +21,33 @@ $cardIsOpen = false;
 
 $whoami = "";
 $mycard = null;
-if ($club and isset($fixture[$club])) {
-    $whoami = $fixture[$club];
-    $mycard = $card[$whoami];
-    if (!isset($mycard['closed'])) {
-        $cardIsOpen = true;
-    }
-}
 
-// Card is open for umpires if either side has not closed
-if (user('Umpires')) {
-    if (!isset($card['home']['closed'])) {
-        $cardIsOpen = true;
+if (user()) {
+    if ($club and isset($fixture[$club])) {
+        $whoami = $fixture[$club];
+        $mycard = $card[$whoami];
+        if (!isset($mycard['closed'])) {
+            $cardIsOpen = true;
+        }
     }
-    if (!isset($card['away']['closed'])) {
-        $cardIsOpen = true;
+
+    // Card is open for umpires if either side has not closed
+    if (user('Umpires')) {
+        if (!isset($card['home']['closed'])) {
+            $cardIsOpen = true;
+        }
+        if (!isset($card['away']['closed'])) {
+            $cardIsOpen = true;
+        }
     }
 }
 
 $date = strftime("%Y-%m-%d", $fixture['date']);
 $time = strftime("%H:%M", $fixture['date']);
 ?>
-<!-- <?= "WhoAmI:$whoami Open?:$cardIsOpen" ?> -->
+<!-- WhoAmiI:<?= "$club/$whoami Open?:".($cardIsOpen?"open":"closed") ?> -->
 
-<script src='js/matchcard.js' type='text/javascript'></script>
+<script src='/cards/js/matchcard.js' type='text/javascript'></script>
 <script>
 <?php
 if ($card) {
@@ -62,7 +65,7 @@ if ($card) {
 
   <?php
 if ($mycard) {
-        ?>
+    ?>
   $.getJSON(restUrl + 'registration/list.json?s=<?= $fixture['section'] ?>&t=<?= $mycard['teamx'] ?>&g=<?= join(",", $fixture['groups']) ?>',
     function(json) {
       var ct = 0;
@@ -85,7 +88,7 @@ if ($mycard) {
       });
     });
   <?php
-    }
+}
 ?>
 });
 </script>
@@ -119,31 +122,31 @@ $(document).ready(function() {
 ?>
 
 <div id='match-card' <?php
-$class = "";
-if ($cardIsOpen) {
-    $class .= "open ";
-}
-if ($card && $card['official']) {
-    $class .= "official ";
-}
-if ($class) {
-    echo "class='" . trim($class) . "' data-fixtureid='${fixture['id']}' ";
-}
-if ($card) {
-    echo "data-cardid='${card['id']}' data-starttime='${card['date']}'";
-}
-?>>
+  $class = "";
+  if ($cardIsOpen) {
+      $class .= "open ";
+  }
+  if ($card && $card['official']) {
+      $class .= "official ";
+  }
+  if ($class) {
+      echo "class='" . trim($class) . "' data-fixtureid='${fixture['id']}' ";
+  }
+  if ($card) {
+      echo "data-cardid='${card['id']}' data-starttime='${card['date']}'";
+  }
+  ?>>
 
-<h1 id='competition' data-code='<?= $fixture['competition-code'] ?>' data-format='<?= $card ? $card['format'] : 'Any' ?>'><?= $fixture['competition'] ?></h1>
+  <h1 id='competition' data-code='<?= $fixture['competition-code'] ?>' data-format='<?= $card ? $card['format'] : 'Any' ?>'><?= $fixture['competition'] ?></h1>
 
-		<?php /*
-if ($fixture['groups']) {
-?>
-        <h2><?php
-    echo join(', ', $fixture['groups']);
-?></h2>
-        <?php
-} */ ?>
+      <?php /*
+  if ($fixture['groups']) {
+  ?>
+          <h2><?php
+      echo join(', ', $fixture['groups']);
+  ?></h2>
+          <?php
+  } */ ?>
 
   <detail data-timestamp='<?= $fixture['date'] ?>'>
 
@@ -168,38 +171,87 @@ if ($fixture['groups']) {
       <dt>Time</dt>        
       <dd><?= $time ?></dd>
     </dl>
+
+    <a href='<?= URI::create("card/${fixture['id']}") ?>' title='Permalink'><i class="fas fa-paperclip"></i></a>
   </detail>
+
 
   <div id='teams'>
     <div id='matchcard-home' class='team <?= $whoami == 'home' ? 'ours' : 'theirs' ?>' data-side='home'>
       <?php
       render_team($fixture['home'], $card ? $card['home'] : null);
-      ?>
+?>
     </div>
 
     <div id='matchcard-away' class='team <?= $whoami == 'away' ? 'ours' : 'theirs' ?>' data-side='away'>
-      <?php
-      render_team($fixture['away'], $card ? $card['away'] : null);
-      ?>
+      <?php render_team($fixture['away'], $card ? $card['away'] : null); ?>
+    </div>
+  </div> <!-- #teams -->
+
+    <?php
+    if (isset($card['notes'])) {
+        ?>
+    <div id='Notes'>
+    <h4>Notes</h4>
+      <table id='notes'>
+        <?php
+        foreach ($card['notes'] as $note) {
+            ?>
+        <tr>
+          <th><i class="far fa-sticky-note"></i>&nbsp;<?= $note['user'] ?></th>
+          <td><?= $note['note'] ?></td>
+        </tr>
+        <?php
+        } ?>
+      </table>
+    </div>
+    <?php
+    }
+    ?>
+
+    <div id='signatures'>
+      <h4>Signatures</h4>
+      <span class='progress'>Loading Signatures...</span>
     </div>
 
-    <div style='clear:both'/>
+    <script>
+      <?php if (isset($card['id'])) { ?>
+      const UPDATE_FIXTURE_URL = "<?= \Config::get('base_url')."cardapi/result?id=".$card['id'] ?>";
 
-  </div>
-
-  <form id='submit-card'>
-  <?php
-if ($cardIsOpen) {
-          ?>
-      <a id='submit-button' class='btn btn-success' tabindex='10'><i class="fas fa-check"></i> Submit<span class='d-none d-md-inline'> Card</span></a>
-  <?php
+      function updateScore(event) {
+        fetch(UPDATE_FIXTURE_URL, {method: 'POST',cache: 'no-cache'})
+        .then((response) => {
+          Toastify({
+            text: "Results Updated",
+            duration: 2000,
+            close: true,
+            gravity: "top", // `top` or `bottom`
+            position: "right", // `left`, `center` or `right`
+            offset: { y: 50 },
+            stopOnFocus: true, // Prevents dismissing of toast on hover
+          }).showToast();
+        });
       }
-?>
+      <?php } ?>
+    </script>
+
+    <?php if (!\Config::get('section.result.button') || \Auth::has_access('card.admin')) { ?>
+    <span class='btn btn-warning' onclick='updateScore(event)'><i class="fas fa-chevron-circle-up"></i> Upload Score</span>
+    <?php } ?>
+
+</div>  <!-- #match-card -->
+
+<form id='submit-card'>
+    <?php if ($cardIsOpen) { ?>
+        <a id='submit-button' class='btn btn-success' tabindex='10'><i class="fas fa-check"></i> Submit<span class='d-none d-md-inline'> Card</span></a>
+    <?php } ?>
       <a class='btn btn-info float-right' data-toggle='modal' data-target='#add-note' tabindex='21'>
         <i class="far fa-sticky-note"></i><span class='d-none d-md-inline'> Add Note</span>
       </a>
+      <?php if ($cardIsOpen) { ?>
       <a class='add-player btn btn-danger float-right' data-toggle='modal' data-target='#add-player-modal' tabindex='20'><i class="fas fa-user-plus"></i> Add Player</a>
   <?php
+}
 if (!$cardIsOpen) {
     ?>
       <a class='btn btn-success sign-card' data-toggle='modal' data-target='#submit-matchcard' tabindex='2'>
@@ -208,8 +260,7 @@ if (!$cardIsOpen) {
 }
 ?>
     </div>
-  </form>
-</div>
+</form>
 
 <?php
 // -------------------------------------------------------------------
@@ -275,7 +326,7 @@ if (false and $cardIsOpen) {
         </div>
         <?php
 }
-?>
+?> 
         <button type="submit" class="btn btn-success" data-dismiss="modal">
           Submit Matchcard
         </button>
@@ -289,56 +340,7 @@ if (false and $cardIsOpen) {
   </div>
 </div>
 
-<script src='js/signature_pad.min.js' type='text/javascript'></script>
-
-<?php
-if (isset($card['notes'])) {
-    ?>
-<div id='Notes'>
-<h4>Notes</h4>
-  <table id='notes'>
-    <?php
-    foreach ($card['notes'] as $note) {
-        ?>
-    <tr>
-      <th><i class="far fa-sticky-note"></i>&nbsp;<?= $note['user'] ?></th>
-      <td><?= $note['note'] ?></td>
-    </tr>
-    <?php
-    } ?>
-  </table>
-</div>
-<?php
-}
-?>
-
-<div id='signatures'>
-  <h4>Signatures</h4>
-  <span class='progress'>Loading Signatures...</span>
-</div>
-
-<div class='spacer'></div>
-
-<script>
-  const UPDATE_FIXTURE_URL = "<?= \Config::get('base_url')."cardapi/result?id=".$card['id'] ?>";
-
-  function updateScore(event) {
-    fetch(UPDATE_FIXTURE_URL, {method: 'POST',cache: 'no-cache'})
-    .then((response) => {
-      Toastify({
-        text: "Results Updated",
-        duration: 2000,
-        close: true,
-        gravity: "top", // `top` or `bottom`
-        position: "right", // `left`, `center` or `right`
-        offset: { y: 50 },
-        stopOnFocus: true, // Prevents dismissing of toast on hover
-      }).showToast();
-    });
-  }
-</script>
-
-<span class='btn btn-warning' onclick='updateScore(event)'><i class="fas fa-chevron-circle-up"></i> Upload Score</span>
+<script src='/cards/js/signature_pad.min.js' type='text/javascript'></script>
 
 <?php
 // ------------------------------------------------------------------------
@@ -498,7 +500,7 @@ if ($cardIsOpen || \Auth::has_access('card.addcards')) {
 function render_team($fixture, $team)
 {
     global $strictProcessing;
-    
+
     echo "<table class='team-table' data-club='${fixture['club']}' data-team='${fixture['teamnumber']}' data-score='${fixture['score']}'>
   <thead><tr><th colspan='100'>" . $fixture['team'] . " <div class='scores'><span>${fixture['score']}</span>";
     if ($team && $team['suggested-score'] != $fixture['score']) {
@@ -506,12 +508,12 @@ function render_team($fixture, $team)
     }
     echo "</div></th></tr></thead>
       <tbody>\n";
-    
+
     $ct = 0;
     if ($team) {
         foreach ($team['players'] as $player => $detail) {
             $names = cleanName($player, "[Fn][LN]");
-        
+
             $class = "player";
             if (isset($detail['deleted'])) {
                 $class .= " deleted";
@@ -528,21 +530,21 @@ function render_team($fixture, $team)
                     }
                 }
             }
-        
+
             $imagekey = createsecurekey("image$player${team['club']}");
-            $url      = "image.php?site=" . site() . "&player=$player&w=200&club=${team['club']}&x=$imagekey";
+            $url      = "/cards/image.php?site=" . site() . "&player=$player&w=200&club=${team['club']}&x=$imagekey";
             echo "    <tr class='$class' data-timestamp='${detail['datetime']}' data-imageurl='$url' data-name='$player'>
       <th>" . (isset($detail['number']) ? $detail['number'] : "") . "</th>
       <td>${names['Fn']}</td>
       <td>${names['LN']} ";
-        
+
             echo "<div class='player-annotations'";
             if (isset($detail['detail'])) {
                 $d = $detail['detail'];
                 echo " data-player='" . htmlspecialchars(json_encode($d), ENT_QUOTES, 'UTF-8') . "'";
             }
             echo ">";
-        
+
             if ($detail['score'] != 0) {
                 echo "<span class='score'>${detail['score']}</span>";
             }
@@ -576,21 +578,21 @@ function render_team($fixture, $team)
                 }
             }
             echo "</div>";
-        
+
             echo "</td>
     </tr>\n";
             $ct++;
         }
     }
-    
+
     for (; $ct < 16; $ct++) {
         echo "    <tr class='filler hidden-xs'><td colspan='4'>&nbsp;</td></tr>\n";
     }
-    
+
     echo "  </tbody>
 
     </table>\n";
-    
+
     if (isset($team['umpire'])) {
         echo "<dl><dt>Umpire</dt><dd>" . $team['umpire'] . "</dd></dl>";
     }

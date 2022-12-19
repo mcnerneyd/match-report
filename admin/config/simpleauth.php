@@ -51,9 +51,10 @@ return array(
          
          'admin'  => array('configuration'=>array('view','edit'),
 		 				   'data'=>array('export','log'),
-                           'card'=>array('addcards'),
+                           'card'=>array('addcards','admin'),
                            'registration'=>array('impersonate','status','delete'),
-                           'competition'=>array('view','edit'),
+			   'competition'=>array('view','edit'),
+			   'report'=>array('players'),
                            'user'=>array('create','impersonate')),
 
          'secretary' => array('registration' => array('view', 'post'),
