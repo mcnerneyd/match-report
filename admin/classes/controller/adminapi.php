@@ -134,6 +134,21 @@ class Controller_AdminApi extends Controller_RestApi
         return new Response("", 200);
     }
 
+    public function get_trigger() {
+        $frame = Input::param("frame");
+        Log::debug("trigger ".$frame);
+
+        switch ($frame) {
+            case 'fivemins':
+                Model_Fixture::refresh();
+                break;
+            default:
+                return new Response("unknown frame: $frame", 400);
+        }
+
+        return new Response("triggered", 200);
+    }
+
     public function get_export()
     {
         if (!Auth::has_access("data.export")) {
@@ -185,4 +200,6 @@ class Controller_AdminApi extends Controller_RestApi
 
         return $result;
     }
+
+
 }

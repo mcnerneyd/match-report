@@ -4,15 +4,10 @@ class Model_Fixture extends \Model
 {
     private static $globalId = 1;
 
-    public static function find($fixtureId)
-    {
-        return self::get($fixtureId);
-    }
-
     public static function get($fixtureId)
     {
         foreach (Model_Fixture::getAll() as $fixture) {
-            if ($fixture['fixtureID'] == $fixtureId and $fixture['status'] == 'active') {
+            if ($fixture['fixtureID'] == $fixtureId) {
                 return $fixture;
             }
         }
@@ -39,7 +34,15 @@ class Model_Fixture extends \Model
         return null;
     }
 
-    public static function getAll($flush = false)
+    public static function refresh() {
+        self::getAllFixtures(true);
+    }
+
+    public static function getAll() {
+        return self::getAllFixtures(false);
+    }
+
+    private static function getAllFixtures($flush = false)
     {
         // TODO Skip processing with cksums - only process if source has changed
         try {
@@ -59,19 +62,14 @@ class Model_Fixture extends \Model
             $flush = true;
         }
 
-        try {
-            $processing = Cache::get('fixtures.processing');
-        } catch (\CacheNotFoundException $e) {
-            $processing = false;
-        }
-
-        Log::info("processing=$processing");
-        if ($processing === true) {
+        $semKey = ftok(DATAPATH, "m");
+        $sem = sem_get($semKey);
+        if (!sem_acquire($sem, true)) {
             Log::info("Fixtures already processing");
             return $fixtures;
         }
 
-        Cache::set('fixtures.processing', true, 600);
+        Log::info("Fixtures processing");
 
         $flushFeed = false;
         if ($flush === true) {
@@ -90,45 +88,96 @@ class Model_Fixture extends \Model
             }
         }
 
-        Log::info('Fixtures full load');
-
         $ct=1;
         $t = microtime(true);
         $pt = $t;
 
-
         $allfixtures = array();
 
         foreach (Model_Section::find('all') as $section) {
-            $allfixtures = array_merge($allfixtures, self::getFixtures($section, $flushFeed));
+            $allfixtures = array_merge($allfixtures, self::loadSectionFixtures($section, $flushFeed));
             gc_collect_cycles();
         }
 
         $et = microtime(true);
-        Log::info("Loaded ".count($fixtures)." fixtures: ".(($pt-$t)*1000)."/".(($et-$t)*1000));
+        Log::info("Loaded ".count($allfixtures)." fixtures: ".(($pt-$t)*1000)."/".(($et-$t)*1000));
 
-        file_put_contents(DATAPATH.'/fixtures.json', json_encode($allfixtures));
-
-        $csvFile = fopen(DATAPATH."/fixtures.csv", "w");
-        foreach ($allfixtures as $fixture) {
-            fputcsv($csvFile, array($fixture['fixtureID'], strtotime($fixture['datetimeZ']), time(),
-                $fixture['section'], $fixture['competition'],
-                $fixture['home_club'], $fixture['home_team'],
-                $fixture['away_club'], $fixture['away_team'],
-                $fixture['played'] == 'yes' ? 'y' : 'n', 0, 0, 0, 0));
+        $rawfixtures = $allfixtures;
+        foreach ($rawfixtures as &$fixture) {
+            unset($fixture['lastupdated_t']);
+            unset($fixture['feed']);
+            unset($fixture['x']);
+            unset($fixture['y']);
+            unset($fixture['zaway']);
+            unset($fixture['zhome']);
+            unset($fixture['zcompetition']);
+            unset($fixture['hidden']);
+            unset($fixture['cover']);
+            unset($fixture['datetime']);
+            unset($fixture['comment']);
+            unset($fixture['id']);
+            //unset($fixture['home']);
+            //unset($fixture['away']);
         }
-        fclose($csvFile);
+        $data = json_encode($rawfixtures, JSON_PRETTY_PRINT);
+
+        if (md5($data) != md5_file(DATAPATH.'/fixtures.json')) {
+            file_put_contents(DATAPATH.'/fixtures.json', $data);
+
+            /*
+            $cksums = array();
+            if (file_exists(DATAPATH."/fixtures.csv")) {
+                $csvFile = fopen(DATAPATH."/fixtures.csv", "r");
+                while ($arr = fgetcsv($csvFile)) {
+                    $cksums[$arr[14].$arr[0]] = $arr[2];
+                }
+                fclose($csvFile);
+            }
+
+            $csvFile = fopen(DATAPATH."/fixtures.csv", "w");
+            foreach ($rawfixtures as $fixture) {
+                if ($fixture['hidden']) {
+                    continue;
+                }
+                if (!isset($fixture['home_club'])) {
+                    continue;
+                }
+
+                try {
+                    $values = array($fixture['fixtureID'], strtotime($fixture['datetimeZ']),
+                    0,
+                    $fixture['section'], $fixture['competition'],
+                    $fixture['home_club'], $fixture['home_team'],
+                    $fixture['away_club'], $fixture['away_team'],
+                    $fixture['played'] == 'yes' ? 'y' : 'n',
+                    $fixture['home_score'],
+                    $fixture['away_score'],
+                    0, 0);
+                    $cksum = substr(md5(json_encode($values)), 0, 4);
+                    $key = $cksum.$fixture['fixtureID'];
+                    if (isset($cksums[$key])) {
+                        $values[2] = $cksums[$key];
+                    } else {
+                        $values[2] = $fixture['lastupdated_t'];
+                    }
+                    $values[] = $cksum;
+                    fputcsv($csvFile, $values);
+                } catch (Exception $e) {
+                    Log::error("Failed to write fixture to csv (skipping): ".print_r($fixture, true));
+                }
+            }
+            fclose($csvFile);*/
+        }
 
         Cache::set('fixtures', $allfixtures, 600);
-        try {
-            Cache::delete('fixtures.processing');
-        } catch (\CacheNotFoundException $e) {
-        }
 
-    return $allfixtures;
+        sem_release($sem);
+        Log::info("Fixtures processing complete");
+
+        return $allfixtures;
     }
 
-  public static function getFixtures($section, $flushFeed = null)
+  private static function loadSectionFixtures($section, $flushFeed = null)
   {
       $allfixtures = array();
 
@@ -239,14 +288,14 @@ class Model_Fixture extends \Model
       $goodCompetition = array();
       $clubs = array_map(
           function ($a) {
-          return trim($a['name']);
-      },
+              return trim($a['name']);
+          },
           Model_Club::find('all')
       );
       $competitions = array_map(
           function ($a) {
-          return trim($a['name']);
-      },
+              return trim($a['name']);
+          },
           Model_Competition::query()->where('section_id', '=', $section['id'])->get()
       );
       Log::debug("Competitions for ${section['name']}: ".implode(",", $competitions));
@@ -292,6 +341,8 @@ class Model_Fixture extends \Model
           $allfixtures[$key]['x'] = $k;
           if (in_array($k['club'], $clubs)) {
               $allfixtures[$key]['cover'] .= 'H';
+          } else {
+              $allfixtures[$key]['hidden'] = true;
           }
 
           $k = Model_Team::parse($section['name'], $fixture['away']);
@@ -308,16 +359,22 @@ class Model_Fixture extends \Model
           $allfixtures[$key]['y'] = $k;
           if (in_array($k['club'], $clubs)) {
               $allfixtures[$key]['cover'] .= 'A';
+          } else {
+              $allfixtures[$key]['hidden'] = true;
           }
+
           if (!isset($allfixtures[$key]['played'])) {
               $allfixtures[$key]['played'] = 'no';
           }
+
           $allfixtures[$key]['lastupdated_t'] = time();
       }
 
       if ($badFixtures) {
-          Log::warning("Unresolvable fixtures (${section['name']}: ".implode(",", $badFixtures));
-          Log::debug("Good (${section['name']}: ".implode(",", $goodCompetition));
+        $badFixtures = array_unique($badFixtures);
+        $goodCompetition = array_unique($goodCompetition);
+          Log::warning("Unresolvable fixtures section=${section['name']}: ".implode(",", $badFixtures));
+          Log::debug("Good section=${section['name']}: ".implode(",", $goodCompetition));
       }
 
       foreach ($allfixtures as &$fixture) {
@@ -350,7 +407,7 @@ class Model_Fixture extends \Model
       return "active";
   }
 
-    public static function load_csv($src)
+    private static function load_csv($src)
     {
         $fixtures = array();
         $headers = null;
@@ -386,7 +443,7 @@ class Model_Fixture extends \Model
         return $fixtures;
     }
 
-    public static function load_scrape($src)
+    private static function load_scrape($src)
     {
         $fixtures = array();
 

@@ -4,6 +4,7 @@ session_start();
 
 require_once('util.php');
 require_once('fuel.php');
+require_once('vendor/autoload.php');
 
 /* Raven/Sentry */
 require_once PKGPATH.'/Raven/Autoloader.php';

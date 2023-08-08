@@ -8,7 +8,7 @@
       <ul class='navbar-nav'>
         <?php if (\Auth::check()) { ?>
         <li class='nav-item'>
-          <a class='nav-link' href='/cards/index.php?controller=card&action=index'>Matches</a>
+          <a class='nav-link' href='/cards/ui/'>Matches</a>
         </li>
         <?php if (\Auth::has_access('registration.view')) { ?>
         <li class='nav-item dropdown'>

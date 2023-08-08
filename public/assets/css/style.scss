@@ -3,7 +3,7 @@
 $gap: 3mm;
 $buttonGap: 1mm;
 $smallWidth: 768px;
-$normalWidth: 992px;
+$normalWidth: 24cm;
 
 html {
     height: 100%;
@@ -18,18 +18,26 @@ body {
     font-size: 11pt;
 }
 
+#privacy {
+    position: fixed;
+    top: 50px;
+    left: 0;
+    display: block;
+    padding: 5px;
+
+    a {
+        font-size: 80%;
+        color:#b7337a;
+        text-decoration: dotted;
+    }
+}
+
 .xcontainer {
     display: grid;
     grid-template-rows: 3.5rem 2rem min-content 1fr 4rem;
-    grid-template-columns: 1fr $normalWidth 1fr;
+    grid-template-columns: 1fr min($normalWidth, 90vw) 1fr;
 
     height: 100%;
-}
-
-@media screen and (max-width: $normalWidth) {
-    .xcontainer {
-        grid-template-columns: 1rem 1fr 1rem;
-    }
 }
 
 .smallprint {
@@ -77,6 +85,14 @@ body {
 
 td.number {
     text-align: center
+}
+
+.central-block {
+    grid-area: 4/2/6/3;
+}
+
+.central-toolbar {
+    grid-area: 3/2/4/3;
 }
 
 #fixtures-tab {
@@ -251,7 +267,7 @@ td.command-group {
         }
     }
 
-    detail {
+    detail, .detail {
         width: 100%;
         clear: both;
         display: flex;
@@ -263,7 +279,7 @@ td.command-group {
             margin-bottom: 0;
         }
 
-        a {
+        *:last-child {
             flex-grow: 1;
             text-align: right;
 
@@ -773,8 +789,7 @@ header {
 }
 
 #login {
-    width: 300px;
-    padding: 15px;
+    width: min(8cm, 80%);
     margin: 0 auto;
 
     .checkbox {
@@ -995,6 +1010,28 @@ header {
 
     tr.error {
         background-color: #ffd9d9;
+    }
+
+    tr.scoreError, tr.error-score {
+        background-image: linear-gradient(45deg, #ffd9d9 25%, 
+        #fff700 25%, #fff700 50%,
+        #ffd9d9 50%, #ffd9d9 75%, 
+        #fff700 75%, #fff700 100%);
+        background-size: 56.57px 56.57px;    
+    }
+
+    tr.lateError, tr.error-late {
+        background-image: linear-gradient(45deg, #ffd9d9 33.33%, 
+        #ffa3a3 33.33%, #ffa3a3 50%, 
+        #ffd9d9 50%, #ffd9d9 83.33%, 
+        #ffa3a3 83.33%, #ffa3a3 100%);
+        background-size: 42.43px 42.43px;
+    }
+
+    td.team-error {
+        color: red;
+        font-weight: bold;
+        text-decoration: wavy red;
     }
 }
 

@@ -11,18 +11,26 @@ body {
   font-size: 11pt;
 }
 
+#privacy {
+  position: fixed;
+  top: 50px;
+  left: 0;
+  display: block;
+  padding: 5px;
+}
+#privacy a {
+  font-size: 80%;
+  color: #b7337a;
+  text-decoration: dotted;
+}
+
 .xcontainer {
   display: grid;
   grid-template-rows: 3.5rem 2rem min-content 1fr 4rem;
-  grid-template-columns: 1fr 992px 1fr;
+  grid-template-columns: 1fr min(24cm, 90vw) 1fr;
   height: 100%;
 }
 
-@media screen and (max-width: 992px) {
-  .xcontainer {
-    grid-template-columns: 1rem 1fr 1rem;
-  }
-}
 .smallprint {
   color: darkred;
   text-align: center;
@@ -70,6 +78,14 @@ td.number {
   text-align: center;
 }
 
+.central-block {
+  grid-area: 4/2/6/3;
+}
+
+.central-toolbar {
+  grid-area: 3/2/4/3;
+}
+
 #fixtures-tab {
   grid-area: 3/2/4/3;
   display: flex;
@@ -110,11 +126,11 @@ td.number {
 
 #match-card {
   grid-area: 3/1/5/4;
-  padding-inline: calc((100vw - 992px) / 2);
+  padding-inline: calc((100vw - 24cm) / 2);
   padding-bottom: 2cm;
 }
 
-@media screen and (max-width: 992px) {
+@media screen and (max-width: 24cm) {
   #match-card {
     padding-inline: 1rem;
   }
@@ -234,22 +250,22 @@ td.command-group {
 #match-card tr td:nth-child(3) {
   width: 60%;
 }
-#match-card detail {
+#match-card detail, #match-card .detail {
   width: 100%;
   clear: both;
   display: flex;
   float: left;
 }
-#match-card detail dl {
+#match-card detail dl, #match-card .detail dl {
   padding-right: 30px;
   float: left;
   margin-bottom: 0;
 }
-#match-card detail a {
+#match-card detail *:last-child, #match-card .detail *:last-child {
   flex-grow: 1;
   text-align: right;
 }
-#match-card detail a i {
+#match-card detail *:last-child i, #match-card .detail *:last-child i {
   padding: 5px;
 }
 #match-card #lock-code {
@@ -668,8 +684,7 @@ header {
 }
 
 #login {
-  width: 300px;
-  padding: 15px;
+  width: min(8cm, 80%);
   margin: 0 auto;
 }
 #login .checkbox {
@@ -850,6 +865,19 @@ header {
 }
 #fixtures tr.error {
   background-color: #ffd9d9;
+}
+#fixtures tr.scoreError, #fixtures tr.error-score {
+  background-image: linear-gradient(45deg, #ffd9d9 25%, #fff700 25%, #fff700 50%, #ffd9d9 50%, #ffd9d9 75%, #fff700 75%, #fff700 100%);
+  background-size: 56.57px 56.57px;
+}
+#fixtures tr.lateError, #fixtures tr.error-late {
+  background-image: linear-gradient(45deg, #ffd9d9 33.33%, #ffa3a3 33.33%, #ffa3a3 50%, #ffd9d9 50%, #ffd9d9 83.33%, #ffa3a3 83.33%, #ffa3a3 100%);
+  background-size: 42.43px 42.43px;
+}
+#fixtures td.team-error {
+  color: red;
+  font-weight: bold;
+  text-decoration: wavy red;
 }
 
 #configform {

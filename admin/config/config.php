@@ -136,7 +136,7 @@ return array(
 	/**
 	 * Log file and path. If no filename is given, it will be generated.
 	 */
-	'log_file'         => null,
+	'log_file'         => 'matchcard.log',
 	'log_path'         => DATAPATH.'logs/',
 
 	'log_date_format'  => 'Y-m-d H:i:s',

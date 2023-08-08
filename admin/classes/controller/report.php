@@ -258,6 +258,13 @@ class Controller_Report extends Controller_Template
     }
 
     // --------------------------------------------------------------------------
+    public function action_parsediagnostics()
+    {
+        $this->template->title = "Fixes diagnostics";
+        $this->template->content = View::forge('report/names', array());
+    }
+
+    // --------------------------------------------------------------------------
     public function action_cards()
     {
         $cards = Model_Incident::find('all', array(
@@ -596,12 +603,24 @@ class Controller_Report extends Controller_Template
             }
         }
 
-        if ($fixture) {
+        if ($card && $fixture) {
             $card['section'] = $fixture['section'];
+        }
+
+        if ($card && !$fixture) {
+            $fixture = array("fixtureID" => $card['fixture_id'], 
+            "section" => $card['section'],
+            "competition" => $card['competition'],
+            "datetimeZ" => $card['date']->format(),
+            "home" => $card['home_name']." ".$card['home_team'],
+            "away" => $card['away_name']." ".$card['away_team'],
+            "derived" => true);
         }
 
         $incidents = array();
         $card2 = array();
+
+        //if (!isset($card['id'])) return "Card:$cardId k:$key c:".print_r($card, true)." f:".print_r($fixture,true);
 
         if ($card && $card['id']) {
             $incidents = Model_Matchcard::incidents($card['id']);
@@ -651,8 +670,8 @@ class Controller_Report extends Controller_Template
         loadSectionConfig($section);
 
         //echo "<pre>";
-
-        print_r(Config::get($section));
+        echo "<!-- Debug:\n";
+        print_r(Config::get("section.pattern.team", []));
 
         $dbComps = array();
         foreach (Model_Competition::find('all') as $comp) {
@@ -696,6 +715,9 @@ class Controller_Report extends Controller_Template
         ksort($competitions);
         ksort($teams);
         $data = array('competitions'=>$competitions,'teams'=>$teams);
+
+        print_r($teams);
+        echo " -->\n";
 
         $this->template->title = "Parsing";
         $this->template->content = View::forge('report/parsing', $data);

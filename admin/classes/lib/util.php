@@ -3,13 +3,20 @@ function rootUrl() {
 	return (!empty($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/';
 }
 
-//-----------------------------------------------------------------------------
-function &arr_get(&$arr, $subindex) {
-	if (!isset($arr[$subindex])) $arr[$subindex] = array();
-
-	return $arr[$subindex];
+function ensurePath($path, $file = "")
+{
+    if (!file_exists($path)) {
+        mkdir($path, 0777, true);
+    }
+    return realpath("$path")."/$file";
 }
 
+function milliseconds() {
+    $mt = explode(' ', microtime());
+    return ((int)$mt[1]) * 1000 + ((int)round($mt[0] * 1000));
+}
+
+//-----------------------------------------------------------------------------
 function arr_add(&$arr, $subindex, $val) {
 	if (!isset($arr[$subindex])) $arr[$subindex] = array();
 

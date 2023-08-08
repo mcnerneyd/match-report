@@ -1,0 +1,38 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	padding: 1cm;
+}
+
+table {
+	width: 100%;
+}
+
+div.player {
+	display: grid;
+	grid-template-columns: 3cm 1fr min-content;
+	grid-template-rows: 2rem 1fr;
+	border-top: 1px solid #384;
+	margin-bottom: 1cm;
+	table-layout: fixed;
+}
+
+div.player p {
+	grid-area: 1/1/2/3;
+}
+
+div.player span {
+	grid-area: 1/3/2/4;
+}
+
+div.player table {
+	grid-area: 2/2/3/4;
+	font-size: 80%;
+
+  td {
+    width: 25%;
+  }
+}

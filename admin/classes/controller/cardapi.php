@@ -388,6 +388,7 @@ class Controller_CardApi extends Controller_RestApi
             }
         } catch (Throwable $e) {
             Log::warning("Error adding incident: " . print_r($e, true));
+            return new Response("Error adding incident:".$e->getMessage(), 500);
         }
 
         return new Response("Incident Created:$key", 204);
@@ -574,6 +575,8 @@ class Controller_CardApi extends Controller_RestApi
 
         $url = "https://admin.sportsmanager.ie/fixtureFeed/push.php?fixtureId=$fixtureId&homeScore=$homeGoals&awayScore=$awayGoals";
 
+        Log::info("Update score: $url");
+
         file_get_contents($url);
 
         return new Response("Result fixture #$fixtureId submitted", 201);
@@ -634,7 +637,7 @@ class Controller_CardApi extends Controller_RestApi
             Log::debug("RRS:${card['section']}=[$resultSubmit]");
 
             if ($resultSubmit === 'new') {
-                $fixtures = Model_Fixture::getAll($fixtureId);
+                $fixtures = Model_Fixture::getAll();
                 $fixture  = Model_Fixture::get($fixtureId);
                 if ($fixture['home_score'] === null && $fixture['away_score'] === null) {
                     Log::debug("Fixture result not set: fixture=$fixtureId");

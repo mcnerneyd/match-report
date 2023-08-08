@@ -1,4 +1,8 @@
 <?php
+
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+
 class Controller_User extends Controller_Template
 {
     // --------------------------------------------------------------------------
@@ -73,6 +77,8 @@ class Controller_User extends Controller_Template
         }
 
         $user = Model_User::find_by_email($username);
+
+        // FIXME - get rid of these checks - security risk
         if (!$user) {
             Log::warning("Unknown user:$username");
             return new Response("User not found", 404);
@@ -215,10 +221,17 @@ class Controller_User extends Controller_Template
                 Session::set('user-title', $user->getName());
 
                 if (Session::get('username') === 'admin') {
-                    Response::redirect(Uri::create('Admin'));
+                    $r = new Response("Redirecting to admin", 302);
+                    $r->set_header("location", Uri::create('Admin'));
+                    Cookie::set("jwt-token", $this->encode("/cards/ui/"), 60 * 60);
+                    return $r;
                 } else {
                     Log::info("Redirecting to SSO");
-                    Response::redirect('/cards/sso.php?'.base64_encode($this->encode("/cards/index.php")));
+                    //Response::redirect('/cards/sso.php?'.base64_encode($this->encode("/cards/ui/")));
+                    $r = new Response("Redirecting to sso", 302);
+                    $r->set_header("location", '/cards/sso.php');
+                    Cookie::set("jwt-token", $this->encode("/cards/ui/"), 60 * 60);
+                    return $r;
                 }
             } else {
                 $data['username'] = Input::post('user');
@@ -240,23 +253,23 @@ class Controller_User extends Controller_Template
     // --------------------------------------------------------------------------
     private function encode($redirect = null)
     {
-        $data = array('timestamp'=>time(), 'session'=>array());
-        $username = Session::get('username', null);
+        $user = Session::get('user');
 
-        $data['u'] = $username;
-	    $user = Session::get('user');
-	    $data['base'] = \Config::get('base_url');
-        $data['site'] = $user->section ? $user->section['name'] : null;
-        $data['session']['user'] = $username;
-        $data['session']['user-title'] = $user->getName();
-        if ($user['role'] != 'umpire') {
-            if ($user['club']) {
-                $data['session']['club'] = $user['club']['name'];
-            }
+        $payload = [
+            'base' => \Config::get('base_url'),
+            'user' => Session::get('username', null),
+            'user-title' => $user->getName(),
+            'role' => $user['role'],
+            'iat' => time(),
+            'exp' => time() + 60*60
+        ];
+        if ($user->section) {
+            $payload['site'] = $user->section['name'];
+            $payload['section'] = $user->section['name'];
         }
+        if ($user['club']) $payload['club'] = $user['club']['name'];
 
-        $roles = array(Auth::group('Simplegroup')->get_name($user['group']));
-
+        $payload['roles'] = array(Auth::group('Simplegroup')->get_name($user['group']));
         $perms = array();
         foreach (\Config::get('simpleauth.roles', array()) as $role=>$rolev) {
             if (is_array($rolev)) {
@@ -270,19 +283,11 @@ class Controller_User extends Controller_Template
             }
         }
 
-        $data['session']['perms'] = array_filter($perms, function ($x) {
+        $payload['perms'] = array_values(array_filter($perms, function ($x) {
             return \Auth::has_access($x);
-        });
-
-        $data['session']['roles'] = $roles;
-        if ($redirect != null) {
-            $data['redirect'] = $redirect;
-        }
-        $data['signature'] = md5(json_encode($data).Session::get('login_hash'));
-
-        Log::info("Encoded redirect: ".print_r($data, true));
-
-        return json_encode($data);
+        }));
+        $headers = [];
+        return JWT::encode($payload, JWT_KEY, 'HS256', null, $headers);
     }
 
     public function action_switch()
@@ -301,8 +306,11 @@ class Controller_User extends Controller_Template
         Session::set('user-title', $user->getName());
         Log::warning("User switched from $currentUser to $username ;$success/$a ".Session::get('site'));
 
-        Response::redirect('cards/sso.php?'.base64_encode($this->encode("/cards/index.php")));
-    }
+        $r = new Response("Redirecting to sso", 302);
+        $r->set_header("location", '/cards/sso.php');
+        Cookie::set("jwt-token", $this->encode("/cards/ui/"), 60 * 60);
+        return $r;
+}
 
     public function action_root()
     {
@@ -310,7 +318,7 @@ class Controller_User extends Controller_Template
         if (!Session::get('username')) {
             Response::redirect(Uri::create('Login'));
         } else {
-            Response::redirect('/cards/index');
+            Response::redirect('/cards/ui/');
         }
     }
 

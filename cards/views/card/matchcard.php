@@ -42,6 +42,7 @@ if (user()) {
     }
 }
 
+echo "<!-- ".$fixture['date']." -->";
 $date = strftime("%Y-%m-%d", $fixture['date']);
 $time = strftime("%H:%M", $fixture['date']);
 ?>
@@ -172,7 +173,10 @@ $(document).ready(function() {
       <dd><?= $time ?></dd>
     </dl>
 
-    <a href='<?= URI::create("card/${fixture['id']}") ?>' title='Permalink'><i class="fas fa-paperclip"></i></a>
+    <div>
+      <a href='<?= URI::create("card/${fixture['id']}") ?>' title='Permalink'><i class="fas fa-paperclip"></i></a>
+      <a href='<?= URI::create("cards/ui?id=${fixture['id']}") ?>' title='New Version'><i class="fas fa-star"></i></a>
+    </div>
   </detail>
 
 
@@ -248,7 +252,7 @@ $(document).ready(function() {
       <a class='btn btn-info float-right' data-toggle='modal' data-target='#add-note' tabindex='21'>
         <i class="far fa-sticky-note"></i><span class='d-none d-md-inline'> Add Note</span>
       </a>
-      <?php if ($cardIsOpen) { ?>
+      <?php if ($cardIsOpen || \Auth::has_access('card.admin')) { ?>
       <a class='add-player btn btn-danger float-right' data-toggle='modal' data-target='#add-player-modal' tabindex='20'><i class="fas fa-user-plus"></i> Add Player</a>
   <?php
 }

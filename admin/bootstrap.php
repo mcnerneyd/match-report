@@ -26,15 +26,7 @@ require APPPATH.'vendor/autoload.php';
     }]);
 \Sentry\captureLastError();
 
-function ensurePath($path, $file = "")
-{
-    if (!file_exists($path)) {
-        mkdir($path, 0777, true);
-    }
-    return realpath("$path")."/$file";
-}
-
-define('JWT_KEY', '1234567890abcdef');
+require APPPATH.'classes/lib/util.php';
 
 define('DATAPATH', DOCROOT.'/data/');
 
@@ -64,18 +56,20 @@ Log::info("*****************\nRequest: ".$_SERVER['REQUEST_METHOD']." ".$_SERVER
 
 Model_User::initialize();
 
-require APPPATH.'classes/lib/upgrade.php';
-require APPPATH.'classes/lib/util.php';
-
 Config::load(DATAPATH."config.json", 'config');
 Config::set('cache_dir', ensurePath(DATAPATH."/cache"));
 
-$firstPass = null;
-
-function milliseconds() {
-    $mt = explode(' ', microtime());
-    return ((int)$mt[1]) * 1000 + ((int)round($mt[0] * 1000));
+$jwtKey = Config::get('config.jwt_key');
+if (!$jwtKey) {
+    $jwtKey = bin2hex(random_bytes(32));
+    Config::set('config.jwt_key', $jwtKey);
+    Config::save(DATAPATH."config.json", 'config');
+    echo "Key".$jwtKey;
 }
+
+define('JWT_KEY', $jwtKey);
+
+$firstPass = null;
 
 function loadSectionConfig($section, $global = true)
 {
@@ -92,7 +86,7 @@ function loadSectionConfig($section, $global = true)
     Config::delete($root);
     Config::load($sectionConfig, $root, $reload=true);
     Config::set("$root.name", $section);
-    if (!$firstPass) Log::info("Section Config from $sectionConfig: $section/$root=".print_r(Config::get($root, array()), true));
+    if (!$firstPass) Log::info("Section Config from $sectionConfig: $section/$root=".json_encode(Config::get($root, array())));
     $firstPass = $section;
 }
 
@@ -116,4 +110,4 @@ if (!file_exists($cardsConfig)) {
     file_put_contents($cardsConfig, json_encode($config));
 }
 
-Log::debug("Bootstrap complete. session=".print_r(\Session::get(), true));
+Log::debug("Bootstrap complete. session=".json_encode(\Session::get()));

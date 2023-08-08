@@ -4,12 +4,6 @@ function rootUrl() {
 }
 
 //-----------------------------------------------------------------------------
-function &arr_get(&$arr, $subindex) {
-	if (!isset($arr[$subindex])) $arr[$subindex] = array();
-
-	return $arr[$subindex];
-}
-
 function arr_add(&$arr, $subindex, $val) {
 	if (!isset($arr[$subindex])) $arr[$subindex] = array();
 

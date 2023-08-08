@@ -45,6 +45,10 @@ class CardController {
         if (!$fixture)
             throw new Exception("No such fixture (fid=$id)");
 
+            echo "<!--";
+            print_r($fixture);
+            echo "-->";
+  
         Log::debug("Fixture: ".print_r($fixture, true));
 
         if (user('umpire')) {

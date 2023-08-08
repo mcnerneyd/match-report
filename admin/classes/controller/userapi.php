@@ -5,7 +5,7 @@ use Firebase\JWT\Key;
 class Controller_UserApi extends Controller_RestApi
 {
     // --------------------------------------------------------------------------
-    public function get_index() {
+/*    public function get_index() {
 
         Log::info("get_index");
 
@@ -26,7 +26,7 @@ class Controller_UserApi extends Controller_RestApi
         } else {
             return new Response("User session expired", 401);
         }
-    }
+    }*/
 
     public function options_index() {
         return new Response("OK", 200);

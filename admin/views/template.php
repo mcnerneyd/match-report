@@ -69,53 +69,10 @@
 </head>
 
 <body class='admin'>
-	<?php require_once('nav.php'); 
-
-	if (!Cookie::get('CONSENT', null)) { ?>
-	<style>
-	#cookie-consent {
-		position: fixed;
-		right: 0;
-		left: 0;
-		bottom: 0;
-		background: lightblue;
-		padding: 5%;
-		z-index: 2000;
-		text-align: center;
-	}
-	#lock {
-		position: fixed;
-		top:0;
-		bottom:0;
-		left:0;
-		right:0;
-		opacity: 50%;
-		background: rgba(0,0,0,0.8);
-		z-index: 1500;
-	}
-	</style>
-	<script>
-		$(document).ready(function() {
-			$('#cookie-consent .btn').click(function() {
-				document.cookie = "CONSENT=yes";
-				$('#lock').remove();
-				$('#cookie-consent').remove();
-			});
-
-		});
-	</script>
-	<div id='lock'></div>
-	<div id='cookie-consent'>
-		<p>cards.leinsterhockey.ie uses cookies and retains user data. Please
-		see <a>here</a> for details. Are you happy to accept these
-		cookies and for your data to be used and retained according
-		to our stated policy?</p>
-
-		<button class='btn btn-warning'>Yes</button>
-	</div>
-	<?php } /* Consent */ ?>
+	<?php require_once('nav.php'); ?>
 
 	<div class='xcontainer'>
+		<div id='privacy'><a href=''>Privacy/Cookies</a></div>
 		<?php if (\Session::get('user-title')) { ?>
 			<div id='user'><?= \Session::get('user-title') ?></div>
 		<?php }  
@@ -132,6 +89,8 @@
 		echo $content; 
 		?>	
 	</div>
+
+	<!--div id='sizer' style='background: blue; width: 600px; height: 20px;margin-inline:auto;'>X</div-->
 
 	<footer>
 		<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>

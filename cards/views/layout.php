@@ -76,14 +76,14 @@
 
 			$(document).ready(function() {
 <?php // Auto Logout User after 30 seconds
-    if (user()) { ?>
+   /* if (user()) { ?>
 			setInterval(function() {
 				$.get('<?= Uri::create('UserAPI') ?>').fail(function() {
 					console.log("User [<?php user() ?>] is no longer logged in");
 					window.location = '<?= Uri::create('User/Login') ?>';
 				});
 			}, 30000);
-<?php } ?>
+<?php }*/ ?>
 
 			$('[data-help]').each(function () {
 				$(this).append("<span class='help glyphicon glyphicon-question-sign' data-helpid='"+$(this).data("help")+"'></span>");

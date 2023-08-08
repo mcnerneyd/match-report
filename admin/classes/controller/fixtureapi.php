@@ -12,9 +12,51 @@ class Controller_FixtureApi extends Controller_RestApi
     }
 
     public function get_csv() {
-        $csv = file_get_contents(DATAPATH.'/fixtures.csv');
 
-        echo $csv;
+        $date = \Input::headers("Last-Modified", null);
+
+        if ($date) $date = strtotime($date);
+
+        $f = fopen(DATAPATH.'/fixtures.csv', 'r');
+        while (($line = fgets($f)) !== FALSE) {
+            if ($date) {
+                $data = str_getcsv($line);
+                if ($data[2] <= $date) continue;
+            }
+
+            echo $line;
+        }
+
+        fclose($f);
+    }
+    
+    // --------------------------------------------------------------------------
+    public function action_index2()
+    {
+        $section = Input::param('section', null);
+        $ts = Input::headers('If-Modified-Since', null);
+
+        $t = microtime(true);
+
+        $fixturesFilename = DATAPATH.'/fixtures.json';
+
+        if ($ts) {
+            $ts = strtotime($ts);
+            if (filemtime($fixturesFilename) <= $ts) {
+                return new Response("Fixtures unchanged", 304);
+            }
+        }
+
+        $fixturesFile = file_get_contents($fixturesFilename);
+        $allFixtures = json_decode($fixturesFile);
+        if ($section != null)
+            $allFixtures = array_filter($allFixtures, 
+                function ($f) use ($section) { return $f->section == $section;});
+        $result = json_encode(array(
+            'ts'=>$t,
+            'fixtures'=>array_values($allFixtures)));
+
+        return new Response($result, 200);
     }
 
     // --------------------------------------------------------------------------
@@ -29,7 +71,23 @@ class Controller_FixtureApi extends Controller_RestApi
         if ($id) {
             $card = Model_Matchcard::find_by_fixture($id);
             if (!$card) {
-                return new Response("No such card", 404);
+                return new Response("No such card: fixture_id=$id", 404);
+            }
+
+            $clubId = \Auth::get('club_id');
+            $club = Model_Club::find_by_id($clubId);
+            if ($club !== null) {
+                $club = $club['name'];
+                if ($card['home']['club'] == $club or $card['away']['club'] == $club) {
+                    $team = $card['home']['club'] == $club ? $card['home']['team'] : $card['away']['team'];
+            
+                    $card['players'] = array(
+                        "club"=>$club,
+                        "section"=>$card['section'],
+                        "team"=>$team,
+                        "values"=>Controller_RegistrationApi::getPlayersWithHistory($card['section'],
+                        $club, $team, null));
+                }
             }
 
             return array('data' => $this->simplify($card));
@@ -64,7 +122,7 @@ class Controller_FixtureApi extends Controller_RestApi
             $compCodes[$comp['name']] = $comp['code'];
         }
 
-        $fixtures = Model_Fixture::getAll(false);
+        $fixtures = Model_Fixture::getAll();
         $fixtures = array_filter(
             $fixtures,
             function ($a) use ($section) {
@@ -251,7 +309,7 @@ class Controller_FixtureApi extends Controller_RestApi
                 $compCodes[$comp['name']] = $comp['code'];
             }
     
-            $fixtures = Model_Fixture::getAll(false);
+            $fixtures = Model_Fixture::getAll();
             $fixtures = array_filter(
                 $fixtures,
                 function ($a) use ($section) {
@@ -424,7 +482,7 @@ class Controller_FixtureApi extends Controller_RestApi
   public function get_contact()
   {
       $fixtureId  = \Input::param('id');
-      $fixture = Model_Fixture::find($fixtureId);
+      $fixture = Model_Fixture::get($fixtureId);
 
       if ($fixture === null) {
           return new Response("No such fixture $fixtureId", 404);
@@ -432,12 +490,10 @@ class Controller_FixtureApi extends Controller_RestApi
 
       $users = $this->parseUsers(
           array_merge(
-              Model_User::query()
-              ->related('club')
-              ->where('club.name', $fixture['home_club'])->get(),
-              Model_User::query()
-              ->related('club')
-              ->where('club.name', $fixture['away_club'])->get()
+              Model_User::query()->related('club')
+                ->where('club.name', $fixture['home_club'])->get(),
+              Model_User::query()->related('club')
+                ->where('club.name', $fixture['away_club'])->get()
           ),
           $fixture['section']
       );

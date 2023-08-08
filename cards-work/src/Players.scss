@@ -1,0 +1,88 @@
+/*
+.player-select ol { width: 100%; }
+.player-select ol#players .score { margin-left: 1rem; }
+.player-select ol#players tr { border-bottom: 5px solid white; }
+.player-select ol#players tbody tr td { font-weight: bold; border-radius: 0.5em; background: #ffe; padding: 10px; }
+.player-select ol#players tbody.selected td { background: #1c5; color: white; }
+.player-select ol#players tbody.buttons td { background: none;  border-radius: 0; }
+.player-select li.other { font-style: italic; }
+.player-select li.summary { padding: 0; text-align: center; background: #584; color: white; border: 1px solid #584; }
+.player-select li.warning { padding: 0; text-align: center; background: #822; color: white; border: 1px solid #822; }
+.player-select #count { position: fixed; top:80px; right:0; left:0; text-align:center;
+    color: #120; font-size: 200pt; font-weight: bold; }
+.player-select .xbuttons { position:absolute; top:0; right:0; }
+.player-select #fixture { position:relative; overflow-y: auto; }
+.player-select .alert { margin-top: 10px; margin-bottom: 10px; }
+.player-select img.membership {
+    width: 20px;
+    height: 20px;
+    margin: -2px 0 0 5px;
+}
+.player-select h1 { padding: 10px 0; }
+.player-select h2 { margin-top: 0.75rem; font-size: 0.75rem; font-style: italic; }
+O
+ */
+.players {
+    [type='radio'] {
+        display: none; 
+    }
+
+    .player-count div {
+        font-size: 4cm;
+        color: black;
+    }
+
+    &.central-toolbar {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-auto-flow: row;
+        row-gap: 4mm;
+        padding-bottom: 5mm;
+
+        p {
+            margin: 0;
+        }
+
+        :nth-child(2n) {
+            justify-self: end;
+        }
+
+        button {
+            width: fit-content;
+        }
+    }
+    &.central-block {
+        display: block;
+        overflow-y: auto;
+
+        ol {
+            padding: 0;
+
+            #filter-block {
+                padding: 8px;
+                display: grid;
+                grid-auto-flow: row;
+                grid-template-columns: 1fr 0fr;
+                * {
+                    width: fit-content;
+                }
+            }
+
+            li { 
+                background-color: #ffe;
+                padding: 0.5rem;
+                font-weight: 600;
+                list-style: none;
+                margin-bottom: 0.25rem; 
+                border-radius: 1mm; 
+
+                &.selected {
+                    background-color: #1c5;
+                    color: white;
+                }
+            }
+        }
+    }
+}
+
+

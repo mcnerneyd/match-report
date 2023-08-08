@@ -153,7 +153,8 @@ class Card
                       'played'=>!$matchcard['open'],
                       'competition'=>$matchcard['competition'],
                       'home_score'=>$matchcard['home']['score'],
-                      'away_score'=>$matchcard['away']['score']);
+                      'away_score'=>$matchcard['away']['score'],
+                      'src'=>"Matchcard");
                   $fixture = json_decode(json_encode($fixture));
                   $card = Card::convertFixture($fixture, $club, $comps);
                   $card['cardid'] = $matchcard['id'];
@@ -193,9 +194,6 @@ class Card
 
           $result = array(
               'id'=>$fixture->fixtureID,
-      'section'=>$fixture->section,
-              'date'=>strtotime($fixture->datetimeZ),
-              'datetime'=>$fixture->datetime,
               'org'=>$fixture->competition,
               'home'=>array(
                   'org'=>$fixture->home,
@@ -210,8 +208,17 @@ class Card
                   'teamnumber'=>$away['team'],
                   'team'=>$away['name']),
               $home['club']=>'home',
-              $away['club']=>'away'
+              $away['club']=>'away',
+              'f'=>$fixture
               );
+
+          if (isset($fixture->section)) $result['section'] = $fixture->section;
+          if (isset($fixture->datetimeZ)) {
+            $result['date'] = strtotime($fixture->datetimeZ);
+          } else { 
+            $result['date'] = strtotime($fixture->datetime);
+          }
+
 
           $result['submitted'] = false;
           if ($fixture->played == 'yes') {
@@ -292,10 +299,10 @@ class Card
 
           $sql = "INSERT INTO matchcard (fixture_id, competition_id, home_id, away_id, date, description)
 			SELECT ${fixture['id']}, x.id, $homeId, $awayId, from_unixtime('${fixture['date']}'), ''
-				FROM competition x
-        LEFT JOIN section s ON x.section_id = s.id
-				WHERE x.name = '${fixture['competition']}'
-          AND s.name = '${fixture['section']}'";
+			FROM competition x
+                LEFT JOIN section s ON x.section_id = s.id
+			WHERE x.name = '${fixture['competition']}'
+                AND s.name = '${fixture['section']}'";
 
           debug($sql);
 

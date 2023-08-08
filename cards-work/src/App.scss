@@ -1,0 +1,152 @@
+$gap: 3mm;
+$buttonGap: 1mm;
+$smallWidth: 768px;
+$normalWidth: 24cm;
+
+.navbar { --bs-navbar-padding-x: 1rem; }
+.month-marker th { margin: 10px 0px; padding: 20px 2px 5px 2px; border-bottom: 2px solid black; }
+.result { background: #efe; }
+.late { background: #faa; }
+.locked { 
+    background-image: linear-gradient(135deg, #ddffdd 8.33%, #ffffff 8.33%, #ffffff 50%, #ddffdd 50%, #ddffdd 58.33%, #ffffff 58.33%, #ffffff 100%);
+    background-size: 8.49px 8.49px;
+}
+.signed { background: #dfd; }
+.title th { font-size: 150%; padding-top: 20px; }
+.title:first-child { margin-top: 0; }
+.time { font-size: 80%; color: #aaa; }
+.score { font-weight: bold; padding: 0px 8px; }
+body { position: absolute; top: 0; bottom: 0; left: 0; right: 0; }
+table { width: 100%; }
+table tr td { border-top: 1px solid #ddd; padding: 5px 0px; }
+tr td:nth-child(1) { width: 0; }
+tr td:nth-child(4) { width: 0; padding: 2px 5px; }
+tr td:nth-child(4) .label { width: 0; padding: 2px 5px; display: inline !important; }
+#fixtures-container {
+  overflow-y: auto;
+  margin-bottom: 10px;
+  margin-top: 20px; 
+  border-top: 1px solid lightgray; border-bottom: 1px solid lightgray;
+}
+#fixtures tr:first-child {
+    margin-top: 0;
+    padding-top: 0;
+}
+.scrollrow {
+    text-align: center;
+    border: none;
+}
+#toggle-buttons .btn-block {
+    margin-top: 0;
+}
+#root {
+  position: fixed;
+  top:0;
+  bottom:0;
+  left:0;
+  right:0;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto;
+  grid-template-columns: 1fr min($normalWidth, 90vw) 1fr;
+}
+nav {
+  grid-area: 1/1/2/4;
+}
+#user {
+  grid-area: 2/1/3/4;
+  position: static;
+}
+.central-toolbar {
+  grid-area: 3/2/4/3;
+}
+.central-block {
+  grid-area: 4/2/5/3;
+}
+
+#improved {
+    grid-area: 4/1/5/2;
+    align-self: end;
+}
+
+@media screen and (max-width: 18cm) {
+    #improved {
+        display:none;
+    }
+
+    #fixtures .fixture {
+        td:nth-child(2), td:last-child {
+            display: none;
+        }
+    }
+}
+
+#submit-card {
+    display: flex;
+    gap: 1mm;
+    .spacer {
+        flex-grow: 2;
+    }
+}
+
+.role-goalkeeper {
+    background: green;
+    color:white;
+}
+
+.role-captain {
+    background: black;
+    color:white;
+}
+
+.role-manager {
+    background: blue;
+    color:white;
+}
+
+.role-physio {
+    background: #b35;
+    color:white;
+}
+
+.role {
+    border-radius: 4px !important;
+    padding-inline: 5px !important;
+    width: auto !important;
+    margin: 2px 0 4px 2px !important;
+    padding: 1px;
+}
+
+.player-annotations {
+    display: flex !important;
+}
+
+.card-penalty {
+    width: 4px;
+    height: 7px;
+    margin-block: -9px;
+    width: 5mm;
+    height: 8mm;
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.card-yellow {
+//    background-image: url(/assets/img/yellow-card.png)
+}
+
+.card-red {
+ //   background-image: url(/assets/img/red-card.png)
+}
+
+.card-green {
+  //  background-image: url(/assets/img/green-card.png)
+}
+
+.score {
+    font-weight: bold;
+    color: #484;
+    &:before {
+        content: "x";
+    }
+}
+ 

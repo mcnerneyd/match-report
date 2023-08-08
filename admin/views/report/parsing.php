@@ -5,11 +5,18 @@ th { background: #def; }
 </style>
 <table class='report'>
 	<tr><th colspan='2'>Teams</th></tr>
-<?php foreach ($teams as $raw=>$team) {
+<?php 
+
+function brack($str) {
+    $str = str_replace(" ", "&middot;", $str);
+    return "&#x2e00;$str&#x2e25";
+}
+
+foreach ($teams as $raw=>$team) {
 		if ($team['valid']) {
-			echo "<tr><td>$raw</td><td> &#8674; <span style='color:blue'>${team['club']}</span> <span style='color:green'>${team['team']}</span></tr>";
+			echo "<tr><td>".brack($raw)."</td><td> &#8674; <span style='color:blue'>${team['club']}</span> <span style='color:green'>${team['team']}</span></tr>";
 		} else {
-			echo "<tr><td>$raw</td><td><span style='color:red'>No Match</span></td></tr>";
+			echo "<tr><td>".brack($raw)."</td><td><span style='color:red'>No Match</span></td></tr>";
 		}
 } ?>
 </table>

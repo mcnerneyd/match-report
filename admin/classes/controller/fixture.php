@@ -4,9 +4,9 @@ class Controller_Fixture extends Controller_Hybrid
 	public function get_index() {
 
 		$flush = Input::param("flush", false);
-		if ($flush === 'true') $flush = true;
+		if ($flush === 'true') Model_Fixture::refresh();
 
-		$fixtures = Model_Fixture::getAll($flush);
+		$fixtures = Model_Fixture::getAll();
 
 		echo "<!-- Fixtures:\n".print_r($fixtures, true)."\n-->";
 		

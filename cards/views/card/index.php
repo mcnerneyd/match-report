@@ -84,12 +84,23 @@ function loadPage(row) {
 					return teamItem['players'] === 0;
 				} 
 
-				const homeError = item['home']['score'] != item['home']['match_score']
-				const awayError = item['away']['score'] != item['away']['match_score']
-				const lateError = (noPlayers(item['home']) || noPlayers(item['away'])) && currentDate.isAfter(dt.endOf("day"))
-				const errorClass = (homeError || awayError || lateError) ? "error" : ""
+				const errorClasses = []
+				const homeScoreError = item['home']['score'] != item['home']['match_score']
+				const awayScoreError = item['away']['score'] != item['away']['match_score']
+				if (homeScoreError || awayScoreError) errorClasses.push("scoreError")  
 
-				const rowStr = `<tr id="${fixtureID}" class="${errorClass}" title="${title}" data-key='${key}' data-result='${item['played']}' data-page='${page}'></tr>`
+				const homePlayersError = (item['played'] === 'yes') && noPlayers(item['home'])
+				const awayPlayersError = (item['played'] === 'yes') && noPlayers(item['away'])
+				if ((item['played'] === 'yes') && (homePlayersError || awayPlayersError)) errorClasses.push("playerError")
+				if (item['played'] !== 'yes' && currentDate.isAfter(dt.endOf("day"))) errorClasses.push("lateError")
+				if (errorClasses.length > 0) errorClasses.push("error")
+
+				const homeErrorClass = (homePlayersError || homeScoreError) ? " team-error" : ""
+				const awayErrorClass = (awayPlayersError || awayScoreError) ? " team-error" : ""
+
+				const rowStr = `<tr id="${fixtureID}" class="${errorClasses.join(" ")}" 
+					title="${title}" data-key='${key}' data-result='${item['played']}' 
+					data-page='${page}'></tr>`
 				if (page < 0) {
 					row.after(rowStr);
 				} else {
@@ -112,18 +123,15 @@ function loadPage(row) {
 
 					tds += "<td class="d-none d-md-table-cell"><span class="badge label-league">${item['competition']}</span></td>
 					<td class="d-table-cell d-md-none"><span class="badge label-league">${item['competition-code']}</span></td>
-					<td class="d-none d-md-table-cell">${item['home']['name']}`;
-
-				tds += '</td>';
+					<td class="d-none d-md-table-cell${homeErrorClass}">${item['home']['name']}</td>`;
 
 				tds += "<td class='d-none d-md-table-cell'>";
 				if (item['played'] === 'yes') tds += item['home']['score'] + " - " + item['away']['score'];
 				tds += "</td>";
 
-				tds += '<td class="d-none d-md-table-cell">' + item['away']['name'];
-				tds += `</td>
-				<td class='d-none d-md-table-cell mail-btn'><i class='fa fa-envelope'></i></td>
-				<td class="d-md-none">${item['home']['name']} `;
+				tds += `<td class="d-none d-md-table-cell${awayErrorClass}">${item['away']['name']}</td>
+						<td class='d-none d-md-table-cell mail-btn'><i class='fa fa-envelope'></i></td>
+						<td class="d-md-none">${item['home']['name']} `;
 
 				if (item['played'] === 'yes') tds += "<span class='score'>" + item['home']['score'] + "-" + item['away']['score'] + "</span> ";
 				else tds += "v ";

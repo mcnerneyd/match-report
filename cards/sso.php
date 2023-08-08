@@ -1,5 +1,9 @@
 <?php
 require_once 'fuel.php';
+require_once('vendor/autoload.php');
+
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 
 ini_set('display_errors',1);
 ini_set('display_startup_errors',1);
@@ -7,6 +11,13 @@ ini_set('max_execution_time', 300);
 error_reporting(E_ALL);
 
 header('Content-Type: text/plain');
+
+$jwt = $_COOKIE['jwt-token'];
+$key = Config::get("config.jwt_key");
+print_r($key);
+echo "JWT:".$jwt;
+$token = JWT::decode($jwt, new Key($key, 'HS256'));
+$token = json_decode(json_encode($token), true);
 
 try {
 
@@ -23,62 +34,23 @@ try {
 			exit();
 	}
 
-	$data = json_decode($src, true);
-	$site = $data['site'];
-	$baseUrl = $data['base'];
-	$username = $data['u'];
-	echo "Request received ($username@".($site || '-').")\n";
-	$root = dirname(__FILE__);
-
-	require_once 'model/connection.php';
-	Log::debug("Transferring: $username");
-	echo "Transferring: $username";
-
-	$sth = Db::getInstance()->prepare("SELECT * FROM user WHERE username = ?");
-	$sth->execute([$username]);
-	$user = $sth->fetch();
-	if (!$user) {
-		echo "\n\n403 Unknown user";
-		header($_SERVER['SERVER_PROTOCOL']." 403 Unknown user");
-		return;
-	}
-	echo "User valid\n";
-
-	$key = $data['signature'];
-	unset($data['signature']);
-
-	$raw = json_encode($data).$user['login_hash'];
-	if (md5($raw) != $key) {
-		Log::error("403 Forbidden: $username");
-		header($_SERVER['SERVER_PROTOCOL']." 403 Forbidden");
-		return;
-	}
-
-	if (isset($data['session'])) {
-		$session = $data['session'];
-		//echo "(Session:".print_r($session,true).")\n";
-		session_start();
-		$_SESSION['base-url'] = $baseUrl;
-		$_SESSION['site'] = $site;
-		$_SESSION['section'] = $site;
-		$_SESSION['user'] = $session['user'];
-		$_SESSION['user-title'] = $session['user-title'];
-		if (isset($session['club'])) {
-			$_SESSION['club'] = $session['club'];
-		} else {
-			unset($_SESSION['club']);
-		}
-		$_SESSION['roles'] = $session['roles'];
-		$_SESSION['perms'] = $session['perms'];
-    Log::debug("Session transferred:".print_r($_SESSION, true));
-		echo "Session data valid\n";
+	session_start();
+	$_SESSION['base-url'] = $token['base'];
+	$_SESSION['site'] = $token['site'];
+	$_SESSION['section'] = $token['site'];
+	$_SESSION['user'] = $token['user'];
+	$_SESSION['user-title'] = $token['user-title'];
+	if (isset($token['club'])) {
+		$_SESSION['club'] = $token['club'];
 	} else {
-		session_unset();
-		echo "Session data not valid\n";	
-    Log::warning("Session data is not valid");
+		unset($_SESSION['club']);
 	}
+	$_SESSION['roles'] = $token['roles'];
+	$_SESSION['perms'] = $token['perms'];
 
-	$redirect = "/cards/index.php";
+	print_r($_SESSION);
+
+	$redirect = "/cards/ui/";
 	if (isset($data['redirect'])) {
 		$redirect = $data['redirect'];
 	}

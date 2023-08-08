@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Matchcards</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link rel="stylesheet" href="http://cards.leinsterhockey.ie:8080/assets/css/style.css"/> 
+    <link rel="stylesheet" href="dist/bundle.css"/> 
+  </head>
+<body class="cards">
+    <style>
+    .navbar { --bs-navbar-padding-x: 1rem; }
+    .month-marker th { margin: 10px 0px; padding: 20px 2px 5px 2px; border-bottom: 2px solid black; }
+    .result { background: #efe; }
+    .late { background: #faa; }
+    .locked { 
+        background-image: linear-gradient(135deg, #ddffdd 8.33%, #ffffff 8.33%, #ffffff 50%, #ddffdd 50%, #ddffdd 58.33%, #ffffff 58.33%, #ffffff 100%);
+        background-size: 8.49px 8.49px;
+    }
+    .signed { background: #dfd; }
+    .title th { font-size: 150%; padding-top: 20px; }
+    .title:first-child { margin-top: 0; }
+    .time { font-size: 80%; color: #aaa; }
+    .score { font-weight: bold; padding: 0px 8px; }
+    body { position: absolute; top: 0; bottom: 0; left: 0; right: 0; }
+    table { width: 100%; }
+    table tr td { border-top: 1px solid #ddd; padding: 5px 0px; }
+    tr td:nth-child(1) { width: 0; }
+    tr td:nth-child(4) { width: 0; padding: 2px 5px; }
+    tr td:nth-child(4) .label { width: 0; padding: 2px 5px; display: inline !important; }
+    #fixtures-container {
+        overflow-y: auto;
+      margin-bottom: 10px;
+      margin-top: 20px; 
+      border-top: 1px solid lightgray; border-bottom: 1px solid lightgray;
+    }
+    #fixtures tr:first-child {
+        margin-top: 0;
+        padding-top: 0;
+    }
+    .scrollrow {
+        text-align: center;
+        border: none;
+    }
+    #toggle-buttons .btn-block {
+        margin-top: 0;
+    }
+    #root {
+      position: fixed;
+      top:0;
+      bottom:0;
+      left:0;
+      right:0;
+      display: grid;
+      grid-template-rows: auto auto auto 1fr auto;
+      grid-template-columns: 1fr minmax(992px, auto) 1fr;
+    }
+    nav {
+      grid-area: 1/1/2/4;
+    }
+    #user {
+      grid-area: 2/1/3/4;
+      position: static;
+    }
+    .central-toolbar {
+      grid-area: 3/2/4/3;
+    }
+    .central-block {
+      grid-area: 4/2/5/3;
+    }
+    </style>
+
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
+    <div id="root"></div>
+    <script src="dist/bundle.js"></script>
+  </body>
+</html>

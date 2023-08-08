@@ -139,7 +139,7 @@ class Model_Matchcard extends \Orm\Model
                         continue;
                     }
 
-//                    $q = mysql_real_escape_string($q);
+                    $q = str_replace("'", "", $q);
 
                     $match = false;
 
@@ -305,15 +305,6 @@ class Model_Matchcard extends \Orm\Model
             left join user u on i.user_id = u.id 
             where matchcard_id = $cardId")->execute();
     }
-
-    // private static function &arr_get(&$arr, $subindex)
-    // {
-    //     if (!isset($arr[$subindex])) {
-    //         $arr[$subindex] = array();
-    //     }
-
-    //     return $arr[$subindex];
-    // }
 
     private static function arr_add(&$arr, $subindex, $val)
     {

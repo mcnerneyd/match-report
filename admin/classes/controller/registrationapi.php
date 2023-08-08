@@ -5,7 +5,7 @@ class Controller_RegistrationApi extends Controller_Rest
     public function options_list() {
         return new Response("OK", 200);
     }
-    
+
     public function get_list()
     {
         $clubId = \Auth::get('club_id');
@@ -15,15 +15,24 @@ class Controller_RegistrationApi extends Controller_Rest
             return new Response("User not authorized: no club", 401);
         }
         $club = $club['name'];
-        $dateS = \Input::param('d', Date::forge()->format("%Y%m%d"));
+        $dateS = \Input::param('d', null);
         $team = \Input::param('t', 1);
         $section = \Input::param('s', 1);
         $groups = \Input::param('g', null);
 
-        $s = Model_Section::find_by_name($section);
+        $players = self::getPlayersWithHistory($section, $club, $team, $groups, $dateS);
 
-        $players = self::getPlayers($section, $club, $dateS, $team, $groups);
-        $lastGameDate = Model_Team::lastGame("$club $team", $s);
+        return $this->response($players);
+    }
+
+    public static function getPlayersWithHistory($sectionName, $club, $team, $groups, $dateS = null) 
+    {
+        $section = Model_Section::find_by_name($sectionName);
+
+        if ($dateS == null) $dateS = Date::forge()->format("%Y%m%d");
+
+        $players = self::getPlayers($sectionName, $club, $dateS, $team, $groups);
+        $lastGameDate = Model_Team::lastGame("$club $team", $section);
         if ($lastGameDate !== null) {
             $lastGameDate = substr($lastGameDate['date'], 0, 10)." 00:00:00";
         }
@@ -43,9 +52,9 @@ class Controller_RegistrationApi extends Controller_Rest
             }
         }
 
-        Log::debug(count($players)." player(s) valid for team $team/$groups ($club/$clubId) date=$dateS");
+        Log::debug(count($players)." player(s) valid for team $team/$groups ($club) date=$dateS");
 
-        return $this->response($players);
+        return $players;
     }
 
     public static function getPlayers($section, $club, $dateS, $team, $groups)
