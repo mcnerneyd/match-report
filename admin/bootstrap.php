@@ -1,4 +1,5 @@
 <?php
+
 // Bootstrap the framework DO NOT edit this
 require COREPATH.'bootstrap.php';
 
@@ -16,12 +17,12 @@ require APPPATH.'vendor/autoload.php';
     'before_send' => function (\Sentry\Event $event, ?\Sentry\EventHint $hint): ?\Sentry\Event {
         // Ignore the event if the original exception is an instance of MyException
         if ($hint !== null && $hint->exception instanceof HttpNotFoundException) {
-        return null;
-	}
-        if (strpos($event->getMessage(), "Module 'curl' already loaded") !== false) { 
-        return null;
-	}
-        
+            return null;
+        }
+        if (strpos($event->getMessage(), "Module 'curl' already loaded") !== false) {
+            return null;
+        }
+
         return $event;
     }]);
 \Sentry\captureLastError();
@@ -51,7 +52,7 @@ ensurePath(DATAPATH."sections/");
 $route = \Router::process(\Request::forge(), true);
 $route = $route ? " (".$route->controller."/".$route->action.")" : "";
 
-Log::info("*****************\nRequest: ".$_SERVER['REQUEST_METHOD']." ".$_SERVER['REQUEST_URI']." ->".$_SERVER['PHP_SELF'].
+Log::info("---- REQUEST: ".$_SERVER['REQUEST_METHOD']." ".$_SERVER['REQUEST_URI']." ->".$_SERVER['PHP_SELF'].
   "$route ua=".\Arr::get($_SERVER, 'HTTP_USER_AGENT', ''));
 
 Model_User::initialize();
@@ -64,17 +65,13 @@ if (!$jwtKey) {
     $jwtKey = bin2hex(random_bytes(32));
     Config::set('config.jwt_key', $jwtKey);
     Config::save(DATAPATH."config.json", 'config');
-    echo "Key".$jwtKey;
+    Log::info("JWT Key initialized: ".$jwtKey);
 }
 
 define('JWT_KEY', $jwtKey);
 
-$firstPass = null;
-
 function loadSectionConfig($section, $global = true)
 {
-    global $firstPass;
-
     $sectionConfig = ensurePath(DATAPATH."sections/$section", "config.json");
     if (!file_exists($sectionConfig)) {
         Log::info("Initializing config file $sectionConfig");
@@ -86,28 +83,28 @@ function loadSectionConfig($section, $global = true)
     Config::delete($root);
     Config::load($sectionConfig, $root, $reload=true);
     Config::set("$root.name", $section);
-    if (!$firstPass) Log::info("Section Config from $sectionConfig: $section/$root=".json_encode(Config::get($root, array())));
-    $firstPass = $section;
 }
 
 $user = Session::get('user', null);
 if ($user) {
-    Log::info("User set: ".$user['username']." ".($user->section ? $user->section->name:"(No section)"));
+    Log::info("User set: ".$user['username']." ".($user->section ? $user->section->name : "(No section)"));
     if ($user->section) {
         loadSectionConfig($user->section['name']);
     }
 } else {
     Log::info("User set: none");
+    \Config::set("section", \Config::get("config.section"));
 }
 
 // Configuration for the cards website
 $cardsConfig = DATAPATH."/config.json";
 if (!file_exists($cardsConfig)) {
-    $config = array("database"=>array("name"=>\Config::get("db.default.connection.database"),
-    "username"=>\Config::get("db.default.connection.username"),
-    "password"=>\Config::get("db.default.connection.password"),
-    "host"=>\Config::get("db.default.connection.hostname")));
+    $config = array("database"=>array(
+        "name"=>\Config::get("db.default.connection.database"),
+        "username"=>\Config::get("db.default.connection.username"),
+        "password"=>\Config::get("db.default.connection.password"),
+        "host"=>\Config::get("db.default.connection.hostname")));
     file_put_contents($cardsConfig, json_encode($config));
 }
 
-Log::debug("Bootstrap complete. session=".json_encode(\Session::get()));
+Log::debug("Bootstrap complete: session=".json_encode(\Session::get())." config=".json_encode(\Config::get("section")));

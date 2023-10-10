@@ -3,25 +3,6 @@
 <head>
 <?php require_once('head.php'); ?>
 	<script>
-			function tutorialrun(config, index) {
-				if (index >= config.length) return;
-				var dirs = ["auto left","auto right","auto top","auto bottom"];
-				var step = config[index];
-				var dir = step['dir'] || dirs[index%4];
-				var p = $(step['target']).popover({
-						placement:dir,
-						trigger:'manual',
-						html:true,
-						content:step['message'],
-				})
-				p.popover("show");
-
-				window.setTimeout(function() {
-					p.popover("destroy");
-					tutorialrun(config, index+1);
-				}, step['message'].length * 50);
-			}
-
 		$(document).ready( function() {
 			$.notify.defaults({
 				className: 'info',
@@ -29,11 +10,12 @@
 				showAnimation: 'fadeIn', hideAnimation: 'fadeOut'
 			});
 
-			setInterval(function() {
-				$.get('<?= Uri::create('UserAPI') ?>').fail(function() {
+			/*setInterval(function() {
+                $.get('<?= Uri::create('UserAPI') ?>').fail(function() {
+                    console.warn("Logging user out - timeout");
 					window.location = '<?= Uri::create('User/Login') ?>';
 				});
-			}, 300000);
+        }, 30000);*/
 
 			<?php $flash = Session::get_flash("notify");
 				if ($flash) { echo "var info_msg='${flash['msg']}';" ?>
@@ -58,12 +40,6 @@
 					location.reload();
 				});
 			});
-
-			if (typeof tutorial === "object") {
-				$('#help-me').show().click(function() {tutorialrun(tutorial);});
-			} else {
-				$('#help-me').hide();
-			}
 		});
 	</script>
 </head>
@@ -72,7 +48,6 @@
 	<?php require_once('nav.php'); ?>
 
 	<div class='xcontainer'>
-		<div id='privacy'><a href=''>Privacy/Cookies</a></div>
 		<?php if (\Session::get('user-title')) { ?>
 			<div id='user'><?= \Session::get('user-title') ?></div>
 		<?php }  

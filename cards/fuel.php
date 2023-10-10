@@ -32,7 +32,7 @@ define('BASE', url_origin($_SERVER));
 // Write a log entry to the fuelphp logs
 function log_write($level, $msg) {
 	try {
-		$filename = DATAPATH."/logs/".date("Y/m/d").".php";
+		$filename = DATAPATH."/logs/matchcard.log";
 		$dir = dirname($filename);
 
 		if (!file_exists($dir)) {
@@ -69,6 +69,10 @@ class Log {
 	static function warn($msg) {
 		log_write("WARNING", $msg);
 	}
+
+	static function warning($msg) {
+		log_write("WARNING", $msg);
+	}
 }
 
 
@@ -84,7 +88,7 @@ function site() {
 	}
 
   if ($site == null && isset($_SESSION['site'])) {
-		$site = $_SESSION['site'];
+		$site = $_SESSION['site']['name'];
   }
 
 	if ($site == "") $site = null;
@@ -102,17 +106,21 @@ class Config {
 			return isset($_SESSION['base-url']) ? $_SESSION['base-url'] : null;
 		}
 
-		if (strpos($path, "section.") === 0) {
+		if (strpos($path, "section.") === 0 || $path === "section") {
 			if (!isset($_SESSION['site'])) {
 				return $def;
 			}
-			$site = $_SESSION['site'];
+			$site = $_SESSION['site']['name'];
 
-			$configFile = realpath(DATAPATH.'/sections/'.$site.'/config.json');
+			$configFile = DATAPATH.'/sections/'.$site.'/config.json';
 		} else {
-			$configFile = realpath(DATAPATH.'/config.json');
+			$configFile = DATAPATH.'/config.json';
 		}
 
+		$configFile = realpath($configFile);
+		if (!file_exists($configFile)) return $def;
+
+		Log::debug("Config File:".$configFile);
 		$json = file_get_contents($configFile);
 
 		$config = json_decode($json, true);
@@ -149,7 +157,8 @@ class Asset {
 	static function css($files) { foreach ($files as $file) echo "<link rel='stylesheet' href='".Uri::create("assets/css/$file")."'/>\n"; }
 }
 class Session {
-	static function get($key, $d = null) { 
+	static function get($key = null, $d = null) {
+	if ($key == null) return $_SESSION; 
     if (!isset($_SESSION[$key])) return $d; 
     return $_SESSION[$key]; 
   }

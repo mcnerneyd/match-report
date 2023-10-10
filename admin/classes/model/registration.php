@@ -402,7 +402,7 @@ class Model_Registration
         $result = self::parse(file($file), $rclub, $groups);
 
         //$json_data = xjson_encode($result, JSON_PRETTY_PRINT);
-        file_put_contents("$file.json", Format::forge($result)->to_json());
+        file_put_contents("$file.json", json_encode($result, JSON_PRETTY_PRINT));
 
         return $result;
     }
@@ -463,13 +463,18 @@ class Model_Registration
                 continue;
             }
 
+            if (stripos($arr[0], '------') === 0) { // if the first column starts with ------ then reset the registration
+                $result = array();
+                continue;
+            }
+
             if (!$pastHeaders) {
                 if (stripos($arr[0], '------') === 0) {
                     $pastHeaders = true;
                     continue;
                 }
 
-                if (preg_match('/club:|last name|first name|name|do not delete/i', $arr[0])) {
+                if (preg_match('/(club:|school:|last name|first name|name|do not delete)/i', $arr[0])) {
                     continue;
                 }
                 if ($rclub && stripos($arr[0], $rclub) === 0) {

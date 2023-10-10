@@ -45,7 +45,7 @@ function renderHeadshot($cardid, $club, $player, $detail, $allowCtx = false) {
 			$key = createsecurekey("profile$player$club");
 			$profileUrl = url("card=".$cardid."&name=$player&club=$club&x=$key","profile","player"); 
 			?>
-		<a class='edit-player' data-toggle="modal" data-target="#player-detail-modal" data-player='<?= $player ?>' data-club='<?= $club ?>' data-cardid='<?= $cardid ?>' data-profile='<?= $profileUrl ?>'/>
+		<a class='edit-player' data-bs-toggle="modal" data-target="#player-detail-modal" data-player='<?= $player ?>' data-club='<?= $club ?>' data-cardid='<?= $cardid ?>' data-profile='<?= $profileUrl ?>'/>
 		<?php } ?>
 		<figure class='player<?= $extraclass ?>' title='<?= $player ?>'>
 			<?php 
@@ -220,7 +220,7 @@ if ($whoami) {
 	<div id='matchcard-home' class='col-md-6 col-xs-12'>
 			<h2>
 			<?php if (user('admin') && isset($card['home']['locked'])) {
-				echo "<a class='btn btn-danger btn-sm' data-toggle='confirmation' data-title='Unlock team?' href='".url('home&cid='.$card['id'], 'unlock', 'card')."'><i class='fa fa-unlock' aria-hidden='true'></i></a>";
+				echo "<a class='btn btn-danger btn-sm' data-bs-toggle='confirmation' data-title='Unlock team?' href='".url('home&cid='.$card['id'], 'unlock', 'card')."'><i class='fa fa-unlock' aria-hidden='true'></i></a>";
 			}?>
 			<?= $card['home']['team'] ?>
 			<span class='score pull-right'><?= $card['home']['score'] ?></span></h2>
@@ -231,14 +231,14 @@ if ($whoami) {
 
 	if (user('umpire') or ($whoami == 'home' and !isset($card['home']['closed']))) {
 ?>
-		<a class='add-player' data-toggle='modal' data-target='#add-player-modal' data-side='home'><img src='img/add-user.png'/></a>
+		<a class='add-player' data-bs-toggle='modal' data-target='#add-player-modal' data-side='home'><img src='img/add-user.png'/></a>
 <?php } ?>
 	</div>
 
 	<div id='matchcard-away' class='col-md-6 col-xs-12'>
 			<h2>
 			<?php if (user('admin') && isset($card['away']['locked'])) {
-				echo "<a class='btn btn-danger btn-sm' data-toggle='confirmation' data-title='Unlock team?' href='".url('away&cid='.$card['id'], 'unlock', 'card')."'><i class='fa fa-unlock' aria-hidden='true'></i></a>";
+				echo "<a class='btn btn-danger btn-sm' data-bs-toggle='confirmation' data-title='Unlock team?' href='".url('away&cid='.$card['id'], 'unlock', 'card')."'><i class='fa fa-unlock' aria-hidden='true'></i></a>";
 			}?>
 			<?= $card['away']['team'] ?>
 			<span class='score pull-right'><?= $card['away']['score'] ?></span></h2>
@@ -249,7 +249,7 @@ if ($whoami) {
 
 	if (user('umpire') or ($whoami == 'away' and !isset($card['away']['closed']))) {
 ?>
-		<a class='add-player' data-toggle='modal' data-target='#add-player-modal' data-side='away'><img src='img/add-user.png'/></a>
+		<a class='add-player' data-bs-toggle='modal' data-target='#add-player-modal' data-side='away'><img src='img/add-user.png'/></a>
 <?php } ?>
 	</div>
 
@@ -335,8 +335,8 @@ if ($whoami) {
 				<input class='form-control' type='text' id='player-name'/>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-success" data-dismiss="modal">Add Player</button>
-        <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Add Player</button>
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
       </div>
     </div>
 

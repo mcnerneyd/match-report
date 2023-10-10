@@ -751,6 +751,10 @@ class Controller_Admin extends Controller_Hybrid
     // ----- Clubs --------------------------------------------------------------
     public function get_clubs()
     {
+        if (!Auth::has_access("club.view")) {
+            throw new HttpNoAccessException;
+        }
+
         $data['clubs'] = array();
 
         foreach (Model_Club::find(
@@ -766,6 +770,10 @@ class Controller_Admin extends Controller_Hybrid
 
     public function post_club()
     {
+        if (!Auth::has_access("club.edit")) {
+            throw new HttpNoAccessException;
+        }
+
         $id = Input::post('id', -1);
 
         if (!$id || $id == -1) {
@@ -785,6 +793,10 @@ class Controller_Admin extends Controller_Hybrid
 
     public function delete_club()
     {
+        if (!Auth::has_access("club.edit")) {
+            throw new HttpNoAccessException;
+        }
+
         $club = Model_Club::find_by_code(Input::delete('code'));
         $club->delete();
 
@@ -811,6 +823,10 @@ class Controller_Admin extends Controller_Hybrid
 
     public function post_competition()
     {
+        if (!Auth::has_access("competition.edit")) {
+            throw new HttpNoAccessException;
+        }
+
         $id = Input::post('id', null);
 
         if (!$id) {
@@ -842,6 +858,10 @@ class Controller_Admin extends Controller_Hybrid
 
     public function delete_competition()
     {
+        if (!Auth::has_access("competition.edit")) {
+            throw new HttpNoAccessException;
+        }
+
         $competition = Model_Competition::find_by_code(Input::delete('code'));
         $competition->delete();
 

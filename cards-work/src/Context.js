@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 
-export function fadeOut(id) {
+/*export function fadeOut(id) {
     const elm = document.getElementById(id)
     var op = 100
     if (elm) {
@@ -14,6 +14,6 @@ export function fadeOut(id) {
             op *= 0.9 
         }, 50)
     }
-}
+}*/
 
 export const UserContext = createContext()

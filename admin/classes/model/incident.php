@@ -62,10 +62,30 @@ class Model_Incident extends \Orm\Model
         $q->execute();
     }
 
-    public static function addIncident($cardId, $club, $player, $type, $detail = null)
-    {
-        $userId = \Auth::get('id');
+    public static function log($type, $fixtureId, $message) {
+        try {
+            $logpath = DATAPATH."/logs";
+            $logfile = "incidents.log";
+            if (!File::exists($logpath."/".$logfile)) {
+                File::create($logpath,$logfile);
+            }        
+            $ts = Date::forge()->format("%y-%m-%dT%h%m:%sZ");
+
+            File::append($logpath, $logfile, "$ts $type #$fixtureId $message\n");
+        } catch(Exception $e) {
+            Log::error("Failed to write incident".$e->getMessage());
+        }
+    }
+
+    public static function addIncident($cardId, $club, $player, $type, $detail = null) {
         $clubId = $club['id'];
+        $userId = \Auth::get('id');
+
+        return self::addIncidentRaw($cardId, $clubId, $player, $type, $userId, $detail);
+    }
+
+    public static function addIncidentRaw($cardId, $clubId, $player, $type, $userId, $detail = null)
+    {
         $incident = null;
 
         Log::debug("Adding incident: $cardId, $player, $type=$detail club=$clubId");

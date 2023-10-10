@@ -285,7 +285,7 @@ $(document).ready(function () {
 	<a href='<?= url("cid=${fixture['cardid']}&x=".createsecurekey('card'.$fixture['cardid']), "lock", "card") ?>' class='btn btn-success'>Submit Team</a>
 	<!--a id='button-copy' class='btn btn-primary' title='Copy players from last match'>Last Match</a-->
 	<button id='postpone' class='btn btn-warning float-right'
-		data-toggle='confirmation' data-placement='bottom'
+		data-bs-toggle='confirmation' data-placement='bottom'
 		data-title='Mark match as postponed' 
 		data-content='Postponements must be prior approved by the relevant section committee to avoid a penalty'
 		data-btn-ok-label='Postponed' data-btn-cancel-label='Cancel'>Postponed</button>

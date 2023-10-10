@@ -16,7 +16,7 @@
 </script>
 
 <div class='form-group command-group'>
-  <a class='btn btn-primary' href='#add-task' data-toggle='modal'><i class='glyphicon glyphicon-th-list'></i> Add Task</a>
+  <a class='btn btn-primary' href='#add-task' data-bs-toggle='modal'><i class='glyphicon glyphicon-th-list'></i> Add Task</a>
 </div>
 
 <table id='tasks-table' class='table table-condensed table-striped'>
@@ -50,8 +50,8 @@ foreach ($tasks as $task) {
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <h4 class="modal-title">Add Task</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
 				<form class='form-horizontal'>
@@ -88,7 +88,7 @@ foreach ($tasks as $task) {
 				</form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
         <button type="button" class="btn btn-primary">Save</button>
       </div>
     </div><!-- /.modal-content -->

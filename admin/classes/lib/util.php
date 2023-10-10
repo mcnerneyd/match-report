@@ -198,9 +198,9 @@ function parse($str) {
 
 //-----------------------------------------------------------------------------
 function parseCompetition($str, $competitions) {
-	$config = Config::get("config.pattern.competition");
+	$config = Config::get("section.pattern.competition");
 	if (!$config) {
-		Log::warn("No competition patterns specified");
+		Log::warning("No competition patterns specified");
 	}
 
 	$patterns = array();

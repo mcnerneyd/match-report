@@ -26,18 +26,14 @@
 	<meta name='msapplication-TileImage' content='<?= Uri::create('assets/favicon/ms-icon-144x144.png')?>'>
 	<meta name='theme-color' content='#ffffff'> 
 
+	<script type="text/javascript" src="https://code.jquery.com/jquery-3.7.0.js"></script>
+	<script type="text/javascript" src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css"/>
+	<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css"/>
+
 <?= Asset::js(array(
-	'jquery-3.3.1.js',
-	'popper.min.js',
-	'bootstrap.min.js',
 	'moment.min.js',
-	'bootstrap-datetimepicker.js',
-	'bootstrap-confirmation.min.js',
-	'jquery.dataTables.min.js',
-	'dataTables.bootstrap4.min.js',
-	'dataTables.responsive.min.js',
-	'responsive.bootstrap4.min.js',
-	'bootstrap-toggle.min.js',
 	'notify.min.js',
 	'raven.min.js',
 	'jquery.validate.min.js',
@@ -47,18 +43,12 @@
 
 <?= Asset::css(array(
 	'bootstrap-datetimepicker.css',
-	'bootstrap.min.css',
-	'bootstrap-toggle.min.css',
-	'dataTables.bootstrap4.min.css',
-	'responsive.bootstrap4.min.css',
 	'animate.css',
 	'jquery-ui.css',
 	'selectize.css')) ?>
 
-	<link rel="stylesheet" href="/assets/css/style.css?version=1.0"/>
 	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.10.4/typeahead.bundle.min.js"></script>
-	<script  type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.min.js"></script>
-	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
-	<script type="text/javascript">
-	function defined(x) { typeof x !== 'undefined'; }
-	</script>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous"/>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="/assets/css/style.css?version=1.0"/>

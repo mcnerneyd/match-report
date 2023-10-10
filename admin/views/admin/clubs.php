@@ -43,7 +43,7 @@
 </script>
 
 <div class='form-group command-group'>
-	<a class='btn btn-primary' href='#add-club' data-toggle='modal'><i class="fas fa-plus-circle"></i> Add Club</a>
+	<a class='btn btn-primary' href='#add-club' data-bs-toggle='modal'><i class="fas fa-plus-circle"></i> Add Club</a>
 </div>
 
 <table id='clubs-table' class='table table-condensed table-striped'>
@@ -91,8 +91,8 @@
   <div class='modal-dialog'>
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
         <h4 class="modal-title">Add New Club</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <form action='<?= Uri::create('/Admin/Club') ?>' method='POST'>
@@ -108,8 +108,8 @@
 				</form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-success" data-dismiss="modal" onclick="$('form').submit()">Add</button>
-        <button type="button" class="btn btn-warning" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick="$('form').submit()">Add</button>
+        <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>

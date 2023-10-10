@@ -211,6 +211,10 @@ $(document).ready(function() {
 </script>
 	<?php }
 
-	echo "<!-- Site=$site Controller=[$controller] Action=[$action] User=[".user()."] Club=[".\Arr::get($_SESSION, 'club', 'No club')."] Roles=".(isset($_SESSION['roles']) ? join($_SESSION['roles']):"no roles")."-->";
-	echo "<!-- ".print_r($_SESSION, true)." -->";
+	$user = user();
+	if ($user) $user = $user->username;
+
+	$siteName = $site ? $site['name'] : "nosite";
+
+	echo "<!-- Site={$siteName} Controller=[$controller] Action=[$action] User=[".$user."] Club=[".\Arr::get($_SESSION, 'club', 'No club')."] Roles=[".(isset($_SESSION['roles']) ? join($_SESSION['roles']):"no roles")."]  -->";
 ?>

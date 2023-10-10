@@ -35,26 +35,37 @@ class Controller_FixtureApi extends Controller_RestApi
     {
         $section = Input::param('section', null);
         $ts = Input::headers('If-Modified-Since', null);
+        $expanded = Input::param('expand', null);
 
         $t = microtime(true);
+        $timing = array("t0" => $t);
 
         $fixturesFilename = DATAPATH.'/fixtures.json';
 
         if ($ts) {
             $ts = strtotime($ts);
-            if (filemtime($fixturesFilename) <= $ts) {
+            if ((filemtime($fixturesFilename) <= $ts) && !Model_Matchcard::expandFixtures(null, $ts)) {
                 return new Response("Fixtures unchanged", 304);
             }
         }
 
         $fixturesFile = file_get_contents($fixturesFilename);
-        $allFixtures = json_decode($fixturesFile);
+        $allFixtures = json_decode($fixturesFile, true);
+        $allFixtures = array_filter($allFixtures, function($a) { return $a['status'] === 'active'; });
         if ($section != null)
-            $allFixtures = array_filter($allFixtures, 
-                function ($f) use ($section) { return $f->section == $section;});
+            $allFixtures = array_values(array_filter($allFixtures, 
+                function ($f) use ($section) { return $f['section'] == $section;}));
+
+        $timing['t1'] = microtime(true);
+
+        $allFixtures = Model_Matchcard::expandFixtures($allFixtures);
+
+        $timing['tf'] = microtime(true);
+
         $result = json_encode(array(
             'ts'=>$t,
-            'fixtures'=>array_values($allFixtures)));
+            'timing'=>$timing,
+            'fixtures'=> $allFixtures));
 
         return new Response($result, 200);
     }
@@ -74,9 +85,9 @@ class Controller_FixtureApi extends Controller_RestApi
                 return new Response("No such card: fixture_id=$id", 404);
             }
 
-            $clubId = \Auth::get('club_id');
-            $club = Model_Club::find_by_id($clubId);
-            if ($club !== null) {
+                $clubId = \Auth::get('club_id');
+                $club = Model_Club::find_by_id($clubId);
+                if ($club !== null) {
                 $club = $club['name'];
                 if ($card['home']['club'] == $club or $card['away']['club'] == $club) {
                     $team = $card['home']['club'] == $club ? $card['home']['team'] : $card['away']['team'];

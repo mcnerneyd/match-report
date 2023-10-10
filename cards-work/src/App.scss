@@ -1,9 +1,9 @@
 $gap: 3mm;
 $buttonGap: 1mm;
-$smallWidth: 768px;
+$smallWidth: 400px;
+$comfortWidth: 768px;
 $normalWidth: 24cm;
 
-.navbar { --bs-navbar-padding-x: 1rem; }
 .month-marker th { margin: 10px 0px; padding: 20px 2px 5px 2px; border-bottom: 2px solid black; }
 .result { background: #efe; }
 .late { background: #faa; }
@@ -17,11 +17,12 @@ $normalWidth: 24cm;
 .time { font-size: 80%; color: #aaa; }
 .score { font-weight: bold; padding: 0px 8px; }
 body { position: absolute; top: 0; bottom: 0; left: 0; right: 0; }
-table { width: 100%; }
-table tr td { border-top: 1px solid #ddd; padding: 5px 0px; }
+table#fixturesX { width: 100%; 
+tr td { border-top: 1px solid #ddd; padding: 5px 0px; }
 tr td:nth-child(1) { width: 0; }
 tr td:nth-child(4) { width: 0; padding: 2px 5px; }
 tr td:nth-child(4) .label { width: 0; padding: 2px 5px; display: inline !important; }
+}
 #fixtures-container {
   overflow-y: auto;
   margin-bottom: 10px;
@@ -52,10 +53,23 @@ tr td:nth-child(4) .label { width: 0; padding: 2px 5px; display: inline !importa
 nav {
   grid-area: 1/1/2/4;
 }
-#user {
+div#user {
   grid-area: 2/1/3/4;
   position: static;
 }
+form#user {
+    grid-area: 2/2/3/3;
+    position: static;
+    display:flex;
+    padding: 2mm;
+    gap: 2mm;
+    height: auto;
+    margin-block: 4mm;
+    border: 3px solid cornflowerblue;
+    border-radius: 2mm;
+    background: aliceblue;
+}
+
 .central-toolbar {
   grid-area: 3/2/4/3;
 }
@@ -68,15 +82,9 @@ nav {
     align-self: end;
 }
 
-@media screen and (max-width: 18cm) {
+@media screen and (max-width: calc($comfortWidth + 64px) ) {
     #improved {
         display:none;
-    }
-
-    #fixtures .fixture {
-        td:nth-child(2), td:last-child {
-            display: none;
-        }
     }
 }
 
@@ -130,18 +138,6 @@ nav {
     background-repeat: no-repeat;
 }
 
-.card-yellow {
-//    background-image: url(/assets/img/yellow-card.png)
-}
-
-.card-red {
- //   background-image: url(/assets/img/red-card.png)
-}
-
-.card-green {
-  //  background-image: url(/assets/img/green-card.png)
-}
-
 .score {
     font-weight: bold;
     color: #484;
@@ -150,3 +146,114 @@ nav {
     }
 }
  
+#fixtures {
+    display: grid;
+    grid-template-columns: 1.5rem 3rem auto auto 2fr 2fr auto;
+
+    tbody, tr {
+        display: contents;
+        width: 100%;
+    }
+
+    td {
+        overflow: hidden;
+    }
+
+    .month-marker th, .note td {
+        grid-column: 1/8;
+    }
+
+    .month-marker th {
+        margin: 10px 0 1px 0;
+    }
+
+    .note td {
+        color: #776;
+        font-size: 90%;
+        padding-left: 5mm;
+    }
+
+    td:not(.note) ~ td.note {
+        margin-top: 5px;
+    }
+
+    td, th {
+        padding-right: 2mm;
+    }
+
+    td {
+        border-bottom: 1px solid #ddd;        
+        padding-block: 1mm;
+        vertical-align: middle;
+    }
+
+    tr.fixture-played td {
+        background-color: #f0fff4;
+    }
+
+    tr.error-late td {
+        background-color: #ffd9d9;
+        border-bottom: 1px solid white;
+    }
+
+    tr.error-score td {
+        background-color: #ffffd9;
+        border-bottom: 1px solid white;
+    }
+
+    tr.team-error td {
+        background-color: #ffd966;
+        border-bottom: 1px solid white;
+    }
+
+    tr.status-inactive td {
+        background-color: #ede;
+        color: #bab;
+        border-bottom: 1px solid white;
+    }
+
+    .annotations {
+        float: right;
+        color: black;
+    }
+}
+
+.with-section {
+    #fixtures {
+        grid-template-columns: 1.5rem 3rem 0 auto 2fr 2fr auto;
+    }
+
+    #pills-section {
+        display: none;
+    }
+}
+
+@media screen and (min-width: $smallWidth) {
+    .short { display: none; }
+}
+
+@media screen and (max-width: $smallWidth) {
+    .long { display: none; }
+    #fixtures {
+        grid-template-columns: 1.5rem 0 0 auto auto 1fr 0;
+
+        .month-marker th {
+            grid-column: 1/8;
+        }
+
+        td:nth-child(5) {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+
+    #fixtures-tab {
+        font-size: 90%;
+    }
+
+    .with-section {
+        #fixtures {
+            grid-template-columns: 1.5rem 0 0 auto auto 1fr 0;
+        }
+    }    
+}

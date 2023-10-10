@@ -1,152 +1,169 @@
 <?php
+
 class Controller_Registration extends Controller_Template
 {
-	public function action_index() {
-		if (!Auth::has_access("registration.view")) {
-			throw new HttpNoAccessException;
-		}
+    public function action_index()
+    {
+        if (!Auth::has_access("registration.view")) {
+            throw new HttpNoAccessException();
+        }
 
+        $section = Input::param('s');
+        Log::info("Rai: section=$section");
+        if ($section) {
+            loadSectionConfig($section);
+        }
 
-    $section = Input::param('s');
-		Log::info("Rai: section=$section");
-    if ($section) loadSectionConfig($section);
+        Log::info("Rai:". print_r(Config::get("section"), true));
 
-		Log::info("Rai:". print_r(Config::get("section"),true));
+        $club = null;
+        if (Auth::has_access("registration.impersonate")) {
+            $club = Input::param("c");
+        }
 
-		if (Auth::has_access("registration.impersonate")) {
-			$club = Input::param("c");
-		}
+        $username = Session::get("username");
+        $user = Model_User::find_by_username($username);
 
-		if (!isset($club)) {
-			$username = Session::get("username");
-			$user = Model_User::find_by_username($username);
-      if ($user['club']) {
-  			$club = $user['club']['name'];
-      }
-		}
+        $clubfixed = false;
+        if ($user['club']) {
+            $club =  $user['club']['name'];
+            $clubfixed = true;
+        }
 
-		Log::info("Requesting registration for $section/$club");
+        $sectionfixed = false;
+        if ($user['section']) {
+            $section = $user['section']['name'];
+            $sectionfixed = true;
+        }
 
-		$registrations = $club && $section ? Model_Registration::find_all($section, $club) : array();
-		
-		$this->template->title = "Registrations";
-		$this->template->content = View::forge('registration/index', array('club'=>$club,
-      'section'=>$section,
-			'clubs'=>Model_Club::find('all'),
-      'sections'=>Model_Section::find('all'),
-			'registrations'=>$registrations));
-	}
+        Log::info("Requesting registration for $section/$club");
 
-	public function action_registration() {
+        $registrations = $club && $section ? Model_Registration::find_all($section, $club) : array();
 
-		if (!Auth::has_access("registration.view")) {
-			throw new HttpNoAccessException;
-		}
-
-    $section = \Input::param('s', null);
-
-		$user = Model_User::find_by_username(Session::get("username"));
-    $club = null;
-    if ($user and $user['club']) {
-      $club = $user['club']['name'];
-    }
-    
-		if (\Auth::has_access("registration.impersonate")) {
-      $club = \Input::param('c', null);
-		}
-
-		if (!$club) {
-			return new Response("No club specified for registration", 404);
-		}
-
-		$file = Input::param('f', null);
-
-		if ($file != null) {
-			$filename = Model_Registration::getRoot($section, $club, $file);
-			Log::info("Downloading $filename");
-			File::download($filename, null, "text/csv");
-		}
-
-		$date = Input::param('d', null);
-		if (!$date) {
-			$date = Date::time();
-		} else {
-			$date = Date::create_from_string($date, "%Y-%m-%d");
-		}
-
-		$thurs = strtotime("first thursday of " . $date->format("%B %Y"));
-		$thurs = strtotime("+1 day", $thurs);
-		if ($thurs > $date->get_timestamp()) {
-			$thurs = Date::forge(strtotime("-1 month", $date->get_timestamp()));
-			$thurs = strtotime("first thursday of " . $thurs->format("%B %Y"));
-			$thurs = strtotime("+1 day", $thurs);
-		}
-
-		$thursDate = Date::forge($thurs);
-		$info = array();
-
-		Model_Registration::flush($section, $club);
-		$registration = Model_Registration::find_between_dates($section, $club, $thurs, $date->get_timestamp(), $info);
-		$this->template->title = "Registrations";
-		$this->template->content = View::forge('registration/list', array(
-			'info'=> $info,
-			'registration'=>$registration,
-			//'history'=>$history,
-			'club'=>$club,
+        $this->template->title = "Registrations";
+        $this->template->content = View::forge('registration/index', array('club'=>$club,
 			'section'=>$section,
-			'all'=>Model_Registration::find_before_date($section, $club, Date::forge()->get_timestamp()),
-			'ts'=>$date, 
-			'base'=>Date::forge($thurs)));
-	}
+			'clubs'=>Model_Club::find('all'),
+            'clubfixed'=>$clubfixed,
+            'sectionfixed'=>$sectionfixed,
+			'sections'=>Model_Section::find('all'),
+			'registrations'=>$registrations));
+    }
 
-	public function action_info() {
+    public function action_registration()
+    {
 
-		if (!Auth::has_access("registration.view")) {
-			throw new HttpNoAccessException;
-		}
+        if (!Auth::has_access("registration.view")) {
+            throw new HttpNoAccessException();
+        }
 
-		$userObj = Model_User::find_by_username(Session::get('username'));
-		if ($userObj == null) {
-			Log::error("No such user: ".Session::get('username'));
-			return;
-		}
+        $section = \Input::param('s', null);
 
-		if ($userObj->club === null) {
-			Log::error("User does not have a club");
-			return;
-		}
+        $user = Model_User::find_by_username(Session::get("username"));
+        $club = null;
+        if ($user and $user['club']) {
+            $club = $user['club']['name'];
+        }
 
-		$club = $userObj->club['name'];
+        if (\Auth::has_access("registration.impersonate")) {
+            $club = \Input::param('c', null);
+        }
 
-		Log::info("Request info for $club");
+        if (!$club) {
+            return new Response("No club specified for registration", 404);
+        }
 
-		$clubUsers = Model_User::find('all', array(
-				'where'=>array(
-					array('club_id','=',$userObj->club['id']),
-					array('group','=',1)	
-				)
-			));
+        $file = Input::param('f', null);
 
-		if ($userObj->section) {
-			$sectionName = $userObj->section['name'];
-			$clubUsers = array_filter($clubUsers, function($a) use ($sectionName) { 
-				if ($a->section == null) {
-					return true;
-				} else {
-					return $sectionName === null or $a->section['name'] === $sectionName; 
-				}
-			});
-		}
+        if ($file != null) {
+            $filename = Model_Registration::getRoot($section, $club, $file);
+            Log::info("Downloading '$filename' for $section/$club");
+            File::download($filename, null, "text/csv");
+        }
 
-		foreach ($clubUsers as $clubUser) {
-			if ($clubUser->section) {
-				echo "<!-- ".print_r($clubUser->club->getTeamSizes($clubUser->section['name']), true). " -->";
-			}
-		}
+        $date = Input::param('d', null);
+        if (!$date) {
+            $date = Date::time()->format("%Y-%m-%d");
+        }
+        
+        $date = Date::create_from_string($date, "%Y-%m-%d");
 
-		$this->template->title = "Club Info";
-		$this->template->content = View::forge('registration/info',
-			array('users'=>$clubUsers));
-	}
+        $thurs = strtotime("first thursday of " . $date->format("%B %Y"));
+        $thurs = strtotime("+1 day", $thurs);
+        if ($thurs > $date->get_timestamp()) {
+            $thurs = Date::forge(strtotime("-1 month", $date->get_timestamp()));
+            $thurs = strtotime("first thursday of " . $thurs->format("%B %Y"));
+            $thurs = strtotime("+1 day", $thurs);
+        }
+
+        $thursDate = Date::forge($thurs);
+        $info = array();
+
+        Model_Registration::flush($section, $club);
+        $registration = Model_Registration::find_between_dates($section, $club, $thurs, $date->get_timestamp(), $info);
+        $this->template->title = "Registrations";
+        $this->template->content = View::forge('registration/list', array(
+            'info'=> $info,
+            'registration'=>$registration,
+            //'history'=>$history,
+            'club'=>$club,
+            'section'=>$section,
+            'all'=>Model_Registration::find_before_date($section, $club, Date::forge()->get_timestamp()),
+            'ts'=>$date,
+            'base'=>Date::forge($thurs)));
+    }
+
+    public function action_info()
+    {
+
+        if (!Auth::has_access("registration.view")) {
+            throw new HttpNoAccessException();
+        }
+
+        $userObj = Model_User::find_by_username(Session::get('username'));
+        if ($userObj == null) {
+            Log::error("No such user: ".Session::get('username'));
+            return;
+        }
+
+        if ($userObj->club === null) {
+            Log::error("User does not have a club");
+            return;
+        }
+
+        $club = $userObj->club['name'];
+
+        Log::info("Request info for $club");
+
+        $clubUsers = Model_User::find('all', array(
+                'where'=>array(
+                    array('club_id','=',$userObj->club['id']),
+                    array('group','=',1)
+                )
+            ));
+
+        if ($userObj->section) {
+            $sectionName = $userObj->section['name'];
+            $clubUsers = array_filter($clubUsers, function ($a) use ($sectionName) {
+                if ($a->section == null) {
+                    return true;
+                } else {
+                    return $sectionName === null or $a->section['name'] === $sectionName;
+                }
+            });
+        }
+
+        foreach ($clubUsers as $clubUser) {
+            if ($clubUser->section) {
+                echo "<!-- ".print_r($clubUser->club->getTeamSizes($clubUser->section['name']), true). " -->";
+            }
+        }
+
+        $this->template->title = "Club Info";
+        $this->template->content = View::forge(
+            'registration/info',
+            array('users'=>$clubUsers)
+        );
+    }
 
 }

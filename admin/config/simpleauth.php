@@ -26,7 +26,6 @@ return array(
     'db_connection' => null,
     'db_write_connection' => null,
     'table_name' => 'user',
-    'table_columns' => null,
     'guest_login' => true,
     'multiple_logins' => false,
     'remember_me' => array(
@@ -53,7 +52,8 @@ return array(
 		 				   'data'=>array('export','log'),
                            'card'=>array('addcards','admin'),
                            'registration'=>array('impersonate','status','delete'),
-			   'competition'=>array('view','edit'),
+                           'competition'=>array('view','edit'),
+                           'club'=>array('view','edit'),
 			   'report'=>array('players'),
                            'user'=>array('create','impersonate')),
 

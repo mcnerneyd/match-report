@@ -171,7 +171,7 @@ class Controller_RegistrationApi extends Controller_Rest
         // FIXME Check user admin or matches club
         $access = 'registration.impersonate';	// minimum required access
 
-    $section = Input::param("section");
+        $section = Input::param("section");
         if ($section) {
             loadSectionConfig($section);
         }
@@ -358,6 +358,9 @@ class Controller_RegistrationApi extends Controller_Rest
             }
 
             $finish = $start + $size;
+
+            if ($finish >= count($registration)) break; // Not enough players to fill all the teams
+
             $maxScore = $scores[$finish];
 
             for ($i=$start;$i<$finish;$i++) {

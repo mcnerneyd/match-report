@@ -2,21 +2,24 @@
 
 ini_set("auto_detect_line_endings", true);
 
-class CardController {
-
+class CardController
+{
     // ------------------------------------------------------------------------
-    public function index() {
+    public function index()
+    {
         checkuser();
 
         $competitions = Competition::all();
         if ($_SESSION['section']) {
-            $competitions = array_filter($competitions, function($a) { return $a['section'] === $_SESSION['section']; });
+            $competitions = array_filter($competitions, function ($a) { return $a['section'] === $_SESSION['section']; });
         }
-        usort($competitions, function($a, $b) { return strcmp($a['name'], $b['name']); });
+        usort($competitions, function ($a, $b) { return strcmp($a['name'], $b['name']); });
 
         $clubs = array();
-        
-        foreach (Club::all() as $club) $clubs[] = array('id'=>$club['id'], 'name'=>$club['name']);
+
+        foreach (Club::all() as $club) {
+            $clubs[] = array('id'=>$club['id'], 'name'=>$club['name']);
+        }
         /*$clubs = array_column(Club::all(), "name");
 
         if (Arr::get($_SESSION, 'club', null) && !in_array($_SESSION['club'], $clubs)) {
@@ -24,31 +27,25 @@ class CardController {
         }
         sort($clubs);*/
         $entries = array();
-        foreach (Competition::entries() as $entry) $entries[] = array($entry['competition_id'], $entry['club_id']);
+        foreach (Competition::entries() as $entry) {
+            $entries[] = array($entry['competition_id'], $entry['club_id']);
+        }
 
         require_once('views/card/index.php');
     }
 
     // ------------------------------------------------------------------------
     // Get a matchcard based on its id
-    public function get() {
+    public function get()
+    {
         //checkuser();
 
         $id = $_REQUEST['fid'];
-
-        if (!$id) throw new Exception("No fixture specified");
 
         Log::info("Get card for fixture:$id");
 
         $fixture = Card::getFixture($id);
 
-        if (!$fixture)
-            throw new Exception("No such fixture (fid=$id)");
-
-            echo "<!--";
-            print_r($fixture);
-            echo "-->";
-  
         Log::debug("Fixture: ".print_r($fixture, true));
 
         if (user('umpire')) {
@@ -78,9 +75,9 @@ class CardController {
 
         if ($club) {
             if (!isset($fixture['card'])) {
-                    Log::debug("Creating new card for ${fixture['id']}");
-                    $fixture['cardid'] = Card::create($fixture);
-                    $fixture = Card::getFixture($id);
+                Log::debug("Creating new card for ${fixture['id']}");
+                $fixture['cardid'] = Card::create($fixture);
+                $fixture = Card::getFixture($id);
             }
 
             if (!isset($fixture[$club])) {
@@ -109,10 +106,11 @@ class CardController {
 
         if (isset($fixture['card'])) {
             foreach ($fixture['card']['rycards'] as $rycard) {
-                    $player = &$fixture['card'][$rycard['side']]['players'][$rycard['player']];
-                    if (!isset($player['cards']))
-                            $player['cards'] = array();
-                    $player['cards'][] = array('type' => $rycard['type'], 'detail' => $rycard['detail']);
+                $player = &$fixture['card'][$rycard['side']]['players'][$rycard['player']];
+                if (!isset($player['cards'])) {
+                    $player['cards'] = array();
+                }
+                $player['cards'][] = array('type' => $rycard['type'], 'detail' => $rycard['detail']);
             }
 
             Log::debug("Edit/View matchcard ($club): cardid=" . $fixture['card']['id']);
@@ -127,7 +125,8 @@ class CardController {
     }
 
     // ------------------------------------------------------------------------
-    public function lock() {
+    public function lock()
+    {
         checkuser();
         $cardid = $_REQUEST['cid'];
 
@@ -135,31 +134,17 @@ class CardController {
 
         $lockCode = Card::lock($cardid, $_SESSION['club']);
 
-	      $fixture = Card::getFixtureByCardId($cardid);
+        $fixture = Card::getFixtureByCardId($cardid);
 
         redirect('card', 'get', "fid=" . $fixture['id'] . "&x=" . createsecurekey("card" . $fixture['id']));
     }
 
-    public function search() {
+    public function search()
+    {
         $competitions = Competition::all();
         $clubs = Club::all();
         $teams = Club::getTeamMap();
 
         require_once('views/card/search.php');
-    }
-
-    public function searchAJAX() {
-        if (!(isset($_REQUEST['club']) or isset($_REQUEST['competition'])))
-            return "";
-
-        $result = Card::fixtures(isset($_REQUEST['club']) ? $_REQUEST['club'] : null);
-
-        if (isset($_REQUEST['competition'])) {
-            $result = array_filter($result, function($item) {
-                return $item['competition'] == $_REQUEST['competition'];
-            });
-        }
-
-        echo json_encode($result);
     }
 }

@@ -1,9 +1,21 @@
-<?php
-
-class Controller_Report extends Controller_Template
+<?php class Controller_Report extends Controller_Template
 {
+    public function action_help()
+    {
+        $page = \Input::get("page", null);
+        if (!$page)
+            $page = "general";
+
+        $filename = "docs/help/$page.md";
+        if (!file_exists($filename)) $filename = "docs/help/yikes.md";
+
+        $txt = file_get_contents($filename);
+
+        $this->template->content = "<div class='help'>" . Parsedown::instance()->text($txt) . "</div>";
+    }
+
     // --------------------------------------------------------------------------
-    public function action_playerreport() 
+    public function action_playerreport()
     {
         if (!\Auth::has_access("report.players")) {
             return new Response("Not permitted: administrator only", 403);
@@ -30,24 +42,27 @@ class Controller_Report extends Controller_Template
         $current = null;
         $result = array();
         foreach ($rows as $row) {
-            $player = $row['player']." -- ".$row['club'];
+            $player = $row['player'] . " -- " . $row['club'];
 
             if ($player !== $current) {
-                $result[] = array('player' => $row['player'],
-                'club'=>$row['club'],
-                'matches'=>array());
+                $result[] = array(
+                    'player' => $row['player'],
+                    'club' => $row['club'],
+                    'matches' => array()
+                );
             }
-            $result[count($result)-1]['matches'][] = array(
+            $result[count($result) - 1]['matches'][] = array(
                 'date' => $row['date'],
                 'competition' => $row['competition'],
-                'home' => $row['home']." ".$row['home_team'],
-                'away' => $row['away']." ".$row['away_team']
+                'home' => $row['home'] . " " . $row['home_team'],
+                'away' => $row['away'] . " " . $row['away_team']
             );
-            
+
             $current = $player;
         }
 
-        usort($result, function($a, $b) { return count($b['matches']) - count($a['matches']); });
+        usort($result, function ($a, $b) {
+            return count($b['matches']) - count($a['matches']); });
 
         echo "<html><body><style>@import url('/assets/css/reports.css');</style>";
 
@@ -55,10 +70,11 @@ class Controller_Report extends Controller_Template
         echo "<h2>Section: $section</h2>";
 
         foreach ($result as $player) {
-            if (count($player['matches']) < $limit) continue;
+            if (count($player['matches']) < $limit)
+                continue;
             echo "<div class='player'>
                 <p>{$player['player']}, {$player['club']}</p>
-                <span>".count($player['matches'])."</span>";
+                <span>" . count($player['matches']) . "</span>";
 
             echo "<table>";
             foreach ($player['matches'] as $match) {
@@ -73,7 +89,7 @@ class Controller_Report extends Controller_Template
         echo "</body></html>";
 
         return new Response("", 200);
-    }   
+    }
 
     // --------------------------------------------------------------------------
     public function action_stats()
@@ -201,16 +217,18 @@ class Controller_Report extends Controller_Template
         foreach ($rows as $row) {
             $fixtureId = $row['fixture_id'];
             if (!isset($result[$fixtureId])) {
-                $result[$fixtureId] = array('id'=>$row['id'],
-                    'date'=>$row['date'],
-                    'competition'=>$row['comp_name'],
-                    'home'=>array('score'=>0, 'notes'=>array()),
-                    'away'=>array('score'=>0, 'notes'=>array()));
+                $result[$fixtureId] = array(
+                    'id' => $row['id'],
+                    'date' => $row['date'],
+                    'competition' => $row['comp_name'],
+                    'home' => array('score' => 0, 'notes' => array()),
+                    'away' => array('score' => 0, 'notes' => array())
+                );
             }
             $record = &$result[$fixtureId];
 
             $recordTeam = &$record[$row['home']];
-            $recordTeam['name'] = $row['club_name']." ".$row['team'];
+            $recordTeam['name'] = $row['club_name'] . " " . $row['team'];
 
             switch ($row['type']) {
                 case 'Scored':
@@ -224,8 +242,9 @@ class Controller_Report extends Controller_Template
 
         $this->template->title = "Simple Match/Notes report";
         $this->template->content = View::forge('report/notes', array(
-            'data'=>$result
-        ));
+            'data' => $result
+        )
+        );
     }
 
     // --------------------------------------------------------------------------
@@ -268,12 +287,13 @@ class Controller_Report extends Controller_Template
     public function action_cards()
     {
         $cards = Model_Incident::find('all', array(
-            'where'=> array(
-                array('type','Red Card'),
-                'or'=>array('type','Yellow Card'),
+            'where' => array(
+                array('type', 'Red Card'),
+                'or' => array('type', 'Yellow Card'),
             ),
-            'order_by'=>array('date'=>'desc'),
-        ));
+            'order_by' => array('date' => 'desc'),
+        )
+        );
 
         $club = \Session::get('club', null);
         if ($club) {
@@ -284,8 +304,9 @@ class Controller_Report extends Controller_Template
 
         $this->template->title = "Red/Yellow Cards";
         $this->template->content = View::forge('report/cards', array(
-            'cards'=>$cards
-        ));
+            'cards' => $cards
+        )
+        );
     }
 
 
@@ -300,23 +321,25 @@ class Controller_Report extends Controller_Template
 
         $this->template->title = "Registration Secretary Report";
         $this->template->content = View::forge('report/registration', array(
-            'reportDate'=>$reportDate
-        ));
+            'reportDate' => $reportDate
+        )
+        );
     }
 
     // -------------------------------------------------------
     public function action_grid()
     {
         $competition = Input::get("x");
+        $section = Input::get("site");
 
         self::header("Grid Report - $competition");
 
-        $fixtures = array_filter(Model_Fixture::getAll(), function ($a) use ($competition) {
-            return $a['competition'] === $competition;
+        $fixtures = array_filter(Model_Fixture::getAll(), function ($a) use ($competition, $section) {
+            return $a['competition'] === $competition && $a['section'] === $section;
         });
         $map = array();
         $clubs = array_unique(array_values(array_map(function ($a) {
-            return $a['home_club'];
+            return $a['home_club'].$a['home_team'];
         }, $fixtures)));
         $playct = array_fill_keys($clubs, 0);
         $clubs = array_fill_keys($clubs, 0);
@@ -328,7 +351,7 @@ class Controller_Report extends Controller_Template
                 continue;
             }
 
-            $map[$fixture['home_club'].":".$fixture['away_club']] = $fixture;
+            $map[$fixture['home_club'].$fixture['home_team'] . ":" . $fixture['away_club'].$fixture['away_team']] = $fixture;
 
             if ($fixture['played'] === 'no') {
                 continue;
@@ -345,13 +368,13 @@ class Controller_Report extends Controller_Template
                 $apts = 1;
             }
 
-            $playct[$fixture['home_club']] = (@$playct[$fixture['home_club']] ?: 0) + 1;
-            $playct[$fixture['away_club']] = (@$playct[$fixture['away_club']] ?: 0) + 1;
-            $clubs[$fixture['home_club']] = (@$clubs[$fixture['home_club']] ?: 0) + $hpts;
-            $clubs[$fixture['away_club']] = (@$clubs[$fixture['away_club']] ?: 0) + $apts;
+            $playct[$fixture['home_club'].$fixture['home_team']] = (@$playct[$fixture['home_club'].$fixture['home_team']] ?: 0) + 1;
+            $playct[$fixture['away_club'].$fixture['away_team']] = (@$playct[$fixture['away_club'].$fixture['away_team']] ?: 0) + 1;
+            $clubs[$fixture['home_club'].$fixture['home_team']] = (@$clubs[$fixture['home_club'].$fixture['home_team']] ?: 0) + $hpts;
+            $clubs[$fixture['away_club'].$fixture['away_team']] = (@$clubs[$fixture['away_club'].$fixture['away_team']] ?: 0) + $apts;
         }
-        foreach ($clubs as $club=>$score) {
-            $clubs[$club] = array('c'=>$club, 's'=>$score);
+        foreach ($clubs as $club => $score) {
+            $clubs[$club] = array('c' => $club, 's' => $score);
         }
         usort($clubs, function ($a, $b) {
             return $b['s'] - $a['s'];
@@ -382,7 +405,7 @@ class Controller_Report extends Controller_Template
         foreach ($clubs as $club) {
             echo "<th><div>${club['c']}</div></th>";
         }
-        echo "<th>HI<br>%</th></tr>";
+        echo "</tr>";
         foreach ($clubs as $home_club) {
             $ct = $playct[$home_club['c']];
             echo "<tr class='home'><th>${home_club['c']}</th><td style='border:0'>$ct</td><td style='border:0'>${home_club['s']}</td>";
@@ -400,7 +423,7 @@ class Controller_Report extends Controller_Template
                         $class = "late";
                     }
 
-                    echo "<td class='fixture $class'>".$fixture['datetime']->format('%d<br>%b')."</td>";
+                    echo "<td class='fixture $class'>" . $fixture['datetime']->format('%d<br>%b') . "</td>";
                 } else {
                     $class = "draw";
                     if ($fixture['home_score'] > $fixture['away_score']) {
@@ -416,25 +439,25 @@ class Controller_Report extends Controller_Template
 						</td>";
                 }
             }
-            $hipct = 0;
-            if ($ct > 0) {
-                $hipct = round(18 * $home_club['s'] / $ct);
-            }
-            echo "<td style='border: 0'>".$hipct."</td>";
             echo "</tr>";
         }
         echo "</table>";
 
-        $comps = array_map(function ($a) {
-            return $a['name'];
-        }, Model_Competition::find('all'));
-        sort($comps);
-
+        $comps = array();
+        foreach (Model_Fixture::getAll() as $a) {
+            if ($a['status'] === 'active') {
+                $s = $a['section'];
+                $x = $a['competition'];
+                $comps["$s---$x"] = array("section"=>$s, "name"=>$x);
+            }
+        }
+        $comps = array_values($comps);
+        usort($comps, function($a,$b) { return strcmp($a["name"], $b["name"]); });
         echo "<br>";
 
-        foreach ($comps as $name) {
+        foreach ($comps as $comp) {
             //if (!preg_match('/Division .*/', $name)) continue;
-            echo "<a class='no-print' href='http://cards.leinsterhockey.ie/public/report/Grid?site=".Session::get('site')."&x=$name'>$name</a> ";
+            echo "<a class='no-print' href='http://cards.leinsterhockey.ie/report/Grid?site={$comp['section']}&x={$comp['name']}'>{$comp['name']}</a> ";
         }
 
         return new Response("", 200);
@@ -449,7 +472,7 @@ class Controller_Report extends Controller_Template
         if (\Input::get('d')) {
             $dateTo = strtotime(\Input::get('d'));
         } else {
-            $dateTo = strtotime(date("Y-m-d")." 00:00");
+            $dateTo = strtotime(date("Y-m-d") . " 00:00");
         }
 
         $dateFrom = strtotime("-7 days", $dateTo);
@@ -457,25 +480,16 @@ class Controller_Report extends Controller_Template
         $incidents = Model_Incident::find(
             'all',
             array(
-            'where'=> array(
-                array('date','<',date('Y-m-d', $dateTo)),
-                array('date','>',date('Y-m-d', $dateFrom)),
-                array('club_id','=', $club['id'])
+                'where' => array(
+                    array('date', '<', date('Y-m-d', $dateTo)),
+                    array('date', '>', date('Y-m-d', $dateFrom)),
+                    array('club_id', '=', $club['id'])
                 )
             )
         );
 
         $cards = array();
-        foreach (Model_Matchcard::find(
-            'all',
-            array(
-            'where'=> array(
-                array('date','<',date('Y-m-d', $dateTo)),
-                array('date','>',date('Y-m-d', $dateFrom)),
-                ),
-            'order_by' => array('date'=>'asc'),
-            )
-        ) as $card) {
+        foreach (Model_Matchcard::find('all', array('where' => array(array('date', '<', date('Y-m-d', $dateTo)), array('date', '>', date('Y-m-d', $dateFrom)), ), 'order_by' => array('date' => 'asc'), )) as $card) {
             if ($card['home']['club_id'] == $club['id'] || $card['away']['club_id'] == $club['id']) {
                 $cards[] = Model_Matchcard::card($card['id']);
             }
@@ -488,11 +502,14 @@ class Controller_Report extends Controller_Template
             return $a['type'] == 'Scored';
         });
 
-        echo \View::forge("report/summary", array('club'=>$club,
-            'date'=>array('from'=>date('Y-m-d', $dateFrom),'to'=>date('Y-m-d', $dateTo)),
-            'cards'=>$cards,
-            'fines'=>$fines,
-            'scores'=>$scores));
+        echo \View::forge("report/summary", array(
+            'club' => $club,
+            'date' => array('from' => date('Y-m-d', $dateFrom), 'to' => date('Y-m-d', $dateTo)),
+            'cards' => $cards,
+            'fines' => $fines,
+            'scores' => $scores
+        )
+        );
 
         return new Response("Report sent", 200);
     }
@@ -504,7 +521,7 @@ class Controller_Report extends Controller_Template
         if (!$club) {
             Log::warning("No club specified");
             foreach (Model_Club::find('all') as $club) {
-                enqueue("fuel/public/report/email?site=".Session::get('site')."&c=".urlencode($club['name']));
+                enqueue("fuel/public/report/email?site=" . Session::get('site') . "&c=" . urlencode($club['name']));
             }
             return;
         }
@@ -525,15 +542,17 @@ class Controller_Report extends Controller_Template
         $email->from($autoEmail, "$title (No Reply)");
         $email->to($emailAddresses);
         $body = View::forge("report/weeklyemail", array(
-            "club"=>$club,
-            "date"=>$date));
+            "club" => $club,
+            "date" => $date
+        )
+        );
         $matches = array();
         if (preg_match('/title>(.*)<\/title/', $body, $matches)) {
             $email->subject($matches[1]);
         }
         $email->html_body($body);
         $email->send();
-        Log::info("Receipt email sent to ".implode(',', $emailAddresses)." =".print_r($email, true));
+        Log::info("Receipt email sent to " . implode(',', $emailAddresses) . " =" . print_r($email, true));
         //print_r($email);
 
         return new Response($body);
@@ -564,27 +583,31 @@ class Controller_Report extends Controller_Template
 
         $summary = array();
         foreach ($result->execute() as $row) {
-            echo "<!-- ".print_r($row, true)." -->\n";
-            $playerName = $row['player']."/".$row['club'];
+            echo "<!-- " . print_r($row, true) . " -->\n";
+            $playerName = $row['player'] . "/" . $row['club'];
             if (!isset($summary[$playerName])) {
-                $summary[$playerName] = array('name'=>$row['player'],
-                    'club'=>$row['club'],
-                    'total'=>0,
-                    'lowestTeam'=>$row['team'],
-                    'highestTeam'=>$row['team'],
-                    'lowestTeamCount'=>$row['count']);
+                $summary[$playerName] = array(
+                    'name' => $row['player'],
+                    'club' => $row['club'],
+                    'total' => 0,
+                    'lowestTeam' => $row['team'],
+                    'highestTeam' => $row['team'],
+                    'lowestTeamCount' => $row['count']
+                );
             }
             $summary[$playerName]['total'] = $summary[$playerName]['total'] + $row['count'];
             $summary[$playerName]['highestTeam'] = $row['team'];
         }
 
         $this->template->title = "Played Games";
-        $this->template->content = View::forge('report/played', array('data'=>$summary));
+        $this->template->content = View::forge('report/played', array('data' => $summary));
     }
 
     public function action_card()
     {
         $key = \Input::param('key', null);
+
+        Log::debug("Report on card for id=$key");
 
         if ($key != null) {
             $cardId = Model_Matchcard::find_by_key($key);
@@ -592,71 +615,82 @@ class Controller_Report extends Controller_Template
             $card = Model_Matchcard::card($cardId);
             $fixture = Model_Fixture::get($card['fixture_id']);
         } else {
-            $cardId = $this->param('id');
+            $key = $this->param('id');
 
-            if (substr($cardId, 0, 1) == "n") {
-                $card = Model_Matchcard::card(substr($cardId, 1));
+            if (substr($key, 0, 1) == "n") {
+                $card = Model_Matchcard::card(substr($key, 1));
                 $fixture = Model_Fixture::get($card['fixture_id']);
             } else {
-                $card = Model_Matchcard::find_by_fixture($cardId);
-                $fixture = Model_Fixture::get($cardId);
+                $card = Model_Matchcard::find_by_fixture($key);
+                $fixture = Model_Fixture::get($key);
             }
-        }
-
-        if ($card && $fixture) {
-            $card['section'] = $fixture['section'];
-        }
-
-        if ($card && !$fixture) {
-            $fixture = array("fixtureID" => $card['fixture_id'], 
-            "section" => $card['section'],
-            "competition" => $card['competition'],
-            "datetimeZ" => $card['date']->format(),
-            "home" => $card['home_name']." ".$card['home_team'],
-            "away" => $card['away_name']." ".$card['away_team'],
-            "derived" => true);
         }
 
         $incidents = array();
         $card2 = array();
 
-        //if (!isset($card['id'])) return "Card:$cardId k:$key c:".print_r($card, true)." f:".print_r($fixture,true);
+        if ($card) {
+            if ($fixture) {
+                $card['section'] = $fixture['section'];
+            } else {
+                $fixture = array(
+                    "fixtureID" => $card['fixture_id'],
+                    "section" => $card['section'],
+                    "competition" => $card['competition'],
+                    "datetimeZ" => $card['date']->format(),
+                    "home" => "{$card['home_name']} {$card['home_team']}",
+                    "away" => "{$card['away_name']} {$card['away_team']}",
+                    "derived" => true
+                );
+            }
 
-        if ($card && $card['id']) {
-            $incidents = Model_Matchcard::incidents($card['id']);
-            $card2 = Model_Matchcard::card2($card['id']);
+            if ($card['id']) {
+                $incidents = Model_Matchcard::incidents($card['id']);
+                $card2 = Model_Matchcard::card2($card['id']);
+            }
         }
 
-        $html = View::forge('report/card', array('card'=>$card, 'fixture'=>$fixture,
-                'incidents'=>$incidents, 'card2'=>$card2))->render();
+        if (!$fixture) return new Response("No such fixture: $key", 404);
+
+        $html = View::forge('report/card', array(
+            'card' => $card,
+            'fixture' => $fixture,
+            'incidents' => $incidents,
+            'card2' => $card2
+        )
+        )->render();
         return new Response($html);
     }
 
     public function action_scorers()
     {
-        $data['scorers'] = Model_Report::scorers();
+        $scorers = Model_Report::scorers()->as_array();
+
+        $section = \Input::param('s', null);
+
+        if ($section) $scorers = array_filter($scorers, function($a) use ($section) { return $a['section'] == $section; });
 
         $this->template->title = "Scorers";
-        $this->template->content = View::forge('report/scorers', $data);
+        $this->template->content = View::forge('report/scorers', array("scorers"=>$scorers));
     }
 
     public function action_diagnostics()
     {
         $this->template->title = "Diagnostics";
-        $this->template->content = "<pre>Fuel Base: ".Uri::base(false)."\n"
-            .\Model_Task::command(array('command'=>"abc"))."\n"
-            ."php version:".phpversion()."\n"
-            ."SERVER:".print_r($_SERVER, true)."\n\n"
-            ."REQUEST:".print_r($_REQUEST, true)."</pre>";
+        $this->template->content = "<pre>Fuel Base: " . Uri::base(false) . "\n"
+            . \Model_Task::command(array('command' => "abc")) . "\n"
+            . "php version:" . phpversion() . "\n"
+            . "SERVER:" . print_r($_SERVER, true) . "\n\n"
+            . "REQUEST:" . print_r($_REQUEST, true) . "</pre>";
     }
 
     private static function strToHex($string)
     {
         $hex = '';
-        for ($i=0; $i<strlen($string); $i++) {
+        for ($i = 0; $i < strlen($string); $i++) {
             $ord = ord($string[$i]);
             $hexCode = dechex($ord);
-            $hex .= substr('0'.$hexCode, -2);
+            $hex .= substr('0' . $hexCode, -2);
         }
         return strToUpper($hex);
     }
@@ -665,7 +699,7 @@ class Controller_Report extends Controller_Template
     {
         $section = \Input::param("s", null);
         if ($section == null) {
-            return;
+            throw new Exception("No section");
         }
         loadSectionConfig($section);
 
@@ -695,13 +729,18 @@ class Controller_Report extends Controller_Template
             $teams[$fixture['away']] = "xx";
         }
 
-        foreach ($competitions as $competition=>$x) {
-            $comp = Model_Competition::parse($section, $competition);
+        foreach ($competitions as $competition => $x) {
+            //$comp = Model_Competition::parse($section, $competition);
+            try {
+                $comp = parseCompetition($competition, $dbComps);
+            } catch (Exception $e) {
+                $comp = $competition;
+            }
             //echo "$competition -> $comp\n";
-            $competitions[$competition] = array('valid'=>in_array($comp, $dbComps), 'name'=>$comp);
+            $competitions[$competition] = array('valid' => in_array($comp, $dbComps), 'name' => $comp);
         }
 
-        foreach ($teams as $team=>$x) {
+        foreach ($teams as $team => $x) {
             $tm = Model_Team::parse($section, $team);
             if ($tm == null) {
                 $tm['valid'] = false;
@@ -714,7 +753,7 @@ class Controller_Report extends Controller_Template
 
         ksort($competitions);
         ksort($teams);
-        $data = array('competitions'=>$competitions,'teams'=>$teams);
+        $data = array('competitions' => $competitions, 'teams' => $teams);
 
         print_r($teams);
         echo " -->\n";
@@ -757,20 +796,22 @@ class Controller_Report extends Controller_Template
 
             if (!$card) {
                 continue;
-            }		// If the fixture has no card, there's no mismatch
+            } // If the fixture has no card, there's no mismatch
             if (!$card['away_id'] || !$card['home_id']) {
                 continue;
-            }		// Don't card about EHYL etc
+            } // Don't card about EHYL etc
 
-            if (($card['home']['goals'] == $fixture['home_score'])
-                    && ($card['away']['goals'] == $fixture['away_score'])) {
+            if (
+                ($card['home']['goals'] == $fixture['home_score'])
+                && ($card['away']['goals'] == $fixture['away_score'])
+            ) {
                 continue;
             }
 
             $card['home_score'] = $fixture['home_score'] || 0;
-            $card['home_team'] = $card['home']['club'].' '.$card['home']['team'];
+            $card['home_team'] = $card['home']['club'] . ' ' . $card['home']['team'];
             $card['away_score'] = $fixture['away_score'] || 0;
-            $card['away_team'] = $card['away']['club'].' '.$card['away']['team'];
+            $card['away_team'] = $card['away']['club'] . ' ' . $card['away']['team'];
 
             $outcomeAffected = false;
 
@@ -797,185 +838,75 @@ class Controller_Report extends Controller_Template
 
         $t4 = milliseconds();
 
-        Log::debug("Mismatch report timing: ".($t2-$t0)." ".($t3-$t0)." ".($t4-$t0));
+        Log::debug("Mismatch report timing: " . ($t2 - $t0) . " " . ($t3 - $t0) . " " . ($t4 - $t0));
 
         $this->template->title = "Mismatch Results";
-        $this->template->content = View::forge('report/mismatch', array('mismatches'=>$mismatches));
+        $this->template->content = View::forge('report/mismatch', array('mismatches' => $mismatches));
     }
 
     // ----------------------------------------------------
     public function action_latecards()
     {
-        //if (!\Auth::has_access('admin.all')) throw new HttpNoAccessException;
+        $section = \Input::param("s", null);
 
-        $fines = array();
+        $now = Date::time()->format("%Y-%m-%d 11:59:59");
+        echo "Now:$now\n";
+        $now = Date::forge(strtotime($now))->get_timestamp();
+        $nowMonth = Date::forge($now)->format("%m");
 
-        try {
-            // ---- Unstarted Cards -------------------------
-            $fixtureIds = array();
-            $nowDate = Date::forge();
-            foreach (Model_Fixture::getAll() as $fixture) {
-                if ($fixture['datetime'] > $nowDate) {
-                    continue;
-                }
-                $fixtureIds[] = $fixture['fixtureID'];
-            }
-            Log::info("Verify ".count($fixtureIds)." fixtures");
-            $missing = Model_Matchcard::fixturesWithoutMatchcards($fixtureIds);
-            $newCards = false;
-            foreach ($missing as $missingCard) {
-                if (Model_Matchcard::createCard($missingCard)) {
-                    $newCards = true;
-                }
-            }
-            if ($newCards) {
-                $this->template->title = "Late/Missing Cards Report";
-                $this->template->content = "Processing...";
-                return;
-            }
-
-            // ---- Incomplete Cards ------------------------
-            $cards = \Model_Matchcard::incompleteCards(0, 7);
-
-            foreach ($cards as $cardId) {
-                try {
-                    $card = \Model_Matchcard::card($cardId['id']);
-                } catch (Exception $e) {
-                    Log::error("Failed to process incomplete card: ${cardId['id']}:".$e->getMessage());
-                    continue;
-                }
-
-                $fixture = Model_Fixture::get($card['fixture_id']);
-
-                if (!$fixture) {
-                    continue;
-                }
-
-                if (isset($fixture['comment'])) {
-                    if (preg_match("/\bPP\b|\bpostpone|not played/i", $fixture['comment'])) {
-                        continue;
-                    }
-                }
-
-                if (!isset($fixture['datetime']) || !is_object($fixture['datetime'])) {
-                    Log::error("Non-object error, cardid=${cardId['id']}");
-                    continue;
-                }
-
-                // Match time is in the future
-                if ($fixture['datetime'] > Date::forge()) {
-                    continue;
-                }
-
-                // If the time hasn't been updated they've been fined already...
-                $time = (int)$fixture['datetime']->format('%H');
-                if ($time < 9) {
-                    continue;
-                }
-                // FIXME but if the home team has players and the opposition has none at midnight - fine them
-                // FIXME if by midnights, no players are on the card, it's probably postponed
-
-                $fine = $this->fine($card, $card['home'], $fixture['datetime']->get_timestamp());
-                if ($fine) {
-                    $fines[] = $fine;
-                }
-
-                if (!$card['home']['players'] && !$card['away']['players']) {
-                    continue;
-                }
-
-                $fine = $this->fine($card, $card['away'], $fixture['datetime']->get_timestamp());
-                if ($fine) {
-                    $fines[] = $fine;
-                    $card = Model_Matchcard::find($card['id']);
-                    $card->open = 60;
-                    $card->save();
-                }
-            }
-
-            // ---- Unclosed Cards --------------------------
-            foreach (\Model_Matchcard::unclosedCards() as $cardId) {
-                try {
-                    $card = \Model_Matchcard::card($cardId['id']);
-                } catch (Exception $e) {
-                    Log::error("Failed to process unclosed card: ${cardId['id']}:".$e->getMessage());
-                    continue;
-                }
-
-                $fixture = Model_Fixture::get($card['fixture_id']);
-
-                if (!$fixture) {
-                    continue;
-                }
-
-                if (isset($fixture['comment'])) {
-                    if (preg_match("/\bPP\b|\bpostpone|not played/i", $fixture['comment'])) {
-                        continue;
-                    }
-                }
-
-                if (!isset($fixture['datetime']) || !is_object($fixture['datetime'])) {
-                    echo "Non-object error, cardid=".$cardId['id']."\n";
-                    print_r($fixture);
-                    continue;
-                }
-
-                // Match time is in the future
-                if ($fixture['datetime'] > Date::forge()) {
-                    continue;
-                }
-
-                // If the time hasn't been updated they've been fined already...
-                $time = (int)$fixture['datetime']->format('%H');
-                if ($time < 9) {
-                    continue;
-                }
-
-                $fine = $this->fineIncomplete($card, $card['home'], $fixture['datetime']->get_timestamp());
-                if ($fine) {
-                    $fines[] = $fine;
-                }
-
-                $fine = $this->fineIncomplete($card, $card['away'], $fixture['datetime']->get_timestamp());
-                if ($fine) {
-                    $fines[] = $fine;
-                    $card = Model_Matchcard::find($card['id']);
-                    $card->open = 60;
-                    $card->save();
-                }
-            }
-
-            $cards = array();		// FIXME where card doesn't exist but fixture is expired
-            // Ignore fixtures that appear in incompleteCards
-
-            // Remove where club is fined twice
-            $finedAlready = array();
-
-            foreach ($fines as $fine) {
-                $key = $fine['matchcard_id']."/".$fine['team'];
-                if (isset($finedAlready[$key])) {
-                    continue;
-                }
-                $finedAlready[$key] = $fine;
-            }
-            $fines = array_values($finedAlready);
-
-            if (\Input::param("execute")) {
-                foreach ($fines as $fine) {
-                    try {
-                        echo "Executing fine: ".print_r($fine, true)."<br>";
-                        $fine->save();
-                    } catch (Exception $e1) {
-                        Log::error("Failed to issue fine: ${fine['matchcard_id']}/${fine['team']} ".$e1->getMessage());
-                    }
-                }
-            }
-        } catch (Exception $e) {
-            echo "<pre>".$e->getMessage()."\n".$e->getTraceAsString()."</pre>";
+        $fixtures = array();
+        foreach (Model_Fixture::getAll() as $f) {
+            if ($f['status'] != 'active') continue;
+            if ($f['datetime']->get_timestamp() > $now) continue;
+            if ($section && $f['section'] != $section) continue;
+            $fixtures[$f['fixtureID']] = $f;
         }
 
-        $this->template->title = "Late/Missing Cards Report";
-        $this->template->content = View::forge('report/latecards', array('faults'=>$fines));
+        $fixturesCards = array();
+        $issues = array();
+        foreach (Model_Matchcard::lateCards() as $r) {
+            $fixtureId = $r['fixture_id'];
+            $fixturesCards[] = $fixtureId;
+
+            if ($r['signed']) continue;
+            if ($r['late_status'] < 0) continue;
+            $newStatus = 0;
+            if ($r['late_date']) {
+                $lateDateMonth = Date::forge(strtotime($r['late_date']))->format("%m");
+                if ($lateDateMonth == $nowMonth) continue; // same month
+                $newStatus = 1; // fine
+            } else {
+                $newStatus = 0; // warning
+            }
+            
+            if (!isset($fixtures[$r['fixture_id']])) continue;
+            $fixture = $fixtures[$r['fixture_id']];
+            $club = $r['home'] ? $fixture['home_club'] : $fixture['away_club'];
+            $issues[] = array("club"=>$club,"fixture"=>$fixture,"card_id"=>$r['matchcard_id'],"status"=>$newStatus);
+        }
+
+        // fixtures without cards
+        foreach (array_diff(array_keys($fixtures), $fixturesCards) as $fid) {            
+            $fixture = $fixtures[$fid];
+            $matchcard = Model_Matchcard::getx($fid);
+
+            $issues[] = array("club"=>$fixture['home_club'],"fixture"=>$fixture,"card_id"=>$matchcard['id'],"status"=>0);
+            $issues[] = array("club"=>$fixture['away_club'],"fixture"=>$fixture,"card_id"=>$matchcard['id'],"status"=>0);
+        }
+
+        foreach ($issues as $issue) {
+            $fixture = $issue['fixture'];
+            $date = $fixture['datetime']->format("%Y-%m-%d");
+            $matchTitle = "{$fixture['competition']}:{$fixture['home']} v {$fixture['away']} #{$fixture['id']} ({$date})"; 
+            $msg = "{$issue['club']} has not completed matchcard $matchTitle";
+            if ($issue['status'] == 0) echo "WARNING: $msg\n";
+            else echo "$msg. A fine will be issued.\n";
+
+            Model_Incident::addIncidentRaw($r['matchcard_id'], $r['club_id'], null, 'Late', null, $issue['status']);
+            Model_Incident::log("late", $fixture['id'], "club={$issue['club']} status={$issue['status']}");
+        }
+
+        return new Response("Report sent", 200);
     }
 
     private function fineIncomplete($card, $clubcard, $cardTime)
@@ -1003,7 +934,7 @@ class Controller_Report extends Controller_Template
         $newfine->team = "${clubcard['club']} ${clubcard['team']}";
         $newfine->fixture_id = $card['fixture_id'];
         $newfine->matchcard_id = $card['id'];
-        $newfine->detail = $value.':Card not submitted';
+        $newfine->detail = $value . ':Card not submitted';
         $newfine->club_id = $clubcard['club_id'];
         $newfine->type = 'Missing';
         $newfine->message = "Card must be submitted by midnight";
@@ -1052,7 +983,7 @@ class Controller_Report extends Controller_Template
         $newfine->fixture_id = $card['fixture_id'];
         $newfine->matchcard_id = $card['id'];
         $newfine->club_id = $clubcard['club_id'];
-        $newfine->detail = $value.':Card Incomplete at Match Time';
+        $newfine->detail = $value . ':Card Incomplete at Match Time';
         $newfine->type = 'Missing';
         $newfine->message = "$onTimePlayerCount players on card";
         $newfine->resolved = 0;

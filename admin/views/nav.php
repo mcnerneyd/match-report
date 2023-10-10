@@ -1,39 +1,47 @@
+<?php function allowed($key) {
+  try {
+    return \Auth::has_access($key);
+  } catch (Exception $e) {
+    Log::error("Access has gone pear shaped again");
+    return false;
+  }
+} ?>
 <nav class='navbar navbar-dark bg-dark navbar-expand-lg fixed-top'>
-    <div class='navbar-brand'><?= \Config::get('section.title') ?></div>
-    <button type='button' class='navbar-toggler' data-toggle='collapse' data-target='#navBarDropdown' aria-expanded='false'>
+    <div class='navbar-brand'>Leinster Hockey<?php $user = Session::get("user");
+      if ($user && $user->section) {
+        $sectionTitle = \Config::get('section.title');
+        if ($sectionTitle) echo "<span>$sectionTitle</span>";
+      } ?></div>
+    <button type='button' class='navbar-toggler' data-bs-toggle='collapse' data-target='#navBarDropdown' aria-expanded='false'>
        <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div class='collapse navbar-collapse' id='navBarDropdown'>
+    <div class='collapse navbar-collapse gap-5' id='navBarDropdown'>
       <ul class='navbar-nav'>
-        <?php if (\Auth::check()) { ?>
         <li class='nav-item'>
           <a class='nav-link' href='/cards/ui/'>Matches</a>
         </li>
-        <?php if (\Auth::has_access('registration.view')) { ?>
+        <?php if (allowed('registration.view')) { ?>
         <li class='nav-item dropdown'>
-          <a class='nav-link' href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-            Registration
-          </a>
+          <a class='nav-link' href="#" class="dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-haspopup="true" 
+              aria-expanded="false">Registration</a>
           <div class='dropdown-menu'>
             <a class='dropdown-item' href='<?= Uri::create('Registration') ?>'>Registrations</a>
             <a class='dropdown-item' href='<?= Uri::create('Registration/Info') ?>'>Club Info</a>
           </div>
         </li>
         <?php } ?>
-        <?php } ?>
         <li class='nav-item dropdown'>
-          <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-            Reports
-          </a>
+          <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-haspopup="true" 
+              aria-expanded="false">Reports</a>
           <div class='dropdown-menu'>
             <a class='dropdown-item' href='<?= Uri::create('Report/Scorers') ?>'>Top Scorers</a>
             <a class='dropdown-item' href='<?= Uri::create('Report/Grid') ?>'>Grids</a>
-            <?php if (\Auth::has_access('umpire_reports.view')) { ?>
+            <?php if (allowed('umpire_reports.view')) { ?>
             <a class='dropdown-item' href='<?= Uri::create('Report/Cards') ?>'>Red/Yellow Cards</a>
             <?php } ?>
 
-            <?php if (\Auth::has_access('system_reports.view')) { ?>
+            <?php if (allowed('system_reports.view')) { ?>
             <a class='dropdown-item' href='<?= Uri::create('Report/Mismatch') ?>'>Mismatch Results</a>
             <a class='dropdown-item' href='<?= Uri::create('Report/RegSec') ?>'>Anomalies</a>
             <?php } ?>
@@ -42,34 +50,34 @@
       </ul>
 
       <!-- Search box -->
-      <form id='search' class="form-inline mr-auto">
-          <input type="search" class="form-control mr-sm-2" placeholder="Search Club, Competition, Date or Card/Fixture ID">
-          <button class='btn btn-outline-info my-2 my-sm-0' type='submit'><i class="fas fa-search"></i></button>
+      <form id='search' class="d-flex flex-grow-1 me-auto">
+          <input type="search" class="form-control me-2" placeholder="Search Club, Competition, Date or Card/Fixture ID">
+          <button class='btn btn-outline-info' type='submit'><i class="fas fa-search"></i></button>
       </form>
 
       <!-- Admin Menu -->
       <ul class='navbar-nav'>
         <li class='nav-item'>
-          <a class='nav-link disabled' id='help-me'>
+          <a class='nav-link'  href="<?= Uri::create('help') ?>" id='help-me'>
             <i class="fas fa-chalkboard-teacher"></i> Help!
           </a>
         </li>
-        <?php if (\Auth::has_access('configuration.view')) { ?>
+        <?php if (allowed('configuration.view')) { ?>
         <li class='nav-item dropdown'>
-          <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+          <a href="#" class="nav-link show dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
             Admin
           </a>
-          <div class="dropdown-menu">
-            <a class='dropdown-item' href="<?= Uri::create('competitions') ?>">Competitions</a>
-            <a class='dropdown-item' href="<?= Uri::create('clubs') ?>">Clubs</a>
-            <div class="dropdown-divider"></div>
-            <a class='dropdown-item' href="<?= Uri::create('fixtures') ?>">Fixtures</a>
-            <a class='dropdown-item' href="<?= Uri::create('fines') ?>">Fines</a>
-            <a class='dropdown-item' href="<?= Uri::create('users') ?>">Users</a>
-            <div class="dropdown-divider"></div>
-            <a class='dropdown-item' href="<?= Uri::create('Admin/Config') ?>">Configuration</a>
-            <a class='dropdown-item' href="<?= Uri::create('Admin/Log') ?>">System Log</a>
-          </div>
+          <ul class="dropdown-menu">
+            <li><a class='dropdown-item' href="<?= Uri::create('competitions') ?>">Competitions</a></li>
+            <li><a class='dropdown-item' href="<?= Uri::create('clubs') ?>">Clubs</a></li>
+            <li><hr class="dropdown-divider"/></li>
+            <li><a class='dropdown-item' href="<?= Uri::create('fixtures') ?>">Fixtures</a></li>
+            <li><a class='dropdown-item' href="<?= Uri::create('fines') ?>">Fines</a></li>
+            <li><a class='dropdown-item' href="<?= Uri::create('users') ?>">Users</a></li>
+            <li><hr class="dropdown-divider"/></li>
+            <li><a class='dropdown-item' href="<?= Uri::create('Admin/Config') ?>">Configuration</a></li>
+            <li><a class='dropdown-item' href="<?= Uri::create('Admin/Log') ?>">System Log</a></li>
+        </ul>
         </li>
         <?php } ?>
         <?php if (\Auth::check()) { ?>

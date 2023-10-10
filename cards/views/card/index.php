@@ -324,7 +324,7 @@ const entryMap = [
 				echo "<option data-index='{$competition['id']}' value='".$competition['name']."'>$name</option>\n";
 			 } ?>
     </select>
-    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+    <div class="btn-group btn-group-toggle" data-bs-toggle="buttons">
       <label class="btn btn-secondary active btn-block">
         <input type="checkbox" name='view-results' checked autocomplete="off"> Results
       </label>

@@ -1,36 +1,43 @@
 import React, { useState, useEffect, useContext, Fragment } from 'react';
 import moment from 'moment'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEnvelope } from '@fortawesome/free-solid-svg-icons'
-import Button from 'react-bootstrap/Button'
-import Form from 'react-bootstrap/Form'
+import { faEnvelope, faNoteSticky } from '@fortawesome/free-solid-svg-icons'
 import { getFixtures, selectCard, emailDetail } from './Api'
 import { Fixture } from './Fixture'
 import { UserContext } from './Context'
+import {takeWhile} from './Util.js'
+import { ButtonGroup, ToggleButton, Form } from 'react-bootstrap';
 
-function Fixtures({cardId}) {
-
-  const [fixtures, setFixtures] = useState({ts:0,fixtures:[]})
-  const [filter, setFilter] = useState({})
-  const [card, setCard] = useState(null)
+function Fixtures({cardId, search}) {
 
   const user = useContext(UserContext)
 
+  const [fixtures, setFixtures] = useState({ts:0,fixtures:[]})
+  const [checked, setChecked] = useState({results: true, fixtures: true})
+  const [filter, setFilter] = useState(user?.club ? [{type:'club',value:user.club}] : [])
+  const [card, setCard] = useState(null)
+
   useEffect(() => {
-    if (user != null) getFixtures(user, fixtures).then(setFixtures)
+    getFixtures(user, fixtures).then(setFixtures)
   }, [user])
+
+  const adminRole = (user?.roles ?? []).includes("Administrators")
 
   if (!card && cardId && fixtures.fixtures) {
     const selectedFixture = fixtures.fixtures.find(x => x.fixtureID === cardId)
-    if (selectedFixture) selectCard(selectedFixture).then(setCard)
+    if (selectedFixture) {
+      selectCard(selectedFixture).then(setCard)
+    }
+    return null;
   }
 
   if (card) return <Fixture card={{...card}} close={() => setCard(null)} updateCard={setCard} /> 
 
   const renderFixture = (fixture) => {
-    const cn = ['fixture']
-    const e0 =  fixture.played && fixture.home.score !== fixture.home.match_score
-    const e1 =  fixture.played && fixture.away.score !== fixture.away.match_score
+    const cn = ['fixture', 'status-' + fixture.status]
+    if (fixture.played) cn.push("fixture-played")
+    const e0 =  fixture.played && (fixture.home.score !== fixture.home.reported)
+    const e1 =  fixture.played && (fixture.away.score !== fixture.away.reported)
     if (e0 || e1) cn.push("error-score")
     const e2 = fixture.played && !fixture.home?.players
     const e3 = fixture.played && !fixture.away?.players
@@ -44,14 +51,19 @@ function Fixtures({cardId}) {
         <th colSpan={20}>{fixture.datetime.format("MMMM YYYY")}</th>
       </tr>
       : null}    
-      <tr data-fixtureid={fixture.fixtureID} className={cn.join(" ")}
-        onClick={() => window.document.location = "/cards/index.php?site=&controller=card&action=get&fid="+fixture.fixtureID+"&s="+fixture.section}>
+      <tr data-fixtureid={fixture.fixtureID} className={cn.join(" ")} data-searchstring={fixture.searchString}
+        onClick={() => {
+          console.log("Selected fixture", fixture)
+          window.document.location = "/cards/index.php?site=&controller=card&action=get&fid="+fixture.fixtureID+"&s="+fixture.section
+        }}>
       <td className='date'>{fixture.datetime.format("D")}</td>
       <td className='time'>{fixture.datetime.format("HH:mm")}</td>
-      { user?.section == null ? <td>{fixture.section}</td> : null }
+      <td>{fixture.section}</td>
       <td><span className='badge label-league'>{fixture.competition}</span></td>
-      <td className={e0 || e2 ? 'team-error' : null}>{fixture.home.name}</td>
-      <td className={e1 || e3 ? 'team-error' : null}>{fixture.away.name}</td>
+      <td className={e0 || e2 ? 'team-error' : null}><span className='long'>{fixture.home.name}</span><span className='short'>{fixture.home_club} v {fixture.away_club}</span></td>
+      <td className={e1 || e3 ? 'team-error' : null}><span className='long'>{fixture.away.name}</span>
+      {fixture.notes ? <span class='annotations'><FontAwesomeIcon icon={faNoteSticky}/></span> : null}
+      </td>
       <td className='mail-btn' onClick={(e) => {
         e.stopPropagation()
         emailDetail(fixture.fixtureID).then((data) => {
@@ -63,12 +75,49 @@ function Fixtures({cardId}) {
         <FontAwesomeIcon icon={faEnvelope} />
       </td>
     </tr>
+      {fixture.notes 
+        ? fixture.notes.filter(n => !n.r).map((note,ix) => <tr className='note' key={fixture.id + "-" + ix}>
+            <td colSpan={20}><FontAwesomeIcon icon={faNoteSticky}/> <i>{note.u}</i> {note.v}</td>
+          </tr>) 
+        : null}
     </Fragment>
   }
 
-  var fixturesSet = fixtures.fixtures
-    .filter(f => !filter.club || filter.club === f.home_club || filter.club === f.away_club)
-    .filter(f => !filter.competition || filter.competition === f.competition)
+  var fixturesSet = fixtures.fixtures.filter(x => x.active && ((x.played && checked.results) || (!x.played && checked.fixtures)))
+
+  if (search !== null) {
+    console.log("Search", search)
+    fixturesSet = fixturesSet.filter(f => {
+      return search.every(s => f.searchString.includes(s))
+    })
+  }
+
+  var clubs = []
+  var competitions = []
+  var sections = []
+
+  var checkFilters = [...filter]
+  if (!checkFilters.find(x => x.type === 'section')) checkFilters.push({type:"section",value:user?.section})
+  if (!checkFilters.find(x => x.type === 'club')) checkFilters.push({type:"club"})
+  if (!checkFilters.find(x => x.type === 'competition')) checkFilters.push({type:"competition"})
+  checkFilters.forEach((fv) => {
+    if (fv.type === "section") {
+      sections = [...new Set(fixturesSet.map(f => f.section))]
+      if (fv.value) fixturesSet = fixturesSet.filter(x => x.section === fv.value)
+    }
+    if (fv.type === "club") {
+      clubs = [...new Set(fixturesSet.flatMap(f => [f.home_club, f.away_club]))]
+      if (fv.value) fixturesSet = fixturesSet.filter(x => x.home_club === fv.value || x.away_club === fv.value)
+    }
+    if (fv.type === "competition") {
+      competitions = [...new Set(fixturesSet.map(f => f.competition))]
+      if (fv.value) fixturesSet = fixturesSet.filter(x => x.competition === fv.value)
+    }
+  })
+
+  clubs.sort()
+  competitions.sort()
+  sections.sort()
 
   var lastMonth = ""
   fixturesSet.forEach(f => {
@@ -79,29 +128,47 @@ function Fixtures({cardId}) {
     } else f.monthBreak = false
   })
 
-  const clubs = [...new Set(fixturesSet.flatMap(f => [f.home_club, f.away_club]))]
-  const competitions = [...new Set(fixturesSet.map(f => f.competition))]
-  clubs.sort()
-  competitions.sort()
+  const updateFilter = (s,v) => {
+    var vs = takeWhile(filter, x => x.type === s)
+    if (v) {
+      vs.push({type:s, value:v})
+    }
+    setFilter(vs)
+  }
 
-  console.debug("Rendering fixtures", filter)
+  const filterValue = (type) => {
+    const match = filter.find(x => x.type === type)
+    return match ? match.value : ""
+  }
+
+  console.log("Rendering fixtures", checkFilters, fixturesSet.length < 20 ? fixturesSet : fixturesSet.length)
 
   return <>
-  <form id='fixtures-tab'>
-    <Form.Select id='pills-club' className='custom-select' onChange={(e) => setFilter({...filter, 'club':e.target.value})}>
-      <option key='all-clubs' value="">All Clubs</option>
-      { clubs.map(c => <option key={'club-'+c}>{c}</option>) }
-    </Form.Select>
-    <Form.Select id='pills-competition' className='custom-select' onChange={(e) => setFilter({...filter, 'competition':e.target.value}) }>
-      <option key='all-competitions' value="">All Competitions</option>
-      { competitions.map(c => <option key={'competition-'+c}>{c}</option>) }
-    </Form.Select>
-    <div className="btn-group btn-group-toggle d-flex" data-toggle="buttons">
-      <Button className="btn active btn-secondary w-100">Results</Button>
-      <Button className="btn active btn-secondary w-100">Fixtures</Button>
-    </div>
-  </form>
-  <div id='fixtures-container'>
+  <div id='fixtures-tab'>
+    { adminRole ? <div>
+        <button class='btn btn-primary'>Admin</button>
+      </div> 
+      : null }
+    <form className={user?.section ? "with-section" : null}>
+      <Form.Select id='pills-section' className='custom-select' onChange={(e) => updateFilter('section', e.target.value)}>
+        <option key='all-sections' value="">All Sections</option>
+        { sections.map(c => <option key={'section-'+c}>{c}</option>) }
+      </Form.Select>
+      <Form.Select id='pills-club' value={filterValue('club')} className='custom-select' onChange={(e) => updateFilter('club', e.target.value)}>
+        <option key='all-clubs' value="">All Clubs</option>
+        { clubs.map(c => <option key={'club-'+c}>{c}</option>) }
+      </Form.Select>
+      <Form.Select id='pills-competition' className='custom-select' onChange={(e) => updateFilter('competition', e.target.value) }>
+        <option key='all-competitions' value="">All Competitions</option>
+        { competitions.map(c => <option key={'competition-'+c}>{c}</option>) }
+      </Form.Select>
+      <ButtonGroup>
+        <ToggleButton type="checkbox" checked={checked.results} onClick={()=>{setChecked({results: !checked.results, fixtures: checked.fixtures || checked.results})}}>Results</ToggleButton>
+        <ToggleButton type="checkbox" checked={checked.fixtures} onClick={()=>{setChecked({results: checked.fixtures || checked.results, fixtures: !checked.fixtures})}}>Fixtures</ToggleButton>
+      </ButtonGroup>
+    </form>
+  </div>
+  <div id='fixtures-container' className={user?.section ? "with-section" : null}>
     <table id='fixtures'>
       <tbody>
         { fixturesSet.map(renderFixture) }

@@ -28,7 +28,7 @@
 
 			$('#add-competition [value='+data['format']+']').prop('checked',true);
 
-			$('#add-competition').modal();
+			$('#add-competition').modal('show');
 		});
 		$('a[rel=delete]').click(function(e) {
 			e.preventDefault();
@@ -45,29 +45,29 @@
 	<?php $lightCompetitions = array();
 			foreach ($competitions as $competition) {
 			    $arr = $competition->to_array();
-				$key = $competition['id'];
+			    $key = $competition['id'];
 			    $lightCompetitions[$key] = $arr;
-				$lightCompetitions[$key]['zsection'] = $competition['section']['name'];
+			    $lightCompetitions[$key]['zsection'] = $competition['section']['name'];
 			} ?>
 	var competitions = <?= json_encode($lightCompetitions) ?>;
 </script>
 
 <div class='form-group command-group hidden-sm hidden-xs'>
-	<a class='btn btn-primary' href='#add-competition' data-toggle='modal'><i class="fas fa-plus-circle"></i> Add Competition</a>
-	<a class='btn btn-success' href='<?= Uri::create('competitions?rebuild=true') ?>'><i class="fas fa-sync-alt"></i> Rebuild</a>
+	<a class='btn btn-primary' role="button" href='#add-competition' data-bs-toggle='modal'><i class="fas fa-plus-circle"></i> Add Competition</a>
+	<a class='btn btn-success' role="button" href='<?= Uri::create('competitions?rebuild=true') ?>'><i class="fas fa-sync-alt"></i> Rebuild</a>
 </div>
 
 <table id='competitions-table' class='table table-condensed table-striped'>
 	<thead>
-	<tr>
-		<th>Section</th>
-		<th>Competition</th>
-		<th>Code</th>
-		<th>Team Size</th>
-		<th>Starred</th>
-		<th>Teams</th>
-		<th/>
-	</tr>
+		<tr>
+			<th>Section</th>
+			<th>Competition</th>
+			<th>Code</th>
+			<th>Team Size</th>
+			<th>Starred</th>
+			<th>Teams</th>
+			<th/>
+		</tr>
 	</thead>
 
 	<tbody style='display:none'>
@@ -97,60 +97,60 @@
     <div class="modal-content">
       <div class="modal-header">
         <h4 class="modal-title">Add New Competition</h4>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <form action='<?= Uri::create('/Admin/Competition') ?>' method='POST'>
-					<div class='row'>
-					<input type='hidden' name='id'/>
-						<div class='form-group col-md-12'>
-							<select class='form-control' id='section-select' name='section' required>
-								<option>Select Section...</option>
-								<?php foreach ($sections as $s) {
-								    echo "<option value='".$s['id']."'>".$s['name']."</option>";
-								} ?>
-							</select>
-						</div>
+			<div class='row'>
+				<input type='hidden' name='id'/>
+					<div class='form-group col-md-12'>
+						<select class='form-control' id='section-select' name='section' required>
+							<option>Select Section...</option>
+							<?php foreach ($sections as $s) {
+								echo "<option value='".$s['id']."'>".$s['name']."</option>";
+							} ?>
+						</select>
+					</div>
 
-						<div class='form-group col-md-12'>
-							<label for='competitionname'>Competition Name</label>
-							<input type='text' class='form-control' id='competitionname' name='competitionname'  pattern='[A-Z][A-Za-z0-9 ]*'/>
-						</div>
-						<div class='col-md-12'>
-							<label>
-								<input type='radio' name='option_type' id='option-type-league' value='league'/> League Competition
-							</label>
-						</div>
-						<div class='col-md-12'>
-							<label>
-								<input type='radio' name='option_type' id='option-type-cup' value='cup'/> Cup Competition
-							</label>
-						</div>
+					<div class='form-group col-md-12'>
+						<label for='competitionname'>Competition Name</label>
+						<input type='text' class='form-control' id='competitionname' name='competitionname'  pattern='[A-Z][A-Za-z0-9 ]*'/>
+					</div>
+					<div class='col-md-12'>
+						<label>
+							<input type='radio' name='option_type' id='option-type-league' value='league'/> League Competition
+						</label>
+					</div>
+					<div class='col-md-12'>
+						<label>
+							<input type='radio' name='option_type' id='option-type-cup' value='cup'/> Cup Competition
+						</label>
+					</div>
 
-						<div class='form-group col-md-6'>
-							<label for='competitioncode'>Code</label>
-							<input type='text' class='form-control' id='competitioncode' name='competitioncode' pattern='[A-Z]+'/>
-						</div>
-						<div class='form-group col-md-12'>
-							<label>Age Group(s)</label>
-							<!--input type='text' class='form-control' name='age-group'/-->
-							<textarea cols='30' rows='5' class='form-control' name='age-group'></textarea>
-						</div>
+					<div class='form-group col-md-6'>
+						<label for='competitioncode'>Code</label>
+						<input type='text' class='form-control' id='competitioncode' name='competitioncode' pattern='[A-Z]+'/>
+					</div>
+					<div class='form-group col-md-12'>
+						<label>Age Group(s)</label>
+						<!--input type='text' class='form-control' name='age-group'/-->
+						<textarea cols='30' rows='5' class='form-control' name='age-group'></textarea>
+					</div>
 
-						<div class='form-group col-md-6'>
-							<label for='competition-teamsize'>Team Size</label>
-							<input type='number' class='form-control' id='competition-teamsize' name='competition-teamsize'/>
-						</div>
-						<div class='form-group col-md-6'>
-							<label for='competition-teamstars'>Team Stars</label>
-							<input type='number' class='form-control' id='competition-teamstars' name='competition-teamstars'/>
-						</div>
-						</div>
-				</form>
+					<div class='form-group col-md-6'>
+						<label for='competition-teamsize'>Team Size</label>
+						<input type='number' class='form-control' id='competition-teamsize' name='competition-teamsize'/>
+					</div>
+					<div class='form-group col-md-6'>
+						<label for='competition-teamstars'>Team Stars</label>
+						<input type='number' class='form-control' id='competition-teamstars' name='competition-teamstars'/>
+					</div>
+				</div>
+			</form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-success" data-dismiss="modal" onclick="$('#add-competition form').submit()">Add</button>
-        <button type="button" class="btn btn-warning" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick="$('#add-competition form').submit()">Add</button>
+        <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>

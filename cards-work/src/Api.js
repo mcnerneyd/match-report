@@ -39,22 +39,63 @@ function api(path) {
     .catch((err) => console.log("Error", err))
 }*/
 
-export function getFixtures(user, fixtures) {
-    console.log("Get fixtures user", user)
-    return api(`fixtureapi/index2` + (user.section != null ? "?section=" + user.section : ""))
-    .then((newFixtures) => {
-        debugger;
-        console.debug("Fixtures:", newFixtures.ts, fixtures.ts)
-        newFixtures.fixtures.forEach(f => {
-            f.datetime = moment(f.datetimeZ)
-            f.played = f.played === 'yes'
-            f.home = { score: f.home_score, name: f.home_club + " " + f.home_team }
-            f.away = { score: f.away_score, name: f.away_club + " " + f.away_team  }
-        })
-        newFixtures.fixtures.sort((a,b) => { return a.datetime.valueOf() - b.datetime.valueOf() })
-        console.log("Fixtures retrieved", newFixtures)
-        return newFixtures
+export function login(username, password) {
+    console.log("Logging in", username, password)
+    fetch(calcpath('Login'), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded' // FIXME not secure
+        },
+        body: "user="+username+"&pin="+password
     })
+    .then(() => { window.location.reload() })
+}
+
+export function getFixtures(user, fixtures) {
+    const ts = localStorage.getItem("fixtures_timestamp")
+    
+    console.log("Get fixtures user", user)
+
+    const clean = (s) => s ? (""+s).replaceAll(/[^A-Za-z0-9]/g, "") : ""
+
+    const params = {}
+    if (user?.section != null) params['section'] = user.section
+    if (user?.roles?.includes('Administrators')) params['expand'] = 'true'
+    const headers = {}
+    //if (ts) headers['If-Modified-Since'] = moment(parseInt(ts)).format() 
+    console.log("headers", headers)
+    return fetch(calcpath(`fixtureapi/index2?` + new URLSearchParams(params).toString()), 
+            { headers })
+        .then(response => { 
+            if (response.status === 404) return null
+            if (response.status === 304) return null
+            if (!response.ok) return response.text().then(r => { throw new Error(r) })
+            return response.json() 
+        })
+        .then((newFixtures) => {
+            if (newFixtures === null) return []
+            localStorage.setItem("fixtures_timestamp", Date.now())
+            console.log("Fixtures:", newFixtures.fixtures, newFixtures.ts, fixtures.ts)
+            newFixtures.fixtures.forEach(f => {
+                if (!f.fixtureID) console.error("Bad fixture:", f)
+                f.datetime = moment(f.datetimeZ).local()
+                f.played = f.played === 'yes'
+                f.home = { score: f.home_score, name: f.home_club + " " + f.home_team, 
+                            players: f.home_players ?? '0',
+                            reported: f.home_reported_score ?? '0' }
+                f.away = { score: f.away_score, name: f.away_club + " " + f.away_team, 
+                            players: f.away_players ?? '0',
+                            reported: f.away_reported_score ?? '0' }
+                f.searchString = (clean(f.home_club) + clean(f.home_team) + " " + clean(f.away_club) + clean(f.away_team) + " " + 
+                clean(f.competition) + " " + 
+                f.datetime.format("YYYY/MM/DD") + " " + 
+                f.section + " " + f.fixtureID).toLowerCase()
+                f.active = (f.status ? f.status === 'active' : true)  // active defaults to true
+            })
+            newFixtures.fixtures.sort((a,b) => { return a.datetime.valueOf() - b.datetime.valueOf() })
+            console.log("Fixtures retrieved", newFixtures)
+            return newFixtures
+        })
 }
 
 export function addPlayer(user, cardId, playerName) {

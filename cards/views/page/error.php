@@ -1,7 +1,6 @@
 <div class="alert alert-danger" role="alert">
-  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-  <span class="sr-only">Error:</span>
-  <?php
+<i class="fas fa-exclamation-circle"></i>
+  <span><?php
 		if (isset($_REQUEST['error'])) {
 			echo $_REQUEST['error'];
 
@@ -11,5 +10,5 @@
 			}
 		}
 		else echo "Unknown Error";
-	?>
+	?></span>
 </div>

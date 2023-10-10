@@ -49,6 +49,15 @@ class Controller_Fixture extends Controller_Hybrid
 		echo "Fixture ID:$fixtureId";
 	}
 
+    private static function match($competition, $homeTeam, $awayTeam)
+    {
+        $fixtures = array_filter(Model_Fixture::getAll(), function ($f) use ($competition, $homeTeam, $awayTeam) {
+            return $f['competition'] == $competition && $f['home'] == $homeTeam && $f['away'] == $awayTeam;
+        });
+        if (!$fixtures) $fixtures = array();
+        return array_pop($fixtures);
+    }
+
 	public function action_repair() {
 		echo "<pre>Repairing Fixtures...\n";
 
@@ -59,7 +68,7 @@ class Controller_Fixture extends Controller_Hybrid
 			echo $card['home']['club']['name']." ".$card['home']['team']['team']." -v- ";
 			echo $card['away']['club']['name']." ".$card['away']['team']['team'];
 
-			$fixture = Model_Fixture::match($card['competition']['name'], 
+			$fixture = self::match($card['competition']['name'], 
 				$card['home']['club']['name']." ".$card['home']['team']['team'],
 				$card['away']['club']['name']." ".$card['away']['team']['team']);
 

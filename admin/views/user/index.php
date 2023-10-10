@@ -120,7 +120,7 @@
 
 <div class='command-group'>
 	<div class='dropdown'>
-		<button id='add-user-button' type='button' class='btn btn-success dropdown-toggle' data-toggle='dropdown'>
+		<button id='add-user-button' type='button' class='btn btn-success dropdown-toggle' data-bs-toggle='dropdown'>
 			<i class="fas fa-user-plus"></i> Add User</a>
 		</button>
 		<div class='dropdown-menu'>
@@ -181,9 +181,7 @@
 		<div class='modal-content'>
 			<div class='modal-header'>
 				<h5 class='modal-title'>Create User</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class='modal-body'>
 			<form>
@@ -232,7 +230,7 @@
 			</div>
 
 			<div class='modal-footer'>
-				<button type='button' class='btn btn-outline-default' data-dismiss='modal'>Close</button>
+				<button type='button' class='btn btn-outline-default' data-bs-dismiss='modal'>Close</button>
 				<button id='create-user' type='submit' class='btn btn-success'>Create User</button>
 			</div>
 		</div>
@@ -244,9 +242,7 @@
 		<div class='modal-content'>
 			<div class='modal-header'>
 				<h5 class='modal-title'>Import Users</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span>
-				</button>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class='modal-body'>
                 <form enctype="multipart/form-data" action="<?= Uri::create('Admin/Import') ?>" method="post">
@@ -266,7 +262,7 @@
 			</div>
 
 			<div class='modal-footer'>
-				<button type='button' class='btn btn-outline-default' data-dismiss='modal'>Cancel</button>
+				<button type='button' class='btn btn-outline-default' data-bs-dismiss='modal'>Cancel</button>
 				<button type='submit' class='btn btn-success'>Import</button>
 			</div>
 		</div>

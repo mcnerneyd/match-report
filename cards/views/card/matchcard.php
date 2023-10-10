@@ -43,6 +43,7 @@ if (user()) {
 }
 
 echo "<!-- ".$fixture['date']." -->";
+date_default_timezone_set("Europe/Dublin");
 $date = strftime("%Y-%m-%d", $fixture['date']);
 $time = strftime("%H:%M", $fixture['date']);
 ?>
@@ -201,7 +202,7 @@ $(document).ready(function() {
         <?php
         foreach ($card['notes'] as $note) {
             ?>
-        <tr>
+        <tr <?php if ($note['resolved'] == 1) echo "class='resolved'" ?>>
           <th><i class="far fa-sticky-note"></i>&nbsp;<?= $note['user'] ?></th>
           <td><?= $note['note'] ?></td>
         </tr>
@@ -220,7 +221,7 @@ $(document).ready(function() {
 
     <script>
       <?php if (isset($card['id'])) { ?>
-      const UPDATE_FIXTURE_URL = "<?= \Config::get('base_url')."cardapi/result?id=".$card['id'] ?>";
+      const UPDATE_FIXTURE_URL = "<?= "/cardapi/result?id=".$card['id'] ?>";
 
       function updateScore(event) {
         fetch(UPDATE_FIXTURE_URL, {method: 'POST',cache: 'no-cache'})
@@ -249,16 +250,16 @@ $(document).ready(function() {
     <?php if ($cardIsOpen) { ?>
         <a id='submit-button' class='btn btn-success' tabindex='10'><i class="fas fa-check"></i> Submit<span class='d-none d-md-inline'> Card</span></a>
     <?php } ?>
-      <a class='btn btn-info float-right' data-toggle='modal' data-target='#add-note' tabindex='21'>
+      <a class='btn btn-info float-right' data-bs-toggle='modal' data-bs-target='#add-note' tabindex='21'>
         <i class="far fa-sticky-note"></i><span class='d-none d-md-inline'> Add Note</span>
       </a>
       <?php if ($cardIsOpen || \Auth::has_access('card.admin')) { ?>
-      <a class='add-player btn btn-danger float-right' data-toggle='modal' data-target='#add-player-modal' tabindex='20'><i class="fas fa-user-plus"></i> Add Player</a>
+      <a class='add-player btn btn-danger float-right' data-bs-toggle='modal' data-bs-target='#add-player-modal' tabindex='20'><i class="fas fa-user-plus"></i> Add Player</a>
   <?php
 }
 if (!$cardIsOpen) {
     ?>
-      <a class='btn btn-success sign-card' data-toggle='modal' data-target='#submit-matchcard' tabindex='2'>
+      <a class='btn btn-success sign-card' data-bs-toggle='modal' data-bs-target='#submit-matchcard' tabindex='2'>
         <i class="fas fa-signature"></i> Add Signature</a>
   <?php
 }
@@ -278,7 +279,7 @@ if (!$cardIsOpen) {
     <div class="modal-content">
       <div class="modal-header">
         <h4 class="modal-title">Submit Card</h4>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <button type="button" class="close" data-bs-dismiss="modal"></button>
       </div>
 
       <div class="modal-body" id='submit-form-detail'>
@@ -367,29 +368,32 @@ if (false and $cardIsOpen) {
 // ------------------------------------------------------------------------
 if ($cardIsOpen || \Auth::has_access('card.addcards')) {
     ?>
-<div id='context-menu' class='dropdown-menu'>
-    <div class="modal-header">
-      <h4 class="modal-title">Player Name</h4>
-      <button type="button" class="close" data-dismiss="modal">&times;</button>
-    </div>
+<div id='context-menu' class='modal'>
+  <div class='modal-dialog'>
+
+    <!-- Modal content-->
+    <div class='modal-content'>
+      <div class="modal-header">
+        <h4 class="modal-title">Player Name</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+    <div class='modal-body'>
 
     <?php
     if (!user('Umpires')) {
         ?>
-    <div class='dropdown-item'>
-      <button id='remove-player' class='btn btn-block btn-sm btn-danger'>Remove Player</button>
+    <div class='mb-3'>
+      <button id='add-goal' class='btn btn-success btn-block'><i class="fas fa-plus"></i> Add Goal</button>
+      <button id='clear-goal' style='margin-top:0' class='btn btn-warn'><i class="fas fa-ban"></i> Clear Goals</button>
     </div>
-    <div id='set-number' class='row'>
-      <label>Shirt Number</label>
+    <div id='set-number' class='mb-3'>
       <div class='input-group'>
-        <input type='number' name='shirt-number' class='form-control'/>
-        <button class='btn btn-success'>
-          <i class="fas fa-check"></i>
-        </button>
+        <input type='number' placeholder='Shirt Number' name='shirt-number' class='form-control'/>
+        <button class='btn btn-success'><i class="fas fa-check"></i></button>
       </div>
     </div>
-    <div class='dropdown-divider'></div>
-    <div id='select-role' class='dropdown-item'>
+    <div id='select-role' class='mb-3'>
       <label class='btn btn-xs role-captain'>
         <input type='checkbox' data-role='C'> Capt
       </label>
@@ -403,7 +407,6 @@ if ($cardIsOpen || \Auth::has_access('card.addcards')) {
         <input type='checkbox' data-role='P'> Phys
       </label>
     </div>
-    <div class='dropdown-divider'></div>
     <?php
     } ?>
 
@@ -411,10 +414,10 @@ if ($cardIsOpen || \Auth::has_access('card.addcards')) {
     if (!$card['official'] || \Auth::has_access('card.addcards')) {
         ?>
 
-    <div class='form-group dropdown-item' id='card-addx'>
+    <div class='form-group mb-3' id='card-addx'>
       <label><img class='card' src='img/green-card.png'/><img class='card' src='img/yellow-card.png'/><img class='card' src='img/red-card.png'/>Add Penalty Card</label>
       <select class='form-control' id='card-add'>
-        <option>Select card to add</option>
+        <option>Select card to add&hellip;</option>
         <option class='card-green' data-pcard='green'><img src='img/green-card.png'/> Green Card</option>
         <optgroup label='Yellow Card'>
           <option class='card-yellow' data-pcard='yellow'>Technical - Breakdown</option>
@@ -428,22 +431,24 @@ if ($cardIsOpen || \Auth::has_access('card.addcards')) {
         <option class='card-red' data-pcard='red'>Red Card</option>
       </select>
     </div>
-    <a class='dropdown-item card-clear'>Clear Cards</a>
-    <div class='dropdown-divider'></div>
+    <a class='btn btn-secondary card-clear'>Clear Cards</a>
+    <hr>
     <?php
     } ?>
 
     <?php
     if (!user('Umpires')) {
         ?>
-    <div class='dropdown-item btn-group'>
-      <button id='add-goal' class='btn btn-block btn-success'><i class="fas fa-plus"></i> Add Goal</button>
-      <button id='clear-goal' style='margin-top:0' class='btn btn-block btn-warn'><i class="fas fa-ban"></i> Clear Goals</button>
+    <div class='mb-3'>
+        <button id='remove-player' class='btn btn-block btn-danger'>Remove Player</button>
     </div>
 
     <?php
     } ?>
+    </div> <!-- .modal-body -->
 
+</div> <!-- .modal-content -->
+</div> <!-- .modal-dialog -->
 </div>
 <?php
 }
@@ -467,7 +472,7 @@ if ($cardIsOpen || \Auth::has_access('card.addcards')) {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-success" data-dismiss="modal">Add Player</button>
-        <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
       </div>
     </div>
   </div>
@@ -485,7 +490,7 @@ if ($cardIsOpen || \Auth::has_access('card.addcards')) {
     <div class="modal-content">
       <div class="modal-header">
         <h4 class="modal-title">Add Note</h4>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <label>Note</label>
@@ -493,7 +498,7 @@ if ($cardIsOpen || \Auth::has_access('card.addcards')) {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-success" data-dismiss="modal">Save</button>
-        <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
       </div>
     </div>
 
@@ -536,8 +541,8 @@ function render_team($fixture, $team)
             }
 
             $imagekey = createsecurekey("image$player${team['club']}");
-            $url      = "/cards/image.php?site=" . site() . "&player=$player&w=200&club=${team['club']}&x=$imagekey";
-            echo "    <tr class='$class' data-timestamp='${detail['datetime']}' data-imageurl='$url' data-name='$player'>
+            $url      = "/cards/image.php?site=" . site() . "&player=$player&w=200&club={$team['club']}&x=$imagekey";
+            echo "    <tr class='$class' data-timestamp='{$detail['datetime']}' data-imageurl='$url' data-name='$player'>
       <th>" . (isset($detail['number']) ? $detail['number'] : "") . "</th>
       <td>${names['Fn']}</td>
       <td>${names['LN']} ";

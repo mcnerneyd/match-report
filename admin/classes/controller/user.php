@@ -3,17 +3,19 @@
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
+define("COOKIE_TIMEOUT", 60 * 60 * 2);
+
 class Controller_User extends Controller_Template
 {
     // --------------------------------------------------------------------------
     public function action_index()
     {
         if (!\Auth::has_access('users.view')) {
-            throw new HttpNoAccessException;
+            throw new HttpNoAccessException();
         }
 
         $data = array();
-        $data['users'] = $this->userlist();
+        $data['users'] = self::userlist();
         $data['clubs'] = Model_Club::find('all');
         $data['sections'] = Model_Section::find('all');
 
@@ -34,11 +36,11 @@ class Controller_User extends Controller_Template
     public function action_sqlupdate()
     {
         if (!\Auth::has_access('users.view')) {
-            throw new HttpNoAccessException;
+            throw new HttpNoAccessException();
         }
         foreach (\DB::query('select * from `user`')->execute() as $user) {
             if ($user['password']) {
-                echo "UPDATE `user` SET `password`='".\Auth::hash_password($user['old_password'])."' WHERE id = ${user['id']};\n";
+                echo "UPDATE `user` SET `password`='" . \Auth::hash_password($user['old_password']) . "' WHERE id = ${user['id']};\n";
             }
         }
 
@@ -62,7 +64,9 @@ class Controller_User extends Controller_Template
 
         $this->template->title = "Password Reset";
         $this->template->content = View::forge('user/changepassword', array(
-            "success"=>true));
+            "success" => true
+        )
+        );
     }
 
     // --------------------------------------------------------------------------
@@ -100,9 +104,11 @@ class Controller_User extends Controller_Template
             $email->to($username);
             $email->subject("Leinster Hockey Cards - Password Reset");
             $email->html_body(View::forge("user/resetemail", array(
-                "email"=>$username,
-                "timestamp"=>$ts,
-                "hash"=>$hash)));
+                "email" => $username,
+                "timestamp" => $ts,
+                "hash" => $hash
+            )
+            ));
             $email->send();
 
             Log::info("Password reset email sent to:$username");
@@ -110,7 +116,7 @@ class Controller_User extends Controller_Template
             $this->template->title = "Email Sent";
             $this->template->content = View::forge(
                 'user/forgottenpassword',
-                array("email"=>$username)
+                array("email" => $username)
             );
             return;
         }
@@ -131,20 +137,24 @@ class Controller_User extends Controller_Template
             $user->save();
             $this->template->title = "Password Reset";
             $this->template->content = View::forge('user/changepassword', array(
-                "success"=>true));
+                "success" => true
+            )
+            );
         } else {
             $this->template->title = "Reset Password";
             $this->template->content = View::forge('user/changepassword', array(
-                "timestamp"=>$ts,
-                "email"=>$username,
-                "hash"=>$hash));
+                "timestamp" => $ts,
+                "email" => $username,
+                "hash" => $hash
+            )
+            );
         }
     }
 
     public function action_resetlink()
     {
         if (!\Auth::has_access('user.impersonate')) {
-            throw new HttpNoAccessException;
+            throw new HttpNoAccessException();
         }
 
         $username = Input::param('email');
@@ -174,7 +184,7 @@ class Controller_User extends Controller_Template
             Response::redirect($loginPage);
         }
 
-        Log::info("User is accessing restricted area: ".Session::get('username')." - redirecting to ".Uri::base(false));
+        Log::info("User is accessing restricted area: " . Session::get('username') . " - redirecting to " . Uri::base(false));
         //Response::redirect(Uri::base(false));
         $this->template->content = View::forge('user/403.php', array());
     }
@@ -182,7 +192,7 @@ class Controller_User extends Controller_Template
     // --------------------------------------------------------------------------
     public function action_login()
     {
-        Log::info("Login ".Request::main()->get_method().":".print_r(Input::all(), true));
+        Log::info("Login " . Request::main()->get_method() . ":" . print_r(Input::all(), true));
 
         \Session::delete('user');
         \Session::delete('username');
@@ -210,29 +220,24 @@ class Controller_User extends Controller_Template
         $data['selectedUser'] = Input::param('user', null);
 
         if (Input::post()) {
-            Log::debug("Crypted password: ".Auth::hash_password(\Input::param('pin')));
+            Log::debug("Crypted password: " . Auth::hash_password(\Input::param('pin')));
             if (Auth::login()) {
                 Input::param("remember-me", false) ? \Auth::remember_me() : \Auth::dont_remember_me();
                 $username = Session::get('username');
                 $user = Model_User::find_by_username($username);
-                Log::info("Logged in user: ".$username." ".($user ? "User Found:".$user['username']."/".$user->getName() : "Not User Found"));
+                Log::info("Logged in user: $username " . ($user ? "User Found:" . $user['username'] . "/" . $user->getName() : "Not User Found"));
 
                 Session::set('user', $user);
                 Session::set('user-title', $user->getName());
 
+                $r = new Response("Redirecting for single sign on", 302);
                 if (Session::get('username') === 'admin') {
-                    $r = new Response("Redirecting to admin", 302);
                     $r->set_header("location", Uri::create('Admin'));
-                    Cookie::set("jwt-token", $this->encode("/cards/ui/"), 60 * 60);
-                    return $r;
                 } else {
-                    Log::info("Redirecting to SSO");
-                    //Response::redirect('/cards/sso.php?'.base64_encode($this->encode("/cards/ui/")));
-                    $r = new Response("Redirecting to sso", 302);
                     $r->set_header("location", '/cards/sso.php');
-                    Cookie::set("jwt-token", $this->encode("/cards/ui/"), 60 * 60);
-                    return $r;
                 }
+                Cookie::set("jwt-token", self::encode("/cards/ui/"), COOKIE_TIMEOUT);
+                return $r;
             } else {
                 $data['username'] = Input::post('user');
                 $data['login_error'] = 'Invalid credentials. Try again';
@@ -240,10 +245,11 @@ class Controller_User extends Controller_Template
             }
         }
 
-        $users = array_filter($this->userlist(), function ($k) {
+        $users = array_filter(self::userlist(), function ($k) {
             return $k['password'] && $k['group'] <= 2;
         });
-        $users = array_map(function($a) { return $a['username'];}, $users);
+        $users = array_map(function ($a) {
+            return $a['username']; }, $users);
         sort($users);
         $data['users'] = $users;
 
@@ -251,7 +257,7 @@ class Controller_User extends Controller_Template
     }
 
     // --------------------------------------------------------------------------
-    private function encode($redirect = null)
+    private static function encode($redirect = null)
     {
         $user = Session::get('user');
 
@@ -261,22 +267,26 @@ class Controller_User extends Controller_Template
             'user-title' => $user->getName(),
             'role' => $user['role'],
             'iat' => time(),
-            'exp' => time() + 60*60
+            'exp' => time() + COOKIE_TIMEOUT
         ];
         if ($user->section) {
             $payload['site'] = $user->section['name'];
             $payload['section'] = $user->section['name'];
+            loadSectionConfig($user->section['name']);
+            $payload['section-title'] = \Config::get('section.title');
         }
-        if ($user['club']) $payload['club'] = $user['club']['name'];
+        if ($user['club']) {
+            $payload['club'] = $user['club']['name'];
+        }
 
         $payload['roles'] = array(Auth::group('Simplegroup')->get_name($user['group']));
         $perms = array();
-        foreach (\Config::get('simpleauth.roles', array()) as $role=>$rolev) {
+        foreach (\Config::get('simpleauth.roles', array()) as $role => $rolev) {
             if (is_array($rolev)) {
-                foreach ($rolev as $object=>$values) {
+                foreach ($rolev as $object => $values) {
                     if (is_array($values)) {
                         foreach ($values as $perm) {
-                            $perms[] = $object.".".$perm;
+                            $perms[] = $object . "." . $perm;
                         }
                     }
                 }
@@ -304,13 +314,13 @@ class Controller_User extends Controller_Template
         $a = \Session::get('login_hash');
         Session::set('user', $user);
         Session::set('user-title', $user->getName());
-        Log::warning("User switched from $currentUser to $username ;$success/$a ".Session::get('site'));
+        Log::warning("User switched from $currentUser to $username ;$success/$a " . Session::get('site'));
 
         $r = new Response("Redirecting to sso", 302);
         $r->set_header("location", '/cards/sso.php');
-        Cookie::set("jwt-token", $this->encode("/cards/ui/"), 60 * 60);
+        Cookie::set("jwt-token", self::encode("/cards/ui/"), COOKIE_TIMEOUT);
         return $r;
-}
+    }
 
     public function action_root()
     {
@@ -322,11 +332,11 @@ class Controller_User extends Controller_Template
         }
     }
 
-    private function userlist()
+    private static function userlist()
     {
         $allusers = array();
         $clubs = array();
-        
+
         foreach (Model_User::find('all') as $user) {
             $username = $user['username'];
             if ($username === null) {
@@ -336,7 +346,7 @@ class Controller_User extends Controller_Template
                 if ($user->club) {
                     $username = $user->club['name'];
                     if ($user->section) {
-                        $username .= " (".$user->section['name'].")";
+                        $username .= " (" . $user->section['name'] . ")";
                     }
                 }
             }
@@ -346,28 +356,5 @@ class Controller_User extends Controller_Template
         }
 
         return $allusers;
-    }
-
-    private static function classify($arr, $key)
-    {
-        $result = array();
-
-        foreach ($arr as $item) {
-            $kvalue = $item[$key];
-            if (!isset($result[$kvalue])) {
-                $result[$kvalue] = array();
-            }
-            $result[$kvalue][] = $item;
-        }
-
-        foreach ($result as $k=>$x) {
-            usort($x, function ($a, $b) {
-                return strcasecmp($a['username'], $b['username']);
-            });
-            $result[$k] = $x;
-        }
-
-
-        return $result;
     }
 }

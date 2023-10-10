@@ -76,20 +76,6 @@ $(document).ready(function(event) {
 });
 </script>
 
-<!--
-<div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-  <div class="toast-header">
-    <strong class="mr-auto">Configuration Saved</strong>
-    <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
-    </button>
-  </div>
-  <div class="toast-body">
-    Configuration Saved Successfully
-  </div>
-</div>
--->
-
 <form id='configform' method='POST' autocomplete='off'>
 
     <input type='hidden' name='section' value='<?= $section ?>'/>
@@ -97,19 +83,19 @@ $(document).ready(function(event) {
 	<!-- Tab Header -->
 	<ul class="nav nav-tabs">
 		<li class='nav-item'>
-			<a class='nav-link active' href='#home' data-toggle='tab'>General</a>
+			<a class='nav-link active' href='#home' data-bs-toggle='tab'>General</a>
 		</li>
 		<li class='nav-item'>
-			<a class='nav-link' href='#registration' data-toggle='tab'>Registration</a>
+			<a class='nav-link' href='#registration' data-bs-toggle='tab'>Registration</a>
 		</li>
 		<li class='nav-item'>
-			<a class='nav-link' href='#fixtures' data-toggle='tab'>Fixtures</a>
+			<a class='nav-link' href='#fixtures' data-bs-toggle='tab'>Fixtures</a>
 		</li>
 		<li class='nav-item'>
-			<a class='nav-link' href='#security' data-toggle='tab'>Security</a>
+			<a class='nav-link' href='#security' data-bs-toggle='tab'>Security</a>
 		</li>
 		<li class='nav-item'>
-			<a class='nav-link' href='#tasks' data-toggle='tab'>Tasks</a>
+			<a class='nav-link' href='#tasks' data-bs-toggle='tab'>Tasks</a>
 		</li>
 	</ul>
 

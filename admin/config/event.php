@@ -20,6 +20,7 @@ return array(
 			if ($header = \Input::headers('X-Auth-Token')) {
 				$data = JWT::decode($header, new Key(JWT_KEY, 'HS256'));
 				\Auth::force_login($data->id);
+				Log::info("JWT Login:".($data->id));
 			}
 		},
 	),

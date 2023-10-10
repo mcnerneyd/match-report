@@ -26,7 +26,7 @@
 
 			<?php require_once(APPPATH.'/views/nav.php'); ?>
 
-		<div class='xcontainer' data-controller='<?= $controller ?>' data-action='<?= $action ?>'>
+		<div class='xcontainer container-cards' data-controller='<?= $controller ?>' data-action='<?= $action ?>'>
 			<?php if (\Session::get('user-title')) { ?>
 				<div id='user'><?= \Session::get('user-title') ?></div>
 			<?php }
@@ -44,30 +44,6 @@
 			<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 		</footer>
 
-		<div class="modal" id='help-modal' tabindex="-1" role="dialog">
-			<div class="modal-dialog" role="document">
-				<div class="modal-content">
-					<div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
-						<h4 class="modal-title">Help</h4>
-					</div>
-					<div class="modal-body">
-						<p>Help Detail</p>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="modal" id='alert-modal' tabindex="-1" role="dialog">
-			<div class="modal-dialog" role="document">
-				<div class="modal-content">
-					<div class="modal-body row">
-						<p class='text-center col-xs-12'>Help Detail</p>
-						<button data-dismiss='modal' class='btn btn-danger col-xs-4 col-xs-offset-4'>OK</button>
-					</div>
-				</div>
-			</div>
-		</div>
-
 		<script>
 		function doAlert(msg) {
 			$('#alert-modal p').text(msg);
@@ -75,15 +51,6 @@
 		}
 
 			$(document).ready(function() {
-<?php // Auto Logout User after 30 seconds
-   /* if (user()) { ?>
-			setInterval(function() {
-				$.get('<?= Uri::create('UserAPI') ?>').fail(function() {
-					console.log("User [<?php user() ?>] is no longer logged in");
-					window.location = '<?= Uri::create('User/Login') ?>';
-				});
-			}, 30000);
-<?php }*/ ?>
 
 			$('[data-help]').each(function () {
 				$(this).append("<span class='help glyphicon glyphicon-question-sign' data-helpid='"+$(this).data("help")+"'></span>");

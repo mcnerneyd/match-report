@@ -35,18 +35,19 @@ try {
 	}
 
 	session_start();
-	$_SESSION['base-url'] = $token['base'];
-	$_SESSION['site'] = $token['site'];
-	$_SESSION['section'] = $token['site'];
-	$_SESSION['user'] = $token['user'];
-	$_SESSION['user-title'] = $token['user-title'];
+	$user = array("username" => $token['user'], 
+		"section" => array("name"=>$token['site']), "title" => $token['user-title']);
 	if (isset($token['club'])) {
+		$user['club'] = array("name" => $token['club']);
 		$_SESSION['club'] = $token['club'];
-	} else {
-		unset($_SESSION['club']);
 	}
+	$_SESSION['base-url'] = $token['base'];
 	$_SESSION['roles'] = $token['roles'];
 	$_SESSION['perms'] = $token['perms'];
+	$_SESSION['username'] = $user['username'];
+	$_SESSION['user-title'] = $user['title'];
+	$_SESSION['site'] = $user['section'];
+	$_SESSION['user'] = json_decode(json_encode($user));
 
 	print_r($_SESSION);
 

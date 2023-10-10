@@ -44,7 +44,7 @@ const roles = {}
     })
 }
 const getRole = (key) => {
-    return roles[Object.keys(roles).find(role => role == key || roles[role].initials == key)]
+    return roles[Object.keys(roles).find(role => role === key || roles[role].initials === key || roles[role].initials[0] === key)]
 }
 console.log("Roles", roles)
 
@@ -57,12 +57,12 @@ export function Fixture({ card, close, updateCard }) {
     if (card == null) return null;
 
     card.user = "none"
-    if (user?.club == card.home_name || user?.club == card.away_name) {
-        card.user = user.club == card.home_name ? 'home' : 'away'
+    if (user?.club === card.home_name || user?.club === card.away_name) {
+        card.user = user.club === card.home_name ? 'home' : 'away'
     }
     console.log("Card:", card)
 
-    if (card.user != 'none' && card[card.user].players.length == 0 && card.players.values.length > 0) {
+    if (card.user !== 'none' && card[card.user].players.length === 0 && card.players.values.length > 0) {
         return <Players card={card} onClose={(p) => {
             card[card.user].players = p
             updateCard(card)
@@ -91,6 +91,7 @@ export function Fixture({ card, close, updateCard }) {
                                 })}
                                 {player?.detail?.roles?.map(x => {
                                     const r = getRole(x)
+                                    console.debug("Role", r, x)
                                     return <div className={"role role-" + r.full}>{r.initials}</div>})
                                 }
                                 {score ? <span className='score'>{score}</span> : null}
@@ -137,7 +138,13 @@ export function Fixture({ card, close, updateCard }) {
                         <label>Name</label>
                         <input type='number' name='player' className='form-control' />
                     </div>
-                    <Button variant='success' type='submit'><FontAwesomeIcon icon={faPlus} /> Add</Button>
+                    {user?.roles.includes('Administrators') 
+                    ? <>
+                        <Button variant='success' type='submit'><FontAwesomeIcon icon={faPlus} /> Add Home</Button>
+                        <Button variant='success' type='submit'><FontAwesomeIcon icon={faPlus} /> Add Away</Button>
+                     </>
+                    : <Button variant='success' type='submit'><FontAwesomeIcon icon={faPlus} /> Add</Button>
+                        }
                     </Form>
                 </Modal.Body>
             </Modal>
@@ -234,8 +241,6 @@ export function Fixture({ card, close, updateCard }) {
             </Modal>
         </div>
     }
-
-    console.info("Rendering Card", card)
 
     return <>
         <div id='match-card'>

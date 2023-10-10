@@ -3,23 +3,21 @@ import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faSearch, faSignOutAlt } from '@fortawesome/free-solid-svg-icons'
+import { faChalkboardTeacher, faSearch, faSignInAlt, faSignOutAlt } from '@fortawesome/free-solid-svg-icons'
 import { UserContext } from './Context'
 import { Button, Form } from 'react-bootstrap';
 
-function Navigat() {
+function Navigat({search}) {
 
     const user = useContext(UserContext)
-    console.log("Perms", user?.perms)
-
     const allowed = (perm) => user?.perms?.includes(perm)
 
     return <>
         <Navbar expand="lg" bg="dark" variant="dark">
-            <Navbar.Brand>LHA</Navbar.Brand>
+            <Navbar.Brand>Leinster Hockey{user && user['section-title'] ? <span>{user['section-title']}</span> : null}</Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
 
-            <Navbar.Collapse id="basic-navbar-nav">
+            <Navbar.Collapse id="basic-navbar-nav" className="gap-5">
                 <Nav>
                     <Nav.Link href="/cards/ui">Matches</Nav.Link>
                     {allowed("registration.view")
@@ -42,15 +40,24 @@ function Navigat() {
                         : null}
                     </NavDropdown>
                 </Nav>
-                <Form className="d-flex me-auto">
+                <Form className="d-flex me-auto flex-grow-1">
                     <Form.Control
                         type="search"
                         placeholder="Search Club, Competition, Date or Card/Fixture ID"
                         className="me-2"
+                        onChange={e => {
+                            const v = e.target.value.toLowerCase().split(/[^a-z0-9]/g).filter(x => x !== "")
+
+                            if (v.length === 0) search(null)
+                            else search(v)
+                        }}
                     />
                     <Button variant="outline-success"><FontAwesomeIcon icon={faSearch} /></Button>
                 </Form>
                 <Nav>
+                    <Nav.Link href="/help" id='help-me'>
+                        <FontAwesomeIcon icon={faChalkboardTeacher} /> Help!
+                    </Nav.Link>
                     {allowed("configuration.view")
                     ? <NavDropdown title='Admin'>
                         <NavDropdown.Item href="/competitions">Competitiions</NavDropdown.Item>
@@ -64,7 +71,11 @@ function Navigat() {
                         <NavDropdown.Item href="/Admin/Log">System Log</NavDropdown.Item>
                     </NavDropdown>
                     : null}
-                    <Nav.Link href='/Login'><FontAwesomeIcon icon={faSignOutAlt} /> Logout</Nav.Link>
+                    <Nav.Link href='/Login'>
+                    {user == null 
+                    ? <><FontAwesomeIcon icon={faSignInAlt} /> Login</>
+                    : <><FontAwesomeIcon icon={faSignOutAlt} /> Logout</>}
+                    </Nav.Link>
                 </Nav>
             </Navbar.Collapse>
         </Navbar>

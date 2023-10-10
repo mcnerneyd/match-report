@@ -97,7 +97,7 @@ class Controller_CardApi extends Controller_RestApi
         }
 
         $data=file_get_contents('php://input');
-        $data=json_decode($data);
+        $data=json_decode($data, false);
 
         if (\Input::param("_method") === 'PATCH') {
             return $this->patch_index($data);
@@ -287,7 +287,8 @@ class Controller_CardApi extends Controller_RestApi
         Log::debug("Post player");
 
         if (!\Auth::check()) {
-            return new Response("Forbidden", 401);
+            Log::info("Profile:".print_r(\Auth::get('id'), true));
+            return new Response("Post player forbidden", 401);
         }
 
         $key   = \Input::param("key", "played");
@@ -565,6 +566,12 @@ class Controller_CardApi extends Controller_RestApi
 
     public function post_result()
     {
+        Log::debug("User:".print_r(\Auth::get_profile_fields(), true));
+
+        if (!\Auth::check()) {
+            return new Response("Only users can update scores", 403);
+        }
+
         $matchcardId  = \Input::param('id');
         $card = Model_Matchcard::card($matchcardId);
 

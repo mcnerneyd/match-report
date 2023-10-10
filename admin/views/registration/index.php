@@ -1,12 +1,12 @@
 <?php
-$registrationAllowed = FALSE;
+$registrationAllowed = false;
 
 if (Config::get("section.automation.allowrequest")) {
-	$registrationAllowed = TRUE;
+    $registrationAllowed = true;
 }
 
-if (Auth::has_access('registration.impersonate')) {
-	$registrationAllowed = 'all';
+if (!$clubfixed && Auth::has_access('registration.impersonate')) {
+    $registrationAllowed = 'all';
 }
 
 echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
@@ -41,7 +41,7 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
 		$(".btn-download").click(function(e) {
 			e.preventDefault();
 			window.location.href = "./Registration/Registration?f=" + $(this).closest("tr").data("filename")
-				+ "&c=" + $("#registration-club select").val()
+				+ "&c=<?= $club ?>"
         + "&s=<?= $section ?>";
 		});
 
@@ -65,24 +65,29 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
 		});
 
     const reload = () => {
-      console.log("Reg");
-      const club = $('#registration-club select').val();
-      const section = $('#registration-section select').val();
-      console.log('Registration params:', club, section);
-      if (club !== undefined && (!club || club == "<?= $club ?>")) return;
-      if (!section || section == '<?= $section ?>') return;
+      const club = $('select[name="club"]').val() || "<?= $club ?>";
+      const section = $('select[name="section"]').val() || "<?= $section ?>";
+      console.log('Registration params (<?= $section ?>/<?= $clubfixed ?>,<?= $club ?>/<?= $sectionfixed ?>): c=', club, ' s=', section == '<?= $section ?>');
+      $('.command-group a').addClass('disabled')
+      if (club === undefined || !club || !section) return
+      <?php if ($registrationAllowed) { ?>
+      $('#upload-button').removeClass('disabled')
+      <?php } ?>
+      $('#view-button').removeClass('disabled')
+      if (section == '<?= $section ?>' && club == "<?= $club ?>") return;
 			window.location.href=`<?= Uri::create('Registration') ?>?c=${club}&s=${section}`;
     }
 
-		$('#registration-club select').change(reload);
-		$('#registration-section select').change(reload);
+    reload()
+		$('.command-group select').change(reload);
 
 		<?php if ($section) { ?>
-    console.log("Selecting <?= $section ?>");
-		$('#registration-section select').val('<?= $section ?>');
+    console.log("Selecting section <?= $section ?>");
+		$('select[name="section"]').val('<?= $section ?>');
 		<?php } ?>
 		<?php if ($club) { ?>
-		$('#registration-club select').val("<?= $club ?>");
+      console.log("Selecting club <?= $club ?>");
+		  $('select[name="club"]').val("<?= $club ?>");
 		<?php } ?>
 
 		$.get("<?= Uri::create('registrationapi/errors.json') ?>?c=<?= $club ?>")
@@ -108,64 +113,46 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
 				}).done(function(data) { window.location.reload(); });
 		});
 	});
-
-	var tutorial = [
-		{ target: "#registration-table", message: "This table shows all the registration files you have uploaded. The latest file is shown first.",dir:"top" },
-		{ target: "#registration-table .btn-download:first", message: "Click Download button to download the actual registration file", dir:"top" },
-		{ target: "#view-registration .btn", message: "Click the View button to see your registration", dir:"bottom" },
-		{ target: "#view-registration input", message: "Select a date to view the registration for - the default is tomorrow", dir:"bottom" },
-		{ target: "#upload-button", message: "Click Upload to upload a new registration file", dir:"left" },
-		];
 </script>
 
-  <div class='command-group form'>
-    <div class='form-row'>
+  <div class='command-group form-group'>
       <?php if ($registrationAllowed === 'all') { ?>
-      <div id='registration-club' class='col-auto'>
         <select class='form-control' name='club'>
           <option selected value=''>Select Club...</option>
           <?php foreach ($clubs as $c) {
-            echo "<option>".$c['name']."</option>";
+              echo "<option>".$c['name']."</option>";
           }?>
         </select>
-      </div>
-      <?php } ?>
-      <div id='registration-section' class='col-auto'>
+      <?php } 
+      
+      if (!$sectionfixed) {?>
         <select class='form-control' name='section'>
           <option selected value=''>Select Section...</option>
           <?php foreach ($sections as $s) {
-            echo "<option>".$s['name']."</option>";
+              echo "<option>".$s['name']."</option>";
           }?>
         </select>
-      </div>
+        <?php } ?>
 
-      <div class='col'>
-      <?php if ($registrationAllowed) { ?>
-      <a class='btn btn-primary' id='upload-button' tabindex='1' data-target='#upload-registration' data-toggle='modal'>
-        <i class="fas fa-upload"></i><span class='d-none d-sm-inline'> Upload</span></a> 
-      <?php } ?>
-      </div>
+      <a class='btn btn-primary' id='upload-button' tabindex='1' data-bs-target='#upload-registration' data-bs-toggle='modal'>
+        <i class="fas fa-upload"></i><span class='d-none d-sm-inline'> Upload</span>
+      </a> 
 
-      <div id='view-registration' class='col'>
-        <div class='input-group-append'>
-          <a class="btn btn-success" tabindex="2"><i class="far fa-eye"></i> View</a>
-        </div>
-      </div>
-    </div>	<!-- .form-row -->
+      <a class="btn btn-success" id='view-button' tabindex="2" href="./Registration/Registration?c=<?= $club ?>&s=<?= $section ?>"><i class="far fa-eye"></i> View</a>
   </div>
 
   <div id='registration'>
-  <?php 
+  <?php
       $currentDate = time();
       $restrictionDate = Config::get('section.date.restrict', null);
       if ($restrictionDate) {
-        $restrictionDate = strtotime($restrictionDate);
+          $restrictionDate = strtotime($restrictionDate);
 
-        if ($currentDate > $restrictionDate) {
-          echo "<div class='alert alert-danger'>Full Registration Rules Apply (Since ".strftime("%A %e, %B %G", $restrictionDate).")</div>";
-        } else {
-          echo "<div class='alert alert-success'>Full Registration Rules Suspended (Until ".strftime("%A %e, %B %G", $restrictionDate).")</div>";
-        }
+          if ($currentDate > $restrictionDate) {
+              echo "<div class='alert alert-danger'>Full Registration Rules Apply (Since ".strftime("%A %e, %B %G", $restrictionDate).")</div>";
+          } else {
+              echo "<div class='alert alert-success'>Full Registration Rules Suspended (Until ".strftime("%A %e, %B %G", $restrictionDate).")</div>";
+          }
       }
   ?>
 
@@ -181,11 +168,11 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
     </thead>
     <tbody style='display:none'>
   <?php
-  foreach ($registrations as $registration) {
+foreach ($registrations as $registration) {
     $date = Date::forge($registration['timestamp']);
     $class = "";
     if (Config::get("hockey.block_errors", false) && isset($registration['errors'])) {
-      $class = "title='This registration has errors' class='error'";
+        $class = "title='This registration has errors' class='error'";
     }
     echo "<tr $class data-filename='${registration['name']}' data-club='${registration['club']}' data-type='${registration['type']}'>
       <td>${registration['club']}</td>
@@ -194,25 +181,29 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
       <td>${registration['cksum']}</td>
       <td>
         <a class='btn btn-primary btn-sm btn-download'>Download <i class='fas fa-download'></i></a>";
-      if (Auth::has_access('registration.delete')) {
+    if (Auth::has_access('registration.delete')) {
         echo "\n<a class='btn btn-danger btn-sm btn-delete'
-          data-toggle='confirmation' data-title='Delete Registration' 
+          data-bs-toggle='confirmation' data-title='Delete Registration' 
           data-content='Are you sure?'>Delete <i class='fas fa-trash-alt'></i></a>\n";
-      }
-      echo "</td>
+    }
+    echo "</td>
       </tr>";
-  }
-  ?>
+}
+?>
     </tbody>
   </table>
 
     <?php
-      $hints = array();
-      if (!Config::get("$section.config.allowassignment")) $hints[] = "Explicit team assignment is disabled";
-      if ($registrationAllowed === FALSE) $hints[] = "Uploading of registration is not enabled ";
+    $hints = array();
+if (!Config::get("$section.config.allowassignment")) {
+    $hints[] = "Explicit team assignment is disabled";
+}
+if ($registrationAllowed === false) {
+    $hints[] = "Uploading of registration is not enabled ";
+}
 
-      echo "<p class='hints'>".implode(" / ", $hints)."</p>";
-    ?>
+echo "<p class='hints'>".implode(" / ", $hints)."</p>";
+?>
 
 
   <?php if ($registrationAllowed === 'all') { ?>
@@ -249,9 +240,7 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Upload Registration</h4>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <form action='<?= Uri::create("/RegistrationAPI") ?>' method='POST' enctype='multipart/form-data'>
@@ -276,7 +265,7 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
         </div>
         <div class="modal-footer">
           <button type="submit" id='registration-save-changes' class="btn btn-primary" disabled>Save changes</button>
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
         </div>
       </div>
     </div>
