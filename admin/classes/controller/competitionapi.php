@@ -13,7 +13,7 @@ class Controller_CompetitionApi extends Controller_RestApi
 			return array('data' => $this->simplify($competition));
 		}
 
-    $result = Model_Competition::find('all');
+    	$result = Model_Competition::find('all');
 		foreach ($result as &$item) $item = $this->simplify($item);
 
 		return array('data'=>$result);

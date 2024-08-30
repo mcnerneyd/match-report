@@ -21,9 +21,9 @@ class Controller_Fine extends Controller_Hybrid
 
 			if ($fine['matchcard_id']) {
 				try {
-					$card = Model_Card::card($fine['matchcard_id']);
+					$card = Model_Matchcard::card($fine['matchcard_id']);
 				} catch (Exception $e) {
-					Log::error("Problem with card ${fine['matchcard_id']}:".$e->getMessage());
+					Log::error("Problem with card {$fine['matchcard_id']}:".$e->getMessage());
 					continue;
 				}
 				$fine['competition'] = $card['competition'];
@@ -57,7 +57,7 @@ class Controller_Fine extends Controller_Hybrid
 	public function post_index() {
 		$fixtureid = $_POST['fixtureid'];
 
-		$card = \Model_Card::find_by_fixture($fixtureid, true);
+		$card = \Model_Matchcard::find_by_fixture($fixtureid, true);
 		$side = $_POST['optionsTeam'];
 		$team = $card[$side];
 		$detail = $_POST['amount'].':'.$_POST['reason'];
@@ -123,7 +123,7 @@ class Controller_Fine extends Controller_Hybrid
 				$fine->resolved = 1;
 				$fine->save();
 
-				$card = Model_Card::card($fine['matchcard_id']);
+				$card = Model_Matchcard::card($fine['matchcard_id']);
 				$fine['competition'] = $card['competition'];
 				$fine['home_team'] = $card['home']['club']." ".$card['home']['team'];
 				$fine['away_team'] = $card['away']['club']." ".$card['away']['team'];

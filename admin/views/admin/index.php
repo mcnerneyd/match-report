@@ -169,7 +169,7 @@
 <div class='card bg-warning'>
   <div class='card-header'>Import</div>
   <div class='card-body'>
-    <p>Import a JSON/CSV file to populate core data</p>
+    <p>Import a file to populate core data</p>
 
     <form action='<?= Uri::create('Admin/Import') ?>' method='POST' enctype="multipart/form-data">
       <div class='row'>
@@ -181,6 +181,29 @@
       <div class='row'>
         <div class='col'>
           <button class='btn btn-primary btn-block'>Import</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+
+<div class='col-md-4 col-12'>
+<div class='card bg-warning'>
+  <div class='card-header'>Create Section</div>
+  <div class='card-body'>
+    <p>Create a New Section</p>
+
+    <form action='<?= Uri::create('Admin/Section') ?>' method='POST' enctype="multipart/form-data">
+      <div class='row'>
+        <div class='input-group col'>
+          <input type='text' name='section_name' id='section_name'/>
+        </div>
+      </div>
+
+      <div class='row'>
+        <div class='col'>
+          <button class='btn btn-primary btn-block'>Create</button>
         </div>
       </div>
     </form>

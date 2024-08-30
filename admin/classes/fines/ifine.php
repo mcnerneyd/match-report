@@ -38,7 +38,7 @@ Matchcards must be submitted by midnight on the day of the match (card not open)
 		Log::info("Verify ".count($fixtureIds)." fixtures");
 
 		// Find the fixtures of all cards and eliminate them from missing cards
-		$matchcardFixtures = Model_Card::query()->where('fixture_id','!=','null')->select('fixture_id')->get();
+		$matchcardFixtures = Model_Matchcard::query()->where('fixture_id','!=','null')->select('fixture_id')->get();
 		$matchcardFixtures = array_map(function($a) { return $a->fixture_id; }, $matchcardFixtures);
 
 		$fines = array();

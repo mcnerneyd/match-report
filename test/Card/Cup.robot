@@ -1,8 +1,8 @@
 # vim:et:ts=3:sw=3
 *** Settings ***
 Resource         ../Common.robot
-Suite Setup      Login  Aardvarks  1111
-Test Setup       Create Card With Player    36
+Suite Setup      Login  Aardvarks  1102
+Test Setup       Create Card With Player    test.testcup.aardvarks1.bears1
 Suite Teardown   Close Browser
 
 *** Test Cases ***

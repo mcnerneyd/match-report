@@ -16,6 +16,7 @@ function getApi(path) {
 function postApi(path) {
     return fetch(calcpath(path), {method:'POST'})
     .then(response => { 
+        debugger;
         if (!response.ok) return response.text().then(r => { throw new Error(r) })
         return response 
     })
@@ -51,55 +52,96 @@ export function login(username, password) {
     .then(() => { window.location.reload() })
 }
 
-export function getFixtures(user, fixtures) {
+export function getFixtures(user, fixtures, expand = false) {
     const ts = localStorage.getItem("fixtures_timestamp")
     
-    console.log("Get fixtures user", user)
+    console.log("Get fixtures user", user, moment(parseInt(ts)).format())
 
     const clean = (s) => s ? (""+s).replaceAll(/[^A-Za-z0-9]/g, "") : ""
 
     const params = {}
     if (user?.section != null) params['section'] = user.section
-    if (user?.roles?.includes('Administrators')) params['expand'] = 'true'
+    //if (user?.roles?.includes('Administrators')) params['expand'] = 'true'
+    if (expand) params['expand'] = 'true'
     const headers = {}
-    //if (ts) headers['If-Modified-Since'] = moment(parseInt(ts)).format() 
+    if (ts) headers['If-Modified-Since'] = moment(parseInt(ts)).format()
     console.log("headers", headers)
-    return fetch(calcpath(`fixtureapi/index2?` + new URLSearchParams(params).toString()), 
-            { headers })
+    return fetch(calcpath(`fixtureapi/index2?` + new URLSearchParams(params).toString()), { headers })
         .then(response => { 
             if (response.status === 404) return null
             if (response.status === 304) return null
             if (!response.ok) return response.text().then(r => { throw new Error(r) })
             return response.json() 
         })
-        .then((newFixtures) => {
-            if (newFixtures === null) return []
+        .then((fs) => {
+            var newFixtures = fs
             localStorage.setItem("fixtures_timestamp", Date.now())
-            console.log("Fixtures:", newFixtures.fixtures, newFixtures.ts, fixtures.ts)
+            if (newFixtures !== null) {
+                console.log("New fixtures:", Date.now(), newFixtures.fixtures, newFixtures.ts, fixtures.ts)
+                newFixtures.fixtures.forEach(f => {
+                    if (!f.fixtureID) console.error("Bad fixture:", f)
+                    f.datetime = moment(f.datetimeZ).local()
+                    f.played = f.played === 'yes'
+                    f.home = { score: f.home_score, name: f.home_club + " " + f.home_team, 
+                                players: f.home_players ?? '0',
+                                reported: f.home_reported_score ?? '0' }
+                    f.away = { score: f.away_score, name: f.away_club + " " + f.away_team, 
+                                players: f.away_players ?? '0',
+                                reported: f.away_reported_score ?? '0' }
+                    f.searchString = (clean(f.home_club) + clean(f.home_team) + " " + clean(f.away_club) + clean(f.away_team) + " " + 
+                    clean(f.competition) + " " + 
+                    f.datetime.format("YYYY/MM/DD") + " " + 
+                    f.section + " " + f.fixtureID).toLowerCase()
+                    f.active = (f.status ? f.status === 'active' : true)  // active defaults to true
+                })
+                newFixtures.fixtures.sort((a,b) => { return a.datetime.valueOf() - b.datetime.valueOf() })
+            } else {
+                console.log("Existing fixtures:", Date.now())
+                newFixtures = JSON.parse(localStorage.getItem("fixtures"))
+            }
+
             newFixtures.fixtures.forEach(f => {
-                if (!f.fixtureID) console.error("Bad fixture:", f)
                 f.datetime = moment(f.datetimeZ).local()
-                f.played = f.played === 'yes'
-                f.home = { score: f.home_score, name: f.home_club + " " + f.home_team, 
-                            players: f.home_players ?? '0',
-                            reported: f.home_reported_score ?? '0' }
-                f.away = { score: f.away_score, name: f.away_club + " " + f.away_team, 
-                            players: f.away_players ?? '0',
-                            reported: f.away_reported_score ?? '0' }
-                f.searchString = (clean(f.home_club) + clean(f.home_team) + " " + clean(f.away_club) + clean(f.away_team) + " " + 
-                clean(f.competition) + " " + 
-                f.datetime.format("YYYY/MM/DD") + " " + 
-                f.section + " " + f.fixtureID).toLowerCase()
-                f.active = (f.status ? f.status === 'active' : true)  // active defaults to true
             })
-            newFixtures.fixtures.sort((a,b) => { return a.datetime.valueOf() - b.datetime.valueOf() })
-            console.log("Fixtures retrieved", newFixtures)
+            
+            console.log("Fixtures retrieved", Date.now(), newFixtures)
+            localStorage.setItem("fixtures", JSON.stringify(newFixtures))
             return newFixtures
         })
 }
 
-export function addPlayer(user, cardId, playerName) {
-    return postApi(`cardapi/player?player=${playerName}&club=${user.club}&matchardid=${cardId}`)
+export function getFixtures2(user) {
+    const ts = localStorage.getItem("fixtures_timestamp")
+    
+    console.log("Get fixtures user", user)
+
+    const params = {}
+    if (user?.section != null) params['section'] = user.section
+    const headers = {}
+    //const sameSection = user?.section !== localStorage.getItem("section")
+    //if (sameSection && ts) headers['If-Modified-Since'] = moment(parseInt(ts)).format() 
+    console.log("headers", headers)
+    return fetch(calcpath(`fixtureapi/index21?` + new URLSearchParams(params).toString()), 
+        { headers })
+    .then(response => { 
+        if (response.status === 404) return null
+        if (response.status === 304) return localStorage.getItem("fixtures")
+        if (!response.ok) return response.text().then(r => { throw new Error(r) })
+        return response.json() 
+    })
+    .then((newFixtures) => {
+        if (newFixtures === null) return []
+        newFixtures.fixtures.sort((a,b) => { return a.datetime.valueOf() - b.datetime.valueOf() })
+        console.log("Fixtures retrieved", newFixtures)
+        localStorage.setItem("fixtures_timestamp", Date.now())
+        localStorage.setItem("fixtures", newFixtures)
+        localStorage.setItem("section", user?.section)
+        return newFixtures
+    })
+}
+
+export function addPlayer(club, cardId, playerName) {
+    return postApi(`cardapi/player?player=${playerName}&club=${club}&matchcardid=${cardId}`)
 }
 
 export function emailDetail(fixtureId) {
@@ -115,6 +157,7 @@ export function emailDetail(fixtureId) {
 }
 
 export function selectCard(fixture) {
+    console.log("Fetching card", fixture)
     const card = {
         competition: fixture.competition,
         date: moment(fixture.datetimeZ),

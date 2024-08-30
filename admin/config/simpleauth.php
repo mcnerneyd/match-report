@@ -27,7 +27,7 @@ return array(
     'db_write_connection' => null,
     'table_name' => 'user',
     'guest_login' => true,
-    'multiple_logins' => false,
+    'multiple_logins' => true,
     'remember_me' => array(
         'enabled' => false,
         'cookie_name' => 'rmcookie',
@@ -54,15 +54,15 @@ return array(
                            'registration'=>array('impersonate','status','delete'),
                            'competition'=>array('view','edit'),
                            'club'=>array('view','edit'),
-			   'report'=>array('players'),
+         'report'=>array('players'),
                            'user'=>array('create','impersonate')),
 
          'secretary' => array('registration' => array('view', 'post'),
-                              'user'=> array('refreshpin'),
-                              'registrationapi'=>array('view', 'edit')),
+                           'user'=> array('refreshpin'),
+                           'registrationapi'=>array('view', 'edit')),
 
          'umpire'  => array('umpire_reports' => array('view'), 
-                            'card'=>array('addcards')),
+                           'card'=>array('addcards')),
 
          'signer' => array('card_signature' => array('create')),
 

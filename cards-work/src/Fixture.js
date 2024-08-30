@@ -1,6 +1,6 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheck, faPaperclip, faPlus, faBan, faEraser, faStickyNote, faSignature, faUserPlus, faCarSide } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faPaperclip, faPlus, faBan, faEraser, faStickyNote, faSignature, faUserPlus } from '@fortawesome/free-solid-svg-icons'
 import Button from 'react-bootstrap/Button'
 import ButtonGroup from 'react-bootstrap/ButtonGroup'
 import Modal from 'react-bootstrap/Modal'
@@ -53,8 +53,12 @@ export function Fixture({ card, close, updateCard }) {
 
     const [player, setPlayer] = useState(null)
     const [addingPlayer, setAddingPlayer] = useState(false)
+    const addFormRef = useRef()
 
-    if (card == null) return null;
+    if (card == null) {
+        console.warn("No card specified");
+        return null;
+    }
 
     card.user = "none"
     if (user?.club === card.home_name || user?.club === card.away_name) {
@@ -106,20 +110,25 @@ export function Fixture({ card, close, updateCard }) {
     }
 
     const addPlayerDialog = () => {
-        const handleSubmit = (e) => { 
+        const handleSubmit = (club, side) => (e) => { 
             e.preventDefault()
-            console.log("submit", e)
+            console.log("submit", e, club)
             setAddingPlayer(false)
 
-            const newPlayer = e.target[0].value || e.target[1].value || null
-
-            if (newPlayer) {
-                addPlayer(user, card.id, newPlayer).then(() => {
-                    card[card.user].players = [...card[card.user].players, newPlayer]
+            const playerList = (e.currentTarget.form[0].value + "\n" + e.currentTarget.form[1].value)
+                .split("\n")
+                .filter(x => x.trim() !== "")
+            console.info("Players to add", playerList, card)
+            playerList.forEach( newPlayer => {
+                addPlayer(club, card.id, newPlayer)
+                .then(f => f.json())
+                .then(f => {
+                    console.log("New Player:", newPlayer, f)
+                    card[side].players = [...card[side].players, f]
                     updateCard(card)
                 })
-                .catch(e => { toast.error("Unable to add " + newPlayer + " team") })
-            }
+                .catch(e => { console.error("Err", e); toast.error("Unable to add " + newPlayer + " to team") })
+            })
         }
         return <div className="modal show" style={{ display: 'block', position: 'initial' }}>
             <Modal show={addingPlayer} onHide={() => setAddingPlayer(false)}>
@@ -127,24 +136,28 @@ export function Fixture({ card, close, updateCard }) {
                     <Modal.Title>Add a Player</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <Form onSubmit={handleSubmit}>
-                    <Form.Control as="select">
-                        <option key='addplayer-selectnone' value={""}>Select a player&hellip;</option>
-                        {card.players?.values.map(x => 
-                            <option key={x.name} value={x.name}>{x.lastname + ", " + x.firstname}</option>)}
-                    </Form.Control>
-                    <p>or</p>
-                    <div>
-                        <label>Name</label>
-                        <input type='number' name='player' className='form-control' />
-                    </div>
-                    {user?.roles.includes('Administrators') 
-                    ? <>
-                        <Button variant='success' type='submit'><FontAwesomeIcon icon={faPlus} /> Add Home</Button>
-                        <Button variant='success' type='submit'><FontAwesomeIcon icon={faPlus} /> Add Away</Button>
-                     </>
-                    : <Button variant='success' type='submit'><FontAwesomeIcon icon={faPlus} /> Add</Button>
-                        }
+                    <Form ref={addFormRef}>
+                        <Form.Control as="select">
+                            <option key='addplayer-selectnone' value={""}>Select a player&hellip;</option>
+                            {card.players?.values.map(x => 
+                                <option key={x.name} value={x.name}>{x.lastname + ", " + x.firstname}</option>)}
+                        </Form.Control>
+                        <p>or</p>
+                        <div>
+                            <label>Name</label>
+                            <textarea name='player' className='form-control'></textarea>
+                        </div>
+                        {user?.roles.includes('Administrators') 
+                        ? <>
+                            <Button variant='success' type='submit' onClick={handleSubmit(card.home.club, 'home')}>
+                                <FontAwesomeIcon icon={faPlus} /> Add Home
+                            </Button>
+                            <Button variant='success' type='submit' onClick={handleSubmit(card.away.club, 'away')}>
+                                <FontAwesomeIcon icon={faPlus} /> Add Away
+                            </Button>
+                        </>
+                        : <Button variant='success' type='submit' onClick={handleSubmit(user.club, card.user)}><FontAwesomeIcon icon={faPlus} /> Add</Button>
+                            }
                     </Form>
                 </Modal.Body>
             </Modal>
@@ -165,20 +178,20 @@ export function Fixture({ card, close, updateCard }) {
         }
         const setPenalty = (e) => {
             console.log("Penalty", e.target.value)
-            if (player?.detail?.cards == undefined) player.detail.cards = []
+            if (player?.detail?.cards === undefined) player.detail.cards = []
             if (e.target.value === 'no-card') player.detail.cards = []
             else player.detail.cards = [...player.detail.cards, e.target.value]
             save()
         }
         const removePlayer = () => {
-            team.players = team.players.filter(x => x != player)
+            team.players = team.players.filter(x => x !== player)
             save()
         }
         const toggleRole = (role) => {
-            if (player?.detail?.roles == undefined) player.detail.roles = []
+            if (player?.detail?.roles === undefined) player.detail.roles = []
             console.log("Toggle", player, player.detail?.roles, role)
             if (player.detail?.roles?.includes(role)) 
-                player.detail.roles = player.detail.roles.filter(x => x != role)
+                player.detail.roles = player.detail.roles.filter(x => x !== role)
             else 
                 player.detail.roles = [...player.detail?.roles, role]
             save()
@@ -197,7 +210,9 @@ export function Fixture({ card, close, updateCard }) {
                         <label>Shirt Number</label>
                         <div className='input-group'>
                             <input type='number' onChange={(e) => player.number = e.target.value} name='shirt-number' className='form-control' />
-                            <Button variant='success' onClick={() => save()}><FontAwesomeIcon icon={faCheck} /></Button>
+                            <Button variant='success' onClick={() => save()}>
+                                <FontAwesomeIcon icon={faCheck} />
+                            </Button>
                         </div>
                     </div>
 
@@ -234,8 +249,12 @@ export function Fixture({ card, close, updateCard }) {
                     <hr />
 
                     <ButtonGroup className='w-100'>
-                        <Button variant='success' onClick={() => setScore((team.scorers[player.name] || 0) + 1)}><FontAwesomeIcon icon={faPlus} /> Add Goal</Button>
-                        <Button variant='warn' onClick={() => setScore(0)}><FontAwesomeIcon icon={faBan} /> Clear Goals</Button>
+                        <Button variant='success' onClick={() => setScore((team.scorers[player.name] || 0) + 1)}>
+                            <FontAwesomeIcon icon={faPlus} /> Add Goal
+                        </Button>
+                        <Button variant='warn' onClick={() => setScore(0)}>
+                            <FontAwesomeIcon icon={faBan} /> Clear Goals
+                        </Button>
                     </ButtonGroup>
                 </Modal.Body>
             </Modal>
@@ -262,15 +281,17 @@ export function Fixture({ card, close, updateCard }) {
                     <dt>Time</dt>
                     <dd>{card.date.format("HH:mm")}</dd>
                 </dl>
-                <a href={window.location.origin + `/card/${card.fixture_id}`} title='Permalink'><FontAwesomeIcon icon={faPaperclip} /></a>
+                <a href={window.location.origin + `/card/${card.fixture_id}`} title='Permalink'>
+                    <FontAwesomeIcon icon={faPaperclip} />
+                </a>
             </div>
 
             <div id='teams'>
-                <div id='matchcard-home' className={'team ' + (card.user == 'home' ? "ours" : "theirs")}>
-                    {renderTeam(card.home, 'home', card.user == 'home')}
+                <div id='matchcard-home' className={'team ' + (card.user === 'home' ? "ours" : "theirs")}>
+                    {renderTeam(card.home, 'home', card.user === 'home')}
                 </div>
-                <div id='matchcard-away' className={'team ' + (card.user == 'away' ? "ours" : "theirs")}>
-                    {renderTeam(card.away, 'away', card.user == 'away')}
+                <div id='matchcard-away' className={'team ' + (card.user === 'away' ? "ours" : "theirs")}>
+                    {renderTeam(card.away, 'away', card.user === 'away')}
                 </div>
             </div>
             {player

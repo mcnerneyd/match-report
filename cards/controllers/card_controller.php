@@ -10,22 +10,20 @@ class CardController
         checkuser();
 
         $competitions = Competition::all();
-        if ($_SESSION['section']) {
-            $competitions = array_filter($competitions, function ($a) { return $a['section'] === $_SESSION['section']; });
+        if (isset($_SESSION['section']) && $_SESSION['section']) {
+            $competitions = array_filter($competitions, function ($a) {
+                return $a['section'] === $_SESSION['section'];
+            });
         }
-        usort($competitions, function ($a, $b) { return strcmp($a['name'], $b['name']); });
+        usort($competitions, function ($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
 
         $clubs = array();
 
         foreach (Club::all() as $club) {
-            $clubs[] = array('id'=>$club['id'], 'name'=>$club['name']);
+            $clubs[] = array('id' => $club['id'], 'name' => $club['name']);
         }
-        /*$clubs = array_column(Club::all(), "name");
-
-        if (Arr::get($_SESSION, 'club', null) && !in_array($_SESSION['club'], $clubs)) {
-          $clubs[] = $_SESSION['club'];
-        }
-        sort($clubs);*/
         $entries = array();
         foreach (Competition::entries() as $entry) {
             $entries[] = array($entry['competition_id'], $entry['club_id']);
@@ -46,13 +44,13 @@ class CardController
 
         $fixture = Card::getFixture($id);
 
-        Log::debug("Fixture: ".print_r($fixture, true));
+        Log::debug("Fixture: " . print_r($fixture, true));
 
         if (user('umpire')) {
             if (!isset($fixture['card'])) {
-                Log::info("Creating new card for ${fixture['id']}");
                 Card::create($fixture);
                 $fixture = Card::getFixture($id);
+                Log::info("CARD [" . Arr::get($fixture, 'card.home.team') . "][" . Arr::get($fixture, 'card.away.team') . "] " . Arr::get($fixture, 'section') . ":" . Arr::get($fixture, 'competition') . " #{$fixture['fixtureID']}");
             }
 
             if (isset($_REQUEST['official']) && $_REQUEST['official'] == 'yes') {
@@ -75,29 +73,34 @@ class CardController
 
         if ($club) {
             if (!isset($fixture['card'])) {
-                Log::debug("Creating new card for ${fixture['id']}");
                 $fixture['cardid'] = Card::create($fixture);
                 $fixture = Card::getFixture($id);
+                Log::info("CARD [" . Arr::get($fixture, 'card.home.team') . "][" . Arr::get($fixture, 'card.away.team') . "] " . Arr::get($fixture, 'section') . ":" . Arr::get($fixture, 'competition') . " #{$fixture['fixtureID']}");
             }
 
-            if (!isset($fixture[$club])) {
+            $location = null;
+            if (Arr::get($fixture, 'home_club') == $club)
+                $location = 'home';
+            else if (Arr::get($fixture, 'away_club') == $club)
+                $location = 'away';
+
+            if ($location == null) {
                 // This club is not one of the clubs on the matchcard
                 Log::debug("Club $club is not part of this fixture");
                 require_once('views/card/matchcard.php');
                 return;
             }
 
-            $location = $fixture[$club];
-            Log::debug("For fixture {$fixture['id']}: $club is $location");
+            Log::debug("For fixture {$fixture['fixtureID']}: $club is $location");
 
-            $data = array(
-                    'section' => $fixture['section'],
-                    'club' => $club,
-                    'date' => date('Ymd', $fixture['date']),
-                    'team' => $fixture[$location]['teamnumber'],
-                    'groups' => $fixture['groups']);
+            $data = [
+                'section' => $fixture['section'],
+                'club' => $club,
+                'date' => $fixture['datetimeZ'],
+                'team' => $fixture["{$location}_team"]
+            ];
 
-            $teamcard = $fixture['card'][$fixture[$club]];
+            $teamcard = $fixture['card'][$location];
             if (!(isset($teamcard['locked']) or isset($teamcard['closed']))) {
                 require_once('views/card/fixture.php');
                 return;
@@ -114,8 +117,8 @@ class CardController
             }
 
             Log::debug("Edit/View matchcard ($club): cardid=" . $fixture['card']['id']);
-            $fixture['home']['score'] = emptyValue($fixture['card']['home']['score'], 0);
-            $fixture['away']['score'] = emptyValue($fixture['card']['away']['score'], 0);
+            $fixture['home_score'] = emptyValue($fixture['card']['home']['score'], 0);
+            $fixture['away_score'] = emptyValue($fixture['card']['away']['score'], 0);
             $fixture['card']['away']['suggested-score'] = emptyValue($fixture['card']['home']['oscore'], 0);
             $fixture['card']['home']['suggested-score'] = emptyValue($fixture['card']['away']['oscore'], 0);
         }
@@ -136,7 +139,7 @@ class CardController
 
         $fixture = Card::getFixtureByCardId($cardid);
 
-        redirect('card', 'get', "fid=" . $fixture['id'] . "&x=" . createsecurekey("card" . $fixture['id']));
+        redirect('card', 'get', "fid=" . $fixture['fixtureID'] . "&x=" . createsecurekey("card" . $fixture['fixtureID']));
     }
 
     public function search()

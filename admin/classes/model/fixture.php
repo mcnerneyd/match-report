@@ -9,18 +9,47 @@ class Model_Fixture extends \Model
         $fixtures = array_filter(static::getAll(), function ($f) use ($fixtureId) {
             return $f['fixtureID'] == $fixtureId && $f['status'] == 'active';
         });
-        if (!$fixtures) $fixtures = array();
+        if (!$fixtures) {
+            $fixtures = array();
+        }
         return array_pop($fixtures);
     }
 
     public static function refresh()
     {
-        self::getAllFixtures(true);
+        return self::getAllFixtures(true);
     }
 
     public static function getAll()
     {
         return self::getAllFixtures(false);
+    }
+
+    public static function all(?Model_Section $section = null, ?int $modifiedSince = null)
+    {
+        $fixturesFilename = DATAPATH.'/fixtures.json';
+
+        Log::debug("Get fixtures for $section and $modifiedSince");
+
+        if ($modifiedSince) {
+            Log::debug("Modified since = $modifiedSince");
+            if ((filemtime($fixturesFilename) <= $modifiedSince) && !Model_Matchcard::expandFixtures(null, $modifiedSince)) {
+                return null;
+            }
+        }
+
+        $fixturesFile = file_get_contents($fixturesFilename);
+        $allFixtures = json_decode($fixturesFile, true);
+        $allFixtures = array_filter($allFixtures, function ($a) { return $a['status'] === 'active'; });
+        if ($section != null) {
+            $allFixtures = array_values(array_filter(
+                $allFixtures,
+                function ($f) use ($section) { return $f['section'] == $section;}
+            ));
+        }
+
+        Log::debug("allFixtures contains ".count($allFixtures)." fixture(s)");
+        return Model_Matchcard::expandFixtures($allFixtures);
     }
 
     private static function getAllFixtures($flush = false)
@@ -43,14 +72,18 @@ class Model_Fixture extends \Model
             $flush = true;
         }
 
-        $semKey = ftok(DATAPATH, "m");
-        $sem = sem_get($semKey);
-        if (!sem_acquire($sem, true)) {
-            Log::info("Fixtures already processing");
-            return $fixtures;
+        $semFile = DATAPATH."/sem";
+        if (file_exists($semFile)) {
+            $mtime = filemtime($semFile);
+            if (!$mtime || ((time() - $mtime) < 30)) {
+                Log::info("Fixtures already processing");
+                return $fixtures;
+            }
         }
 
-        Log::info("Fixtures processing");
+        touch($semFile);
+
+        Log::debug("Fixtures processing");
 
         try {			// Flush all downloaded webpages
             Cache::delete('fixtures.source');
@@ -58,19 +91,21 @@ class Model_Fixture extends \Model
         } catch (\CacheNotFoundException $e) {
         }
 
-        $ct=1;
+        $ct = 1;
         $t = microtime(true);
         $pt = $t;
 
         $allfixtures = array();
+        $failureCount = 0;
 
         foreach (Model_Section::find('all') as $section) {
-            $allfixtures = array_merge($allfixtures, self::loadSectionFixtures($section));
+            $result = self::loadSectionFixtures($section);
+            $allfixtures = array_merge($allfixtures, $result['fixtures']);
+            $failureCount += $result['failures'];
             gc_collect_cycles();
         }
 
         $et = microtime(true);
-        Log::info("Loaded ".count($allfixtures)." fixtures: ".(($pt-$t)*1000)."/".(($et-$t)*1000));
 
         $rawfixtures = $allfixtures;
         foreach ($rawfixtures as &$fixture) {
@@ -97,16 +132,14 @@ class Model_Fixture extends \Model
 
         Cache::set('fixtures', $allfixtures, 600);
 
-        sem_release($sem);
-        Log::info("Fixtures processing complete");
+        unlink($semFile);
+        Log::info("Fixtures processing complete: Loaded ".count($allfixtures)." fixtures, $failureCount failures (".(($pt - $t) * 1000)."/".(($et - $t) * 1000).")");
 
         return $allfixtures;
     }
 
-    private static function loadSectionFixtures($section)
+    private static function loadSectionFixtures(Model_Section $section)
     {
-        $allfixtures = array();
-
         loadSectionConfig($section['name']);
 
         try {
@@ -115,6 +148,9 @@ class Model_Fixture extends \Model
         } catch (\CacheNotFoundException $e) {
             $srcs = array();
         }
+
+        $allfixtures = array();
+        $failures = 0;
 
         foreach (Config::get("section.fixtures", array()) as $feed) {
             $feed = trim($feed);
@@ -125,7 +161,7 @@ class Model_Fixture extends \Model
 
             $fixtures = array();
 
-            Log::info("Pulling fixtures $feed");
+            Log::debug("Pulling fixtures $feed");
 
             try {
                 $matches = array();
@@ -145,7 +181,7 @@ class Model_Fixture extends \Model
 
                 if (preg_match('/.*\.csv/', $feed)) {
                     $src = file_get_contents($feed);
-                    $pt=microtime(true);
+                    $pt = microtime(true);
                     $fixtures = self::load_csv($src);
                 } elseif (preg_match('/^!.*/', $feed)) {
                     if (isset($srcs[$feed])) {
@@ -156,16 +192,16 @@ class Model_Fixture extends \Model
                         $srcs[$feed] = $src;
                         Cache::set('fixtures.source', $srcs, 3600);
                     }
-                    $pt=microtime(true);
+                    $pt = microtime(true);
                     $fixtures = self::load_scrape($src);
                 } elseif (preg_match('/^=.*/', $feed)) {
                     $values = str_getcsv(substr($feed, 1));
-                    $fixture = array('datetime'=>$values[0],
-                        'competition'=>$values[1],
-                        'home'=>$values[2],
-                        'away'=>$values[3],
-                        'home_score'=>null,
-                        'away_score'=>null,
+                    $fixture = array('datetime' => $values[0],
+                        'competition' => $values[1],
+                        'home' => $values[2],
+                        'away' => $values[3],
+                        'home_score' => null,
+                        'away_score' => null,
                         );
                     $fixture['fixtureID'] = self::$globalId++;
 
@@ -183,7 +219,8 @@ class Model_Fixture extends \Model
 
                     $fixtures = json_decode($src, true);
                     if ($fixtures == null) {
-                        Log::warning("Cannot process $feed - response is not Json");
+                        $failures += 1;
+                        Log::debug("Cannot process $feed - response is not Json");
                         $fixtures = array();
                     }
                 }
@@ -196,120 +233,117 @@ class Model_Fixture extends \Model
             } catch (Exception $e) {
                 Log::error("Failed to scan feed: $feed, ".($e->getMessage())." @".($e->getTraceAsString()));
             }
-        }
+        } // load feeds
 
-        $badFixtures = array();
-        $goodCompetition = array();
         $clubs = array_map(
-            function ($a) {
-                return trim($a['name']);
-            },
+            function ($a) { return trim($a['name']); },
             Model_Club::find('all')
         );
-        $competitions = array_map(
-            function ($a) {
-                return trim($a['name']);
-            },
+        $competitions = array_unique(array_map(
+            function ($a) { return trim($a['name']); },
             Model_Competition::query()->where('section_id', '=', $section['id'])->get()
-        );
-        $competitions = array_unique($competitions);
-        Log::debug("Competitions for {$section['name']}: ".implode(",", $competitions));
-        foreach ($allfixtures as $key => $fixture) {
-            $k = Model_Competition::parse($section['name'], $fixture['competition']);
-            if (!$k) {
-                $badFixtures[] = $fixture['competition'];
-                unset($allfixtures[$key]);
-                continue;
-            }
+        ));
 
-            $goodCompetition[] = $fixture['competition'];
-
-            $allfixtures[$key]['id'] = $fixture['fixtureID'];
-            $allfixtures[$key]['hidden'] = false;
-            if (!in_array($k, $competitions)) {
-                $allfixtures[$key]['hidden'] = true;
-                $allfixtures[$key]['cover'] = '';
+        $validFixtures = array();
+        foreach ($allfixtures as $fixture) {
+            if (!self::cleanFixture($section, $fixture, $clubs, $competitions)) {
+                $failures += 1;
             } else {
-                $allfixtures[$key]['cover'] = 'C';
+                $validFixtures[] = $fixture;
             }
-
-            if (strpos($fixture['datetime'], '0000') === 0) {
-                Log::debug("Bad date for $k");
-                continue;
-            }
-
-            $allfixtures[$key]['datetime'] = Date::forge(strtotime($fixture['datetime']."+0100"));
-            $allfixtures[$key]['zcompetition'] = $fixture['competition'];
-            $allfixtures[$key]['competition'] = $k;
-            $k = Model_Team::parse($section['name'], $fixture['home']);
-            if (!$k) {
-                $badFixtures[] = $fixture['home'];
-                unset($allfixtures[$key]);
-                continue;
-            }
-
-            $allfixtures[$key]['zhome'] = $fixture['home'];
-            $allfixtures[$key]['home'] = $k['name'];
-            $allfixtures[$key]['home_club'] = $k['club'];
-            $allfixtures[$key]['home_team'] = $k['team'];
-            $allfixtures[$key]['x'] = $k;
-            if (in_array($k['club'], $clubs)) {
-                $allfixtures[$key]['cover'] .= 'H';
-            } else {
-                $allfixtures[$key]['hidden'] = true;
-            }
-
-            $k = Model_Team::parse($section['name'], $fixture['away']);
-            if (!$k) {
-                $badFixtures[] = $fixture['away'];
-                unset($allfixtures[$key]);
-                continue;
-            }
-
-            $allfixtures[$key]['zaway'] = $fixture['away'];
-            $allfixtures[$key]['away'] = $k['name'];
-            $allfixtures[$key]['away_club'] = $k['club'];
-            $allfixtures[$key]['away_team'] = $k['team'];
-            $allfixtures[$key]['y'] = $k;
-            if (in_array($k['club'], $clubs)) {
-                $allfixtures[$key]['cover'] .= 'A';
-            } else {
-                $allfixtures[$key]['hidden'] = true;
-            }
-
-            if (!isset($allfixtures[$key]['played'])) {
-                $allfixtures[$key]['played'] = 'no';
-            }
-
-            $allfixtures[$key]['lastupdated_t'] = time();
         }
 
-        if ($badFixtures) {
-            $badFixtures = array_unique($badFixtures);
-            $goodCompetition = array_unique($goodCompetition);
-            Log::warning("Unresolvable fixtures section={$section['name']}: ".implode(",", $badFixtures));
-            Log::debug("Good section={$section['name']}: ".implode(",", $goodCompetition));
+        Log::debug("Competitions for {$section['name']}: ".implode(",", $competitions)." - processed ".count($allfixtures)." fixture(s) with $failures unmatched");
+
+        return array('fixtures' => $validFixtures, 'failures' => $failures);
+    }
+
+    public static function cleanFixture(Model_Section $section, array &$fixture, array $clubs, array $competitions): bool
+    {
+        $fixture['id'] = $fixture['fixtureID'];
+        $fixture['section'] = $section->name;
+        $fixture['cover'] = '';
+        $fixture['zhome'] = $fixture['home'];
+        $fixture['zaway'] = $fixture['away'];
+        $fixture['zcompetition'] = $fixture['competition'];
+        $error = array();
+
+        $k = Model_Competition::parse($fixture['competition']);
+        if (!$k) {
+            return false;
+        }  // excluded competition
+
+        if (!in_array($k, $competitions)) {
+            // unknown competition
+            $error['competition'] = $k;
         }
 
-        foreach ($allfixtures as &$fixture) {
-            $fixture['section'] = $section['name'];
-            if (!is_object($fixture['datetime'])) {
-                $fixture['datetime'] = Date::time();
+        $fixture['cover'] = 'C';
+        $fixture['competition'] = $k;
+
+        if (strpos($fixture['datetime'], '0000') === 0) {
+            // bad date
+            Log::debug("Fixture contains bad date: ".$fixture['datetime']);
+            return false;
+        }
+
+        $fixture['datetime'] = Date::forge(strtotime($fixture['datetime']."+0100"));
+        $fixture['datetimeZ'] = $fixture['datetime']->format('iso8601', 'UTC');
+
+        $k = Model_Team::parse($fixture['home']);
+        if (!$k) {
+            return false;
+        } // excluded club
+
+        if (!in_array($k['club'], $clubs)) {
+            // unknown club
+            $error['teams'] = array($k['raw']);
+        } else {
+            $fixture['home'] = $k['name'];
+            $fixture['home_club'] = $k['club'];
+            $fixture['home_team'] = $k['team'];
+            $fixture['x'] = $k;
+            $fixture['cover'] .= 'H';
+        }
+
+        $k = Model_Team::parse($fixture['away']);
+        if (!$k) {
+            return false;
+        } // excluded club
+
+        if (!in_array($k['club'], $clubs)) {
+            // unknown club
+            if (!isset($error['teams'])) {
+                $error['teams'] = array();
             }
-            $fixture['datetimeZ'] = $fixture['datetime']->format('iso8601', 'UTC');
+            $error['teams'] = array($k['raw']);
+        } else {
+            $fixture['away'] = $k['name'];
+            $fixture['away_club'] = $k['club'];
+            $fixture['away_team'] = $k['team'];
+            $fixture['y'] = $k;
+            $fixture['cover'] .= 'A';
+        }
+
+        if (!isset($fixture['played'])) {
+            $fixture['played'] = 'no';
+        }
+
+        $fixture['lastupdated_t'] = time();
+        if (count($error) > 0) {
+            $fixture['hidden'] = true;
+            $fixture['status'] = 'inactive';
+            $fixture['error'] = $error;
+        } else {
+            $fixture['hidden'] = false;
             $fixture['status'] = self::getStatus($fixture);
         }
 
-        return array_values($allfixtures);
+        return true;
     }
 
     private static function getStatus($fixture)
     {
-        if ($fixture['hidden']) {
-            return "inactive";
-        }
-
-
         if (isset($fixture['card'])) {
             $card = $fixture['card'];
             if ($card['open'] === 0) {
@@ -347,7 +381,7 @@ class Model_Fixture extends \Model
             $object->home_score = 0;
             $object->away_score = 0;
 
-            foreach (array_combine($headers, $items) as $key=>$value) {
+            foreach (array_combine($headers, $items) as $key => $value) {
                 $object->$key = $value;
             }
 
@@ -368,11 +402,145 @@ class Model_Fixture extends \Model
             $object->home_score = 0;
             $object->away_score = 0;
 
-            foreach ($line as $key=>$value) {
+            foreach ($line as $key => $value) {
                 $object->$key = $value;
             }
 
             $fixtures[] = $object;
+        }
+
+        return $fixtures;
+    }
+
+    //-----------------------------------------------------------------------------
+    public static function scrape($src, $explain = false)
+    {
+        libxml_use_internal_errors(true);
+        $xml = new DOMDocument();
+
+        $xml->loadHTML($src);
+        $xpath = new DOMXPath($xml);
+
+        $competition = null;
+        $date = null;
+        $fixtures = array();
+
+        foreach ($xml->getElementsByTagName('table') as $table) {
+
+            if (!($table->getAttribute('class') == 'frData league' || $table->getAttribute('class') == 'frData diagram')) {
+                continue;
+            }
+
+            foreach ($table->childNodes as $child) {
+
+                if ($child->getAttribute('class') == 'competition') {
+                    $competition = $child->childNodes->item(0)->nodeValue;
+                    continue;
+                }
+                if ($child->getAttribute('class') == 'date') {
+                    $date = str_replace("/", "-", $child->childNodes->item(0)->nodeValue);
+                    continue;
+                }
+
+                if ($date == null or $competition == null) {
+                    continue;
+                }
+
+                $result = array("competition" => $competition);
+
+                if (stripos($child->getAttribute('class'), 'item') !== false) {
+                    foreach ($child->childNodes as $item) {
+                        $key = $item->getAttribute('class');
+
+                        if ($explain) {
+                            echo "$key = ".$item->nodeValue."\n";
+                        }
+
+                        if ($key == 'time') {
+                            $result['datetime'] = "$date ".$item->nodeValue;
+                        }
+                        if ($key == 'homeClub') {
+                            $result['home'] = $item->nodeValue;
+                        }
+                        if ($key == 'awayClub') {
+                            $result['away'] = $item->nodeValue;
+                        }
+                        if ($key == 'homeScore') {
+                            $result['home_score'] = $item->nodeValue;
+                        }
+                        if ($key == 'awayScore') {
+                            $result['away_score'] = $item->nodeValue;
+                        }
+                        if ($item->hasChildNodes()) {
+                            $fidspan = $item->childNodes->item(0);
+                            if ($fidspan->nodeName == 'span' and $fidspan->hasAttribute('fid')) {
+                                $result['fixtureID'] = $fidspan->getAttribute('fid');
+                            }
+                        }
+                    }
+                }
+
+                if (isset($result['fixtureID'])) {
+                    if (isset($result['home_score']) && isset($result['away_score'])) {
+                        $result['played'] = 'yes';
+                        if ($explain) {
+                            echo "Played\n";
+                        }
+                    }
+                    $fixtures[] = $result;
+                }
+            }
+        }
+
+        $fixtureId = 0;
+        foreach ($xml->getElementsByTagName('link') as $link) {
+            if (!$link->hasAttribute("rel") || $link->getAttribute("rel") != "canonical") {
+                continue;
+            }
+            $matches = array();
+            if (preg_match('/https?:\/\/[^\/]*\/[^\/]*\/([0-9]*)\/.*/', $link->getAttribute("href"), $matches)) {
+                $fixtureId = $matches[1] * 1000;
+                break;
+            }
+        }
+
+        foreach ($xml->getElementsByTagName('ul') as $elm) {
+            $classes = $elm->getAttribute("class");
+            $classes = explode(" ", $classes);
+            if (!in_array("fixtures", $classes) && !in_array("results", $classes)) {
+                continue;
+            }
+
+            $result = array();
+            $result['competition'] = $elm->getAttribute("data-compname");
+            $result['datetime'] = $elm->getAttribute("data-date")." ".$elm->getAttribute("data-time");
+            $result['home'] = $elm->getAttribute("data-hometeam");
+            $result['away'] = $elm->getAttribute("data-awayteam");
+            $result['home_score'] = $elm->getAttribute("data-homescore");
+            $result['away_score'] = $elm->getAttribute("data-awayscore");
+            $result['comment'] = $elm->getAttribute("data-comment");
+
+            $result['played'] = ($result['home_score'] != '' && $result['away_score'] != '' ? "yes" : "no");
+
+            $fixtures[] = $result;
+        }
+
+        usort($fixtures, function ($a, $b) {
+            $rdiff = strcasecmp($a['home'], $b['home']);
+            if ($rdiff) {
+                return $rdiff;
+            }
+            return strcasecmp($a['away'], $b['away']);
+        });
+
+        foreach ($fixtures as &$fixture) {
+            if (!isset($fixture['fixtureID'])) {
+                $fixture['fixtureID'] = ++$fixtureId;
+            }
+        }
+
+        if ($explain) {
+            echo "<pre>".print_r($fixtures, true)."</pre>\n";
         }
 
         return $fixtures;

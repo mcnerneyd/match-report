@@ -1,6 +1,4 @@
-import { faEraser } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useState, useContext, useRef } from 'react';
+import React, { useState } from 'react';
 import Button from 'react-bootstrap/Button'
 import ToggleButton from 'react-bootstrap/ToggleButton'
 import ToggleButtonGroup from 'react-bootstrap/ToggleButtonGroup';
@@ -9,7 +7,6 @@ export function Players({card, onClose}) {
     const [selected, setSelected] = useState([])
     const [filter, setFilter] = useState(0)
     const [inProp, setInProp] = useState(false)
-    const nodeRef = useRef(null)
 
     const players = card.players.values
 
@@ -25,8 +22,8 @@ export function Players({card, onClose}) {
     const unselected = players
         .filter(p => !selected.includes(p.name))
         .filter(p => {
-            if (filter == 2) return p.history
-            if (filter == 3) return !p.history
+            if (filter === 2) return p.history
+            if (filter === 3) return !p.history
             return true
         })
         .map(p => p.name)
@@ -39,7 +36,7 @@ export function Players({card, onClose}) {
             <Button variant="warning">Postponed</Button>
             <span>
             <p>{card[card.user].club} {card[card.user].team}</p>
-            <p>{selected.length == 0 ? "No" : selected.length} player{selected.length == 1 ? null : "s"} selected</p>
+            <p>{selected.length === 0 ? "No" : selected.length} player{selected.length === 1 ? null : "s"} selected</p>
             </span>
         </div>
         <div className='players central-block'>

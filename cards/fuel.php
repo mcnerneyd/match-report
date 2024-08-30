@@ -2,11 +2,13 @@
 // FuelPHP faking classes/functions
 
 define('DOCROOT', __DIR__.DIRECTORY_SEPARATOR.'/../');
-define('PKGPATH', realpath(DOCROOT.'/fuel/packages/').DIRECTORY_SEPARATOR);
-define('APPPATH', DOCROOT.'/fuel/app/');
+#define('FUELPATH', '/var/www/fuelphp-1.8.2');
+define('FUELPATH', getenv('FUELPATH') ?: DOCROOT.'/fuel');
+define('PKGPATH', FUELPATH.'/packages/');
+define('APPPATH', FUELPATH.'/app/');
 
 define("ADMIN_ROOT", "/");
-define("DATAPATH", DOCROOT."/data");
+define("DATAPATH", getenv('DATAPATH') ?: DOCROOT."/data");
 
 
 class Fuel {
@@ -39,7 +41,13 @@ function log_write($level, $msg) {
 			mkdir($dir, 0777, true);
 		}
 
-		$msg = "$level - ".date("Y-m-d H:i:s")." --> # $msg\n";
+		$username = Session::get('user', null);
+		if ($username == null) $username = "";
+		else $username = " @".$username->username;
+		$output = date('Y-m-d\\TH:i:s')." [".substr($level, 0, 1)."]$username ".$msg;
+		$output = str_replace(PHP_EOL, PHP_EOL."   | ", $output);
+		$msg = $output.PHP_EOL;
+
 
 		if (!file_exists($filename)) {
 			$msg = "<?php defined('COREPATH') or exit('No direct script access allowed'); ?".">\n\n$msg"; 
@@ -55,7 +63,7 @@ function log_write($level, $msg) {
 
 class Log {
 	static function debug($msg) {
-		log_write("DEBUG", $msg);
+		//log_write("DEBUG", $msg);
 	}
 
 	static function info($msg) {
@@ -143,8 +151,21 @@ class Config {
 
 class Arr {
 	public static function get($arr, $key, $def = false) {
+
+		$b = strpos($key, ".");
+		$balance = null;
+
+		if ($b) {
+			$balance = substr($key, $b + 1);
+			$key = substr($key, 0, $b);
+		}
+
 		if (isset($arr[$key])) {
-			return $arr[$key];
+			if ($balance) {
+				return self::get($arr[$key], $balance);
+			} else {
+				return $arr[$key];
+			}
 		}
 
 		return $def;
@@ -166,6 +187,12 @@ class Session {
 class Auth {
 	static function check() { return user(); }
 	static function has_access($perm) { return in_array($perm, $_SESSION['perms'] ?? array()); }
+
+	static function get_user_id() { 
+		$username = Session::get("username");
+
+		return $username == null ? false : array("cards_auth", $username);
+	}
 }
 class Date {
 	static function create_from_string($str) {

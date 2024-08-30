@@ -30,11 +30,6 @@ class Model_Incident extends \Orm\Model
             'key_from'=>'user_id',
             'model_to'=>'Model_User',
         ),
-        /*'card'=>array(
-            'key_to'=>'id',
-            'key_from'=>'matchcard_id',
-            'model_to'=>'Model_Matchcard',
-        ),*/
     );
 
     public function delete($cascade = null, $use_transaction = false)

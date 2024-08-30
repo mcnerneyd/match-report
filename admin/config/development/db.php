@@ -23,10 +23,10 @@ return array(
 	'default' => array(
 		'connection' => array(
       'port'     => '3306',
-			'username' => 'user',
-			'password' => 'pass',
-      'database' => 'hockey',
-      'hostname' => 'localhost',
+          'username' => \Arr::get($_ENV, 'DB_USER'),
+          'password' => \Arr::get($_ENV, 'DB_PASSWORD'),
+          'database' => \Arr::get($_ENV, 'DB_NAME', 'hockey'),
+          'hostname' => \Arr::get($_ENV, 'DB_HOST'),
 		),
 	),
 );

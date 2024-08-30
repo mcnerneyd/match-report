@@ -14,7 +14,7 @@ class Controller_CardApi extends Controller_RestApi
         unset($card['home_id']);
         unset($card['home']['goals']);
         unset($card['home']['captain']);
-        foreach ($card['home']['scorers'] as $player=>$score) {
+        foreach ($card['home']['scorers'] as $player => $score) {
             $card['home']['players'][$player]['score'] = $score;
         }
         unset($card['home']['scorers']);
@@ -25,7 +25,7 @@ class Controller_CardApi extends Controller_RestApi
         unset($card['away_id']);
         unset($card['away']['goals']);
         unset($card['away']['captain']);
-        foreach ($card['away']['scorers'] as $player=>$score) {
+        foreach ($card['away']['scorers'] as $player => $score) {
             $card['away']['players'][$player]['score'] = $score;
         }
         unset($card['away']['scorers']);
@@ -75,8 +75,9 @@ class Controller_CardApi extends Controller_RestApi
         }
 
         return array(
-                'pagination'=>array('offset'=>$offset,'limit'=>$limit,'total'=>$total),
-                'data'=>$result);
+            'pagination' => array('offset' => $offset, 'limit' => $limit, 'total' => $total),
+            'data' => $result
+        );
     }
 
     /**
@@ -96,20 +97,35 @@ class Controller_CardApi extends Controller_RestApi
             return $this->post_signature();
         }
 
-        $data=file_get_contents('php://input');
-        $data=json_decode($data, false);
+        $data = file_get_contents('php://input');
+        $data = json_decode($data, false);
 
         if (\Input::param("_method") === 'PATCH') {
             return $this->patch_index($data);
         }
 
-        $competition = Model_Competition::find_by_name($data->competition);
+        $competition = Model_Competition::query()
+            ->where('name', '=', $data->competition)
+            ->related('section')
+            ->where('section.name', $data->section)
+            ->get_one();
         $home = Model_Team::findTeam($data->home->club, $data->home->team);
         $away = Model_Team::findTeam($data->away->club, $data->away->team);
 
-        echo $competition->name.":".$home->club->name." ".$home->team." v ".$away->club->name." ".$away->team."\n";
+        Log::debug("Create card :" . print_r($competition, true));
 
-        return new Response("Not available yet", 400);
+        //echo $competition['name'].":".$home->club->name." ".$home->name." v ".$away->club->name." ".$away->name."\n";
+
+        $card = new Model_Matchcard();
+        $card->date = Date::time();
+        $card->home = $home;
+        $card->away = $away;
+        $card->competition = $competition;
+        $card->open = 1;
+        $card->description = 'RestAPI';
+        $card->save();
+
+        return $this->response($card)->set_status(201);
     }
 
     private function patch_index($data)
@@ -128,7 +144,7 @@ class Controller_CardApi extends Controller_RestApi
         }
 
         $clubName = Session::get("club");
-        $cardid   = Input::param('cardid');
+        $cardid = Input::param('cardid');
 
         if (!$cardid) {
             return new Response("No such card", 404);
@@ -159,7 +175,7 @@ class Controller_CardApi extends Controller_RestApi
 
         $matches = Model_Matchcard::find_by_key($fixtureId);
 
-        Log::debug("ResultM".print_r($matches, true));
+        Log::debug("ResultM" . print_r($matches, true));
 
         foreach ($matches as $card) {
             $id = $card['id'];
@@ -179,7 +195,7 @@ class Controller_CardApi extends Controller_RestApi
     public function post_note()
     {
         $clubId = \Auth::get('club_id');
-        $club   = Model_Club::find_by_id($clubId);
+        $club = Model_Club::find_by_id($clubId);
         $user = Session::get('username');
         if ($user) {
             $user = Model_User::find_by_username($user)->id;
@@ -189,22 +205,22 @@ class Controller_CardApi extends Controller_RestApi
         $msg = Input::param('note', null);
 
         if ($msg) {
-            $incident               = new Model_Incident();
-            $incident->date       = Date::time();
-            $incident->player       = '';
+            $incident = new Model_Incident();
+            $incident->date = Date::time();
+            $incident->player = '';
             $incident->matchcard_id = $this->param("id");
-            $incident->detail       = '"' . $msg . '"';
-            $incident->type         = 'Other';
-            $incident->club_id      = $clubId;
-            $incident->resolved     = 0;
-            $incident->user_id  		= $user;
+            $incident->detail = '"' . $msg . '"';
+            $incident->type = 'Other';
+            $incident->club_id = $clubId;
+            $incident->resolved = 0;
+            $incident->user_id = $user;
             $incident->save();
 
             if ($msg == 'Match Postponed') {
-                $msg       = urlencode("PP by " . $club['name']);
-                $card      = Model_Matchcard::card($incident->matchcard_id);
+                $msg = urlencode("PP by " . $club['name']);
+                $card = Model_Matchcard::card($incident->matchcard_id);
                 $fixtureId = $card['fixture_id'];
-                $url       = "https://admin.sportsmanager.ie/fixtureFeed/push.php?fixtureId=$fixtureId&comment=$msg";
+                $url = "https://admin.sportsmanager.ie/fixtureFeed/push.php?fixtureId=$fixtureId&comment=$msg";
 
                 Log::info("$url");
                 echo file_get_contents($url);
@@ -241,20 +257,15 @@ class Controller_CardApi extends Controller_RestApi
         }
 
         $cardId = $this->param('id');  // FIXME mixed up
+        $card = Model_Matchcard::card($cardId);
+
         $player = \Input::param('player');
 
-        Log::debug("Remove player: $player from card_id=$cardId");
-
-        foreach (Model_Incident::find('all', array(
-            'where' => array(
-                    'matchcard_id' => $cardId,
-                'player' => $player
-            )
-        )) as $incident) {
+        foreach (Model_Incident::find('all', array('where' => array('matchcard_id' => $cardId, 'player' => $player))) as $incident) {
             switch ($incident['type']) {
                 case 'Played':
                     $incident['resolved'] = 1;
-                    $incident['detail']   = '';
+                    $incident['detail'] = '';
                     $incident->save();
                     break;
                 case 'Scored':
@@ -266,7 +277,7 @@ class Controller_CardApi extends Controller_RestApi
             }
         }
 
-        Log::info("Removed: $player from card $cardId");
+        Log::info("!PLAYED [$player] #{$card['fixture_id']}/" . Auth::get_screen_name());
     }
 
     private static function getClub($clubName)
@@ -287,45 +298,57 @@ class Controller_CardApi extends Controller_RestApi
         Log::debug("Post player");
 
         if (!\Auth::check()) {
-            Log::info("Profile:".print_r(\Auth::get('id'), true));
+            Log::info("Profile:" . print_r(\Auth::get('id'), true));
             return new Response("Post player forbidden", 401);
         }
 
-        $key   = \Input::param("key", "played");
+        $key = \Input::param("key", "played");
+        $upperkey = str_replace(" ", "_", strtoupper($key));
 
         try {
-            $id = $this->param('id');
+            $id = $this->param('id') ?? \Input::param('matchcardid', null);
             if (!$id) {
-                $id = \Input::param('matchcardid', null);
-                if (!$id) {
-                    throw new Exception("No card provided");
-                }
+                Log::warning("No matchcard specified for player update");
+                return new Response("No card specified", 400);
+            }
+
+            $card = Model_Matchcard::card($id);
+
+            if ($card === null) {
+                Log::warning("No matchcard exists ($id) for player update");
+                return new Response("Card specified does not exist: $id", 400);
             }
 
             $club = \Input::param('club');
             $club = self::getClub($club);
 
-            $name = \Input::param('player');
-            $name = cleanName($name);
-
-            Log::debug("Processing $key: $id =$name ". ($club ? $club['name'] : "No Club"));
-
-            $card = Model_Matchcard::card($id);
-
-            $whoami = null;
-            if ($card['home_name'] === $club['name']) {
-                $whoami = 'home';
+            if (!$club) {
+                Log::warning("No club specified for player update");
+                return new Response("No club specified", 400);
             }
 
-            if ($card['away_name'] === $club['name']) {
+            $name = \Input::param('player');
+            $name = Model_Player::cleanName($name);
+            $clubName = $club['name'];
+
+            $whoami = null;
+            if ($card['home_name'] === $clubName) {
+                $whoami = 'home';
+                if ($upperkey == "PLAYED")
+                    $upperkey .= " (H)";
+            }
+
+            if ($card['away_name'] === $clubName) {
                 $whoami = 'away';
+                if ($upperkey == "PLAYED")
+                    $upperkey .= " (A)";
             }
 
             if ($whoami === null) {
-                return new Response("Forbidden: ${club['name']} not playing club", 401);
+                return new Response("Forbidden: {$clubName} not playing", 401);
             }
 
-            $value = \Input::param("value", null);
+            $teamNo = $card[$whoami]['team'];
 
             if (!$name) {
                 Log::warning("Incident request with no name: " . $key);
@@ -333,40 +356,49 @@ class Controller_CardApi extends Controller_RestApi
             }
 
             if ($key == 'clearcards') {
+                Log::info("!CARDS [$name/$clubName $teamNo] #{$card['fixture_id']}/" . Auth::get_screen_name());
+
                 Model_Incident::clearCards($id, $name, $club['id']);
                 return new Response("Cards cleared", 201);
             }
 
-            Log::debug("Adding player $name to card $id ($value)");
-
             $detail = null;
 
-            if (Model_Incident::query()
-                                ->where('matchcard_id', $id)
-                                ->where('club_id', $club->id)
-                                ->where('type', 'Played')
-                                ->where('resolved', '0')
-                                ->count() == 0) {
+            if (
+                Model_Incident::query()
+                    ->where('matchcard_id', $id)
+                    ->where('club_id', $club->id)
+                    ->where('type', 'Played')
+                    ->where('resolved', '0')
+                    ->count() == 0
+            ) {
                 $detail = '{"roles":["C"]}';	// first player is Captain
             }
 
             Model_Incident::addIncident($id, $club, $name, 'Played', $detail);
 
-            $dateS       = Date::forge()->format("%Y%m%d");
-            $teamNo      = $card[$whoami]['team'];
-            $section     = Model_Section::find_by_name($card['section']);
+            $value = \Input::param("value", null);
+            $detail = ($value == null ? "" : $value) . ($detail == null ? "" : $detail);
+
+            $dateS = Date::forge()->format("%Y%m%d");
+            $section = Model_Section::find_by_name($card['section']);
             $competition = Model_Competition::query()
-                                ->where('section_id', $section->id)
-                                ->where('name', $card['competition'])
-                                ->get_one();
-            $clubName    = $club['name'];
-            $players     = Controller_RegistrationApi::getPlayers($section->name, $club['name'], $dateS, $teamNo, $competition['groups']);
-            $players     = array_map(function ($a) {
+                ->where('section_id', $section->id)
+                ->where('name', $card['competition'])
+                ->get_one();
+            $groups = $competition['groups'];
+            $groups = $groups == null ? null : explode(",", $groups);
+            $players = Controller_RegistrationApi::getPlayers($section, $club, $dateS, $teamNo, $groups);
+            $players = array_map(function ($a) {
                 return $a['name'];
             }, $players);
-            $players     = array_values($players);
+            $players = array_values($players);
+
+            Log::info("$upperkey [$name/$clubName $teamNo] {{$detail}} #{$card['fixture_id']}/" . Auth::get_screen_name());
+
             if (!in_array($name, $players)) {
-                Log::warning("Player is ineligible for club $clubName, team $teamNo: $name dt=$dateS s=$section");
+                Log::warning("INELIGIBLE [$name/$clubName $teamNo] #{$card['fixture_id']}/" . Auth::get_screen_name());
+
                 Model_Incident::addIncident($id, $club, $name, 'Ineligible');
             }
 
@@ -388,11 +420,13 @@ class Controller_CardApi extends Controller_RestApi
                     break;
             }
         } catch (Throwable $e) {
-            Log::warning("Error adding incident: " . print_r($e, true));
-            return new Response("Error adding incident:".$e->getMessage(), 500);
+            Log::error("Error adding incident:\n" . $e);
+            return new Response("Error adding incident:" . $e->getMessage(), 500);
         }
 
-        return new Response("Incident Created:$key", 204);
+        $n = Model_Player::cleanName($name, "[Fn][LN]");
+
+        return array("name" => $name, "firstname" => $n['Fn'], "lastname" => $n['LN']);
     }
 
     /**
@@ -404,7 +438,9 @@ class Controller_CardApi extends Controller_RestApi
             return new Response("Forbidden", 401);
         }
 
-        $matchcardId  = $this->param('id');
+        $matchcardId = $this->param('id');
+        $card = Model_Matchcard::card($matchcardId);
+
         $club = self::getClub(\Input::param('c', null));
         $player = \Input::param('p', null);
         $detail = \Input::param('detail', null);
@@ -419,16 +455,17 @@ class Controller_CardApi extends Controller_RestApi
         Log::debug("Updating player details");
 
         $incident = Model_Incident::query()
-                ->where('club_id', $club->id)
-                ->where('matchcard_id', $matchcardId)
-                ->where('player', $player)
-                ->where('type', 'Played')
-                ->get_one();
+            ->where('club_id', $club->id)
+            ->where('matchcard_id', $matchcardId)
+            ->where('player', $player)
+            ->where('type', 'Played')
+            ->get_one();
 
         $incident->detail = json_encode($detail);
 
         $incident->save();
-        Log::debug("Updated width: ".$incident->detail);
+
+        Log::info("PLAYED+ [$player/{$club['name']}] {{" . $incident->detail . "}} #{$card['fixture_id']}");
         return new Response("Player updated", 200);
     }
 
@@ -444,13 +481,13 @@ class Controller_CardApi extends Controller_RestApi
 
         $clubName = Input::param("c");
 
-        $club         = Model_Club::find_by_name($clubName);
-        $player       = Input::post('player');
-        $score        = Input::post('score');
-        $umpire       = Input::post('umpire');
+        $club = Model_Club::find_by_name($clubName);
+        $player = Input::post('player');
+        $score = Input::post('score');
+        $umpire = Input::post('umpire');
         $emailAddress = Input::post('receipt');
-        $cardId       = $this->param('id');
-        $detail       = "";
+        $cardId = $this->param('id');
+        $detail = "";
         if ($score) {
             $detail = $score;
         }
@@ -461,10 +498,10 @@ class Controller_CardApi extends Controller_RestApi
             $player = "";
         }
 
-        $incident               = new Model_Incident();
-        $incident->player       = $player;
+        $incident = new Model_Incident();
+        $incident->player = $player;
         $incident->matchcard_id = $cardId;
-        $sig                    = Input::post('signature');
+        $sig = Input::post('signature');
         if ($sig) {
             $sig = explode(',', $sig, 2);
             $sig = $sig[1];
@@ -472,24 +509,26 @@ class Controller_CardApi extends Controller_RestApi
             $sig = gzcompress($sig);
             $sig = base64_encode($sig);
         }
-        $incident->date     = Date::time();
-        $incident->detail   = "$detail;$sig";
-        $incident->type     = 'Signed';
-        $incident->club     = $club;
+        $incident->date = Date::time();
+        $incident->detail = "$detail;$sig";
+        $incident->type = 'Signed';
+        $incident->club = $club;
         $incident->resolved = 0;
-        $incident->user_id  = Model_User::find_by_username(Session::get('username'))->id;
+        $incident->user_id = Model_User::find_by_username(Session::get('username'))->id;
         $incident->save();
 
+        $card = Model_Matchcard::card($cardId);
+
         if ($emailAddress) {
-            $card  = Model_Matchcard::card($cardId);
             $title = Config::get("section.title");
             $email = Email::forge();
             //$email->from($autoEmail, "$title (No Reply)");
             $email->to($emailAddress);
-            $body    = View::forge("card/receipt", array(
+            $body = View::forge("card/receipt", array(
                 "card" => $card,
                 "club" => $clubName
-            ));
+            )
+            );
             $matches = array();
             if (preg_match('/title>(.*)<\/title/', $body, $matches)) {
                 $email->subject($matches[1]);
@@ -499,7 +538,7 @@ class Controller_CardApi extends Controller_RestApi
             Log::info("Receipt email sent to $emailAddress");
         }
 
-        Log::info("Card Signed $cardId/$clubName");
+        Log::info("SIGNED [$clubName] {{$detail}} #{$card['fixture_id']}/" . Auth::get_screen_name());
 
         if (static::closeCard($cardId)) {
             return new Response("Card closed", 201);
@@ -515,9 +554,9 @@ class Controller_CardApi extends Controller_RestApi
             return new Response("Forbidden", 401);
         }
 
-        $cardId     = $this->param('id');
+        $cardId = $this->param('id');
         $signatures = array();
-        $incidents  = Model_Incident::find('all', array(
+        $incidents = Model_Incident::find('all', array(
             'where' => array(
                 array(
                     'matchcard_id',
@@ -528,7 +567,8 @@ class Controller_CardApi extends Controller_RestApi
                     'Signed'
                 )
             )
-        ));
+        )
+        );
 
         foreach ($incidents as $incident) {
             try {
@@ -548,9 +588,14 @@ class Controller_CardApi extends Controller_RestApi
                 $sig = gzuncompress($sig);
                 $sig = base64_encode($sig);
 
+                $club = $incident['user'];
+                $club = $club ? $club['club'] : $incident['club'];
+                if ($club)
+                    $club = $club['name'];
+
                 $signatures[] = array(
                     'player' => $incident['player'],
-                    'club' => $incident['club']['name'],
+                    'club' => $club,
                     'signature' => "image/png;base64,$sig"
                 );
             } catch (Exception $e) {
@@ -566,19 +611,19 @@ class Controller_CardApi extends Controller_RestApi
 
     public function post_result()
     {
-        Log::debug("User:".print_r(\Auth::get_profile_fields(), true));
+        Log::debug("User:" . print_r(\Auth::get_profile_fields(), true));
 
         if (!\Auth::check()) {
             return new Response("Only users can update scores", 403);
         }
 
-        $matchcardId  = \Input::param('id');
+        $matchcardId = \Input::param('id');
         $card = Model_Matchcard::card($matchcardId);
 
         $homeGoals = $card['home']['goals'];
         $awayGoals = $card['away']['goals'];
 
-        $fixtureId    = $card['fixture_id'];
+        $fixtureId = $card['fixture_id'];
 
         $url = "https://admin.sportsmanager.ie/fixtureFeed/push.php?fixtureId=$fixtureId&homeScore=$homeGoals&awayScore=$awayGoals";
 
@@ -609,6 +654,7 @@ class Controller_CardApi extends Controller_RestApi
             return false;
         }
 
+
         $signatories = array();
         foreach ($signatures as $signature) {
             if (!$signature->user || $signature->user->group == 1) {
@@ -617,7 +663,7 @@ class Controller_CardApi extends Controller_RestApi
                 } else {
                     Log::warning("Card not signed by user");
                 }
-                
+
                 if ($signature->club) {
                     $signatories[] = $signature->club['name'];
                 }
@@ -636,8 +682,7 @@ class Controller_CardApi extends Controller_RestApi
         if ($force || count($signatories) == 2) {
             $homeGoals = $card['home']['goals'];
             $awayGoals = $card['away']['goals'];
-
-            $fixtureId    = $card['fixture_id'];
+            $fixtureId = $card['fixture_id'];
 
             loadSectionConfig($card['section']);
             $resultSubmit = Config::get("section.result.submit");
@@ -645,7 +690,7 @@ class Controller_CardApi extends Controller_RestApi
 
             if ($resultSubmit === 'new') {
                 $fixtures = Model_Fixture::getAll();
-                $fixture  = Model_Fixture::get($fixtureId);
+                $fixture = Model_Fixture::get($fixtureId);
                 if ($fixture['home_score'] === null && $fixture['away_score'] === null) {
                     Log::debug("Fixture result not set: fixture=$fixtureId");
                     $resultSubmit = 'yes';
@@ -663,7 +708,7 @@ class Controller_CardApi extends Controller_RestApi
                 Log::info("Result (not submitted): fixture=$fixtureId $homeGoals-$awayGoals");
             }
 
-            $card       = Model_Matchcard::find($cardId);
+            $card = Model_Matchcard::find($cardId);
             $card->open = 51;
             $card->save();
 
@@ -702,18 +747,18 @@ class Controller_CardApi extends Controller_RestApi
         if ($date == null) {
             $date = Date::forge()->format('mysql');
         }
-        $idq = Db::query("select distinct m.id from incident i 
+        $idq = Db::query(/* SQL! */ "select distinct m.id from incident i 
                 join matchcard m on i.matchcard_id = m.id
                 join competition x on m.competition_id = x.id
                 join section s on x.section_id = s.id
                 where i.type = 'Signed' and m.open < 50 and m.date < :date and (:section is null or s.name = :section)")
-                ->bind('section', $section)
-                ->bind('date', $date);
+            ->bind('section', $section)
+            ->bind('date', $date);
 
         foreach ($idq->execute() as $cardId) {
             #$c = Model_Matchcard::card($cardId['id']);
             $c = self::closeCard($cardId['id'], true);
-            echo "Closed: ".$c['description']."\n";
+            echo "Closed: " . $c['description'] . "\n";
         }
     }
 
@@ -727,7 +772,7 @@ class Controller_CardApi extends Controller_RestApi
             $initialDate = strtotime("first thursday of " . date("M YY", $initialDate));
         }
         $initialDate = strtotime("+1 day", $initialDate);
-        $players     = Model_Registration::find_between_dates($club['name'], $initialDate, $currentDate);
+        $players = Model_Registration::find_between_dates($club['name'], $initialDate, $currentDate);
 
         $history = $club->getPlayerHistorySummary();
 

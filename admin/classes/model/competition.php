@@ -6,7 +6,6 @@ class Model_Competition extends \Orm\Model
         'id',
         'section_id',
         'name',
-        'code',
         'teamsize',
         'teamstars',
         'format',
@@ -28,14 +27,21 @@ class Model_Competition extends \Orm\Model
 
     protected static $_table_name = 'competition';
 
-    public static function getCompetition($section, $name)
+    public static function getCompetition(Model_Section $section, $name) : ?Model_Competition
     {
-        return DB::select()->from('competition')
-            ->where('section', $section)
-            ->where('name', $name)->execute();
+        return Model_Competition::query()
+            ->where('section_id', $section['id'])
+            ->where('name', $name)->get_one();
     }
 
-    public static function parse($section, $rawstr)
+    public function log() {
+        $detail = $this['sequence'].";".$this['teamsize'].";".$this['teamstars'].";".$this['groups'];
+        $detail = rtrim($detail, ";");
+        if ($detail != "") $detail = " {".$detail."}";
+        Log::info("+COMPETITION {$this['format']} [{$this['name']}/{$this['section']['name']}]$detail #{$this['id']}/" . Auth::get_screen_name());
+    }
+
+    public static function parse(string $rawstr)
     {
         $str=$rawstr;
         try {
@@ -45,25 +51,25 @@ class Model_Competition extends \Orm\Model
             $replacements = array();
             foreach ($config as $pattern) {
                 if (trim($pattern) == '') {
-                    break;
+                    continue;
                 }
                 $parts = explode($pattern[0], $pattern);
                 if (count($parts) < 3) {
                     continue;
                 }
-                $patterns[] = "/${parts[1]}/i";
+                $patterns[] = "/{$parts[1]}/i";
                 $replacements[] = $parts[2];
             }
 
             $str = trim(preg_replace($patterns, $replacements, trim($str)));
 
-            if ($str == '!') {
-                return null;
+            if (strpos($str, '!') !== false) {
+                return false;
             }
 
             return $str;
         } catch (Exception $e) {
-            Log::error("Failed to parse: ".$e->getMessage());
+            Log::error("Failed to parse: $rawstr".$e->getMessage());
             return $rawstr;
         }
     }

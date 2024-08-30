@@ -1,6 +1,7 @@
 <?php if (isset($email)) { ?>
-<p>An email has been sent to <?= $email ?> with instructions for
-resetting your password.</p>
+<p>An email has been sent to <?= $email ?> with instructions for resetting your password.</p>
+
+<small>The existence of a user with the email address has not been verified.</small>
 <?php return; } ?>
 <form>
 

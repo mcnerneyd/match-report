@@ -8,15 +8,17 @@ class Model_Registration
     private static $codes;
     public static function init()
     {
-        $path = DATAPATH."/sections/".Session::get('site')."/tmp/cache";
-        if (!file_exists($path)) {
-            mkdir($path, 0777, true);
+        if (defined('DATAPATH')) {
+            $path = DATAPATH . "/sections/" . Session::get('site') . "/tmp/cache";
+            if (!file_exists($path)) {
+                mkdir($path, 0777, true);
+            }
+            static::$cache = Cache::forge("membership", array('file' => array('path' => $path), 'driver' => 'file', 'expiration' => 3600 * 24));
+            $codes = file_exists(APPPATH . "/classes/model/clublist.ini") ? parse_ini_file(APPPATH . "/classes/model/clublist.ini") : array();
         }
-        static::$cache = Cache::forge("membership", array('file'=>array('path'=>$path),'driver'=>'file','expiration'=>3600*24));
-        $codes = file_exists(APPPATH."/classes/model/clublist.ini") ? parse_ini_file(APPPATH."/classes/model/clublist.ini") : array();
     }
 
-    public static function addRegistration($section, $file, $club)
+    public static function addRegistration(Model_Section $section, Model_Club $club, string $file) : string
     {
         $ts = Date::forge()->format("%y%m%d%H%M%S");
         $arcDir = self::getRoot($section, $club);
@@ -27,29 +29,46 @@ class Model_Registration
         return $newName;
     }
 
-    public static function getRoot($section, $club = null, $file = null)
+    public static function getRoot(Model_Section $section, ?Model_Club $club = null): string
     {
         if ($section == null) {
             throw new Exception("No section");
         }
-        $root = DATAPATH."/sections/$section/registration";
+        $root = DATAPATH . "/sections/".strtolower($section->name)."/registration";
 
         if ($club) {
-            $root .= "/".strtolower($club);
+            $root .= "/" . strtolower($club->name);
         }
 
         if (!file_exists($root)) {
             mkdir($root, 0777, true);
         }
 
-        if ($file) {
-            $root .= "/$file";
-        }
+        $root = realpath($root);
 
-        return realpath($root);
+        if (!$root)
+            throw new ErrorException("Unable to resolve path $root does not resolve to a real path");
+
+        return $root;
     }
 
-    public static function flush($section, $club)
+    public static function getLatestDate(Model_Section $section, Model_Club $club): int
+    {
+        $root = self::getRoot($section, $club);
+        $files = glob("$root/*.csv");
+        $maxtime = 0;
+        if ($files) {
+            foreach ($files as $name) {
+                $t = filemtime($name);
+                if ($t > $maxtime)
+                    $maxtime = $t;
+            }
+        }
+
+        return $maxtime;
+    }
+
+    public static function flush(Model_Section $section, Model_Club $club)
     {
         $root = self::getRoot($section, $club);
         Log::debug("Flushing root: $root");
@@ -63,24 +82,28 @@ class Model_Registration
         }
     }
 
-    public static function writeErrors($section, $club, $errors)
+    public static function writeErrors(Model_Section $section, Model_Club $club, array $errors)
     {
         $root = self::getRoot($section, $club);
         $files = glob("$root/*.csv");
         $file = end($files);
-        file_put_contents($file.".err", implode("\n", $errors));
+        file_put_contents($file . ".err", implode("\n", $errors));
     }
 
-    public static function delete($section, $club, $filename)
+    public static function delete(Model_Section $section, Model_Club $club, $filename)
     {
-        $file = self::getRoot($section, $club, $filename);
+        $file = self::getRoot($section, $club) . "/$filename";
 
-        Log::info("delete file: $file");
+        if (file_exists($file)) {
+            Log::info("delete file: $file");
 
-        unlink($file);
+            unlink($file);
+        } else {
+            Log::warning("Trying to delete non-existant file: $file");
+        }
     }
 
-    public static function find_all_players($section, $time = null)
+    public static function find_all_players(Model_Section $section, ?int $time = null): array
     {
         if ($time == null) {
             $time = time();
@@ -88,21 +111,21 @@ class Model_Registration
 
         $result = array();
 
-        Log::info("Full player list requested: ".date('Y-m-d H:i', $time));
+        Log::info("Full player list requested: " . date('Y-m-d H:i', $time));
 
-        foreach (glob(self::getRoot($section)."/*") as $club) {
+        foreach (glob(self::getRoot($section) . "/*") as $club) {
             if (!preg_match("/^[A-Za-z ]*$/", $club)) {
                 continue;
             }
             $club = basename($club);
-            $clubReg = self::find_before_date($club, $time);
+            $clubReg = self::find_before_date($section, $club, $time);
             $result = array_merge($result, $clubReg);
         }
 
         return $result;
     }
 
-    public static function clearErrors($section, $club)
+    public static function clearErrors(Model_Section $section, Model_Club $club)
     {
         $root = self::getRoot($section, $club);
         if (is_dir($root)) {
@@ -124,7 +147,7 @@ class Model_Registration
             $ids = array();
         }
 
-        foreach ($ids as $membershipId=>$detail) {
+        foreach ($ids as $membershipId => $detail) {
             if (strpos($detail, "$club:") === 0) {
                 unset($ids[$membershipId]);
             }
@@ -133,13 +156,12 @@ class Model_Registration
         self::$cache->set($ids, 30 * 24 * 3600);	// 30 days
     }
 
-    public static function find_all($section, $club)
+    public static function find_all(Model_Section $section, Model_Club $club): array
     {
         $result = array();
-        $club = strtolower($club);
         $root = self::getRoot($section, $club);
         $seasonStart = currentSeasonStart()->get_timestamp();
-        Log::debug("loading $root (".strftime('%F', $seasonStart)."/$seasonStart)");
+        Log::debug("loading $root (" . strftime('%F', $seasonStart) . "/$seasonStart)");
 
         if (is_dir($root)) {
             $files = glob("$root/*.csv");
@@ -149,20 +171,22 @@ class Model_Registration
                         continue;
                     }
                     Log::debug("Checking file $name");
-                    $ts=Date::create_from_string(basename($name), '%y%m%d%H%M%S.csv');
-                    $finfo=finfo_open(FILEINFO_MIME);
+                    $ts = Date::create_from_string(basename($name), '%y%m%d%H%M%S.csv');
+                    $finfo = finfo_open(FILEINFO_MIME);
                     $ftype = "";
                     if ($finfo) {
                         $ftype = finfo_file($finfo, $name);
                         finfo_close($finfo);
                     }
-                    $fileData = array("club"=>$club,
-                        "name"=>basename($name),
-                        "timestamp"=>$ts->get_timestamp(),
-                        "type"=>$ftype,
-                        "cksum"=>md5_file($name));
-                    if (file_exists($name.".err")) {
-                        $fileData['errors'] = file($name.".err");
+                    $fileData = array(
+                        "club" => strtolower($club->name),
+                        "name" => basename($name),
+                        "timestamp" => $ts->get_timestamp(),
+                        "type" => $ftype,
+                        "cksum" => md5_file($name)
+                    );
+                    if (file_exists($name . ".err")) {
+                        $fileData['errors'] = file($name . ".err");
                     }
 
                     $result[] = $fileData;
@@ -170,17 +194,17 @@ class Model_Registration
             }
         }
 
-        Log::debug("Files ".count($result));
+        Log::debug("Files " . count($result));
 
         return $result;
     }
 
-    private static function buildRegistration($current, $initial = null, $teamSizes = null, $history = null, $allowPlaceholders = false)
+    public static function buildRegistration(array $current, array $initial = null, array $teamSizes = null, array $history = null, bool $allowPlaceholders = false): array
     {
         $currentNames = array();
         $currentLookup = array();
 
-        Log::debug("Current players: ".count($current)." teamSizes=".print_r($teamSizes, true));
+        Log::debug("Current players: " . count($current) . " teamSizes=" . join($teamSizes));
 
         foreach ($current as $player) {
             $currentNames[] = $player['name'];
@@ -228,7 +252,7 @@ class Model_Registration
                 $first = min($teams);
                 $firstCount = array_count_values($teams);
                 $firstCount = $firstCount[$first];
-                $player['score'] = round($first + (1 - ($firstCount/count($teams))), 2);
+                $player['score'] = round($first + (1 - ($firstCount / count($teams))), 2);
             }
         }
 
@@ -243,15 +267,15 @@ class Model_Registration
             $result = array_merge($result, $placeholders);
         }
 
-        Log::debug("Players for assignment: ".count($result));
+        Log::debug("Players for assignment: " . count($result));
 
         // assign players to teams
         $lastTeam = 1;
         $teamsAllocation = array();
         if ($teamSizes) {
-            for ($i=0;$i<count($teamSizes);$i++) {
-                $lastTeam = $i+1;
-                for ($j=0;$j<$teamSizes[$i];$j++) {
+            for ($i = 0; $i < count($teamSizes); $i++) {
+                $lastTeam = $i + 1;
+                for ($j = 0; $j < $teamSizes[$i]; $j++) {
                     $teamsAllocation[] = $lastTeam;
                 }
             }
@@ -297,20 +321,20 @@ class Model_Registration
             }
         });
 
-        Log::debug("Registration has ".count($result). " valid player(s)");
+        Log::debug("Registration has " . count($result) . " valid player(s)");
 
         return $result;
     }
 
-  private static function fmt($date)
-  {
-      return strftime('%F', $date)."/".$date;
-  }
-
-    public static function find_between_dates($sectionName, $clubName, $initialDate, $currentDate, &$info = array())
+    private static function fmt(int $date): string
     {
-        Log::debug("Request for registration for $sectionName/$clubName: between ".self::fmt($initialDate)." and ".self::fmt($currentDate));
-        $current = Model_Registration::find_before_date($sectionName, $clubName, $currentDate);
+        return strftime('%F', $date) . "/" . $date;
+    }
+
+    public static function find_between_dates(Model_Section $section, Model_Club $club, int $initialDate, int $currentDate, &$info = array()): array
+    {
+        Log::debug("Request for registration for $section/$club: between " . self::fmt($initialDate) . " and " . self::fmt($currentDate));
+        $current = Model_Registration::find_before_date($section, $club, $currentDate);
         $restrictionDate = Config::get('section.date.restrict', null);
         $initial = null;
 
@@ -318,54 +342,50 @@ class Model_Registration
             $restrictionDate = strtotime($restrictionDate);
             if ($currentDate > $restrictionDate) {
                 Log::debug("Restrictions in place");
-                $initial = Model_Registration::find_before_date($sectionName, $clubName, $initialDate);
+                $initial = Model_Registration::find_before_date($section, $club, $initialDate);
             }
         }
 
-        $club = Model_Club::find_by_name($clubName);
-        $teamSizes = $club ? $club->getTeamSizes($sectionName) : array();
-        $history = Model_Player::getHistory($clubName, $currentDate);
+        $teamSizes = $club ? $club->getTeamSizes($section->name) : array();
+        $history = Model_Player::getHistory($club, $currentDate);
 
         $info['initial'] = $initialDate;
         $info['current'] = $currentDate;
         $info['teamSizes'] = $teamSizes;
-        $info['club'] = $clubName;
-        $info['section'] = $sectionName;
+        $info['club'] = $club->name;
+        $info['section'] = $section->name;
 
         return self::buildRegistration($current, $initial, $teamSizes, $history, \Config::get("section.registration.placeholders", true));
     }
 
 
-     /**
-      * Returns a list of players that are elgible to play before a specific date.
-        *
-        * @param $club The club being searched
-        * @param $date The date before which players must be elgible
-        * @param $firstAsNecessary If there is no registration available then allow
-        *            the first available registration instead
-        * @return A list of players
-    */
-    public static function find_before_date($sectionName, $club, $date)
+    /**
+     * Returns a list of players that are elgible to play before a specific date.
+     *
+     * @param $club The club being searched
+     * @param $date The date before which players must be elgible
+     * @param $firstAsNecessary If there is no registration available then allow
+     *            the first available registration instead
+     * @return A list of players
+     */
+    public static function find_before_date(Model_Section $section, Model_Club $club, int $date): array
     {
         $match = null;
-        $club = strtolower($club);
-        foreach (self::find_all($sectionName, $club) as $registration) {
-            if ($match == null) {
-                $match = $registration['name'];
-            }	// At least get one, i.e. the first one
-            if ($registration['timestamp'] < $date) {		// If there's a newer one before the date use that
+        foreach (self::find_all($section, $club) as $registration) {
+            // If there's a newer one before the date use that (or get the first one)
+            if ($match == null || $registration['timestamp'] < $date) {
                 $match = $registration['name'];
             }
         }
 
         $result = array();
         if ($match != null) {
-            $file = self::getRoot($sectionName, $club, $match);
+            $file = self::getRoot($section, $club) . "/$match";
 
-            Log::debug("Find: $club ".date('Y-m-d H:i:s', $date)." = $file");
+            Log::info("[$club] Registration on " . date('Y-m-d H:i:s', $date) . " = " . basename($file));
 
-            if ($sectionName) {
-                loadSectionConfig($sectionName);
+            if ($section) {
+                loadSectionConfig($section->name);
             }
             $result = self::readRegistrationFile($file, $club);
         }
@@ -377,10 +397,11 @@ class Model_Registration
      * Open a file and read a list of players from it. Strips headers
      * and assigns teams as required.
      */
-    private static function readRegistrationFile($file, $rclub = null)
+    private static function readRegistrationFile($file, ?Model_Club $club = null)
     {
         $jsonFile = "$file.json";
         if (file_exists($jsonFile)) {
+            Log::debug("[$club] Using cached registration: $jsonFile");
             $json_data = file_get_contents($jsonFile);
             return json_decode($json_data, true);
         }
@@ -397,20 +418,40 @@ class Model_Registration
             }
         }
 
-        Log::debug("readRegistrationFile: club=$rclub file=$file: groups=".print_r($groups, true));
+        Log::info("[$club] Caching file=$file");
+        if ($groups)
+            Log::debug("groups=" . implode(",", array_values($groups)));
 
-        $result = self::parse(file($file), $rclub, $groups);
+        $result = self::parse(file($file), $club->name, $groups, Config::get("section.allowassignment"));
 
         //$json_data = xjson_encode($result, JSON_PRETTY_PRINT);
         file_put_contents("$file.json", json_encode($result, JSON_PRETTY_PRINT));
+        static::touch("$file.json");
 
         return $result;
     }
 
+    private static function touch($path, $date = null)
+    {
+        if (!$path) {
+            return;
+        }
+
+        if (!$date) {
+            if (!preg_match("/[0-9]{12}.*/", $path)) {
+                return;
+            }
+            $date = Date::create_from_string(substr(basename($path), 0, 12), "%y%m%d%H%M%S");
+        }
+
+        touch($path, $date->get_timestamp());
+    }
+
+
     /**
      * Parse a registration providered as an array of lines.
      */
-    private static function parse($lines, $rclub, $groups)
+    public static function parse(array $lines, string $rclub, ?array $groups, bool $allowAssignment = false): array
     {
         $result = array();
         $pastHeaders = false;
@@ -433,7 +474,7 @@ class Model_Registration
                 continue;
             }
             if ($lastline) {
-                $player = $lastline.$player;
+                $player = $lastline . $player;
                 $lastline = null;
             }
 
@@ -474,7 +515,7 @@ class Model_Registration
                     continue;
                 }
 
-                if (preg_match('/(club:|school:|last name|first name|name|do not delete)/i', $arr[0])) {
+                if (preg_match('/(club:|school:|registration|surname|\bname\b|do not delete)/i', $arr[0])) {
                     continue;
                 }
                 if ($rclub && stripos($arr[0], $rclub) === 0) {
@@ -498,27 +539,26 @@ class Model_Registration
             $player = $arr[0];
 
             if (count($arr) > 1) {
-                if (preg_replace('/[^A-Za-z]/', "", $arr[1])) {
-                    $player .= ",".$arr[1];
+                if (preg_match('/[0-9:]/', $arr[1]) === false) {
+                    $player .= "," . $arr[1];
                 }
             }
 
-            $player = cleanName($player);
+            $player = Model_Player::cleanName($player);
             $pt = null;
 
             $playerTeam = is_numeric($team) ? $team : null;
-
-            if (Config::get("section.allowassignment")) {
-                for ($i=count($arr)-1;$i>0;$i--) {
+            if ($allowAssignment) {
+                for ($i = count($arr) - 1; $i > 0; $i--) {
                     if ($arr[$i]) {
                         $group = trim(strtolower($arr[$i]));
                         if (isset($groups[$group])) {
                             $playerTeam = $groups[$group];
                             $pt = $groups[$group];
-                            Log::debug("PT = $playerTeam $i");
+                            //Log::debug("PT = $playerTeam $i");
                         } else {
                             $matches = array();
-                            if (preg_match('/^([0-9]+)(?:(st|nd|rd|th)(s)?)?$/', $arr[$i], $matches)) {
+                            if (preg_match('/^([1-9][0-9]*)(?:(st|nd|rd|th)(s)?)?$/', trim($arr[$i]), $matches)) {
                                 $playerTeam = $matches[1];
                                 $pt = $arr[$i];
                             }
@@ -529,7 +569,7 @@ class Model_Registration
                 }
             }
 
-            $playerArr = cleanName($player, "[Fn][LN]");
+            $playerArr = Model_Player::cleanName($player, "[Fn][LN]");
 
             if ($player) {
                 if (!self::validateMembership($rclub, $playerArr['Fn'], $playerArr['LN'], $membershipId)) {
@@ -539,15 +579,17 @@ class Model_Registration
                     $membershipId = null;
                 }
 
-                $result[] = array("name"=>$player,
-                    "lastname"=>$playerArr['LN'],
-                    "firstname"=>$playerArr['Fn'],
-                    "membershipid"=>$membershipId,
-                    "status"=>"registered",
-                    "phone"=>phone($player),
-                    "team"=>$playerTeam,
-                    "pt"=>$pt,
-                    "club"=>$rclub);
+                $result[] = array(
+                    "name" => $player,
+                    "lastname" => $playerArr['LN'],
+                    "firstname" => $playerArr['Fn'],
+                    "membershipid" => $membershipId,
+                    "status" => "registered",
+                    "phone" => Model_Player::phone($player),
+                    "team" => $playerTeam,
+                    "pt" => $pt,
+                    "club" => $rclub
+                );
             }
         }
 
@@ -562,9 +604,9 @@ class Model_Registration
 
         $clubId = self::$codes[$club];
 
-        $url="http://portal.azolve.com/azolveapi/AzolveService/Neptune2?clientReference=HockeyIreland".
-            "&objectName=Cus_ValidateClubMembers&objectType=sp".
-            "&parameters=MID%7C$membershipId;Firstname%7CXX;Surname%7CXX;ClubID%7C$clubId;DOB%7C1970-01-01".
+        $url = "http://portal.azolve.com/azolveapi/AzolveService/Neptune2?clientReference=HockeyIreland" .
+            "&objectName=Cus_ValidateClubMembers&objectType=sp" .
+            "&parameters=MID%7C$membershipId;Firstname%7CXX;Surname%7CXX;ClubID%7C$clubId;DOB%7C1970-01-01" .
             "&password=0O34zW934rVC&userId=AzolveAPI";
 
         $ch = curl_init();
@@ -577,7 +619,7 @@ class Model_Registration
 
         $response = json_decode($response);
         if (!is_array($response) || $response[1][0] === 0) {
-            Log::warn("Invalid membership ID: $membershipId = $club:$firstName:$lastName ".print_r($response, true));
+            Log::warn("Invalid membership ID: $membershipId = $club:$firstName:$lastName " . print_r($response, true));
             return false;
         }
 

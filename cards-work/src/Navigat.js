@@ -19,7 +19,7 @@ function Navigat({search}) {
 
             <Navbar.Collapse id="basic-navbar-nav" className="gap-5">
                 <Nav>
-                    <Nav.Link href="/cards/ui">Matches</Nav.Link>
+                    <Nav.Link href="/cards/ui/">Matches</Nav.Link>
                     {allowed("registration.view")
                     ? <NavDropdown title='Registration'>
                         <NavDropdown.Item href="/Registration">Registrations</NavDropdown.Item>

@@ -20,7 +20,7 @@ $(document).ready(function () {
 
     if ($('#match-card').hasClass('open')) {
         $('.ours thead th').append(
-            "<a class='add-player' data-bs-toggle='modal' data-target='#add-player-modal'><i class='fas fa-user-plus'></i></a>");
+            "<a class='add-player' data-bs-toggle='modal' data-bs-target='#add-player-modal'><i class='fas fa-user-plus'></i></a>");
     }
 
     $('.alert-detail').hide();
@@ -107,7 +107,7 @@ $(document).ready(function () {
                 if ($('#submit-matchcard input[name=opposition-score]')[0]) {
                     $('#submit-matchcard input[name=opposition-score]')[0].setCustomValidity('Cup matches cannot be tied');
                 }
-                $('#submit-matchcard input[name=opposition-score]+.invalid-feedback').text('Cup matches cannot be tied (make sure to include tie-break score)');
+                $('#submit-matchcard input[name=opposition-score]+.invalid-feedback').text('Cup matches cannot be tied  - make sure to count all goals, including those scored in the tie-break, in the submitted score');
             }
         }
 
@@ -174,10 +174,11 @@ $(document).ready(function () {
 
     $('#add-player-modal .btn-success').on('click', function (e) {
         $("body").addClass('waiting');
-        var playerName = $('#player-name').val();
+        const playerName = $('#player-name').val();
+        const club = $('#teams .ours>table').data('club');
         console.log("Adding player: " + playerName);
 
-        $.post(`${restUrl}cards/${cardId}`, { 'player': playerName })
+        $.post(`${restUrl}cards/${cardId}`, { 'player': playerName, club })
             .done(function () { location.reload(); });
     });
 

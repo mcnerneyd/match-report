@@ -75,7 +75,7 @@
 		});
 
 		$("#add-user-modal button[type='submit']").click(function() {
-			$.post('<?= Uri::create('index.php/api/users') ?>', $('#add-user-modal form').serialize(), function(data) {
+			$.post('<?= Uri::create('/api/users') ?>', $('#add-user-modal form').serialize(), function(data) {
 				window.location.reload();
 				$.notify({message: 'User Created'}, {
 					placement: { from: 'top', align: 'right' },
@@ -167,7 +167,7 @@
 			<td>${user['role']}</td>
 			<td>${user['email']}</td>
 			<td class='command-group'>
-				<a href='delete-user' class='btn btn-danger btn-sm'><i class='fas fa-trash-alt'></i></a>
+				<!--a href='delete-user' class='btn btn-danger btn-sm'><i class='fas fa-trash-alt'></i></a-->
 			</td>
 		</tr>";
 } ?>

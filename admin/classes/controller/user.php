@@ -3,6 +3,7 @@
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
+
 define("COOKIE_TIMEOUT", 60 * 60 * 2);
 
 class Controller_User extends Controller_Template
@@ -63,9 +64,11 @@ class Controller_User extends Controller_Template
         $user->save();
 
         $this->template->title = "Password Reset";
-        $this->template->content = View::forge('user/changepassword', array(
-            "success" => true
-        )
+        $this->template->content = View::forge(
+            'user/changepassword',
+            array(
+                "success" => true
+            )
         );
     }
 
@@ -91,33 +94,17 @@ class Controller_User extends Controller_Template
             return new Response("Cannot reset matchcard user password (only secretaries/admins)", 403);
         }
 
-        $salt = Config::get("section.salt");
+        $salt = Config::get("section.salt", "0123456789abcdef");
         $autoEmail = Config::get("section.automation.email");
         $title = Config::get("section.title");
         $hash = Input::param('h');
 
         if (!isset($hash)) {
-            $ts = Date::forge()->get_timestamp();
-            $hash = md5("$username $ts $salt");
 
-            $email = Email::forge();
-            $email->to($username);
-            $email->subject("Leinster Hockey Cards - Password Reset");
-            $email->html_body(View::forge("user/resetemail", array(
-                "email" => $username,
-                "timestamp" => $ts,
-                "hash" => $hash
-            )
-            ));
-            $email->send();
+            Model_Report::emailForgottenPassword($username, $salt);
 
-            Log::info("Password reset email sent to:$username");
-
-            $this->template->title = "Email Sent";
-            $this->template->content = View::forge(
-                'user/forgottenpassword',
-                array("email" => $username)
-            );
+            $this->template->title = "Password Reset Request Processed";
+            $this->template->content = View::forge('user/forgottenpassword', array("email" => $username));
             return;
         }
 
@@ -136,17 +123,21 @@ class Controller_User extends Controller_Template
             $user['password'] = \Auth::hash_password($newPassword);
             $user->save();
             $this->template->title = "Password Reset";
-            $this->template->content = View::forge('user/changepassword', array(
-                "success" => true
-            )
+            $this->template->content = View::forge(
+                'user/changepassword',
+                array(
+                    "success" => true
+                )
             );
         } else {
             $this->template->title = "Reset Password";
-            $this->template->content = View::forge('user/changepassword', array(
-                "timestamp" => $ts,
-                "email" => $username,
-                "hash" => $hash
-            )
+            $this->template->content = View::forge(
+                'user/changepassword',
+                array(
+                    "timestamp" => $ts,
+                    "email" => $username,
+                    "hash" => $hash
+                )
             );
         }
     }
@@ -190,9 +181,15 @@ class Controller_User extends Controller_Template
     }
 
     // --------------------------------------------------------------------------
+    public function action_error($e)
+    {
+        $this->template->content = View::forge('user/error.php', ['exception'=>$e]);
+    }
+
+    // --------------------------------------------------------------------------
     public function action_login()
     {
-        Log::info("Login " . Request::main()->get_method() . ":" . print_r(Input::all(), true));
+        Log::debug("Login " . Request::main()->get_method());
 
         \Session::delete('user');
         \Session::delete('username');
@@ -225,7 +222,8 @@ class Controller_User extends Controller_Template
                 Input::param("remember-me", false) ? \Auth::remember_me() : \Auth::dont_remember_me();
                 $username = Session::get('username');
                 $user = Model_User::find_by_username($username);
-                Log::info("Logged in user: $username " . ($user ? "User Found:" . $user['username'] . "/" . $user->getName() : "Not User Found"));
+                $ipaddress = Arr::get($_SERVER, 'REMOTE_ADDR');
+                $ua = Arr::get($_SERVER, 'HTTP_USER_AGENT');
 
                 Session::set('user', $user);
                 Session::set('user-title', $user->getName());
@@ -237,6 +235,9 @@ class Controller_User extends Controller_Template
                     $r->set_header("location", '/cards/sso.php');
                 }
                 Cookie::set("jwt-token", self::encode("/cards/ui/"), COOKIE_TIMEOUT);
+
+                Log::info("Logged in user: $username [Basic]");
+
                 return $r;
             } else {
                 $data['username'] = Input::post('user');
@@ -249,7 +250,8 @@ class Controller_User extends Controller_Template
             return $k['password'] && $k['group'] <= 2;
         });
         $users = array_map(function ($a) {
-            return $a['username']; }, $users);
+            return $a['username'];
+        }, $users);
         sort($users);
         $data['users'] = $users;
 

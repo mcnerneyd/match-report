@@ -9,7 +9,7 @@ $(document).ready(function(event) {
 <div class='command-group'>
 	<select class='form-control' id='section-select'>
 		<option>Select Section...</option>
-		<?php foreach ($sections as $s) echo "<option value='${s['name']}'>".$s['name']."</option>"; ?>
+		<?php foreach ($sections as $s) echo "<option value='{$s['name']}'>{$s['name']}</option>"; ?>
 	</select>
 	<?php if ($section) { ?>
 	<button class='btn btn-success'>Save</button>
@@ -35,7 +35,7 @@ $(document).ready(function(event) {
 	});
 	$("#configform").submit(function(e){
 		e.preventDefault();
-    $.post("<?= Uri::create('/api/1.0/admin/config') ?>", $("#configform").serialize(), function(data) {
+    	$.post("<?= Uri::create('/api/1.0/admin/config') ?>", $("#configform").serialize(), function(data) {
 			location.reload();
 			Toastify({
             text: "Configuration Saved",
@@ -233,25 +233,16 @@ $(document).ready(function(event) {
 			<div>
 				<label for='config-fixes-competitions help'>Competition Fixes</label>
 				<textarea name='fixescompetition' id='config-fixes-competitions' rows='8' class='form-control' spellcheck='false'><?= $fixescompetition ?></textarea>
-				<?php foreach ($competitions as $raw=>$competition) {
-					if ($competition['valid']) {
-						echo "<span class='valid'>[${competition['name']}]</span>";
-					} else {
-						echo "<span class='invalid'>[$raw]</span>";
-					}
-						echo "&nbsp;";
+				<?php foreach ($competitions as $raw) {
+						echo "<span class='invalid'>[$raw]</span>&nbsp;";
 				} ?>
 			</div>
 
 			<div>
 				<label for='config-fixes-team help'>Team Fixes</label>
 				<textarea name='fixesteam' id='config-fixes-team' rows='8' class='form-control' spellcheck='false'><?= $fixesteam ?></textarea>
-				<?php foreach ($teams as $raw=>$team) { 
-						if ($team['valid']) {
-						echo "<span class='valid'>[${team['club']}&nbsp;<span>${team['team']}</span>]</span>"; 
-					} else {
-						echo "<span class='invalid'>[$raw]</span>";
-					}
+				<?php foreach ($teams as $raw) { 
+						echo "<span class='invalid'>[$raw]</span>&nbsp;";
 				}	?>
 			</div>
 		</div> <!-- #fixtures -->

@@ -10,19 +10,16 @@ class Db {
 		if (!isset(self::$instance)) {
 			try {
 				$pdo_options[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
-				self::$instance = new PDO('mysql:host='.Config::get("config.database.host", "localhost").';dbname='.
-					Config::get("config.database.name"),
-					Config::get("config.database.username"),
-					Config::get("config.database.password"),
+				self::$instance = new PDO('mysql:host='.\Arr::get($_ENV, 'DB_HOST', Config::get("config.database.host", "localhost")).';dbname='.
+					\Arr::get($_ENV, 'DB_NAME', Config::get("config.database.name", 'hockey')),
+					\Arr::get($_ENV, 'DB_USER', Config::get("config.database.username")),
+					\Arr::get($_ENV, 'DB_PASSWORD', Config::get("config.database.password")),
 				  $pdo_options);
-				//debug("Connected to:".DB_DATABASE);
 			} catch (Exception $e) {
 				print_r($e);
-				throw new Exception("Failed to connected to database");
+				throw new Exception("Failed to connect to database");
 			}
 		}
 		return self::$instance;
 	}
 }
-
-?>

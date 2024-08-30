@@ -35,7 +35,7 @@
           <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-haspopup="true" 
               aria-expanded="false">Reports</a>
           <div class='dropdown-menu'>
-            <a class='dropdown-item' href='<?= Uri::create('Report/Scorers') ?>'>Top Scorers</a>
+            <a class='dropdown-item' href='<?= Uri::create('reportx/topscorers') ?>'>Top Scorers</a>
             <a class='dropdown-item' href='<?= Uri::create('Report/Grid') ?>'>Grids</a>
             <?php if (allowed('umpire_reports.view')) { ?>
             <a class='dropdown-item' href='<?= Uri::create('Report/Cards') ?>'>Red/Yellow Cards</a>

@@ -44,6 +44,7 @@ class Controller_FixtureApi extends Controller_RestApi
 
         if ($ts) {
             $ts = strtotime($ts);
+            Log::debug("Timestamp: $ts ".(filemtime($fixturesFilename)));
             if ((filemtime($fixturesFilename) <= $ts) && !Model_Matchcard::expandFixtures(null, $ts)) {
                 return new Response("Fixtures unchanged", 304);
             }
@@ -58,16 +59,68 @@ class Controller_FixtureApi extends Controller_RestApi
 
         $timing['t1'] = microtime(true);
 
-        $allFixtures = Model_Matchcard::expandFixtures($allFixtures);
+        if ($expanded != null) {
+            $allFixtures = Model_Matchcard::expandFixtures($allFixtures);
+        }
 
         $timing['tf'] = microtime(true);
 
         $result = json_encode(array(
             'ts'=>$t,
             'timing'=>$timing,
-            'fixtures'=> $allFixtures));
+            'fixtures'=> array_values($allFixtures)));
 
         return new Response($result, 200);
+    }
+
+    private static function formatFixture($f) {
+        $formatPlayer = function($name, $p) {
+            return array("name"=>$name, "date"=>$p['date']);
+        };
+
+        $result = array(
+            'id'=>$f['fixtureID'],
+            'datetime'=>$f['datetimeZ'],
+            'section'=>$f['section'],
+            'competition'=>$f['competition'],
+            'home'=>array('club'=>Arr::get($f, 'home_club', null), 'team'=>Arr::get($f, 'home_team', null)),
+            'away'=>array('club'=>Arr::get($f, 'away_club', null), 'team'=>Arr::get($f, 'away_team', null)),
+            'played'=>($f['played'] === 'yes')
+        );
+
+        if ($f['played'] === 'yes') {
+            $result['home']['score'] = $f['home_score'];
+            $result['away']['score'] = $f['away_score'];
+        }
+
+        if (Arr::get($f, 'home.players')) 
+            $result['home']['players'] = array_map($formatPlayer, Arr::get($f, 'home.players'));
+        if (Arr::get($f, 'away.players'))
+            $result['away']['players'] = array_map($formatPlayer, Arr::get($f, 'away.players'));
+
+        return $result;
+    }
+
+    public function action_index21()
+    {
+        try {
+            $section = Input::param('section', null);
+            if ($section != null) $section = Model_Section::find_by_name($section);
+            $ts = Input::headers('If-Modified-Since', null);
+            $ts = $ts ? strtotime($ts) : null;
+
+            $fixtures = Model_Fixture::all($section, $ts);
+
+            if (!$fixtures) return new Response("Fixtures unchanged: $ts", 304);
+
+            $fixtures = array_map("self::formatFixture", $fixtures);
+
+            $result = json_encode(array('data'=> $fixtures));
+
+            return new Response($result, 200);
+        } catch (Exception $e) {
+            return new Response($e->getMessage());
+        }
     }
 
     // --------------------------------------------------------------------------
@@ -85,19 +138,20 @@ class Controller_FixtureApi extends Controller_RestApi
                 return new Response("No such card: fixture_id=$id", 404);
             }
 
-                $clubId = \Auth::get('club_id');
-                $club = Model_Club::find_by_id($clubId);
-                if ($club !== null) {
+            $clubId = \Auth::get('club_id');
+            $club = Model_Club::find_by_id($clubId);
+            if ($club !== null) {
                 $club = $club['name'];
                 if ($card['home']['club'] == $club or $card['away']['club'] == $club) {
                     $team = $card['home']['club'] == $club ? $card['home']['team'] : $card['away']['team'];
+
+                    $section = Model_Section::find_by_id($card['section']);
             
                     $card['players'] = array(
                         "club"=>$club,
                         "section"=>$card['section'],
                         "team"=>$team,
-                        "values"=>Controller_RegistrationApi::getPlayersWithHistory($card['section'],
-                        $club, $team, null));
+                        "values"=>Controller_RegistrationApi::getPlayersWithHistory($section, $club, $team));
                 }
             }
 
@@ -127,11 +181,6 @@ class Controller_FixtureApi extends Controller_RestApi
 
         $t1 = self::ts($t0);
         Log::debug("Fixtures requested: $section/$club/$page size=$pagesize");
-
-        $compCodes = array();
-        foreach (Model_Competition::find('all') as $comp) {
-            $compCodes[$comp['name']] = $comp['code'];
-        }
 
         $fixtures = Model_Fixture::getAll();
         $fixtures = array_filter(
@@ -228,7 +277,6 @@ class Controller_FixtureApi extends Controller_RestApi
         $fixtureIds = array();
 
         foreach ($fixtures as &$fixture) {
-            $fixture['competition-code'] = Arr::get($compCodes, $fixture['competition'], "??");
             $fixture['datetimeZ'] = $fixture['datetime']->format('%Y-%m-%dT%H:%M:%S');
             if ($fixture['played'] === 'yes') {
                 $fixture['state'] = 'result';
@@ -248,7 +296,6 @@ class Controller_FixtureApi extends Controller_RestApi
             "datetimeZ"=>$f['datetime']->format('iso8601'),
             "section"=>$f['section'],
             "competition"=>$f['competition'],
-            "competition-code"=>$f['competition-code'],
             "played"=>$f['played'],
             "home"=>array(
               "name"=>$f['home'],
@@ -314,11 +361,6 @@ class Controller_FixtureApi extends Controller_RestApi
             }
     
             Log::debug("Fixtures requested: $section/$club/$page size=$pagesize");
-    
-            $compCodes = array();
-            foreach (Model_Competition::find('all') as $comp) {
-                $compCodes[$comp['name']] = $comp['code'];
-            }
     
             $fixtures = Model_Fixture::getAll();
             $fixtures = array_filter(
@@ -428,11 +470,6 @@ class Controller_FixtureApi extends Controller_RestApi
             $fixtureIds = array();
     
             foreach ($fixtures as &$fixture) {
-                if (isset($compCodes[$fixture['competition']])) {
-                    $fixture['competition-code'] = $compCodes[$fixture['competition']];
-                } else {
-                    $fixture['competition-code'] = '??';
-                }
                 $fixture['datetimeZ'] = $fixture['datetime']->format('%Y-%m-%dT%H:%M:%S');
                 if ($fixture['played'] === 'yes') {
                     $fixture['state'] = 'result';
@@ -450,7 +487,6 @@ class Controller_FixtureApi extends Controller_RestApi
                 "datetimeZ"=>$f['datetime']->format('iso8601'),
                 "section"=>$f['section'],
                 "competition"=>$f['competition'],
-                "competition-code"=>$f['competition-code'],
                 "played"=>$f['played'],
                 "home"=>array(
                   "name"=>$f['home'],
@@ -509,9 +545,10 @@ class Controller_FixtureApi extends Controller_RestApi
           $fixture['section']
       );
 
-      $cc = array('goodetom@icloud.com');
+      $cc = array();
       if ($fixture['section'] == 'lha-men') {
           $cc[] = 'men@leinsterhockey.ie';
+          $cc[] = 'andyiwaller@gmail.com';
       }
       $result = array('to' => $users,
           'cc'=> $cc,

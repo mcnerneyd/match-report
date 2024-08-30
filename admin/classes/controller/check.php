@@ -21,10 +21,10 @@ class Controller_Check extends Controller_Rest
 			$fixtureIds[] = $fixture['fixtureID'];
 		}
 		Log::info("Verify ".count($fixtureIds)." fixtures");
-		$missing = Model_Card::fixturesWithoutMatchcards($fixtureIds);
+		$missing = Model_Matchcard::fixturesWithoutMatchcards($fixtureIds);
 		$newCards = false;
 		foreach ($missing as $missingCard) {
-			if (Model_Card::createCard($missingCard)) {
+			if (Model_Matchcard::createMatchcard($missingCard)) {
 				echo "[+] Created new card ${missing['fixture_id']}\n";
 			}
 		}
@@ -35,10 +35,10 @@ class Controller_Check extends Controller_Rest
 	public function action_incompleteCards() {
 
 			// ---- Incomplete Cards ------------------------
-			$cards = \Model_Card::incompleteCards(0, 7);
+			$cards = \Model_Matchcard::incompleteCards(0, 7);
 
 			foreach ($cards as $cardId) {
-				$card = \Model_Card::card($cardId['id']);
+				$card = \Model_Matchcard::card($cardId['id']);
 
 				$fixture = Model_Fixture::get($card['fixture_id']);
 
@@ -77,8 +77,8 @@ class Controller_Check extends Controller_Rest
 	public function action_unclosedCards() {
 
 			// ---- Unclosed Cards --------------------------
-			foreach (\Model_Card::unclosedCards() as $cardId) {
-				$card = \Model_Card::card($cardId['id']);
+			foreach (\Model_Matchcard::unclosedMatchcards() as $cardId) {
+				$card = \Model_Matchcard::card($cardId['id']);
 
 				$fixture = Model_Fixture::get($card['fixture_id']);
 

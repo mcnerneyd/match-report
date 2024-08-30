@@ -1,4 +1,5 @@
 <?php
+  use \Mailjet\Resources;
 class Controller_AdminApi extends Controller_RestApi
 {
     // --------------------------------------------------------------------------
@@ -7,22 +8,62 @@ class Controller_AdminApi extends Controller_RestApi
         return "This is an index";
     }
 
+    public function get_email()
+    {
+      $mj = new \Mailjet\Client('cecdf92235559f2fabba85fd7d119132','88e0f7a41e5973bc178e3d5656ad3009',true,['version' => 'v3.1']);
+      $body = [
+        'Messages' => [
+          [
+            'From' => [
+              'Email' => "lhamcs@gmail.com",
+              'Name' => "Leinster Hockey Matchcard System"
+            ],
+            'To' => [
+              [
+                'Email' => "mcnerneyd@gmail.com",
+                'Name' => "David"
+              ]
+            ],
+            'Subject' => "Greetings from Mailjet.",
+            'TextPart' => "My first Mailjet email",
+            'HTMLPart' => "<h3>Dear passenger 1, welcome to <a href='https://www.mailjet.com/'>Mailjet</a>!</h3><br />May the delivery force be with you!",
+            'CustomID' => "AppGettingStartedTest"
+          ]
+        ]
+      ];
+      $response = $mj->post(Resources::$Email, ['body' => $body]);
+      $response->success() && var_dump($response->getData());
+    }
+
+    public function get_structure()
+    {
+        if (!Auth::has_access("configuration.edit")) {
+            throw new HttpNoAccessException;
+        }
+
+        foreach (Model_Club::find('all') as $c) $c->log();
+
+        foreach (Model_Competition::find('all') as $x) $x->log();
+
+        foreach (Model_User::find('all') as $u) $u->log();
+    }
+
     public function delete_test()
     {   // Reset the test section
         Log::debug("Deleting test section");
 
         $s = Model_Section::find_by_name('test');
         if ($s) {
-            $s->delete();
+            //$s->delete();
         }
         $u = Model_User::find_by_username('admin@test');
         if ($u) {
-            $u->delete();
+            //$u->delete();
         }
         foreach (array('Aardvarks', 'Bears', 'Camels') as $club) {
             $c = Model_Club::find_by_name($club);
             if ($c) {
-                $c->delete();
+                //$c->delete();
             }
         }
 
@@ -201,5 +242,107 @@ class Controller_AdminApi extends Controller_RestApi
         return $result;
     }
 
+    public function get_import() {
+        self::import("data/logs/out.log");
+    }
 
+    public static function import(string $file) {
+        $clubIdMap = array();
+        $competitionIdMap = array();
+        $fixtureIdMap = array();
+
+        foreach (file($file) as $line) {
+            $matches = array();
+
+            if (preg_match("/^[0-9T:-]+ \[I\] \+CLUB \[(?<name>.*)\] #(?<id>[0-9]+)\/.*/", $line, $matches)) {
+                $club = Model_Club::find_by_name($matches["name"]);
+                if ($club == null) {
+                    $club = new Model_Club();
+                    $club->name = $matches["name"];
+                    $club->save();
+                    $club->log();
+                }
+                $clubIdMap[$matches["id"]] = $club->id;
+            } else if (preg_match("/^[0-9T:-]+ \[I\] \+COMPETITION (?<format>cup|league) \[(?<name>.*)\/(?<section>.*)\](?: {(?<props>.*)})? #(?<id>[0-9]+)\/.*/", $line, $matches)) {
+                $section = Model_Section::find_by_name($matches["section"]);
+
+                if ($section == null) {
+                    $section = new Model_Section();
+                    $section->name = $matches["section"];
+                    $section->save();
+                }
+
+                $competition = Model_Competition::getCompetition($section, $matches["name"]);
+                if ($competition == null) {
+                    echo "  Save\n";
+                    $competition = new Model_Competition();
+                    $competition->section = $section;
+                    $competition->name = $matches["name"];
+                    $competition->format = $matches["format"];
+
+                    $props = $matches["props"];
+                    if ($props != null) {
+                        $props = explode(";", $props);
+                        if (count($props)>0 && $props[0] != '') $competition->sequence = $props[0];
+                        if (count($props)>1 && $props[1] != '') $competition->teamsize = $props[1];
+                        if (count($props)>2 && $props[2] != '') $competition->teamstars = $props[2];
+                        if (count($props)>3 && $props[3] != '') $competition->groups = $props[3];
+                    }
+
+                    $competition->save();
+                    $competition->log();
+                }
+                $competitionIdMap[$matches["id"]] = $competition->id;
+            } else if (preg_match("/^(?<date>[0-9T:-]+) \[I\] CARD (?:\?(?<mid>[0-9]+)) #(?<id>[0-9]+).*/", $line, $matches)) {
+                
+                $card = Model_Matchcard::query()->where("fixture_id", $matches['id'])->get_one();
+
+                if ($card == null) {
+                    $card = new Model_Matchcard();
+                    $card->fixture_id = $matches['id'];
+                    $card->description = "imported";
+                    $card->open = 0;
+                    //$card->log();
+                }
+
+                $card->date = $matches['date'];
+                $card->save();
+
+                if ($matches['mid'] !== null) $fixtureIdMap[$matches['mid']] = $card->id;
+            } else if (preg_match("/^(?<date>[0-9T:-]+) \[I\] PLAYED \[(?<player>.*)\/(?<club>.*)\] #(?<id>[0-9]+).*/", $line, $matches)) {
+                $fixtureId = $fixtureIdMap[$matches['id']];
+                $cardId = Model_Matchcard::query()->where("fixture_id", $matches['id'])->get_one();
+                if ($cardId != null) $cardId = $cardId['id'];
+
+                $incident = Model_Incident::query()
+                    ->where("type", "PLAYED")
+                    ->where("player", $matches['player'])
+                    ->where("matchcard_id", $cardId)
+                    ->get_one();
+
+                if ($incident == null) {
+                    $club = Model_Club::find_by_id($matches['club']);
+
+                    $incident = new Model_Incident();
+                    $incident->date = $matches['date'];
+                    $incident->type = 'PLAYED';
+                    $incident->matchcard_id = $cardId;
+                    $incident->club = $club;
+                    $incident->resolved = 0;
+                    $incident->save();
+                }
+            }
+        }
+    }
 }
+
+
+
+
+
+
+
+
+
+
+

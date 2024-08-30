@@ -76,7 +76,10 @@ form#user {
 .central-block {
   grid-area: 4/2/5/3;
 }
-
+.user-alert {
+    margin-block: 5mm; 
+    grid-area: 2/2/3/3;
+}
 #improved {
     grid-area: 4/1/5/2;
     align-self: end;
@@ -138,6 +141,17 @@ form#user {
     background-repeat: no-repeat;
 }
 
+.card-yellow {
+//    background-image: url(/assets/img/yellow-card.png)
+}
+
+.card-red {
+ //   background-image: url(/assets/img/red-card.png)
+}
+
+.card-green {
+  //  background-image: url(/assets/img/green-card.png)
+}
 .score {
     font-weight: bold;
     color: #484;

@@ -2,68 +2,49 @@
 class Controller_RegistrationApi extends Controller_Rest
 {
     // --------------------------------------------------------------------------
-    public function options_list() {
+    public function options_list()
+    {
         return new Response("OK", 200);
     }
 
     public function get_list()
     {
-        $clubId = \Auth::get('club_id');
+        if (\Auth::has_access('registration.impersonate')) {
+            $clubId = \Input::param('c', null);
+        } else {
+            $clubId = \Auth::get('club_id');
+        }
         $club = Model_Club::find_by_id($clubId);
         if ($club === null) {
             Log::error("Unable to find club for id: $clubId");
             return new Response("User not authorized: no club", 401);
         }
-        $club = $club['name'];
         $dateS = \Input::param('d', null);
         $team = \Input::param('t', 1);
         $section = \Input::param('s', 1);
         $groups = \Input::param('g', null);
+        $groups = $groups == null ? null : explode(",", strtolower($groups));
+
+        $section = Model_Section::find_by_name($section);
 
         $players = self::getPlayersWithHistory($section, $club, $team, $groups, $dateS);
 
-        return $this->response($players);
+        $latest = Model_Registration::getLatestDate($section, $club);
+
+        return $this->response(array("latest" => $latest, "data" => $players));
     }
 
-    public static function getPlayersWithHistory($sectionName, $club, $team, $groups, $dateS = null) 
+    public static function getPlayersWithHistory(Model_Section $section, Model_Club $club, int $team, string $groups = null, string $dateS = null)
     {
-        $section = Model_Section::find_by_name($sectionName);
+        if ($dateS == null)
+            $dateS = Date::forge()->format("%Y%m%d");
 
-        if ($dateS == null) $dateS = Date::forge()->format("%Y%m%d");
-
-        $players = self::getPlayers($sectionName, $club, $dateS, $team, $groups);
-        $lastGameDate = Model_Team::lastGame("$club $team", $section);
-        if ($lastGameDate !== null) {
-            $lastGameDate = substr($lastGameDate['date'], 0, 10)." 00:00:00";
-        }
-        Log::debug("LastGameDate:" . $lastGameDate . " ct=".count($players));
-
-        $players = array_values($players);
-        usort($players, function ($a, $b) {
-            return strcmp($a['name'], $b['name']);
-        });
-
-        foreach ($players as &$player) {
-            foreach ($player['history'] as &$history) {
-                if ($lastGameDate && $history['date'] >= $lastGameDate) {
-                    $history['last'] = 'yes';
-                }
-                break;
-            }
-        }
-
-        Log::debug(count($players)." player(s) valid for team $team/$groups ($club) date=$dateS");
-
-        return $players;
+        $lastGameDate = Model_Team::lastGame("{$club->name} $team", $section)->date;
+        return self::getPlayers($section, $club, $dateS, $team, $groups, $lastGameDate);
     }
 
-    public static function getPlayers($section, $club, $dateS, $team, $groups)
+    public static function getPlayers(Model_Section $section, Model_Club $club, $dateS, int $team, $groups = null, $lastGameDate = null): array
     {
-        if ($groups) {
-            $groups = explode(",", strtolower($groups));
-            Log::debug("Groups is active: ".join(",", $groups));
-        }
-
         $date = Date::create_from_string($dateS, '%Y%m%d');
         $date = $date->get_timestamp();
         $initialDate = strtotime("first thursday of " . date("M YY", $date));
@@ -74,8 +55,16 @@ class Controller_RegistrationApi extends Controller_Rest
         $startDate = strtotime("+1 day", $initialDate);
 
         $players = Model_Registration::find_between_dates($section, $club, $startDate, $date);
+        $players = self::buildPlayers($players, $team, $groups, $lastGameDate);
 
-        Log::debug("Players between dates: ".count($players). " team=$team groups=[".implode(",", $groups ?: array())."]");
+        Log::debug(count($players) . " player(s) valid for team $team/$groups ($club) date=$dateS");
+
+        return $players;
+    }
+
+    public static function buildPlayers(array $players, int $team, ?array $groups, ?string $lastGameDate): array
+    {
+        Log::debug("Players between dates: " . count($players) . " team=$team groups=[" . implode(",", $groups ?: array()) . "]");
 
         $players = array_filter($players, function ($v) use ($team, $groups) {
             if ($groups) {
@@ -91,6 +80,25 @@ class Controller_RegistrationApi extends Controller_Rest
 
             return true;
         });
+
+        if ($lastGameDate !== null) {
+            $lastGameDate = substr($lastGameDate, 0, 10) . " 00:00:00";
+            Log::debug("LastGameDate:" . $lastGameDate);
+
+            $players = array_values($players);
+            usort($players, function ($a, $b) {
+                return strcmp($a['name'], $b['name']);
+            });
+
+            foreach ($players as &$player) {
+                foreach ($player['history'] as &$history) {
+                    if ($lastGameDate && $history['date'] >= $lastGameDate) {
+                        $history['last'] = 'yes';
+                    }
+                    break;
+                }
+            }
+        }
 
         return $players;
     }
@@ -122,12 +130,15 @@ class Controller_RegistrationApi extends Controller_Rest
     public function delete_index()
     {
         if (!\Auth::has_access('registration.delete')) {
-            return new Response("Not permitted to register: $access", 403);
+            return new Response("Not permitted to register", 403);
         }
 
-        $section = Input::param("s");
-        $club = Input::param("c");
+        $sectionName = Input::param("s");
+        $clubName = Input::param("c");
         $file = Input::param("f");
+
+        $section = Model_Section::find_by_name($sectionName);
+        $club = Model_Club::find_by_name($clubName);
 
         Model_Registration::delete($section, $club, $file);
 
@@ -153,13 +164,13 @@ class Controller_RegistrationApi extends Controller_Rest
         $old = cleanName($old, "LN, Fn");
 
         $newPlayer = "$new/$old";
-        
+
         DB::query("UPDATE incident SET player='$new'
-			WHERE club_id = ".$club->id."
+			WHERE club_id = " . $club->id . "
 				AND player like '%/$new'")->execute();
 
         DB::query("UPDATE incident SET player='$newPlayer'
-			WHERE club_id = ".$club->id."
+			WHERE club_id = " . $club->id . "
 				AND (player='$old' OR player like '$old/%')")->execute();
 
 
@@ -171,35 +182,37 @@ class Controller_RegistrationApi extends Controller_Rest
         // FIXME Check user admin or matches club
         $access = 'registration.impersonate';	// minimum required access
 
-        $section = Input::param("section");
-        if ($section) {
-            loadSectionConfig($section);
+        $sectionName = Input::param("section");
+        if ($sectionName) {
+            loadSectionConfig($sectionName);
         }
 
         if (Config::get('section.automation.allowrequest')) {
             $access = 'registration.post';
         }
-        
+
         if (!\Auth::has_access($access)) {
             return new Response("Not permitted to register: $access", 403);
         }
 
-        $club = Input::param("club");
+        $clubName = Input::param("club");
         $file = Input::file("file");
         $type = mime_content_type($file['tmp_name']);
 
-        Log::info("Posting ${file['name']} for club: $club (type=$type)");
+        Log::info("Posting ${file['name']} for club: $clubName (type=$type)");
 
         if (preg_match("/.*\.xlsx?/", $file['name']) || !(preg_match("/text\/.*/", $type) || $type == 'application/csv')) {
             $file['tmp_name'] = self::convertXls($file['name'], $file['tmp_name']);
         }
 
-        $filename = Model_Registration::addRegistration($section, $file['tmp_name'], $club);
+        $section = Model_Section::find_by_name($sectionName);
+        $club = Model_Club::find_by_name($clubName);
+        Model_Registration::addRegistration($section, $club, $file['tmp_name']);
 
         $this->validateRegistration($section, $club);
 
         //return new Response("Registration Uploaded", 201);
-        Response::redirect("registration?s=$section");
+        Response::redirect("registration?s=$sectionName");
     }
 
     // ----- errors -------------------------------------------------------------
@@ -230,7 +243,7 @@ class Controller_RegistrationApi extends Controller_Rest
             return;
         }
         $club = strtolower($club);
-        
+
         Log::info("Flushing $club");
 
         Model_Registration::clearErrors($club);
@@ -249,10 +262,13 @@ class Controller_RegistrationApi extends Controller_Rest
 
         $errors = array();
 
-        foreach ($this->get_duplicates($club) as $name=>$players) {
+        foreach ($this->get_duplicates($sectionName, $club) as $name => $players) {
             foreach ($players as $player) {
-                $errors[] = array('class'=>'warn','msg'=>
-                    "Player $name is similar to ${player['name']} playing for ${player['club']}");
+                $errors[] = array(
+                    'class' => 'warn',
+                    'msg' =>
+                        "Player $name is similar to {$player['name']} playing for {$player['club']}"
+                );
             }
         }
 
@@ -263,28 +279,28 @@ class Controller_RegistrationApi extends Controller_Rest
             Log::info("Registration has error");
             loadSectionConfig($sectionName);
 
-            $errorStatus = Config::get("section.registration.blockerrors", false) ? "error":"warn";
+            $errorStatus = Config::get("section.registration.blockerrors", false) ? "error" : "warn";
             foreach ($lastReg['errors'] as $error) {
-                $errors[] = array('class'=>$errorStatus, 'msg'=>$error);
+                $errors[] = array('class' => $errorStatus, 'msg' => $error);
             }
         }
 
         return $errors;
     }
 
-    public function get_duplicates($club)
+    public function get_duplicates($section, $club)
     {
         Log::info("Request duplicates");
         $errors = array();
 
         $now = Date::forge()->get_timestamp();
 
-        $playersByName = Model_Registration::find_all_players($now);
+        $playersByName = Model_Registration::find_all_players($section, $now);
         usort($playersByName, function ($a, $b) {
             return strcmp($a['phone'], $b['phone']);
         });
 
-        Log::info("Players:".count($playersByName));
+        Log::info("Players:" . count($playersByName));
 
         $lastPlayer = null;
         foreach ($playersByName as $player) {
@@ -293,7 +309,7 @@ class Controller_RegistrationApi extends Controller_Rest
                 continue;
             }
 
-            if ($player['phone'] ==  $lastPlayer['phone']) {
+            if ($player['phone'] == $lastPlayer['phone']) {
                 $name = $player['phone'];
                 if (!isset($errors[$name])) {
                     $errors[$name] = array($lastPlayer);
@@ -306,7 +322,7 @@ class Controller_RegistrationApi extends Controller_Rest
         }
 
         $clubErrors = array();
-        foreach ($errors as $name=>$players) {
+        foreach ($errors as $name => $players) {
             foreach ($players as $player) {
                 if ($player['club'] === $club) {
                     // Remove this club from list
@@ -321,7 +337,7 @@ class Controller_RegistrationApi extends Controller_Rest
         return $clubErrors;
     }
 
-    private function validateRegistration($sectionName, $club, $test=false)
+    private function validateRegistration(Model_Section $section, Model_Club $club, $test = false)
     {
         $errors = array();
 
@@ -329,7 +345,7 @@ class Controller_RegistrationApi extends Controller_Rest
 
         $date = Date::time();
 
-        foreach (Model_Registration::find_all($sectionName, $club) as $regFile) {
+        foreach (Model_Registration::find_all($section, $club) as $regFile) {
             $date = Date::forge($regFile["timestamp"]);
         }
 
@@ -342,34 +358,35 @@ class Controller_RegistrationApi extends Controller_Rest
         }
         $thurs = strtotime("+1 day", $thurs);
 
-        $registration = Model_Registration::find_between_dates($sectionName, $club, $thurs, $date->get_timestamp());
-        
+        $registration = Model_Registration::find_between_dates($section, $club, $thurs, $date->get_timestamp());
+
         $scores = array_map(function ($a) {
             return $a['score'];
         }, $registration);
         sort($scores);
 
         $start = 0;
-        $teamSizes = Model_Club::find_by_name($club)->getTeamSizes($sectionName, false);
+        $teamSizes = $club->getTeamSizes($section->name, false);
         array_pop($teamSizes);
-        foreach ($teamSizes as $team=>$size) {
+        foreach ($teamSizes as $team => $size) {
             if ($size == 0) {
                 continue;
             }
 
             $finish = $start + $size;
 
-            if ($finish >= count($registration)) break; // Not enough players to fill all the teams
+            if ($finish >= count($registration))
+                break; // Not enough players to fill all the teams
 
             $maxScore = $scores[$finish];
 
-            for ($i=$start;$i<$finish;$i++) {
+            for ($i = $start; $i < $finish; $i++) {
                 $player = $registration[$i];
                 if ($player['score'] > $maxScore) {
                     if ($player['score'] == 99) {
-                        $errors[] = "${player['name']} has no rating. Players for $club ".($team+1)." must have played at least one match";
+                        $errors[] = "{$player['name']} has no rating. Players for {$club->name} " . ($team + 1) . " must have played at least one match";
                     } else {
-                        $errors[] = "${player['name']} has a rating of ${player['score']}. The maximum allowed rating for $club ".($team+1)." is $maxScore";
+                        $errors[] = "{$player['name']} has a rating of {$player['score']}. The maximum allowed rating for {$club->name} " . ($team + 1) . " is $maxScore";
                     }
                 }
             }
@@ -407,7 +424,7 @@ class Controller_RegistrationApi extends Controller_Rest
         }
 
         if (!$test && $errors) {
-            Model_Registration::writeErrors($sectionName, $club, $errors);
+            Model_Registration::writeErrors($section, $club, $errors);
         }
 
         return $errors;
@@ -433,7 +450,7 @@ class Controller_RegistrationApi extends Controller_Rest
         $spreadsheet = PhpOffice\PhpSpreadsheet\IOFactory::load($tmpfile);
 
         $writer = new PhpOffice\PhpSpreadsheet\Writer\Csv($spreadsheet);
-        $tmpfname = "/tmp/".$name.".csv"; //tempnam("/tmp", "csv");
+        $tmpfname = "/tmp/" . $name . ".csv"; //tempnam("/tmp", "csv");
         $writer->save($tmpfname);
 
         return $tmpfname;

@@ -7,3 +7,5 @@ test/**/report.html
 **/selenium-screenshot*
 dist
 **/node_modules
+**/build
+**/docker/code

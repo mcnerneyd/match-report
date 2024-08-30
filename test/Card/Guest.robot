@@ -1,21 +1,31 @@
+*** Variables ***
+${card_key}     test.testdivision1.aardvarks1.bears1
+
 *** Settings ***
 Resource				../Common.robot
-Suite Setup			Login	Umpire	1111
-Test Setup			Create Card With Player		test.division1.aardvarks1.bears2
-Suite Teardown	Close Browser
+Suite Setup     Open Chrome
+Test Setup			Open Card For View		${card_key}
+#Suite Teardown	Close Browser
 
 *** Test Cases ***
 Guest Can Add Note To Card
+    Click Link      partial link:Add Note
+    Wait Until Element Is Visible    css:#add-note
+    Click Element   css:#add-note textarea
+    Input Text      css:#add-note textarea    This is a note, of sorts, from guest
+    Sleep   2s
+    Click Button    css:#add-note .btn-success
+    Wait Until Element Is Not Visible    css:#add-note
+    Sleep    1s
+    Verify Card     Other Aardvarks "This is a note, of sorts, from guest"
 
 Guest Can Add Signature To Card
 
 *** Keywords ***
-Create Card With Player
+Open Card For View
 	[Arguments]			${fixtureid}
 	Reset Card		${fixtureid}
 	Open Card			${fixtureid}
-	Select Player			Jackeline GOSHA
-	Submit Team
 
 Player Menu
 	[Arguments]			${player}
@@ -33,7 +43,7 @@ Submit Card
 
 Verify Card
 	[Arguments]			${description}
-	Go To						${BASE}/Report/Card?key=test.division1.aardvarks1.bears2
+	Go To						${BASE}/Report/Card?key=${card_key}
 	Comment					${description}
 	Page Should Contain Element		xpath://tr[@data-description='${description}']
 

@@ -28,7 +28,7 @@ class Model_Team extends \Orm\Model
 
     protected static $_table_name = 'team';
 
-    public static function find_by_name($name, $section)
+    public static function find_by_name($name, Model_Section $section)
     {
         if ($section == null || $name == null) {
             \Log::error("No name/section provided");
@@ -38,7 +38,7 @@ class Model_Team extends \Orm\Model
         $matches = array();
         if (preg_match("/(.*) ([0-9]+)/i", $name, $matches)) {
             $rows = DB::query("SELECT t.id FROM team t JOIN club c ON t.club_id = c.id
-				WHERE c.name = :clubname AND t.name = :teamname AND t.section_id = ${section['id']}")
+				WHERE c.name = :clubname AND t.name = :teamname AND t.section_id = {$section['id']}")
                 ->bind('clubname', $matches[1])
                 ->bind('teamname', $matches[2])
                 ->execute();
@@ -53,7 +53,7 @@ class Model_Team extends \Orm\Model
         return null;
     }
 
-    public static function parse($section, $str)
+    public static function parse(string $str)
     {
         $config = Config::get("section.pattern.team", []);
 
@@ -73,25 +73,25 @@ class Model_Team extends \Orm\Model
 
         $str = preg_replace($patterns, $replacements, trim($str));
 
-        if ($str == '!') {
-            return null;
+        if (strpos($str, '!') !== false) {
+            return false;
         }
 
         $matches = array();
-        if (!preg_match('/^([a-z\\/\' ]*[a-z])(?:\s+([0-9]+)[^0-9]*)?$/i', trim($str), $matches)) {
-            Log::warning("Cannot match team '$str'");
-            return null;
-        }
+        $result = array('raw'=>$str);
 
-        $result = array('club'=>$matches[1], 'raw'=>$str);
+        if (preg_match('/^([a-z,\\/\' ]*[a-z])(?:\s+([0-9]+)[^0-9]*)?$/i', trim($str), $matches)) {
+            if (count($matches) > 2) {
+                $result['team'] = $matches[2];
+            } else {
+                $result['team'] = 1;
+            }
 
-        if (count($matches) > 2) {
-            $result['team'] = $matches[2];
+            $result['club'] = $matches[1];
+            $result['name'] = $result['club'] .' '. $result['team'];
         } else {
-            $result['team'] = 1;
+            $result['club'] = $str;
         }
-
-        $result['name'] = $result['club'] .' '. $result['team'];
 
         return $result;
     }
@@ -107,7 +107,7 @@ class Model_Team extends \Orm\Model
         return reset($result);
     }
 
-    public static function lastGame($teamName, $section)
+    public static function lastGame($teamName, $section) : Model_Matchcard
     {
         $team = self::find_by_name($teamName, $section);
         $teamId = $team->id;

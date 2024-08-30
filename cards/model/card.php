@@ -1,6 +1,6 @@
 <?php
 
-require_once('util.php');
+//require_once('util.php');
 
 class Card
 {
@@ -20,17 +20,16 @@ class Card
 
         $res = $db->query("SELECT count(1) FROM incident i
 				JOIN club c ON i.club_id = c.id
-			WHERE matchcard_id = $id AND c.name = '$club' AND i.type = 'Locked'")->fetch();
+			WHERE matchcard_id = $id AND c.name = '$club' AND i.type = 'Locked'")->fetch(); // FIXME SQL
 
         if ($res[0] > 0) {
-            Log::debug("Card is already locked $id (club=$club)");
+            Log::warning("Card is already locked $id (club=$club)");
         }
 
         $lockCode = substr('0000' . rand(0, 9999), -4);
 
         $db->exec("INSERT INTO incident (club_id, matchcard_id, type, detail)
-			SELECT c.id, $id, 'Locked', '$lockCode'
-				FROM club c WHERE c.name = '$club'");
+			SELECT c.id, $id, 'Locked', '$lockCode' FROM club c WHERE c.name = '$club'"); // FIXME SQL
 
         return $lockCode;
     }
@@ -47,11 +46,11 @@ class Card
     {
         $f = Card::fixtureFind($id);
 
-        if (isset($f['card'])) {
+        /*if (isset($f['card'])) {
             if ($f['competition-strict'] == 'yes') {
                 $f['card']['official'][] = 'ALL';
             }
-        }
+        }*/
 
         return $f;
     }
@@ -75,15 +74,14 @@ class Card
         $fixture = array_pop($fixtures);
 
         $matchcard = Card::getByFixture($fixtureId);
-        $comps = Competition::allAll();
 
         if ($fixture) {
-            $fixture = Card::normalizeFixture($fixture, $comps);
+            $fixture = json_decode(json_encode($fixture), true);
 
             if ($matchcard) {
                 if (
-                    ($matchcard['home']['team_id'] and $matchcard['home']['team'] != $fixture['home']['team'])
-                    or ($matchcard['away']['team_id'] and $matchcard['away']['team'] != $fixture['away']['team'])
+                    ($matchcard['home']['team_id'] and $matchcard['home']['team'] != "{$fixture['home_club']} {$fixture['home_team']}")
+                    or ($matchcard['away']['team_id'] and $matchcard['away']['team'] != "{$fixture['away_club']} {$fixture['away_team']}")
                 ) {
                     $db = Db::getInstance();
 
@@ -118,7 +116,6 @@ class Card
                     'src' => "Matchcard"
                 );
                 $fixture = json_decode(json_encode($fixture));
-                $fixture = Card::normalizeFixture($fixture, $comps);
                 $fixture['cardid'] = $matchcard['id'];
                 $fixture['card'] = $matchcard;
 
@@ -152,108 +149,27 @@ class Card
         );
     }
 
-    private static function normalizeFixture($fixture, $comps)
-    {
-        $home = parse($fixture->home_club . " " . $fixture->home_team);
-        $away = parse($fixture->away_club . " " . $fixture->away_team);
-
-        $recomps = array();
-
-        foreach ($comps as $comp) {
-            $recomps[$comp['name']] = $comp;
-        }
-
-        $competition = parseCompetition($fixture->competition, array_keys($recomps));
-
-        if ($competition == null) {
-            throw new Exception("Unknown competition: {$fixture->competition}");
-        }
-
-        $result = array(
-            'id' => $fixture->fixtureID,
-            'org' => $fixture->competition,
-            'home' => array(
-                'org' => $fixture->home_club . " " . $fixture->home_team,
-                'club' => $home['club'],
-                'score' => $fixture->home_score,
-                'teamnumber' => $home['team'],
-                'team' => $home['name']
-            ),
-            'away' => array(
-                'org' => $fixture->away_club . " " . $fixture->away_team,
-                'club' => $away['club'],
-                'score' => $fixture->away_score,
-                'teamnumber' => $away['team'],
-                'team' => $away['name']
-            ),
-            $home['club'] => 'home',
-            $away['club'] => 'away',
-            'status' => $fixture->status,
-            'src' => 'file',
-            'f' => $fixture
-        );
-
-        if (isset($fixture->section)) {
-            $result['section'] = $fixture->section;
-        }
-        if (isset($fixture->datetimeZ)) {
-            $result['date'] = strtotime($fixture->datetimeZ);
-        } else {
-            $result['date'] = strtotime($fixture->datetime);
-            $result['datetimeZ'] = date('c', $result['date']);
-        }
-
-        $result['submitted'] = false;
-        if ($fixture->played == 'yes') {
-            $result['submitted'] = true;
-        }
-
-        $result['competition'] = $competition;
-
-        if (isset($recomps[$competition])) {
-            $result['competition-code'] = $recomps[$competition]['code'];
-            $result['groups'] = array();
-
-            if ($recomps[$competition]['groups']) {
-                foreach (explode(',', $recomps[$competition]['groups']) as $group) {
-                    $result['groups'][] = trim($group);
-                }
-            }
-        } else {
-            throw new Exception("Error with fixture {$fixture->fixtureID}: unknown competition '$competition'");
-        }
-
-        if (in_array(strtolower($result['competition-code']), explode(",", Config::get("config.strict_comps")))) {
-            $result['competition-strict'] = 'yes';
-        } else {
-            $result['competition-strict'] = 'no';
-        }
-
-        return $result;
-    }
-
-
     public static function create($fixture)
     {
         if (!$fixture) {
             throw new Exception("No fixture specified");
         }
 
-        Log::info("Create matchcard for fixture:".print_r($fixture, true));
+        Log::info("Create matchcard for fixture:" . print_r($fixture, true));
 
         $db = Db::getInstance();
 
-        $req = $db->query("SELECT id FROM matchcard WHERE fixture_id = {$fixture['id']}");
+        $req = $db->query("SELECT id FROM matchcard WHERE fixture_id = {$fixture['fixtureID']}");
 
         if ($req->fetch()) {
-            throw new Exception("Matchcard already exists for fixture {$fixture['id']}");
+            throw new Exception("Matchcard already exists for fixture {$fixture['fixtureID']}");
         }
 
         $req = $db->prepare("SELECT t.id FROM team t JOIN club c ON t.club_id = c.id WHERE 
 					t.name = :teamname
 					AND c.name = :clubname");
-        $req->bindParam(':teamname', $fixture['home']['teamnumber']);
-        $req->bindParam(':clubname', $fixture['home']['club']);
+        $req->bindParam(':teamname', $fixture['home_team']);
+        $req->bindParam(':clubname', $fixture['home_club']);
         $req->execute();
 
         $homeId = "null";
@@ -264,8 +180,8 @@ class Card
         $req = $db->prepare("SELECT t.id FROM team t JOIN club c ON t.club_id = c.id WHERE 
 					t.name = :teamname
 					AND c.name = :clubname");
-        $req->bindParam(':teamname', $fixture['away']['teamnumber']);
-        $req->bindParam(':clubname', $fixture['away']['club']);
+        $req->bindParam(':teamname', $fixture['away_team']);
+        $req->bindParam(':clubname', $fixture['away_club']);
         $req->execute();
 
         $awayId = "null";
@@ -281,12 +197,13 @@ class Card
             throw new Exception("Team cannot play itself");
         }
 
+        $datetime = strtotime($fixture['datetimeZ']);
         $sql = "INSERT INTO matchcard (fixture_id, competition_id, home_id, away_id, date, description)
-			SELECT ${fixture['id']}, x.id, $homeId, $awayId, from_unixtime('{$fixture['date']}'), ''
+			SELECT {$fixture['fixtureID']}, x.id, $homeId, $awayId, from_unixtime('{$datetime}'), ''
 			FROM competition x
                 LEFT JOIN section s ON x.section_id = s.id
-			WHERE x.name = '${fixture['competition']}'
-                AND s.name = '${fixture['section']}'";
+			WHERE x.name = '{$fixture['competition']}'
+                AND s.name = '{$fixture['section']}'";
 
         debug($sql);
 
@@ -345,13 +262,14 @@ class Card
         $sql = "select x.name competition, ch.id homeclubid, ch.name homeclub, 
                     ca.name awayclub, th.name hometeam, ta.name awayteam, m.date, m.id, m.fixture_id,
                     th.id hometeamid, ta.id awayteamid, ca.id awayclubid, x.teamsize,
-                    ch.code homecode, ca.code awaycode, x.code competitioncode, m.open, x.format
+                    m.open, x.format, s.name section
                 from matchcard m
                     left join team th on th.id = m.home_id
                     left join club ch on ch.id = th.club_id
                     left join team ta on ta.id = m.away_id
                     left join club ca on ca.id = ta.club_id
                     left join competition x on x.id = m.competition_id
+                    left join section s on s.id = x.section_id
                 where m.id = :id";
 
         $req = $db->prepare($sql);
@@ -367,8 +285,8 @@ class Card
         $fixture = array(
             'id' => $result['id'],
             'fixture_id' => $result['fixture_id'],
+            'section' => $result['section'],
             'competition' => $result['competition'],
-            'competition-code' => $result['competitioncode'],
             'leaguematch' => ($result['teamsize'] == null ? false : true),
             'format' => $result['format'],
             'date' => date("F j, Y", strtotime($result['date'])),
@@ -377,7 +295,6 @@ class Card
             'home' => array(
                 'club' => $result['homeclub'],
                 'teamx' => $result['hometeam'],
-                'code' => $result['homecode'] . $result['hometeam'],
                 'club_id' => $result['homeclubid'],
                 'team' => $result['homeclub'] . ' ' . $result['hometeam'],
                 'team_id' => $result['hometeamid'],
@@ -387,7 +304,6 @@ class Card
             'away' => array(
                 'club' => $result['awayclub'],
                 'teamx' => $result['awayteam'],
-                'code' => $result['awaycode'] . $result['awayteam'],
                 'club_id' => $result['awayclubid'],
                 'team' => $result['awayclub'] . ' ' . $result['awayteam'],
                 'team_id' => $result['awayteamid'],
@@ -442,11 +358,15 @@ class Card
                 continue;
             }
 
+            $side = null;
             if ($row['club_id'] == $result['homeclubid']) {
                 $side = 'home';
-            } else {
+            }
+            if ($row['club_id'] == $result['awayclubid']) {
                 $side = 'away';
             }
+            if ($side == null)
+                continue;    // not a valid incident
 
             $row['side'] = $side;
             $row['club'] = $fixture[$side]['club'];

@@ -2,6 +2,7 @@
 
 	<!-- Environment: <?= \Fuel::$env ?> --> 
 	<!-- Base Path: <?= \Config::get('base_url') ?> --> 
+	<!-- PHP Version: <?= phpversion() ?> -->
 
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1"/>

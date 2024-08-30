@@ -5,7 +5,6 @@
 	$(document).ready(function() {
 		$('#clubs-table').DataTable({
 			columns:[
-				{width:"2em"},
 				{width:"30%"},
 				{width:"60%", orderable: false},
 				{orderable: false, width:"1em"},
@@ -20,16 +19,15 @@
 			$('#add-club .btn-success').text('Save');
 			$('#add-club .modal-title').text('Edit Club');
 			$('#add-club [name=clubname]').val(data['name']);
-			$('#add-club [name=clubcode]').val(data['code']);
 			$('#add-club').modal();
 		});
 		$('#clubs-table').on('click', 'a[rel=delete]', function(e) {
 			e.preventDefault();
-			var code = $(this).closest('tr').data('code');
+			var id = $(this).closest('tr').data('id');
 			$.ajax('<?= Uri::create('Admin/Club') ?>',
 				{
 					method:"DELETE",
-					data:{ "code":code },
+					data:{ "id":id },
 				},
 				).done(function(data) { window.location.reload(); });
 		});
@@ -49,7 +47,6 @@
 <table id='clubs-table' class='table table-condensed table-striped'>
 	<thead>
 	<tr>
-		<th>Code</th>
 		<th>Club</th>
 		<th class='desktop'>Competitions</th>
 		<th/>
@@ -58,9 +55,8 @@
 
 	<tbody style='display:none'>
 <?php foreach ($clubs as $club) {
-		echo "\t\t<tr data-id='${club['id']}' data-code='${club['code']}'>
-			<td>${club['code']}</td>
-			<td>${club['name']}</td>
+		echo "\t\t<tr data-id='{$club['id']}'>
+			<td>{$club['name']}</td>
 			<td class='label-list'>";
 		$comps = array();
 		foreach ($club['team'] as $team) {
@@ -74,8 +70,7 @@
 			return $ret;
 		});
 		foreach ($comps as $teamComp) {
-			echo "<span class='d-none d-md-inline'><span class='badge label-".($teamComp['teamsize']?'league':'cup')."'>${teamComp['name']}</span></span>";
-			echo "<span class='d-inline d-md-none'><span class='badge label-".($teamComp['teamsize']?'league':'cup')."'>${teamComp['code']}</span></span>";
+			echo "<span class='d-none d-md-inline'><span class='badge label-".($teamComp['teamsize']?'league':'cup')."'>{$teamComp['name']}</span></span>";
 		}
 		echo "</td>
 			<td class='command-group'>
@@ -100,10 +95,6 @@
 					<div class='form-group'>
 						<label for='clubname'>Club Name</label>
 						<input type='text' class='form-control' id='clubname' name='clubname' pattern='[A-Z][A-Za-z ]+'/>
-					</div>
-					<div class='form-group'>
-						<label for='clubcode'>Code</label>
-						<input type='text' class='form-control' id='clubcode' name='clubcode' pattern='[A-Z]+'/>
 					</div>
 				</form>
       </div>

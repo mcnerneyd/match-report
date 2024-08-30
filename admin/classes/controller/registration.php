@@ -9,30 +9,30 @@ class Controller_Registration extends Controller_Template
         }
 
         $section = Input::param('s');
-        Log::info("Rai: section=$section");
+        Log::info("Getting configuration for: section=$section");
         if ($section) {
             loadSectionConfig($section);
+            $section = Model_Section::find_by_name($section);
         }
-
-        Log::info("Rai:". print_r(Config::get("section"), true));
 
         $club = null;
         if (Auth::has_access("registration.impersonate")) {
             $club = Input::param("c");
+            $club = Model_Club::find_by_name($club);
         }
 
         $username = Session::get("username");
         $user = Model_User::find_by_username($username);
 
         $clubfixed = false;
-        if ($user['club']) {
-            $club =  $user['club']['name'];
+        if ($user->club) {
+            $club =  $user->club;
             $clubfixed = true;
         }
 
         $sectionfixed = false;
-        if ($user['section']) {
-            $section = $user['section']['name'];
+        if ($user->section) {
+            $section = $user->section;
             $sectionfixed = true;
         }
 
@@ -40,14 +40,17 @@ class Controller_Registration extends Controller_Template
 
         $registrations = $club && $section ? Model_Registration::find_all($section, $club) : array();
 
+        $sectionName = $section != null ? $section->name : null;
+        $clubName = $club != null ? $club->name : null;
+
         $this->template->title = "Registrations";
-        $this->template->content = View::forge('registration/index', array('club'=>$club,
-			'section'=>$section,
+        $this->template->content = View::forge('registration/index', ['club'=>$clubName,
+			'section'=>$sectionName,
 			'clubs'=>Model_Club::find('all'),
             'clubfixed'=>$clubfixed,
             'sectionfixed'=>$sectionfixed,
 			'sections'=>Model_Section::find('all'),
-			'registrations'=>$registrations));
+			'registrations'=>$registrations]);
     }
 
     public function action_registration()
@@ -58,15 +61,17 @@ class Controller_Registration extends Controller_Template
         }
 
         $section = \Input::param('s', null);
+        $section = Model_Section::find_by_name($section);
 
         $user = Model_User::find_by_username(Session::get("username"));
         $club = null;
         if ($user and $user['club']) {
-            $club = $user['club']['name'];
+            $club = $user['club'];
         }
 
         if (\Auth::has_access("registration.impersonate")) {
             $club = \Input::param('c', null);
+            $club = Model_Club::find_by_name($club);
         }
 
         if (!$club) {
@@ -106,8 +111,8 @@ class Controller_Registration extends Controller_Template
             'info'=> $info,
             'registration'=>$registration,
             //'history'=>$history,
-            'club'=>$club,
-            'section'=>$section,
+            'club'=>$club->name,
+            'section'=>$section->name,
             'all'=>Model_Registration::find_before_date($section, $club, Date::forge()->get_timestamp()),
             'ts'=>$date,
             'base'=>Date::forge($thurs)));
@@ -122,25 +127,21 @@ class Controller_Registration extends Controller_Template
 
         $userObj = Model_User::find_by_username(Session::get('username'));
         if ($userObj == null) {
-            Log::error("No such user: ".Session::get('username'));
-            return;
+            throw new UserException("No such user: ".Session::get('username'));
         }
 
-        if ($userObj->club === null) {
-            Log::error("User does not have a club");
-            return;
+        if ($userObj->club == null) {
+            throw new UserException("User does not have a club");
         }
 
         $club = $userObj->club['name'];
 
         Log::info("Request info for $club");
 
-        $clubUsers = Model_User::find('all', array(
-                'where'=>array(
-                    array('club_id','=',$userObj->club['id']),
-                    array('group','=',1)
-                )
-            ));
+        $clubUsers = Model_User::find('all', [ 'where'=>[
+                    ['club_id','=',$userObj->club['id']],
+                    ['group','=',1]
+                ]]);
 
         if ($userObj->section) {
             $sectionName = $userObj->section['name'];
@@ -160,10 +161,7 @@ class Controller_Registration extends Controller_Template
         }
 
         $this->template->title = "Club Info";
-        $this->template->content = View::forge(
-            'registration/info',
-            array('users'=>$clubUsers)
-        );
+        $this->template->content = View::forge('registration/info', ['users'=>$clubUsers]);
     }
 
 }

@@ -2,7 +2,6 @@
 	$(document).ready(function() {
 		$('#competitions-table').dataTable({
 			"columns": [
-				{ "width": "15%" },
 				{ "width": "20%" },
 				{ "width": "10%"},
 				{ "width": "5%", "orderable": false, "className":"number"},
@@ -19,7 +18,6 @@
 			$('#add-competition [name=id]').val(id);
 			$('#add-competition [name=section]').val(data['section_id']).attr('disabled', true);
 			$('#add-competition [name=competitionname]').val(data['name']).attr('readonly', true);
-			$('#add-competition [name=competitioncode]').val(data['code']);
 			$('#add-competition [name=age-group]').val(data['groups']);
 			$('#add-competition [name=competition-teamsize]').val(data['teamsize']);
 			$('#add-competition [name=competition-teamstars]').val(data['teamstars']);
@@ -32,11 +30,11 @@
 		});
 		$('a[rel=delete]').click(function(e) {
 			e.preventDefault();
-			var code = $(this).closest('tr').data('code');
+			var id = $(this).closest('tr').data('id');
 			$.ajax('<?= Uri::create('Admin/Competition') ?>',
 				{
 					method:"DELETE",
-					data:{ "code":code },
+					data:{ "id":id },
 				},
 				).done(function(data) { window.location.reload(); });
 		});
@@ -62,7 +60,6 @@
 		<tr>
 			<th>Section</th>
 			<th>Competition</th>
-			<th>Code</th>
 			<th>Team Size</th>
 			<th>Starred</th>
 			<th>Teams</th>
@@ -72,15 +69,14 @@
 
 	<tbody style='display:none'>
 	<?php foreach ($competitions as $competition) {
-	    echo "<tr data-code='${competition['code']}' data-id='{$competition['id']}'>
+	    echo "<tr data-id='{$competition['id']}'>
 			<td>".($competition->section ? $competition->section->getProperty('shorttitle') : "")."</td>
-			<td>${competition['name']}</td>
-			<td>${competition['code']}</td>
-			<td>${competition['teamsize']}</td>
-			<td>${competition['teamstars']}</td>
+			<td>{$competition['name']}</td>
+			<td>{$competition['teamsize']}</td>
+			<td>{$competition['teamstars']}</td>
 			<td class='label-list'><div>";
 	    foreach ($competition->team as $team) {
-	        echo "<span class='badge label-team'>".$team['club']['code'].$team['team']."</span>";
+	        echo "<span class='badge label-team'>".$team['club']['name'].' '.$team['name']."</span>";
 	    }
 	    echo "</div></td>
 				<td class='command-group'>
@@ -127,13 +123,8 @@
 						</label>
 					</div>
 
-					<div class='form-group col-md-6'>
-						<label for='competitioncode'>Code</label>
-						<input type='text' class='form-control' id='competitioncode' name='competitioncode' pattern='[A-Z]+'/>
-					</div>
 					<div class='form-group col-md-12'>
 						<label>Age Group(s)</label>
-						<!--input type='text' class='form-control' name='age-group'/-->
 						<textarea cols='30' rows='5' class='form-control' name='age-group'></textarea>
 					</div>
 

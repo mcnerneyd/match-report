@@ -5,37 +5,15 @@ use Firebase\JWT\Key;
 class Controller_UserApi extends Controller_RestApi
 {
     // --------------------------------------------------------------------------
-/*    public function get_index() {
-
-        Log::info("get_index");
-
-        if ($this->param('user')) {
-            $password = \Input::param('password', null);
-            if (Auth::login($this->param('user'), $password)) {
-                $redirect = Input::param('to', null);
-                if ($redirect) {
-                    Response::redirect($redirect);
-                }
-            }
-        }
-
-        $token = $this->generateJwt();
-
-        if ($token) {
-            return new Response(json_encode($token), 200);
-        } else {
-            return new Response("User session expired", 401);
-        }
-    }*/
-
-    public function options_index() {
+    public function options_index()
+    {
         return new Response("OK", 200);
     }
 
-    function generateJwt() 
+    function generateJwt()
     {
         $username = Session::get('username');
-    
+
         if ($username) {
             $user = Model_User::find_by_username($username);
             $userData = array(
@@ -46,18 +24,19 @@ class Controller_UserApi extends Controller_RestApi
                 'role' => $user['role'],
                 'club' => $user->club ? $user->club['name'] : null
             );
-    
+
             $userData['jwt-token'] = JWT::encode($userData, JWT_KEY, 'HS256');
             return $userData;
         } else {
             return false;
         }
     }
-    
-    
+
+
 
     // --------------------------------------------------------------------------
-    public function get_refresh() {
+    public function get_refresh()
+    {
         foreach (Model_Club::find('all') as $club) {
             $name = $club['name'];
             echo "Checking $name\n";
@@ -76,8 +55,10 @@ class Controller_UserApi extends Controller_RestApi
     }
 
     // --------------------------------------------------------------------------
-    public function delete_index() {
-        if (!\Auth::has_access('users.delete')) throw new HttpNoAccessException;
+    public function delete_index()
+    {
+        if (!\Auth::has_access('users.delete'))
+            throw new HttpNoAccessException;
         $username = Input::param('username');
         $user = Model_user::find_by_username($username);
 
@@ -85,15 +66,17 @@ class Controller_UserApi extends Controller_RestApi
             return new Response("No such user: $username", 404);
         }
 
-        $user->delete();
+        //$user->delete();
 
         return new Response("User deleted: $username", 204);
     }
 
     // --------------------------------------------------------------------------
-    public function post_index() {
-    Log::debug("Create user");
-        if (!\Auth::has_access('users.create')) return new Response("Forbidden", 401);
+    public function post_index()
+    {
+        Log::debug("Create user");
+        if (!\Auth::has_access('users.create'))
+            return new Response("Forbidden", 401);
 
         $clubName = Input::post('club');
         $club = null;
@@ -121,10 +104,10 @@ class Controller_UserApi extends Controller_RestApi
         if ($role == 'secretary') {
             $username = $email;
             $password = 'password';
-            $group = 25; 
+            $group = 25;
         } else if ($role == 'umpire') {
             $club = null;
-            $password = generatePassword(4);
+            $password = Model_User::generatePassword(4);
             $oldPassword = $password;
             $group = 2;
         } else if ($role == 'admin') {
@@ -139,10 +122,6 @@ class Controller_UserApi extends Controller_RestApi
             $group = 1;
         }
 
-        Log::info("New User: Section: $section, Club: $club");
-        //        Log::info("New User: Section: ".($section ? $section['name'] : "No Section").", Club: $club");
-
-
         $user = new Model_User();
         $user->username = $username;
         $user->section = $section;
@@ -151,24 +130,26 @@ class Controller_UserApi extends Controller_RestApi
         $user->club_id = $club ? $club['id'] : null;
         $user->group = $group;
         $user->save();
-        Log::info("User created: ".print_r($user,true));
+        $user->log();
 
         return new Response("Created $role: $username", 201);
     }
 
-    public function post_missingusers() {
-        if (!\Auth::has_access('users.create')) return new Response("Forbidden", 401);
+    public function post_missingusers()
+    {
+        if (!\Auth::has_access('users.create'))
+            return new Response("Forbidden", 401);
 
         $missingClubs = Db::query("SELECT c.name, c.id 
             FROM club c 
                 LEFT JOIN user u ON c.id = u.club_id AND u.group = 1 
             WHERE u.id IS NULL");
-        
+
         foreach ($missingClubs->execute() as $missingClub) {
             $user = new Model_User();
             $user->role = 'User';
             $user->username = $missingClub['name'];
-            $user->pin = generatePassword(4);
+            $user->pin = Model_User::generatePassword(4);
             $user->password = \Auth::hash_password($user->pin);
             $user->club_id = $missingClub['id'];
             $user->group = 1;
@@ -180,8 +161,10 @@ class Controller_UserApi extends Controller_RestApi
     }
 
     // --------------------------------------------------------------------------
-    public function put_refreshpin() {
-        if (!\Auth::has_access('user.refreshpin')) throw new HttpNoAccessException;
+    public function put_refreshpin()
+    {
+        if (!\Auth::has_access('user.refreshpin'))
+            throw new HttpNoAccessException;
         $username = Input::put('username');
 
         // FIXME Make sure secretary user matches
@@ -193,16 +176,19 @@ class Controller_UserApi extends Controller_RestApi
 
         $oldPassword = $user->password;
 
-        $user->pin = generatePassword(4);
+        $user->pin = Model_User::generatePassword(4);
         $user->old_password = $user->pin;
         $user->password = \Auth::hash_password($user->pin);
         $user->save();
 
         Log::info("Previous PIN: $oldPassword");
 
-        Session::set_flash("notify", array("msg"=>"PIN updated for user $username",
-            "className"=>"warn"));
+        Session::set_flash("notify", array(
+            "msg" => "PIN updated for user $username",
+            "className" => "warn"
+        )
+        );
 
-        return new Response("PIN Updated for user: ".$username, 201);
+        return new Response("PIN Updated for user: " . $username, 201);
     }
 }

@@ -83,11 +83,12 @@ class Controller_Card extends Controller_Template
 		$data['cc'] = $emails;
 		$emails = array();
 
-		foreach (DB::query("select email from user u join club c on u.club_id=c.id where role='secretary' and c.name='${fixture['home_club']}'")->execute() as $user) {
+		
+		foreach (DB::query(/* SQL! */"select email from user u join club c on u.club_id=c.id where role='secretary' and c.name='${fixture['home_club']}'")->execute() as $user) {
 			$emails[] = $user['email'];
 		}
 
-		foreach (DB::query("select email from user u join club c on u.club_id=c.id where role='secretary' and c.name='${fixture['away_club']}'")->execute() as $user) {
+		foreach (DB::query(/* SQL! */"select email from user u join club c on u.club_id=c.id where role='secretary' and c.name='${fixture['away_club']}'")->execute() as $user) {
 			$emails[] = $user['email'];
 		}
 

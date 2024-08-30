@@ -46,7 +46,7 @@ code {
 
 .xcontainer {
     display: grid;
-    grid-template-rows: 3.5rem 2rem min-content 1fr 4rem;
+    grid-template-rows: 3.5rem min-content min-content 1fr 4rem;
     grid-template-columns: 1fr min($normalWidth, 90vw) 1fr;
 
     height: 100%;
@@ -54,8 +54,14 @@ code {
 
 .container-cards {
     .alert {
-        grid-area: 3/2/4/3;
+        margin-block: 5mm;
+        grid-area: 2/2/3/3;
     }
+}
+
+.user-alert {
+    margin-block: 5mm;
+    grid-area: 2/2/3/3;
 }
 
 .smallprint {
@@ -141,6 +147,7 @@ td.number {
 }
 
 .legacy,
+.content-header,
 #fixtures-container,
 #registration,
 #configform,
@@ -226,9 +233,11 @@ td.command-group {
 .label-league,
 .label-cup,
 .label-team {
+    font-weight: 400;
+    font-size: 0.65rem;
     vertical-align: middle;
     border: 1px solid #7ab733;
-    padding: 5px 5px 3px;
+    padding: 2px 8px 3px 8px;
     margin-right: 2px;
     display: inline-block !important;
 }
@@ -1134,18 +1143,33 @@ div.help {
     width: 100%;
 }
 
-.card-yellow {
+.xcard-yellow {
     background-image: url(/assets/img/yellow-card.png)
 }
 
-.card-red {
+.xcard-red {
     background-image: url(/assets/img/red-card.png)
 }
 
-.card-green {
+.xcard-green {
     background-image: url(/assets/img/green-card.png)
 }
 
-#notes .resolved {
+#notes {
+    th, td {
+        white-space: normal;
+        vertical-align: top;
+        text-align: left;
+    }
+
+    .resolved {
     color: #bbb;
+    }
+}
+
+#clubs-table {
+    table {
+        th, td { vertical-align: top; padding-top: 0; padding-bottom: 1mm; }
+        td { white-space: normal; }
+    }
 }

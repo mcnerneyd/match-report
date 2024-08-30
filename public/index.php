@@ -41,26 +41,28 @@ ini_set('display_errors', 1);
  */
 define('DOCROOT', __DIR__.DIRECTORY_SEPARATOR);
 
+define('FUELPATH', getenv('FUELPATH') ?: realpath(DOCROOT.'/fuel'));
+
 /**
  * -----------------------------------------------------------------------------
  *  Path to the application directory
  * -----------------------------------------------------------------------------
  */
-define('APPPATH', realpath(__DIR__.'/fuel/app/').DIRECTORY_SEPARATOR);
+define('APPPATH', realpath(FUELPATH.'/app/').DIRECTORY_SEPARATOR);
 
 /**
  * -----------------------------------------------------------------------------
  *  Path to the default packages directory
  * -----------------------------------------------------------------------------
  */
-define('PKGPATH', realpath(__DIR__.'/fuel/packages/').DIRECTORY_SEPARATOR);
+define('PKGPATH', realpath(FUELPATH.'/packages/').DIRECTORY_SEPARATOR);
 
 /**
  * -----------------------------------------------------------------------------
  *  The path to the framework core
  * -----------------------------------------------------------------------------
  */
-define('COREPATH', realpath(__DIR__.'/fuel/core/').DIRECTORY_SEPARATOR);
+define('COREPATH', realpath(FUELPATH.'/core/').DIRECTORY_SEPARATOR);
 
 /**
  * -----------------------------------------------------------------------------
@@ -165,6 +167,10 @@ try
 
 	// ... and execute the main request
 	$response = $routerequest();
+}
+catch (UserException $e) 
+{
+    $response = $routerequest('usererror', $e);
 }
 catch (HttpBadRequestException $e)
 {

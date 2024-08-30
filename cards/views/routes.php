@@ -7,7 +7,6 @@
 		require_once('model/player.php');
 		require_once('model/competition.php');
 		require_once('model/club.php');
-		require_once('model/user.php');
 		require_once('model/incident.php');
 
     // create a new instance of the needed controller

@@ -24,7 +24,7 @@
         $section = \Input::get('s');
         $limit = \Input::get('l', 4);
 
-        $sql = "select i.player, c.name club, i.date, x.name competition, 
+        $sql = /* SQL! */"select i.player, c.name club, i.date, x.name competition, 
                     ch.name home, th.name home_team, ca.name away, ta.name away_team 
                 from incident i
                     join club c on c.id = i.club_id
@@ -732,8 +732,14 @@
         foreach ($competitions as $competition => $x) {
             //$comp = Model_Competition::parse($section, $competition);
             try {
-                $comp = parseCompetition($competition, $dbComps);
+                $comp = Model_Competition::parse($section, $competition);
+
+                if ($dbComps != null && !in_array($comp, $dbComps)) {
+                    throw new Exception("Cannot resolve competition '$comp' ('$competition')");
+                }
+            
             } catch (Exception $e) {
+                echo "Error parsing: $competition\n";
                 $comp = $competition;
             }
             //echo "$competition -> $comp\n";
@@ -755,7 +761,10 @@
         ksort($teams);
         $data = array('competitions' => $competitions, 'teams' => $teams);
 
+        echo "TEAMS:\n";
         print_r($teams);
+        echo "COMPS:\n";
+        print_r($competitions);
         echo " -->\n";
 
         $this->template->title = "Parsing";

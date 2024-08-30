@@ -6,6 +6,7 @@ require COREPATH.'bootstrap.php';
 \Autoloader::add_classes(array(
     // Add classes you want to override here
     // Example: 'View' => APPPATH.'classes/view.php',
+    'Log' => APPPATH.'classes/log.php',
 ));
 
 // Register the autoloader
@@ -22,14 +23,25 @@ require APPPATH.'vendor/autoload.php';
         if (strpos($event->getMessage(), "Module 'curl' already loaded") !== false) {
             return null;
         }
+        if (strpos($event->getMessage(), "file_get_contents(): Unable to find the wrapper") !== false) {
+            return null;
+        }
+
+        Log::error("Sentry severity ".print_r($event->getLevel(), true));
+
+        if ($event->getLevel()->isEqualTo(\Sentry\Severity::warning())) {
+            Log::error("Sentry warning (ignoring): ".$event->getMessage());
+            return null;
+        }
 
         return $event;
     }]);
 \Sentry\captureLastError();
 
 require APPPATH.'classes/lib/util.php';
+require APPPATH.'classes/lib/exception.php';
 
-define('DATAPATH', DOCROOT.'/data/');
+define('DATAPATH', getenv('DATAPATH') ?: DOCROOT.'/data/');
 
 ensurePath(DATAPATH);
 ensurePath(DATAPATH."logs/");
@@ -52,7 +64,7 @@ ensurePath(DATAPATH."sections/");
 $route = \Router::process(\Request::forge(), true);
 $route = $route ? " (".$route->controller."/".$route->action.")" : "";
 
-Log::info("---- REQUEST: ".$_SERVER['REQUEST_METHOD']." ".$_SERVER['REQUEST_URI']." ->".$_SERVER['PHP_SELF'].
+Log::debug("---- REQUEST: ".$_SERVER['REQUEST_METHOD']." ".$_SERVER['REQUEST_URI']." ↝".$_SERVER['PHP_SELF'].
   "$route ua=".\Arr::get($_SERVER, 'HTTP_USER_AGENT', ''));
 
 Model_User::initialize();
@@ -87,24 +99,18 @@ function loadSectionConfig($section, $global = true)
 
 $user = Session::get('user', null);
 if ($user) {
-    Log::info("User set: ".$user['username']." ".($user->section ? $user->section->name : "(No section)"));
+    $username = " ⚝ ".($user->section ? $user->section->name.":" : "").$user['username'];
     if ($user->section) {
         loadSectionConfig($user->section['name']);
     }
 } else {
-    Log::info("User set: none");
+    $username = "";
     \Config::set("section", \Config::get("config.section"));
 }
 
-// Configuration for the cards website
-$cardsConfig = DATAPATH."/config.json";
-if (!file_exists($cardsConfig)) {
-    $config = array("database"=>array(
-        "name"=>\Config::get("db.default.connection.database"),
-        "username"=>\Config::get("db.default.connection.username"),
-        "password"=>\Config::get("db.default.connection.password"),
-        "host"=>\Config::get("db.default.connection.hostname")));
-    file_put_contents($cardsConfig, json_encode($config));
-}
+Log::debug("Bootstrap complete: session=".json_encode(\Session::get())." config=".json_encode(\Config::get("section")));
 
+Session::set("REQUEST_KEY", randomString(4));
+
+Log::info("⇒ {$_SERVER['REQUEST_METHOD']}@{$_SERVER['REQUEST_URI']} $username ={$_SERVER['REMOTE_ADDR']}");
 Log::debug("Bootstrap complete: session=".json_encode(\Session::get())." config=".json_encode(\Config::get("section")));

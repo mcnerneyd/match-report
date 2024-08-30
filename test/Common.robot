@@ -6,23 +6,23 @@ Library           RequestsLibrary
 Library           String
 
 *** Variables ***
-${HOST}           localhost:8082
-${BASE}           http://${HOST}
+${HOST}           cards.leinsterhockey.ie
+${BASE}           https://${HOST}
 ${LOGIN URL}      ${BASE}/Login
 ${WELCOME URL}    ${BASE}/welcome.html
 #${BROWSER}       headlesschrome
-${debug}          no
+${debug}          yes
 
 *** Keywords ***
 Login
     [Arguments]           ${username}     ${password}
     Open Chrome                        
     Go To                           ${LOGIN URL}
-    Click Element                   xpath=//div[@id='cookie-consent']/button        
+    #Click Element                   xpath=//div[@id='cookie-consent']/button        
     Input Text                      name=user         ${username}
     Input Text                      name=pin          ${password}
     Click Element                   xpath=//form[@id='login']/button
-    Wait Until Page Contains Element        id:logout
+    Wait Until Page Contains Element        id:user
 
 Secretary Login
     [Arguments]    				${username}     ${password}
@@ -56,7 +56,7 @@ Check Player
     Should Be Equal    ${attr}        ${class}        Player ${player} not ${class}
 
 Go To Matches
-    Go To                           http://${HOST}/card/
+    Go To                           http://${HOST}/cards/ui/
     Run Keyword And Ignore Error    Toggle Menu
     Sleep                           1 second
     Click Element                   link=Matches
@@ -82,25 +82,25 @@ Submit Card
 
 Reset Card    
     [Arguments]          ${fixtureid}
-    ${auth}=             Create List    admin      1234
-    Create Session       cards          ${BASE}    auth=${auth}
-    DELETE On Session    cards          url=/api/1.0/cards?id=${fixtureid}
+    ${auth}=             Create List    testadmin       password
+    Create Session       cards          ${BASE}    auth=${auth}     verify=true
+    DELETE On Session    cards          url=/cardapi?id=${fixtureid}
 
 Open Card
     [Arguments]       ${cardkey}
     Go To Matches
-    Sleep             5s
-    Click Element     xpath=//tr[@data-key='${cardkey}']
-    Sleep             2s
+    Sleep             1s
+    Click Element     xpath=//tr[@data-key='${cardkey}']/*
+    Sleep             1s
 
 Open Chrome
     Register Keyword To Run On Failure        NOTHING
     ${chrome_options}=    Evaluate    sys.modules['selenium.webdriver'].ChromeOptions()    sys, selenium.webdriver
     #Call Method    ${chrome_options}    add_argument    --disable-extensions
-    #Call Method    ${chrome_options}    add_argument    --headless
+    #Call Method    ${chrome_options}    add_argument    headless
     #Call Method    ${chrome_options}    add_argument    --disable-gpu
     #Call Method    ${chrome_options}    add_argument    --no-sandbox
-    Run Keyword If  '${debug}' == 'no'   Call Method     ${chrome_options}    add_argument     headless
+    #Run Keyword If  '${debug}' == 'no'   Call Method     ${chrome_options}    add_argument     headless
     Call Method     ${chrome_options}    add_argument     disable-gpu
     Create Webdriver    Chrome    chrome_options=${chrome_options}
 

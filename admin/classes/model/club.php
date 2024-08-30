@@ -5,17 +5,20 @@ class Model_Club extends \Orm\Model
     protected static $_properties = array(
         'id',
         'name',
-        'code',
+        //'code',
     );
 
     protected static $_table_name = 'club';
 
-    protected static $_has_many = array('team'=>array(
-        ), 'user' => array(
-        ));
+    protected static $_has_many = array(
+        'team' => array(
+        ),
+        'user' => array(
+        )
+    );
 
     protected static $_conditions = array(
-        'order_by' => array('name'=>'asc'),
+        'order_by' => array('name' => 'asc'),
     );
 
     public function getTeamSizes($sectionName, $stars = true)
@@ -29,7 +32,6 @@ class Model_Club extends \Orm\Model
 
         $carry = 0;
         foreach ($teams as $team) {
-            Log::debug("Team; ".$team->name);
             foreach ($team->competition as $competition) {
                 if ($competition->section['name'] != $sectionName) {
                     continue;
@@ -40,7 +42,7 @@ class Model_Club extends \Orm\Model
                 if (!$starSize) {
                     $starSize = 0;
                 }
-                Log::debug("Competition: ".$competition->name." size=$size stars=$starSize");
+                Log::debug("Competition: " . $competition->name . " size=$size stars=$starSize");
                 if ($size) {
                     if ($stars) {
                         $size += $carry;
@@ -56,10 +58,15 @@ class Model_Club extends \Orm\Model
         return $result;
     }
 
-  public function __toString()
-  {
-      return "Club(".$this['name']."/".$this['code'].")";
-  }
+    public function __toString()
+    {
+        return "Club({$this['name']}#{$this['id']})";
+    }
+
+    public function log()
+    {
+        Log::info("+CLUB [{$this['name']}] #{$this['id']}/" . Auth::get_screen_name());
+    }
 
     public static function getAnalysis()
     {
@@ -74,7 +81,7 @@ class Model_Club extends \Orm\Model
             $reg = Model_Registration::find_before_date($sectionName, $row['name'], time());
             $summary = $club->getPlayerHistorySummary();
 
-            $results[$row['id']] = array('name'=>$row['name'], 'section'=>$sectionName, 'players'=>count($reg), 'teams'=>count($teams), 'reg'=>$reg);
+            $results[$row['id']] = array('name' => $row['name'], 'section' => $sectionName, 'players' => count($reg), 'teams' => count($teams), 'reg' => $reg);
         }
 
         //print_r($results);
@@ -84,7 +91,7 @@ class Model_Club extends \Orm\Model
 
     public function getPlayerHistorySummary()
     {
-        $clubId = $this['id'];
+        $clubId = (integer) $this['id'];
         $req = DB::query("select distinct player, COALESCE(th.name, ta.name) team from incident i 
 					join matchcard m on i.matchcard_id = m.id
 					left join team th on m.home_id = th.id and th.club_id = $clubId
@@ -93,10 +100,10 @@ class Model_Club extends \Orm\Model
 
         $result = array();
         foreach ($req->execute() as $row) {
-            $playerName = cleanName($row['player']);
+            $playerName = Model_Player::cleanName($row['player']);
             $team = $row['team'];
             if (!isset($result[$playerName])) {
-                $result[$playerName] = array('teams'=>array());
+                $result[$playerName] = array('teams' => array());
             }
 
             if (!in_array($team, $result[$playerName]['teams'])) {

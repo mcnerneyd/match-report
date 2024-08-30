@@ -9,31 +9,32 @@ class Model_Matchcard extends \Orm\Model
         'competition_id',
         'home_id',
         'away_id',
+        'description',
         'open',
     );
 
     public function __toString()
     {
-        return "Card(${this['fixture_id']}/${this['id']}=".$this['competition']['name'].":".$this['home']['club']['name']."^".$this['away']['club']['name'].")";
+        return "Card({$this['fixture_id']}/{$this['id']}=" . $this['competition']['name'] . ":" . $this['home']['club']['name'] . "^" . $this['away']['club']['name'] . ")";
     }
 
     protected static $_table_name = 'matchcard';
 
-    protected static $_has_one = array(
+    protected static $_belongs_to = array(
         'competition' => array(
-            'model_to'=>'Model_Competition',
-            'key_from'=>'competition_id',
-            'key_to'=>'id',
+            'model_to' => 'Model_Competition',
+            'key_from' => 'competition_id',
+            'key_to' => 'id',
         ),
         'home' => array(
-            'model_to'=>'Model_Team',
-            'key_from'=>'home_id',
-            'key_to'=>'id',
+            'model_to' => 'Model_Team',
+            'key_from' => 'home_id',
+            'key_to' => 'id',
         ),
         'away' => array(
-            'model_to'=>'Model_Team',
-            'key_from'=>'away_id',
-            'key_to'=>'id',
+            'model_to' => 'Model_Team',
+            'key_from' => 'away_id',
+            'key_to' => 'id',
         ),
     );
 
@@ -43,7 +44,7 @@ class Model_Matchcard extends \Orm\Model
         ),
     );
 
-    public static function getAll($fixtureIds)
+    public static function getAll(Array $fixtureIds)
     {
         if (!$fixtureIds) {
             return array();
@@ -53,14 +54,14 @@ class Model_Matchcard extends \Orm\Model
                     from incident i
                     join matchcard m on m.id = i.matchcard_id
                     join club c on c.id = i.club_id
-                where type in ('Played', 'Scored') and fixture_id in (".join(",", $fixtureIds).")
+                where type in ('Played', 'Scored') and fixture_id in (" . join(",", $fixtureIds) . ")
                 group by type, fixture_id, c.name";
 
         $rows = DB::query($sql)->execute();
 
         $result = array();
         foreach ($rows as $row) {
-            $result[$row['type'].$row['fixture_id'].$row['name']] = $row['value'];
+            $result[$row['type'] . $row['fixture_id'] . $row['name']] = $row['value'];
         }
 
         return $result;
@@ -85,7 +86,7 @@ class Model_Matchcard extends \Orm\Model
             $home = Model_Team::find_by_name($fixture['home'], $section)->id;
             $away = Model_Team::find_by_name($fixture['away'], $section)->id;
 
-            DB::insert('matchcard', array('fixture_id','home_id','away_id','competition_id','description'))
+            DB::insert('matchcard', array('fixture_id', 'home_id', 'away_id', 'competition_id', 'description'))
                 ->values(array($fixtureId, $home, $away, $comp, ""))->execute();
 
             Log::info("Created new card for $fixtureId");
@@ -93,7 +94,7 @@ class Model_Matchcard extends \Orm\Model
 
             return true;
         } catch (Exception $e) {
-            Log::warning("Failed to create card (fixtureId=$fixtureId): ".$e);
+            Log::warning("Failed to create card (fixtureId=$fixtureId): " . $e);
 
             return false;
         }
@@ -148,7 +149,7 @@ class Model_Matchcard extends \Orm\Model
                     $sql .= "\n/* Q:$q */ ";
                     $matches = \DB::query("select id 
 						from club
-						where name like '%$q%' or code='$q'")->execute();
+						where name like '%$q%'")->execute();    // FIXME SQL Injection
 
                     if ($matches->count()) {
                         $match = true;
@@ -158,7 +159,7 @@ class Model_Matchcard extends \Orm\Model
 
                     $matches = \DB::query("select id 
 						from competition
-						where name like '%$q%' or code='$q'")->execute();
+						where name like '%$q%'")->execute();    // FIXME SQL Injection
 
                     if ($matches->count()) {
                         $match = true;
@@ -187,7 +188,7 @@ class Model_Matchcard extends \Orm\Model
             }
         }
 
-        $sql .=" order by date desc";
+        $sql .= " order by date desc";
 
         Log::info("Search query: $sql");
 
@@ -205,13 +206,13 @@ class Model_Matchcard extends \Orm\Model
 			JOIN club ca ON ta.club_id = ca.id) x";
 
         if ($q) {
-            $sql .= " WHERE ".
-            implode(
-                ' AND ',
-                array_map(function ($x) {
-                    return "x.d like '%".str_replace(array('/',"'"), '', $x)."%'";
-                }, $q)
-            );
+            $sql .= " WHERE " .
+                implode(
+                    ' AND ',
+                    array_map(function ($x) {
+                        return "x.d like '%" . str_replace(array('/', "'"), '', $x) . "%'";
+                    }, $q)
+                );
         }
 
         Log::info("Search query2: $sql");
@@ -235,11 +236,11 @@ class Model_Matchcard extends \Orm\Model
     {
         $t0 = milliseconds();
 
-        $ids = \DB::query("SELECT id FROM matchcard WHERE fixture_id=".$fixtureid)->execute();
+        $ids = \DB::query("SELECT id FROM matchcard WHERE fixture_id=" . $fixtureid)->execute();
 
         foreach ($ids as $id) {
             $c = Model_Matchcard::card($id['id']);
-            Log::debug("fbfTime:".(milliseconds()-$t0));
+            Log::debug("fbfTime:" . (milliseconds() - $t0));
             return $c;
         }
 
@@ -263,10 +264,10 @@ class Model_Matchcard extends \Orm\Model
         if (\Session::get('username') === 'admin') {
             $user_id = 0;
         } else {
-            $user_id = static::first("SELECT id FROM user WHERE username = '".\Session::get('username')."'");
+            $user_id = static::first("SELECT id FROM user WHERE username = '" . \Session::get('username') . "'");
         }
         $home_id = static::first("SELECT t.id FROM team t JOIN club c ON t.club_id = c.id 
-				WHERE c.name = '${xFixture['home_club']}' AND t.name = ${xFixture['home_team']}");
+				WHERE c.name = '{$xFixture['home_club']}' AND t.name = {$xFixture['home_team']}");
         if (!$home_id) {
             $home_id = 'null';
         }
@@ -277,16 +278,16 @@ class Model_Matchcard extends \Orm\Model
         }
         $competition_id = static::first("SELECT id FROM competition WHERE name = '${xFixture['competition']}'");
 
-        $sql="INSERT INTO matchcard (fixture_id, competition_id, home_id, away_id)
+        $sql = "INSERT INTO matchcard (fixture_id, competition_id, home_id, away_id)
 					VALUES ($fixtureid, $competition_id, $home_id, $away_id)";
 
-        $res=\DB::query($sql)->execute();
+        $res = \DB::query($sql)->execute();
 
         Log::info(print_r($res, true));
 
         $card = Model_Matchcard::find_by_fixture($fixtureid, false);
 
-        Log::info("Created card for fixture: fixtureid=".$fixtureid." id=".$card['id']);
+        Log::info("Created card for fixture: fixtureid=" . $fixtureid . " id=" . $card['id']);
 
         return $card;
     }
@@ -346,7 +347,7 @@ class Model_Matchcard extends \Orm\Model
                 continue;
             } else {
                 $incident = $incident->to_array();
-                $player = cleanName($incident['player'], "LN, Fn");
+                $player = Model_Player::cleanName($incident['player'], "LN, Fn");
                 if ($player) {
                     $side['players'][$player][$incident['type']][] = $incident;
                 }
@@ -395,30 +396,88 @@ class Model_Matchcard extends \Orm\Model
         // Verify that the fixture is still valid
         $fixture = Model_Fixture::get($card['fixture_id']);
 
-        return self::build_card($card, $fixture);
+        $incidents = \DB::query("select id, player, club_id, type, detail, date, resolved
+			from incident where matchcard_id = {$card['id']}")->execute();
+
+        return self::build_card($card, $fixture, $incidents);
     }
 
-    public static function expandFixtures($fixtures, $after = null)
+    public static function expandFixtures(?array $fixtures, ?int $after = null)
     {
+        Log::debug("Expand fixtures: $after");
+
         if ($after != null) {
+            $newValues = false;
             foreach (DB::query("SELECT * FROM incident 
                 WHERE type in ('Scored','Played','Other') AND date > FROM_UNIXTIME($after)
-                LIMIT 1")->execute() as $r) return true;
-            return false;
+                LIMIT 1")->execute() as $r) {
+                $newValues = true;
+                break;
+            }
+
+            if (!$newValues)
+                return false;
+            else
+                Log::debug("New values");
+            if ($fixtures == null)
+                return true;
         }
+
+        Log::debug("Combine");
 
         $result = array_combine(array_column($fixtures, 'fixtureID'), $fixtures);
 
-        foreach (DB::query("SELECT m.fixture_id, h.club_id = i.club_id AS home, SUM(detail) AS score 
-                FROM incident i 
-                    JOIN matchcard m ON i.matchcard_id = m.id
-                    JOIN team h ON m.home_id = h.id
-                WHERE type = 'Scored' AND resolved = 0 
-                GROUP BY m.fixture_id, h.club_id = i.club_id")->execute() as $r) {
+        Log::debug("Quick");
+        /*
+                $qrs = [];
+                $rs = DB::query("WITH c1 AS (SELECT m.id, m.fixture_id, h.club_id home_id
+                        FROM matchcard m
+                            JOIN team h ON m.home_id = h.id
+                            JOIN competition x ON x.id = m.competition_id JOIN section s on s.id = x.section_id
+                        WHERE s.name = 'lha-men')
+
+                        SELECT c1.fixture_id, c1.home_id = i.club_id AS home, null as notes, SUM(detail) AS score, null as players, null as username, null as resolved
+                        FROM incident i 
+                            JOIN c1 ON c1.id = i.matchcard_id
+                        WHERE type = 'Scored' AND resolved = 0
+                        GROUP BY c1.fixture_id, c1.home_id = i.club_id
+                    UNION ALL
+                        SELECT c1.fixture_id, c1.home_id = i.club_id, null, null, COUNT(*) AS players, null, null 
+                        FROM incident i 
+                            JOIN c1 ON i.matchcard_id = c1.id
+                        WHERE type = 'Played' AND resolved = 0
+                        GROUP BY m.fixture_id, c1.home_id = i.club_id
+                    UNION ALL
+                        SELECT c1.fixture_id, null, i.detail, null, null, u.username, i.resolved
+                        FROM incident i 
+                            JOIN c1 ON c1.id = i.matchcard_id
+                            LEFT JOIN user u ON i.user_id = u.id
+                        WHERE i.type = 'Other'")->execute();
+                        
+                        foreach ($rs as $r) {
+                            if (isset($result[$r['fixture_id']])) {
+                                $qrs[] = $result[$r['fixture_id']];
+                            }
+                        }
+                  */
+        Log::debug("Search score");
+
+        $rs = DB::query("SELECT m.fixture_id, h.club_id = i.club_id AS home, SUM(detail) AS score 
+        FROM incident i 
+            JOIN matchcard m ON i.matchcard_id = m.id
+            JOIN team h ON m.home_id = h.id
+        WHERE type = 'Scored' AND resolved = 0 
+        GROUP BY m.fixture_id, h.club_id = i.club_id")->execute();
+
+        Log::debug("Search score - executed");
+
+        foreach ($rs as $r) {
             if (isset($result[$r['fixture_id']])) {
-                $result[$r['fixture_id']][($r['home'] ? "home" : "away")."_reported_score"] = $r['score'];
+                $result[$r['fixture_id']][($r['home'] ? "home" : "away") . "_reported_score"] = $r['score'];
             }
         }
+
+        Log::debug("GetPlayers");
 
         foreach (DB::query("SELECT m.fixture_id, h.club_id = i.club_id AS home, COUNT(*) AS players 
                 FROM incident i 
@@ -427,9 +486,11 @@ class Model_Matchcard extends \Orm\Model
                 WHERE type = 'Played' AND resolved = 0 
                 GROUP BY m.fixture_id, h.club_id = i.club_id")->execute() as $r) {
             if (isset($result[$r['fixture_id']])) {
-                $result[$r['fixture_id']][($r['home'] ? "home" : "away")."_players"] = $r['players'];
+                $result[$r['fixture_id']][($r['home'] ? "home" : "away") . "_players"] = $r['players'];
             }
         }
+
+        Log::debug("Get Notes");
 
         foreach (DB::query("SELECT m.fixture_id, i.detail, u.username, i.resolved
                 FROM incident i JOIN matchcard m ON i.matchcard_id = m.id
@@ -441,6 +502,8 @@ class Model_Matchcard extends \Orm\Model
                 $result[$r['fixture_id']]['notes'] = $notes;
             }
         }
+
+        Log::debug("All done");
 
         return array_values($result);
     }
@@ -470,27 +533,33 @@ class Model_Matchcard extends \Orm\Model
 				left join team ta on m.away_id = ta.id
 				left join club ca on ta.club_id = ca.id
                 left join incident i on i.matchcard_id = m.id and i.type = 'Scored' and i.resolved = false
-			where m.fixture_id in (".implode(",", array_keys($fixtureIds)).")
+			where m.fixture_id in (" . implode(",", array_keys($fixtureIds)) . ")
             group by m.id")->execute();
 
         $fixtures = array();
 
         foreach ($cards as $card) {
             $fixture = $fixtureIds[$card['fixture_id']];
-            if (($card['home_score'] == $fixture['home_score']) &&
-                ($card['away_score'] == $fixture['away_score'])) {
+            if (
+                ($card['home_score'] == $fixture['home_score']) &&
+                ($card['away_score'] == $fixture['away_score'])
+            ) {
                 continue;
             }
-            Log::debug("Score: ".$card['home_score']." ".$card['away_score'].
-                " == ".$fixture["home_score"]." ".$fixture["away_score"]);
-            $fixture['card'] = self::build_card($card, $fixture);
+            Log::debug("Score: " . $card['home_score'] . " " . $card['away_score'] .
+                " == " . $fixture["home_score"] . " " . $fixture["away_score"]);
+
+            $incidents = \DB::query("select id, player, club_id, type, detail, date, resolved
+			from incident where matchcard_id = {$card['id']}")->execute();
+
+            $fixture['card'] = self::build_card($card, $fixture, $incidents);
             $fixtures[] = $fixture;
         }
 
         return $fixtures;
     }
 
-    private static function build_card($card, $fixture)
+    public static function build_card($card, $fixture, $incidents)
     {
         $t0 = milliseconds();
 
@@ -512,10 +581,26 @@ class Model_Matchcard extends \Orm\Model
             $card['date'] = \Date::create_from_string($card['date'], '%Y-%m-%d %H:%M:%S');
         }
 
-        $card['home'] = array('club'=>null, 'team'=>null, 'players'=>array(), 'signed'=>false,
-            'goals'=>0, 'scorers'=>array(), 'fines'=>array(), 'notes'=>array());
-        $card['away'] = array('club'=>null, 'team'=>null, 'players'=>array(), 'signed'=>false,
-            'goals'=>0, 'scorers'=>array(), 'fines'=>array(), 'notes'=>array());
+        $card['home'] = array(
+            'club' => null,
+            'team' => null,
+            'players' => array(),
+            'signed' => false,
+            'goals' => 0,
+            'scorers' => array(),
+            'fines' => array(),
+            'notes' => array()
+        );
+        $card['away'] = array(
+            'club' => null,
+            'team' => null,
+            'players' => array(),
+            'signed' => false,
+            'goals' => 0,
+            'scorers' => array(),
+            'fines' => array(),
+            'notes' => array()
+        );
 
         if ($card['home_id'] != null) {
             $card['home']['club'] = $card['home_name'];
@@ -533,9 +618,6 @@ class Model_Matchcard extends \Orm\Model
         $card['home']['incidents'] = array();
         $card['away']['incidents'] = array();
 
-        $incidents = \DB::query("select id, player, club_id, type, detail, date, resolved
-			from incident where matchcard_id = ${card['id']}")->execute();
-
         $t3 = milliseconds();
 
         foreach ($incidents as $incident) {
@@ -551,13 +633,12 @@ class Model_Matchcard extends \Orm\Model
             }
 
             if ($incident['player']) {
-                //$playerName = Model_Card::cleanName($incident['player']);
-                $playerName = cleanName($incident['player'], "LN, Fn");
+                $playerName = Model_Player::cleanName($incident['player'], "LN, Fn");
 
                 if (isset($card[$key]['players'][$playerName])) {
                     $player = $card[$key]['players'][$playerName];
                 } else {
-                    $player = array('number'=>'', 'date'=>Date::create_from_string($incident['date'], '%F %T'));
+                    $player = array('number' => '', 'date' => Date::create_from_string($incident['date'], '%F %T'));
                     if (isset($numbers[$key][$incident['player']])) {
                         $player['number'] = $numbers[$key][$incident['player']];
                     }
@@ -588,7 +669,7 @@ class Model_Matchcard extends \Orm\Model
                     $card[$key]['scorers'][$playerName] = $score + $incident['detail'];
                     break;
                 case 'Missing':
-                    $card[$key]['fines'][] = array('Missing'=>$incident['detail'], "resolved"=>$incident['resolved']);
+                    $card[$key]['fines'][] = array('Missing' => $incident['detail'], "resolved" => $incident['resolved']);
                     break;
                 case 'Signed':
                     if ($incident['resolved'] == 1) {
@@ -600,7 +681,7 @@ class Model_Matchcard extends \Orm\Model
                         if ($oppositionScore === "") {
                             $oppositionScore = 0;
                         }
-                        $card[$key.'-opposition-score'] = $oppositionScore;
+                        $card[$key . '-opposition-score'] = $oppositionScore;
                         if (count($output_array) > 2) {
                             $card[$key]['umpire'] = $output_array[2];
                         }
@@ -612,9 +693,11 @@ class Model_Matchcard extends \Orm\Model
                         break;
                     }
                     self::arr_add($card[$key], 'penalties', array(
-                        'player'=>$incident['player'],
-                        'penalty'=>$incident['type'],
-                        'detail'=>$incident['detail']));
+                        'player' => $incident['player'],
+                        'penalty' => $incident['type'],
+                        'detail' => $incident['detail']
+                    )
+                    );
                     break;
                 case 'Other':
                     $detail = $incident['detail'];
@@ -657,24 +740,16 @@ class Model_Matchcard extends \Orm\Model
             }
         }
 
-        $card['description'] = $card['competition'].":".
-            $card['home']['club']." ".$card['home']['team']." v ".
-            $card['away']['club']." ".$card['away']['team'];
+        $card['description'] = $card['competition'] . ":" .
+            $card['home']['club'] . " " . $card['home']['team'] . " v " .
+            $card['away']['club'] . " " . $card['away']['team'];
 
         $t4 = milliseconds();
 
-        Log::debug("Times: ".($t2-$t0)." ".($t3-$t0)." ".($t4-$t0));
+        Log::debug("Times: " . ($t2 - $t0) . " " . ($t3 - $t0) . " " . ($t4 - $t0));
 
         return $card;
     }
-
-    //	private static function cleanName($name) {
-    //		$a = strpos($name, ',');
-    //
-    //		if (!$a) return $name;
-    //
-    //		return trim(substr($name, $a+1))." ".ucwords(strtolower(substr($name, 0, $a)));
-    //	}
 
     private static function numberTable($clubId)
     {
@@ -766,7 +841,8 @@ class Model_Matchcard extends \Orm\Model
         return $missing;
     }
 
-    public static function lateCards($section = null) {
+    public static function lateCards($section = null)
+    {
         $sql = "with unsigned_cards as (
             select m.matchcard_id, m.club_id, m.home, i.type is not null signed from (
                 select m.id as matchcard_id, true as home, c.id as club_id, date
@@ -801,7 +877,8 @@ class Model_Matchcard extends \Orm\Model
         order by m.fixture_id";
 
         $results = [];
-        foreach (DB::query($sql)->execute() as $r) $results[] = $r;
+        foreach (DB::query($sql)->execute() as $r)
+            $results[] = $r;
 
         return $results;
     }

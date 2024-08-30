@@ -13,7 +13,7 @@ class Controller_Admin extends Controller_Hybrid
         });
 
         $this->template->title = "SuperUser Administration";
-        $this->template->content = View::forge('admin/index', array('users'=>$allusers));
+        $this->template->content = View::forge('admin/index', array('users' => $allusers));
     }
 
     /**
@@ -61,7 +61,7 @@ class Controller_Admin extends Controller_Hybrid
         }
 
         foreach (Model_Section::find('all') as $section) {
-            $root = DATAPATH."/sections/".$section['name'] . "/registration/$f";
+            $root = DATAPATH . "/sections/" . $section['name'] . "/registration/$f";
 
             static::touchAll($root, $d);
         }
@@ -69,16 +69,32 @@ class Controller_Admin extends Controller_Hybrid
         Response::redirect("admin");
     }
 
-    private function csvToJson($f) {
+    private function csvToJson($f)
+    {
         $csv = array_map('str_getcsv', file($f));
-        while (!$csv[0][0]) array_shift($csv); # remove blank rows
+        while (!$csv[0][0])
+            array_shift($csv); # remove blank rows
         print_r($csv[0]);
-        for ($i=0;$i<count($csv[0]);$i++) $csv[0][$i] = strtolower($csv[0][$i]);
+        for ($i = 0; $i < count($csv[0]); $i++)
+            $csv[0][$i] = strtolower($csv[0][$i]);
         array_walk($csv, function (&$a) use ($csv) {
             $a = array_combine($csv[0], $a);
         });
         array_shift($csv); # remove column header
         return json_encode($csv);
+    }
+
+    public function post_section()
+    {
+        $sectionName = \Input::param("section_name");
+
+        echo "Section: $sectionName";
+
+        $section = new Model_Section();
+        $section->name = $sectionName;
+        $section->save();
+
+        return new Response("", 200);
     }
 
     public function post_import()
@@ -87,23 +103,29 @@ class Controller_Admin extends Controller_Hybrid
 
         if ($src) {
             switch ($src['extension']) {
-              case 'xls':
-              case 'xlsx':
-                $filename = $src['file'];
-                Log::info("Importing $filename");
-                $spreadsheet = PhpOffice\PhpSpreadsheet\IOFactory::load($filename);
+                case 'xls':
+                case 'xlsx':
+                    $filename = $src['file'];
+                    Log::info("Importing $filename");
+                    $spreadsheet = PhpOffice\PhpSpreadsheet\IOFactory::load($filename);
 
-                $writer = new PhpOffice\PhpSpreadsheet\Writer\Csv($spreadsheet);
-                $tmpfname = $filename.".csv"; //tempnam("/tmp", "csv");
-                $writer->save($tmpfname);
-                $src = self::csvToJson($tmpfname);
-                break;
-              case 'csv':
-                $src = self::csvToJson($src['file']);
-                break;
-              default:
-                $src = file_get_contents($src['file']);
-                break;
+                    $writer = new PhpOffice\PhpSpreadsheet\Writer\Csv($spreadsheet);
+                    $tmpfname = $filename . ".csv"; //tempnam("/tmp", "csv");
+                    $writer->save($tmpfname);
+                    $src = self::csvToJson($tmpfname);
+                    break;
+                case 'csv':
+                    $src = self::csvToJson($src['file']);
+                    break;
+
+                case 'log':
+                    echo "log import";
+                    Controller_AdminApi::import($src['file']);
+                    return new Response("", 200);
+
+                default:
+                    $src = file_get_contents($src['file']);
+                    break;
             }
             $src = json_decode($src);
             self::import($src);
@@ -112,7 +134,8 @@ class Controller_Admin extends Controller_Hybrid
         return new Response("", 200);
     }
 
-    private static function validateEmail($email) {
+    private static function validateEmail($email)
+    {
         if ($email) {
             if (!preg_match("/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i", $email)) {
                 throw new Exception("Invalid email address: $email");
@@ -120,7 +143,8 @@ class Controller_Admin extends Controller_Hybrid
         }
     }
 
-    private static function generateRandomString($length = 10) {    # https://stackoverflow.com/questions/4356289/php-random-string-generator
+    private static function generateRandomString($length = 10)
+    {    # https://stackoverflow.com/questions/4356289/php-random-string-generator
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $charactersLength = strlen($characters);
         $randomString = '';
@@ -135,7 +159,7 @@ class Controller_Admin extends Controller_Hybrid
         echo "<pre>";
         if ($src) {
             foreach ($src as $srci) {
-                $item = (array)$srci;
+                $item = (array) $srci;
                 if (!isset($item['type'])) {
                     $item['type'] = 'section';
                     if (isset($item['username']) or isset($item['email'])) {
@@ -150,7 +174,7 @@ class Controller_Admin extends Controller_Hybrid
                     }
                 }
 
-                foreach ($item as $key=>&$value) {
+                foreach ($item as $key => &$value) {
                     if ($value === 'NULL') {
                         $value = null;
                     }
@@ -158,138 +182,137 @@ class Controller_Admin extends Controller_Hybrid
 
                 try {
                     switch ($item['type']) {
-              case 'section':
-                if (!Model_Section::find_by_name($item['name'])) {
-                    $s = new Model_Section();
-                    $s['name'] = $item['name'];
-                    $s->save();
-                    echo "Imported Section: ".$item['name']."\n";
-                }
-                break;
-              case 'club':
-                if (!Model_Club::find_by_name($item['name'])) {
-                    $c = new Model_Club();
-                    $c['name'] = $item['name'];
-                    $c['code'] = $item['code'];
-                    $c->save();
-                    echo "Imported Club: ".$item['name']."\n";
-                }
-                break;
-              case 'competition':
-                  $s = $this->getSection($item['section']);
-                  $x = DB::select()->from("competition")->where('name', $item['name'])->where('section_id', $s['id'])->execute()->current();
-                   if (!$x) {
-                       $x = new Model_Competition();
-                       $x['name'] = $item['name'];
-                       $x['code'] = $item['code'];
-                       $x['section'] = $s;
-                       $x['teamsize'] = $item['teamsize'];
-                       $x['teamstars'] = $item['teamstars'];
-                       $x['groups'] = $item['groups'];
-                       $x['format'] = $item['format'];
-                       $x['sequence'] = $item['sequence'] == null ? null : intval($item['sequence']);
-                       $x->save();
-                       echo "Imported Competition: ".$item['name']."\n";
-                   }
-                break;
-              case 'user':
-                {
-                    if (!isset($item['section'])) {
-                        $sectionParam = \Input::param("section", null);
-
-                        if ($sectionParam !== null) {
-                            $item['section'] = $sectionParam;
-                        } else {
-                            echo "Users must have a section column";
-                            return;
-                        }
-                    }
-
-                    if (!isset($item['group'])) {
-                        if ($item['email']) {
-                          $item['group'] = 25;
-                        }
-                    }
-
-                    if (!isset($item['password'])) {
-                        $item['password'] = self::generateRandomString();
-                    }
-
-                    self::validateEmail($item['email']);
-
-                    switch ($item['group']) {
-                        case 25: // secretary
-                        case 99: // admin
-                            $username = $item['email'];
-                            break;
-                        case 2: // umpire
-                            $username = ucwords($item['username']);
-                            break;
-                        case 1: // player
-                            if ($item['club']) {
-                                $username = $item['club']." (".$item['section'].")";
+                        case 'section':
+                            if (!Model_Section::find_by_name($item['name'])) {
+                                $s = new Model_Section();
+                                $s['name'] = $item['name'];
+                                $s->save();
+                                echo "Imported Section: " . $item['name'] . "\n";
                             }
                             break;
-                        case 100: // admin
-                            $username = null;
+                        case 'club':
+                            if (!Model_Club::find_by_name($item['name'])) {
+                                $c = new Model_Club();
+                                $c['name'] = $item['name'];
+                                $c['code'] = $item['code'];
+                                $c->save();
+                                echo "Imported Club: " . $item['name'] . "\n";
+                            }
                             break;
-                        default:
-                            print_r($item);
-                            echo "Unknown user type: ".$item['group']."\n";
-                            $username = null;
-                    }
-                    if (!$username) {
-                        continue 2;
-                    }
-                    $u0 = Model_User::find_by_username($username);
-                    if ($u0) {
-                        if (isset($u0->section) && $u0->section !== null) {
-                            if (!isset($item['section'])) {   // new user has no section, overrides existing user
-                                $u0->section = null;
-                                $u0->save();
-                            } elseif ($u0->section['name'] !== $item['section']) {  // new user is not same as existing user
-                                if ($u0['group'] == 25 || $u0['group'] == 99) {   // user is a secretary/admin - widen their scope
-                                    $u0->section = null;
-                                    $u0->save();
+                        case 'competition':
+                            $s = $this->getSection($item['section']);
+                            $x = DB::select()->from("competition")->where('name', $item['name'])->where('section_id', $s['id'])->execute()->current();
+                            if (!$x) {
+                                $x = new Model_Competition();
+                                $x['name'] = $item['name'];
+                                $x['code'] = $item['code'];
+                                $x['section'] = $s;
+                                $x['teamsize'] = $item['teamsize'];
+                                $x['teamstars'] = $item['teamstars'];
+                                $x['groups'] = $item['groups'];
+                                $x['format'] = $item['format'];
+                                $x['sequence'] = $item['sequence'] == null ? null : intval($item['sequence']);
+                                $x->save();
+                                echo "Imported Competition: " . $item['name'] . "\n";
+                            }
+                            break;
+                        case 'user': {
+                            if (!isset($item['section'])) {
+                                $sectionParam = \Input::param("section", null);
+
+                                if ($sectionParam !== null) {
+                                    $item['section'] = $sectionParam;
+                                } else {
+                                    echo "Users must have a section column";
+                                    return;
                                 }
                             }
+
+                            if (!isset($item['group'])) {
+                                if ($item['email']) {
+                                    $item['group'] = 25;
+                                }
+                            }
+
+                            if (!isset($item['password'])) {
+                                $item['password'] = self::generateRandomString();
+                            }
+
+                            self::validateEmail($item['email']);
+
+                            switch ($item['group']) {
+                                case 25: // secretary
+                                case 99: // admin
+                                    $username = $item['email'];
+                                    break;
+                                case 2: // umpire
+                                    $username = ucwords($item['username']);
+                                    break;
+                                case 1: // player
+                                    if ($item['club']) {
+                                        $username = $item['club'] . " (" . $item['section'] . ")";
+                                    }
+                                    break;
+                                case 100: // admin
+                                    $username = null;
+                                    break;
+                                default:
+                                    print_r($item);
+                                    echo "Unknown user type: " . $item['group'] . "\n";
+                                    $username = null;
+                            }
+                            if (!$username) {
+                                continue 2;
+                            }
+                            $u0 = Model_User::find_by_username($username);
+                            if ($u0) {
+                                if (isset($u0->section) && $u0->section !== null) {
+                                    if (!isset($item['section'])) {   // new user has no section, overrides existing user
+                                        $u0->section = null;
+                                        $u0->save();
+                                    } elseif ($u0->section['name'] !== $item['section']) {  // new user is not same as existing user
+                                        if ($u0['group'] == 25 || $u0['group'] == 99) {   // user is a secretary/admin - widen their scope
+                                            $u0->section = null;
+                                            $u0->save();
+                                        }
+                                    }
+                                }
+
+                                continue 2;
+                            }
+                            echo "------------------ Importing " . $item['type'] . "\n" . print_r($item, true) . "\n";
+
+                            echo "New User: $username\n";
+                            $s = isset($item['section']) ? $this->getSection($item['section']) : null;
+                            if ($item['group'] == 2) {
+                                $s = null;
+                            }  // umpires
+
+                            $c = isset($item['club']) ? Model_Club::find_by_name($item['club']) : null;
+                            if ($item['group'] == 1 || $item['group'] == 25) {
+                                if (!$c) {
+                                    throw new Exception("User $username no such club: " . $item['club']);
+                                }
+                            }
+
+                            $u = new Model_User();
+                            $u['username'] = $username;
+                            $u['password'] = $item['password'];
+                            $u['club'] = $c;
+                            $u['section'] = $s;
+                            $u['group'] = $item['group'];
+                            $u['email'] = $item['email'];
+                            $u->save();
+                            echo "Successfully imported\n";
                         }
+                            break;
 
-                        continue 2;
+                        default:
+                            echo $item['type'] . "\n";
                     }
-                    echo "------------------ Importing ".$item['type']."\n".print_r($item, true)."\n";
-
-                    echo "New User: $username\n";
-                    $s = isset($item['section']) ? $this->getSection($item['section']) : null;
-                    if ($item['group'] == 2) {
-                        $s = null;
-                    }  // umpires
-
-                    $c = isset($item['club']) ? Model_Club::find_by_name($item['club']) : null;
-                    if ($item['group'] == 1 || $item['group'] == 25) {
-                        if (!$c) {
-                            throw new Exception("User $username no such club: ".$item['club']);
-                        }
-                    }
-
-                    $u = new Model_User();
-                    $u['username'] = $username;
-                    $u['password'] = $item['password'];
-                    $u['club'] = $c;
-                    $u['section'] = $s;
-                    $u['group'] = $item['group'];
-                    $u['email'] = $item['email'];
-                    $u->save();
-                    echo "Successfully imported\n";
-                }
-                break;
-
-              default:
-                echo $item['type']."\n";
-            }
                 } catch (Exception $e) {
-                    Log::error("Failed to import item: ".$e->getMessage());
-                    echo "Error importing: ".print_r($item, true)."\n".print_r($e, true)."\n";
+                    Log::error("Failed to import item: " . $e->getMessage());
+                    echo "Error importing: " . print_r($item, true) . "\n" . print_r($e, true) . "\n";
                 }
             }
         }
@@ -432,7 +455,7 @@ class Controller_Admin extends Controller_Hybrid
             Log::info("==== Log Marker ====");
         }
 
-        $logPath = DATAPATH."logs/";
+        $logPath = DATAPATH . "logs/";
 
         $filename = $logPath . substr($date, 0, 4) . "/" . substr($date, 4, 2) . "/" . substr($date, 6, 2) . ".php";
 
@@ -467,7 +490,7 @@ class Controller_Admin extends Controller_Hybrid
 
             switch ($match[1]) {
                 case "ERROR":
-                    echo "<code style='color:red'>" . $match[2] . " <strong>" . $match[1] . "</strong> " . $match[3] . "</code><br>".print_r($line, true);
+                    echo "<code style='color:red'>" . $match[2] . " <strong>" . $match[1] . "</strong> " . $match[3] . "</code><br>" . print_r($line, true);
                     break;
                 case "WARNING":
                     echo "<code style='color:orange'>" . $match[2] . " <strong>" . $match[1] . "</strong> " . $match[3] . "</code><br>";
@@ -493,7 +516,7 @@ class Controller_Admin extends Controller_Hybrid
 
                     echo "<code>" . $match[2] . " <strong>" . $match[1] . "</strong> " . $match[3] . "</code><br>";
                     if (preg_match("/Request:(.*)/", $match[3], $match2)) {
-                        $squeak = str_repeat("&nbsp;", 20).substr("----- Begin Request " . str_repeat("-", 120), 0, 120);
+                        $squeak = str_repeat("&nbsp;", 20) . substr("----- Begin Request " . str_repeat("-", 120), 0, 120);
                         echo "<code style='color:green;size:80%'>$squeak</code><br><br>";
                     }
                     break;
@@ -532,10 +555,7 @@ class Controller_Admin extends Controller_Hybrid
         $row3 = "Club,Code,Email";
         $entries = array();
 
-        foreach (Model_Competition::find('all', array(
-            'order_by' => array('sequence' => 'asc'),
-            'where' => array(array('sequence', '>=', '0')),
-        )) as $competition) {
+        foreach (Model_Competition::find('all', array('order_by' => array('sequence' => 'asc'), 'where' => array(array('sequence', '>=', '0')), )) as $competition) {
             $body .= ",\"${competition['name']}\"";
             $row2 .= ",";
             if ($competition['teamsize']) {
@@ -587,10 +607,12 @@ class Controller_Admin extends Controller_Hybrid
 
         $response = Response::forge($body);
 
-        $response->set_headers(array(
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="Config.csv"',
-        ));
+        $response->set_headers(
+            array(
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => 'attachment; filename="Config.csv"',
+            )
+        );
 
         return $response;
     }
@@ -618,7 +640,7 @@ class Controller_Admin extends Controller_Hybrid
         $teamLookup = array();
         $errors = 0;
 
-        Log::info("Rebuilding competitions for ${section['name']}: ".count($fixtures)." fixture(s)");
+        Log::info("Rebuilding competitions for ${section['name']}: " . count($fixtures) . " fixture(s)");
         $unknowns = array();
 
         foreach ($fixtures as $fixture) {
@@ -654,7 +676,8 @@ class Controller_Admin extends Controller_Hybrid
             }
         }
 
-        if ($unknowns) Log::warning("Unknown teams: ".join(',', array_keys($unknowns)));
+        if ($unknowns)
+            Log::warning("Unknown teams: " . join(',', array_keys($unknowns)));
 
         Log::debug("Fixtures loaded and parsed: xt=" . count($competitionTeams) . " ct=" . count($clubTeams) . " tl=" . count($teamLookup));
 
@@ -668,7 +691,7 @@ class Controller_Admin extends Controller_Hybrid
             foreach ($teamLookup as $team => $detail) {
                 $t = Model_Team::find_by_name($team, $section);
                 if (!$t) {
-                    Log::info("Creating team: $team ".print_r($detail, true));
+                    Log::info("Creating team: $team " . print_r($detail, true));
                     // if team does not exist, create it
                     $clubName = $detail['club'];
                     $club = Model_Club::find_by_name($clubName);
@@ -688,9 +711,9 @@ class Controller_Admin extends Controller_Hybrid
 
             foreach ($competitionTeams as $competition => $teams) {
                 $comp = Model_Competition::query()
-                          ->where('name', '=', $competition)
-                          ->where('section_id', '=', $section['id'])
-                          ->get_one();
+                    ->where('name', '=', $competition)
+                    ->where('section_id', '=', $section['id'])
+                    ->get_one();
                 if (!$comp) {
                     continue;
                 }
@@ -707,9 +730,7 @@ class Controller_Admin extends Controller_Hybrid
 
             Log::debug("Competitions updated");
 
-            foreach (Model_Matchcard::query()
-                    ->where('home_id', '=', null)
-                    ->or_where('away_id', '=', null)->get() as $card) {
+            foreach (Model_Matchcard::query()->where('home_id', '=', null)->or_where('away_id', '=', null)->get() as $card) {
                 foreach ($fixtures as $fixture) {
                     if ($fixture['fixtureID'] != $card['fixture_id']) {
                         continue;
@@ -717,13 +738,17 @@ class Controller_Admin extends Controller_Hybrid
 
                     if (!$card['home_id']) {
                         $t = Model_Team::find_by_name($fixture['home'], $section);
-                        if ($t) $card['home_id'] = $t['id'];
-                        else Log::warning("Unknown home team: ".$fixture['home']."/$section");
+                        if ($t)
+                            $card['home_id'] = $t['id'];
+                        else
+                            Log::warning("Unknown home team: " . $fixture['home'] . "/$section");
                     }
                     if (!$card['away_id']) {
                         $t = Model_Team::find_by_name($fixture['away'], $section);
-                        if ($t) $card['away_id'] = $t['id'];
-                        else Log::warning("Unknown away team: ".$fixture['away']."/$section");
+                        if ($t)
+                            $card['away_id'] = $t['id'];
+                        else
+                            Log::warning("Unknown away team: " . $fixture['away'] . "/$section");
                     }
                     $card->save();
                 }
@@ -757,10 +782,7 @@ class Controller_Admin extends Controller_Hybrid
 
         $data['clubs'] = array();
 
-        foreach (Model_Club::find(
-            'all',
-            array('order_by' => array('name' => 'asc'))
-        ) as $club) {
+        foreach (Model_Club::find('all', array('order_by' => array('name' => 'asc'))) as $club) {
             $data['clubs'][] = $club;
         }
 
@@ -782,11 +804,11 @@ class Controller_Admin extends Controller_Hybrid
             $club = Model_Club::find($id);
         }
 
-        Log::debug("$id Clubname:".\Input::post('clubname'));
+        Log::debug("$id Clubname:" . \Input::post('clubname'));
 
         $club->name = Input::post('clubname');
-        $club->code = Input::post('clubcode');
         $club->save();
+        $club->log();
 
         Response::redirect('admin/clubs');
     }
@@ -797,8 +819,8 @@ class Controller_Admin extends Controller_Hybrid
             throw new HttpNoAccessException;
         }
 
-        $club = Model_Club::find_by_code(Input::delete('code'));
-        $club->delete();
+        $club = Model_Club::find_by_id(Input::delete('id'));
+        //$club->delete();
 
         return new Response("Club deleted", 201);
     }
@@ -839,7 +861,6 @@ class Controller_Admin extends Controller_Hybrid
             $competition = Model_Competition::find($id);
         }
 
-        $competition->code = trim(Input::post('competitioncode'));
         $competition->format = Input::post('option_type');
         $competition->teamsize = Input::post('competition-teamsize', '');
         if ($competition->teamsize == '') {
@@ -852,6 +873,7 @@ class Controller_Admin extends Controller_Hybrid
         $competition->groups = Input::post('age-group');
         $competition->sequence = 0;
         $competition->save();
+        $competition->log();
 
         Response::redirect('admin/competitions');
     }
@@ -862,8 +884,8 @@ class Controller_Admin extends Controller_Hybrid
             throw new HttpNoAccessException;
         }
 
-        $competition = Model_Competition::find_by_code(Input::delete('code'));
-        $competition->delete();
+        $competition = Model_Competition::find_by_id(Input::delete('id'));
+        //$competition->delete();
 
         return new Response("Competition deleted", 201);
     }
@@ -894,10 +916,10 @@ class Controller_Admin extends Controller_Hybrid
         $sections = Model_Section::find('all');
         $section = \Input::param('section', null);
 
-        $data = array('sections' => $sections, 'section'=>$section);
+        $data = array('sections' => $sections, 'section' => $section);
 
         if ($section) {
-            Config::load(DATAPATH."/sections/$section/config.json", $section);
+            Config::load(DATAPATH . "/sections/$section/config.json", $section, $reload = true);
 
             list($comps, $teams) = self::parsing($section);
             $tasks = array();
@@ -926,7 +948,9 @@ class Controller_Admin extends Controller_Hybrid
                 "block_errors" => Config::get("$section.registration.blockerrors"),
                 "tasks" => $tasks,
                 "competitions" => $comps,
-                "teams" => $teams));
+                "teams" => $teams
+            )
+            );
         }
 
         $this->template->title = "Configuration";
@@ -938,57 +962,27 @@ class Controller_Admin extends Controller_Hybrid
         $teams = array();
         $competitions = array();
 
-        foreach (Model_Fixture::getAll() as $fixture) {
+        foreach (Model_Fixture::refresh() as $fixture) {
             if ($fixture['section'] !== $section) {
                 continue;
             }
 
-            $competitions[$fixture['competition']] = "xx";
+            $error = Arr::get($fixture, 'error');
 
-            if (isset($fixture['x'])) {
-                $teams[$fixture['x']['raw']] = "xx";
+            if ($error) {
+                if (isset($error['teams']))
+                    $teams = array_merge($teams, Arr::get($error, 'teams'));
+                if (isset($error['competition']))
+                    $competitions[] = $error['competition'];
             }
-            if (isset($fixture['y'])) {
-                $teams[$fixture['y']['raw']] = "xx";
-            }
+
         }
-
-        // Process Competitions
-        $dbComps = array_filter(Model_Competition::find('all'), function($a) use ($section) { return $a->section['name'] == $section; });
-        $dbComps = array_column($dbComps, 'name');
-
-        foreach ($competitions as $competition => $x) {
-            $comp = Model_Competition::parse($section, $competition);
-            if ($comp === null) {
-                Log::warning("Cannot find competition: $competition");
-            }
-            $competitions[$competition] = array('valid' => in_array($comp, $dbComps), 'name' => $comp);
-        }
-
-        ksort($competitions);
-
-        // Process Clubs
-        $dbClubs = array_column(Model_Club::find('all'), 'name');
-
-        foreach ($teams as $team => $x) {
-            $tm = Model_Team::parse($section, $team);
-            if ($tm === null) {
-                Log::debug("Cannot find team $section .. $team");
-                continue;
-            }
-            $valid = in_array($tm['club'], $dbClubs);
-            $tm['valid'] = $valid;
-            if (!$valid) {
-                Log::info("Club [".$tm['club']."] is not valid");
-            }
-            $teams[$team] = $tm;
-        }
-
-        $teams = array_filter($teams, function ($a) {
-            return $a !== 'xx';
-        });
 
         ksort($teams);
+        ksort($competitions);
+
+        $competitions = array_unique($competitions);
+        $teams = array_unique($teams);
 
         return array($competitions, $teams);
     }

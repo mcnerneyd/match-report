@@ -122,7 +122,6 @@ function loadPage(row) {
 					<?php if (!$_SESSION['section']) { ?> tds += "<td class="d-none d-md-table-cell"><span>${item['section']}</span></td>"; <?php } ?>
 
 					tds += "<td class="d-none d-md-table-cell"><span class="badge label-league">${item['competition']}</span></td>
-					<td class="d-table-cell d-md-none"><span class="badge label-league">${item['competition-code']}</span></td>
 					<td class="d-none d-md-table-cell${homeErrorClass}">${item['home']['name']}</td>`;
 
 				tds += "<td class='d-none d-md-table-cell'>";
@@ -311,6 +310,11 @@ const entryMap = [
 
 </script>
 
+<div class="alert alert-warning" role="alert">
+  This is an older version of the fixtures listing. The latest version is here: <a href='/cards/ui'>Fixtures</a><br>
+  (You can still use this version - but it is unsupported and may be slower)
+</div>
+
 <form id='fixtures-tab'>
     <select id='pills-club' class='custom-select'>
       <option selected value=''>All Clubs</option>
@@ -320,7 +324,7 @@ const entryMap = [
       <option selected value="">All Competitions</option>
       <?php foreach ($competitions as $i => $competition) {
 				$name = $competition['name'];
-				if (!$_SESSION['section']) $name .= " (".$competition['section'].")";
+				if (!isset($_SESSION['section']) || !$_SESSION['section']) $name .= " (".$competition['section'].")";
 				echo "<option data-index='{$competition['id']}' value='".$competition['name']."'>$name</option>\n";
 			 } ?>
     </select>

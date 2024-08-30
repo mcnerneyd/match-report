@@ -3,6 +3,7 @@ return array(
 	'_root_'  => 'card/index',  	// The default route
 	'_404_'   => 'welcome/404',    // The main 404 route
 	'_403_'   => 'user/accessdenied',
+	'usererror' => 'user/error',
 
 	'Login' => 'user/login',
 	'cards' => 'card',

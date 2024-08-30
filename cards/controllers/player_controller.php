@@ -52,11 +52,6 @@
 				$player['name'] = $playerName; // ineligible player
 			}
 
-			/*
-			$startDate = firstThursday() + 24*60*60;
-			$endDate = firstThursday();
-			$startDate = firstThursday(date('Y-m-d H:i', $endDate - (2*24*60*60)));
-			*/
 			if (isset($_REQUEST['d'])) $now = $_REQUEST['d'];
 			else $now = date('Y-m-d');
 			$range = rangeEnd($now);

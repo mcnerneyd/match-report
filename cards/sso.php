@@ -14,8 +14,6 @@ header('Content-Type: text/plain');
 
 $jwt = $_COOKIE['jwt-token'];
 $key = Config::get("config.jwt_key");
-print_r($key);
-echo "JWT:".$jwt;
 $token = JWT::decode($jwt, new Key($key, 'HS256'));
 $token = json_decode(json_encode($token), true);
 
@@ -36,7 +34,7 @@ try {
 
 	session_start();
 	$user = array("username" => $token['user'], 
-		"section" => array("name"=>$token['site']), "title" => $token['user-title']);
+		"section" => array("name"=>Arr::get($token, 'site')), "title" => $token['user-title']);
 	if (isset($token['club'])) {
 		$user['club'] = array("name" => $token['club']);
 		$_SESSION['club'] = $token['club'];
@@ -48,8 +46,6 @@ try {
 	$_SESSION['user-title'] = $user['title'];
 	$_SESSION['site'] = $user['section'];
 	$_SESSION['user'] = json_decode(json_encode($user));
-
-	print_r($_SESSION);
 
 	$redirect = "/cards/ui/";
 	if (isset($data['redirect'])) {
@@ -67,5 +63,6 @@ try {
 	header($_SERVER['SERVER_PROTOCOL']." 202 Accepted");
 	echo "202 Accepted\n";
 } catch (Exception $e) {
+    echo "Token: $token";
 	echo $e->getMessage();
 }
