@@ -81,7 +81,7 @@ class Controller_Registration extends Controller_Template
         $file = Input::param('f', null);
 
         if ($file != null) {
-            $filename = Model_Registration::getRoot($section, $club, $file);
+            $filename = Model_Registration::getRoot($section, $club)."/".basename($file);
             Log::info("Downloading '$filename' for $section/$club");
             File::download($filename, null, "text/csv");
         }

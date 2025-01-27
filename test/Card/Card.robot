@@ -55,19 +55,20 @@ User Can Add Specific Player To Card
     Click Element    css:div[data-value='Ai CRIBB']
     Click Button    css:#add-player-modal .btn-success
     Wait Until Element Is Not Visible    css:#add-player-modal
-    Sleep    1s
     Verify Card    Played Ai CRIBB Aardvarks
 
 User Can Add Any Name To Card
     Execute Javascript    window.jQuery("#submit-card .add-player")[0].scrollIntoView(true);
-    Click Link    css:#submit-card .add-player
+    Click Link            css:#submit-card .add-player
     Wait Until Element Is Visible    css:#add-player-modal
-    Click Element    css:#player-name-selectized    # Activate selectize
-    Press Keys    css:#player-name-selectized    Nobody McNobodyFace
-    Click Button    css:#add-player-modal .btn-success
+    Sleep                 1s
+    Click Element         css:#player-name-selectized    # Activate selectize
+    Sleep                 1s
+    Press Keys            css:#player-name-selectized    BACK_SPACE    Nobody McNobodyFace
+    Sleep                 1s
+    Click Button          css:#add-player-modal .btn-success
     Wait Until Element Is Not Visible    css:#add-player-modal
-    Sleep    1s
-    Verify Card    Played Nobody MCNOBODYFACE Aardvarks
+    Verify Card           Played Nobody MCNOBODYFACE Aardvarks
 
 User Can Add A Note To Card
     Click Link    partial link:Add Note
@@ -80,7 +81,6 @@ User Can Add A Note To Card
     Verify Card    Other Aardvarks "This is a note, of sorts"
 
 Opposition Score Must Be Provided
-    Sleep    1s
     Click Link    link:Submit Card
     Sleep    1s
     Input Text    jquery:#submit-matchcard [name=umpire]    billy umpire
@@ -114,27 +114,32 @@ Click Menu
     Click Element    xpath=//*[contains(text(), '${text}')]
 
 Submit Card
-    Click Link    link:Submit Card
+    Click Link       link:Submit Card
+    Wait Until Element Is Visible    jquery:#submit-matchcard a.btn-success
+    Input Text       jquery:#submit-matchcard [name=opposition-score]    2
+    Input Text       jquery:#submit-matchcard [name=umpire]    billy umpire
+    Sleep            1s
+    Click Link       jquery:#submit-matchcard a.btn-success
     Wait Until Element Is Visible    jquery:#submit-matchcard button.btn-success
-    Input Text    jquery:#submit-matchcard [name=opposition-score]    2
-    Input Text    jquery:#submit-matchcard [name=umpire]    billy umpire
-    Click Link    jquery:#submit-matchcard a.btn-success
-    Click Button    jquery:#submit-matchcard button.btn-success
+    Click Button     jquery:#submit-matchcard button.btn-success
 
 Add Penalty
     [Arguments]    ${player}    ${action}
     Player Menu    ${player}
+    Wait Until Element Is Visible    css:#context-menu
     Click Menu    ${action}
     Wait Until Element Is Not Visible    css:#context-menu
 
 Context Menu
     [Arguments]    ${player}    ${action}
     Player Menu    ${player}
+    Wait Until Element Is Visible    css:#context-menu
     Click Button    ${action}
     Wait Until Element Is Not Visible    css:#context-menu
 
 Verify Card
     [Arguments]    ${description}
+    Sleep   1s
     Go To    ${BASE}/Report/Card?key=${card_key}
     Comment    ${description}
     Page Should Contain Element    xpath://tr[@data-description='${description}']

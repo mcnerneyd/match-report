@@ -64,9 +64,11 @@ const format = (d) => {
   foreach ($registration as $player) 
   {
     $class = "player";
+    $trClass = "player";
     if (isset($player['status'])) $class .= " ${player['status']}";
+    if (isset($player['float']) && $player['float'] == true) $trClass .= " float-player";
 
-    echo "<tr data-history='".json_encode($player['history'])."'>
+    echo "<tr data-history='".json_encode($player['history'])."' class='$trClass'>
       <td>$ct</td>
       <td>";
       if (isset($player['membershipid']) && $player['membershipid']) {
@@ -85,7 +87,11 @@ const format = (d) => {
     echo "</td>";
     */
 
-    echo "<td>${player['team']}</td>";
+    echo "<td>${player['team']}";
+      if (isset($player['float']) && $player['float'] == true) {
+        echo \Asset::img('float.png', array('class'=>'float-player'));
+      }
+    echo "</td>";
     if ($section === 'lha-men') echo "<td>".($player['score'] != 99 ? $player['score'] : "")."</td>";
     echo "</tr>";
 

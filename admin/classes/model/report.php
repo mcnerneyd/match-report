@@ -50,8 +50,13 @@ class Model_Report
 			]
 		];
 		$response = $mj->post(Resources::$Email, ['body' => $body]);
-		if ($response->success())
-			Log::info("Password reset email sent to:$email");
+		if ($response->success()) {
+			$ts = Date::forge()->get_timestamp() + (60*60*1000);
+			$hash = md5("$email $ts $salt");
+			$link = Uri::create("/User/ForgottenPassword?e=$email&ts=$ts&h=$hash");
+
+			Log::info("Password reset email sent to:$email (1h hash=$link)");
+		}
 
 	}
 

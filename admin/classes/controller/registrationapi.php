@@ -21,29 +21,47 @@ class Controller_RegistrationApi extends Controller_Rest
         }
         $dateS = \Input::param('d', null);
         $team = \Input::param('t', 1);
-        $section = \Input::param('s', 1);
-        $groups = \Input::param('g', null);
-        $groups = $groups == null ? null : explode(",", strtolower($groups));
+        $sectionS = \Input::param('s', 1);
+        $competitionS = \Input::param('x', null);
+        $flush = \Input::param('flush', null);
 
-        $section = Model_Section::find_by_name($section);
+        $cacheKey = preg_replace("/[^a-z0-9.-]+/i", "_", "registrationapi.$sectionS-{$club['name']}-$competitionS-$dateS");
 
-        $players = self::getPlayersWithHistory($section, $club, $team, $groups, $dateS);
+        if ($flush == null)
+        try {
+            $content = Cache::get($cacheKey);
+            Log::debug("Returning cached data for $cacheKey");
+            return new Response($content, 200);
+        } catch (Exception $e) {
+            Log::debug("Cache expired: $cacheKey - reloading");
+        }
+
+        $section = Model_Section::find_by_name($sectionS);
+        $competition = Model_Competition::query()->where("section_id", $section->id)->where("name", $competitionS)->get_one();
+
+        $players = self::getPlayersWithHistory($section, $club, $team, $competition, $dateS);
 
         $latest = Model_Registration::getLatestDate($section, $club);
 
-        return $this->response(array("latest" => $latest, "data" => $players));
+        $result = json_encode(array("latest" => $latest, "data" => $players));
+
+        Log::debug("CacheKey: $cacheKey");
+        Cache::set($cacheKey, $result, 600);
+
+        return new Response($result, 200);
     }
 
-    public static function getPlayersWithHistory(Model_Section $section, Model_Club $club, int $team, string $groups = null, string $dateS = null)
+    public static function getPlayersWithHistory(Model_Section $section, Model_Club $club, int $team, Model_Competition $competition, string $dateS = null)
     {
         if ($dateS == null)
             $dateS = Date::forge()->format("%Y%m%d");
 
-        $lastGameDate = Model_Team::lastGame("{$club->name} $team", $section)->date;
-        return self::getPlayers($section, $club, $dateS, $team, $groups, $lastGameDate);
+        $lastGame = Model_Team::lastGame("{$club->name} $team", $section);
+        $lastGameDate = $lastGame == null ? null : $lastGame->date;
+        return self::getPlayers($section, $club, $dateS, $team, $competition, $lastGameDate);
     }
 
-    public static function getPlayers(Model_Section $section, Model_Club $club, $dateS, int $team, $groups = null, $lastGameDate = null): array
+    public static function getPlayers(Model_Section $section, Model_Club $club, $dateS, int $team, Model_Competition $competition, $lastGameDate = null): array
     {
         $date = Date::create_from_string($dateS, '%Y%m%d');
         $date = $date->get_timestamp();
@@ -55,9 +73,13 @@ class Controller_RegistrationApi extends Controller_Rest
         $startDate = strtotime("+1 day", $initialDate);
 
         $players = Model_Registration::find_between_dates($section, $club, $startDate, $date);
+        $groups = $competition->groups;
+        $groups = $groups == null ? null : array_map(function ($g) {
+            return trim($g);
+        }, explode(",", strtolower($groups)));
         $players = self::buildPlayers($players, $team, $groups, $lastGameDate);
 
-        Log::debug(count($players) . " player(s) valid for team $team/$groups ($club) date=$dateS");
+        Log::debug(count($players) . " player(s) valid for team $team/" . json_encode($groups) . " ($club) date=$dateS");
 
         return $players;
     }
@@ -81,14 +103,14 @@ class Controller_RegistrationApi extends Controller_Rest
             return true;
         });
 
+        $players = array_values($players);
+        usort($players, function ($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
+
         if ($lastGameDate !== null) {
             $lastGameDate = substr($lastGameDate, 0, 10) . " 00:00:00";
-            Log::debug("LastGameDate:" . $lastGameDate);
-
-            $players = array_values($players);
-            usort($players, function ($a, $b) {
-                return strcmp($a['name'], $b['name']);
-            });
+            Log::debug("LastGameDate: $lastGameDate");
 
             foreach ($players as &$player) {
                 foreach ($player['history'] as &$history) {
@@ -182,6 +204,8 @@ class Controller_RegistrationApi extends Controller_Rest
         // FIXME Check user admin or matches club
         $access = 'registration.impersonate';	// minimum required access
 
+        Log::info("Got to here");
+
         $sectionName = Input::param("section");
         if ($sectionName) {
             loadSectionConfig($sectionName);
@@ -195,8 +219,13 @@ class Controller_RegistrationApi extends Controller_Rest
             return new Response("Not permitted to register: $access", 403);
         }
 
-        $clubName = Input::param("club");
         $file = Input::file("file");
+        if ($file['size'] > 500000) {
+            Log::warning("File is too big");
+            return new Response("File exceeds maximum size (500K)", 413);
+        }
+
+        $clubName = Input::param("club");
         $type = mime_content_type($file['tmp_name']);
 
         Log::info("Posting ${file['name']} for club: $clubName (type=$type)");

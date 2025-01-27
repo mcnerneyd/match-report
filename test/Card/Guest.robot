@@ -2,10 +2,10 @@
 ${card_key}     test.testdivision1.aardvarks1.bears1
 
 *** Settings ***
-Resource				../Common.robot
-Suite Setup     Open Chrome
+Resource			../Common.robot
+Suite Setup         Login    Aardvarks    1102
 Test Setup			Open Card For View		${card_key}
-#Suite Teardown	Close Browser
+Suite Teardown	    Close Browser
 
 *** Test Cases ***
 Guest Can Add Note To Card
@@ -17,14 +17,17 @@ Guest Can Add Note To Card
     Click Button    css:#add-note .btn-success
     Wait Until Element Is Not Visible    css:#add-note
     Sleep    1s
-    Verify Card     Other Aardvarks "This is a note, of sorts, from guest"
+    Verify Card     Other "This is a note, of sorts, from guest"
 
 Guest Can Add Signature To Card
+    Fail            msg=Card needs to exist
 
 *** Keywords ***
 Open Card For View
 	[Arguments]			${fixtureid}
-	Reset Card		${fixtureid}
+	Reset Card		    ${fixtureid}
+	Open Card			${fixtureid}
+    Click Link          css:#logout
 	Open Card			${fixtureid}
 
 Player Menu

@@ -178,11 +178,11 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
       if (Config::get("hockey.block_errors", false) && isset($registration['errors'])) {
           $class = "title='This registration has errors' class='error'";
       }
-      echo "<tr $class data-filename='${registration['name']}' data-club='${registration['club']}' data-type='${registration['type']}'>
-        <td>${registration['club']}</td>
-        <td>${registration['name']}</td>
+      echo "<tr $class data-filename='{$registration['name']}' data-club='{$registration['club']}' data-type='{$registration['type']}'>
+        <td>{$registration['club']}</td>
+        <td>{$registration['name']}</td>
         <td>".strtoupper($date->format("%Y-%m-%d %H:%M:%S"))."</td>
-        <td>${registration['cksum']}</td>
+        <td>{$registration['cksum']}</td>
         <td>
           <a class='btn btn-primary btn-sm btn-download'>Download <i class='fas fa-download'></i></a>";
         if (Auth::has_access('registration.delete')) {
@@ -252,6 +252,7 @@ echo "<!-- Registration Allowed: $registrationAllowed on $section -->";
               <input class='form-control' type='text' name='club' readonly value="<?= $club ?>"/>
             </div>
             <div class='form-group'>
+              <input type='hidden' name='MAX_FILE_SIZE' value='500000'/>
               <label>File</label>
               <input class='form-control' type='file' name='file'/>
             </div>

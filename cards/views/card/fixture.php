@@ -128,7 +128,7 @@ $fixtureDate = DateTime::createFromFormat(DATE_ISO8601, $fixture['datetimeZ']);
 			if (ct >= -1) {
 				$(".warning td").hide();
 			} else {
-				$(".warning td").show().text((7 - ct) + ' more players required before <?= strftime("%H:%M on %A, %B %e, %Y", $fixture['date']) ?>');
+				$(".warning td").show().text((7 - ct) + ' more players required before <?= $fixtureDate->format("%H:%M on %A, %B %e, %Y") ?>');
 			}
 		<?php } else {
 			$ct = 0;
@@ -187,11 +187,13 @@ $fixtureDate = DateTime::createFromFormat(DATE_ISO8601, $fixture['datetimeZ']);
 	}
 
 	$(document).ready(function () {
-
+		$.ajaxSetup({ timeout: 0 });
+		
 		$.getJSON('/api/1.0/registration/list.json?s=<?= $data['section'] ?>&t=<?= $data['team'] ?>&d=<?= $fixtureDate->format("Ymd") ?>&x=<?= $fixture['competition'] ?>',
 			function (jsonx) {
 				if (typeof jsonx === 'undefined') return;
 				const json = jsonx['data']
+				if (typeof json === 'undefined') return;
 				var selected = <?= json_encode(array_keys($fixture['card'][$whoami]['players'])) ?>;
 				const m1 = moment.unix(jsonx['latest'])
 				const m2 = moment(data['date'], 'YYYYMMDD')
@@ -353,7 +355,7 @@ $fixtureDate = DateTime::createFromFormat(DATE_ISO8601, $fixture['datetimeZ']);
 
 		$('tr.summary td').hide();
 
-		$('.alert').fadeOut(3000);
+		$('.alert').fadeOut(10000);
 
 		$('tr').css('cursor', 'pointer');
 
@@ -405,4 +407,10 @@ $fixtureDate = DateTime::createFromFormat(DATE_ISO8601, $fixture['datetimeZ']);
 		<tbody class='regular'>
 		</tbody>
 	</table>
+
+	<div class='alert alert-warning'>
+		If you cannot see any players here - try waiting about 10 seconds and reload the page.
+		If you still cannot see any players, there might be a problem with your registration.
+	</div>
+
 </div>

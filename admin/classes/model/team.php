@@ -107,7 +107,7 @@ class Model_Team extends \Orm\Model
         return reset($result);
     }
 
-    public static function lastGame($teamName, $section) : Model_Matchcard
+    public static function lastGame($teamName, $section) : ?Model_Matchcard
     {
         $team = self::find_by_name($teamName, $section);
         $teamId = $team->id;

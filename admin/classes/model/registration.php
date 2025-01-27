@@ -18,7 +18,7 @@ class Model_Registration
         }
     }
 
-    public static function addRegistration(Model_Section $section, Model_Club $club, string $file) : string
+    public static function addRegistration(Model_Section $section, Model_Club $club, string $file): string
     {
         $ts = Date::forge()->format("%y%m%d%H%M%S");
         $arcDir = self::getRoot($section, $club);
@@ -34,7 +34,7 @@ class Model_Registration
         if ($section == null) {
             throw new Exception("No section");
         }
-        $root = DATAPATH . "/sections/".strtolower($section->name)."/registration";
+        $root = DATAPATH . "/sections/" . strtolower($section->name) . "/registration";
 
         if ($club) {
             $root .= "/" . strtolower($club->name);
@@ -204,7 +204,7 @@ class Model_Registration
         $currentNames = array();
         $currentLookup = array();
 
-        Log::debug("Current players: " . count($current) . " teamSizes=" . join($teamSizes));
+        Log::debug("Current players: " . count($current) . " teamSizes=" . join($teamSizes ?: array()));
 
         foreach ($current as $player) {
             $currentNames[] = $player['name'];
@@ -422,13 +422,38 @@ class Model_Registration
         if ($groups)
             Log::debug("groups=" . implode(",", array_values($groups)));
 
-        $result = self::parse(file($file), $club->name, $groups, Config::get("section.allowassignment"));
+        $result = self::parse(self::fileGenerator($file), $club->name, $groups, Config::get("section.allowassignment"));
 
         //$json_data = xjson_encode($result, JSON_PRETTY_PRINT);
         file_put_contents("$file.json", json_encode($result, JSON_PRETTY_PRINT));
         static::touch("$file.json");
 
         return $result;
+    }
+
+    private static function fileGenerator($file): Generator
+    {
+        $f = fopen($file, 'r');
+
+        if ($f) {
+
+            while (($line = fgets($f)) !== false) {
+                yield $line;
+            }
+
+            fclose($f);
+        } else {
+            throw new Exception("Could not open file $file");
+        }
+    }
+
+    public static function parseArray($array, string $rclub, ?array $groups, bool $allowAssignment = false): array
+    {
+        $generator = function ($array) {
+            foreach ($array as $line)
+                yield $line;
+        };
+        return self::parse($generator($array), $rclub, $groups, $allowAssignment);
     }
 
     private static function touch($path, $date = null)
@@ -451,7 +476,7 @@ class Model_Registration
     /**
      * Parse a registration providered as an array of lines.
      */
-    public static function parse(array $lines, string $rclub, ?array $groups, bool $allowAssignment = false): array
+    public static function parse(Generator $lines, string $rclub, ?array $groups, bool $allowAssignment = false): array
     {
         $result = array();
         $pastHeaders = false;
@@ -539,7 +564,7 @@ class Model_Registration
             $player = $arr[0];
 
             if (count($arr) > 1) {
-                if (preg_match('/[0-9:]/', $arr[1]) === false) {
+                if (preg_match('/[0-9:]|^\s*$/', $arr[1]) === 0) {
                     $player .= "," . $arr[1];
                 }
             }
@@ -548,19 +573,22 @@ class Model_Registration
             $pt = null;
 
             $playerTeam = is_numeric($team) ? $team : null;
+            $float = false;
             if ($allowAssignment) {
+                $float = true;
                 for ($i = count($arr) - 1; $i > 0; $i--) {
-                    if ($arr[$i]) {
+                    if (trim($arr[$i]) != "") {
                         $group = trim(strtolower($arr[$i]));
                         if (isset($groups[$group])) {
                             $playerTeam = $groups[$group];
                             $pt = $groups[$group];
-                            //Log::debug("PT = $playerTeam $i");
+                            $float = false;
                         } else {
                             $matches = array();
                             if (preg_match('/^([1-9][0-9]*)(?:(st|nd|rd|th)(s)?)?$/', trim($arr[$i]), $matches)) {
                                 $playerTeam = $matches[1];
                                 $pt = $arr[$i];
+                                $float = false;
                             }
                         }
                         // even if no team is matched scan is finished
@@ -588,7 +616,8 @@ class Model_Registration
                     "phone" => Model_Player::phone($player),
                     "team" => $playerTeam,
                     "pt" => $pt,
-                    "club" => $rclub
+                    "club" => $rclub,
+                    "float" => $float
                 );
             }
         }

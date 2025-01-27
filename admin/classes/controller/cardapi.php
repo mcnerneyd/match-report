@@ -386,13 +386,20 @@ class Controller_CardApi extends Controller_RestApi
                 ->where('section_id', $section->id)
                 ->where('name', $card['competition'])
                 ->get_one();
-            $groups = $competition['groups'];
-            $groups = $groups == null ? null : explode(",", $groups);
-            $players = Controller_RegistrationApi::getPlayers($section, $club, $dateS, $teamNo, $groups);
-            $players = array_map(function ($a) {
-                return $a['name'];
-            }, $players);
-            $players = array_values($players);
+
+            $cacheKey = preg_replace("/[^a-z0-9.-]+/i", "_", "registrationapi.players.{$section['name']}-{$club['name']}-{$competition['name']}-$dateS");
+
+            try {
+                $players = Cache::get($cacheKey);
+                Log::debug("Using cached data for $cacheKey");
+            } catch (Exception $e) {
+                Log::debug("Cache expired: $cacheKey - reloading");
+                $players = Controller_RegistrationApi::getPlayers($section, $club, $dateS, $teamNo, $competition);
+                $players = array_map(function ($a) { return $a['name']; }, $players);
+                $players = array_values($players);
+
+                Cache::set($cacheKey, $players, 300);
+            }
 
             Log::info("$upperkey [$name/$clubName $teamNo] {{$detail}} #{$card['fixture_id']}/" . Auth::get_screen_name());
 
@@ -461,7 +468,7 @@ class Controller_CardApi extends Controller_RestApi
             ->where('type', 'Played')
             ->get_one();
 
-        $incident->detail = json_encode($detail);
+        $incident->detail = $detail == null ? null : json_encode($detail);
 
         $incident->save();
 

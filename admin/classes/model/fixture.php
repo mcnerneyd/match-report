@@ -27,7 +27,7 @@ class Model_Fixture extends \Model
 
     public static function all(?Model_Section $section = null, ?int $modifiedSince = null)
     {
-        $fixturesFilename = DATAPATH.'/fixtures.json';
+        $fixturesFilename = DATAPATH . '/fixtures.json';
 
         Log::debug("Get fixtures for $section and $modifiedSince");
 
@@ -40,15 +40,17 @@ class Model_Fixture extends \Model
 
         $fixturesFile = file_get_contents($fixturesFilename);
         $allFixtures = json_decode($fixturesFile, true);
-        $allFixtures = array_filter($allFixtures, function ($a) { return $a['status'] === 'active'; });
+        $allFixtures = array_filter($allFixtures, function ($a) {
+            return $a['status'] === 'active'; });
         if ($section != null) {
             $allFixtures = array_values(array_filter(
                 $allFixtures,
-                function ($f) use ($section) { return $f['section'] == $section;}
+                function ($f) use ($section) {
+                    return $f['section'] == $section['name']; }
             ));
         }
 
-        Log::debug("allFixtures contains ".count($allFixtures)." fixture(s)");
+        Log::debug("allFixtures contains " . count($allFixtures) . " fixture(s)");
         return Model_Matchcard::expandFixtures($allFixtures);
     }
 
@@ -66,13 +68,13 @@ class Model_Fixture extends \Model
             return $fixtures;
         }
 
-        Log::debug("Fixtures cache contains ".count($fixtures)." record(s)");
+        Log::debug("Fixtures cache contains " . count($fixtures) . " record(s)");
 
         if (count($fixtures) == 0) {
             $flush = true;
         }
 
-        $semFile = DATAPATH."/sem";
+        $semFile = DATAPATH . "/sem";
         if (file_exists($semFile)) {
             $mtime = filemtime($semFile);
             if (!$mtime || ((time() - $mtime) < 30)) {
@@ -126,14 +128,14 @@ class Model_Fixture extends \Model
         }
         $data = json_encode($rawfixtures, JSON_PRETTY_PRINT);
 
-        if (!file_exists(DATAPATH.'/fixtures.json') || md5($data) != md5_file(DATAPATH.'/fixtures.json')) {
-            file_put_contents(DATAPATH.'/fixtures.json', $data);
+        if (!file_exists(DATAPATH . '/fixtures.json') || md5($data) != md5_file(DATAPATH . '/fixtures.json')) {
+            file_put_contents(DATAPATH . '/fixtures.json', $data);
         }
 
         Cache::set('fixtures', $allfixtures, 600);
 
         unlink($semFile);
-        Log::info("Fixtures processing complete: Loaded ".count($allfixtures)." fixtures, $failureCount failures (".(($pt - $t) * 1000)."/".(($et - $t) * 1000).")");
+        Log::info("Fixtures processing complete: Loaded " . count($allfixtures) . " fixtures, $failureCount failures (" . (($pt - $t) * 1000) . "/" . (($et - $t) * 1000) . ")");
 
         return $allfixtures;
     }
@@ -196,13 +198,14 @@ class Model_Fixture extends \Model
                     $fixtures = self::load_scrape($src);
                 } elseif (preg_match('/^=.*/', $feed)) {
                     $values = str_getcsv(substr($feed, 1));
-                    $fixture = array('datetime' => $values[0],
+                    $fixture = array(
+                        'datetime' => $values[0],
                         'competition' => $values[1],
                         'home' => $values[2],
                         'away' => $values[3],
                         'home_score' => null,
                         'away_score' => null,
-                        );
+                    );
                     $fixture['fixtureID'] = self::$globalId++;
 
                     if (count($values) > 4 && is_numeric($values[4])) {
@@ -226,21 +229,23 @@ class Model_Fixture extends \Model
                 }
 
                 foreach ($fixtures as $fixture) {
-                    $aFixture = (array)$fixture;
+                    $aFixture = (array) $fixture;
                     $aFixture['feed'] = $feed;
-                    $allfixtures[$section['name'].":".$aFixture['fixtureID']] = $aFixture;
+                    $allfixtures[$section['name'] . ":" . $aFixture['fixtureID']] = $aFixture;
                 }
             } catch (Exception $e) {
-                Log::error("Failed to scan feed: $feed, ".($e->getMessage())." @".($e->getTraceAsString()));
+                Log::error("Failed to scan feed: $feed, " . ($e->getMessage()) . " @" . ($e->getTraceAsString()));
             }
         } // load feeds
 
         $clubs = array_map(
-            function ($a) { return trim($a['name']); },
+            function ($a) {
+                return trim($a['name']); },
             Model_Club::find('all')
         );
         $competitions = array_unique(array_map(
-            function ($a) { return trim($a['name']); },
+            function ($a) {
+                return trim($a['name']); },
             Model_Competition::query()->where('section_id', '=', $section['id'])->get()
         ));
 
@@ -253,7 +258,7 @@ class Model_Fixture extends \Model
             }
         }
 
-        Log::debug("Competitions for {$section['name']}: ".implode(",", $competitions)." - processed ".count($allfixtures)." fixture(s) with $failures unmatched");
+        Log::debug("Competitions for {$section['name']}: " . implode(",", $competitions) . " - processed " . count($allfixtures) . " fixture(s) with $failures unmatched");
 
         return array('fixtures' => $validFixtures, 'failures' => $failures);
     }
@@ -283,11 +288,11 @@ class Model_Fixture extends \Model
 
         if (strpos($fixture['datetime'], '0000') === 0) {
             // bad date
-            Log::debug("Fixture contains bad date: ".$fixture['datetime']);
+            Log::debug("Fixture contains bad date: " . $fixture['datetime']);
             return false;
         }
 
-        $fixture['datetime'] = Date::forge(strtotime($fixture['datetime']."+0100"));
+        $fixture['datetime'] = Date::forge(strtotime($fixture['datetime']), "Europe/Dublin");
         $fixture['datetimeZ'] = $fixture['datetime']->format('iso8601', 'UTC');
 
         $k = Model_Team::parse($fixture['home']);
@@ -365,7 +370,7 @@ class Model_Fixture extends \Model
         foreach (explode("\n", $src) as $line) {
             if ($headers == null) {
                 $headers = str_getcsv($line);
-                Log::debug("CSV header:".print_r($headers, true));
+                Log::debug("CSV header:" . print_r($headers, true));
                 continue;
             }
 
@@ -453,11 +458,11 @@ class Model_Fixture extends \Model
                         $key = $item->getAttribute('class');
 
                         if ($explain) {
-                            echo "$key = ".$item->nodeValue."\n";
+                            echo "$key = " . $item->nodeValue . "\n";
                         }
 
                         if ($key == 'time') {
-                            $result['datetime'] = "$date ".$item->nodeValue;
+                            $result['datetime'] = "$date " . $item->nodeValue;
                         }
                         if ($key == 'homeClub') {
                             $result['home'] = $item->nodeValue;
@@ -513,7 +518,7 @@ class Model_Fixture extends \Model
 
             $result = array();
             $result['competition'] = $elm->getAttribute("data-compname");
-            $result['datetime'] = $elm->getAttribute("data-date")." ".$elm->getAttribute("data-time");
+            $result['datetime'] = $elm->getAttribute("data-date") . " " . $elm->getAttribute("data-time");
             $result['home'] = $elm->getAttribute("data-hometeam");
             $result['away'] = $elm->getAttribute("data-awayteam");
             $result['home_score'] = $elm->getAttribute("data-homescore");
@@ -540,7 +545,7 @@ class Model_Fixture extends \Model
         }
 
         if ($explain) {
-            echo "<pre>".print_r($fixtures, true)."</pre>\n";
+            echo "<pre>" . print_r($fixtures, true) . "</pre>\n";
         }
 
         return $fixtures;

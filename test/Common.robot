@@ -97,10 +97,10 @@ Open Chrome
     Register Keyword To Run On Failure        NOTHING
     ${chrome_options}=    Evaluate    sys.modules['selenium.webdriver'].ChromeOptions()    sys, selenium.webdriver
     #Call Method    ${chrome_options}    add_argument    --disable-extensions
-    #Call Method    ${chrome_options}    add_argument    headless
+    Call Method    ${chrome_options}    add_argument    headless
     #Call Method    ${chrome_options}    add_argument    --disable-gpu
     #Call Method    ${chrome_options}    add_argument    --no-sandbox
     #Run Keyword If  '${debug}' == 'no'   Call Method     ${chrome_options}    add_argument     headless
     Call Method     ${chrome_options}    add_argument     disable-gpu
-    Create Webdriver    Chrome    chrome_options=${chrome_options}
+    Create Webdriver    Chrome    options=${chrome_options}
 

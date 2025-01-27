@@ -20,6 +20,7 @@ $(document).ready(function() {
 		<input class='form-control' type='text' readonly name='e' value='<?= $email ?>'/>
 	</div>
 
+	<input type='hidden' name='securelog'/>
 	<input type='hidden' name='h' value='<?= $hash ?>'/>
 	<input type='hidden' name='ts' value='<?= $timestamp ?>'/>
 

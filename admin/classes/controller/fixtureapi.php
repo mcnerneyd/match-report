@@ -3,25 +3,30 @@
 class Controller_FixtureApi extends Controller_RestApi
 {
     // ------------- Working Below -----------------------------
-    private static function ts($t0) {
-        return (floor(microtime(true)*1000)) - $t0;
+    private static function ts($t0)
+    {
+        return (floor(microtime(true) * 1000)) - $t0;
     }
 
-    private static function log($frame) {
-        echo "Log: ".self::ts()." $frame\n";
+    private static function log($frame)
+    {
+        echo "Log: " . self::ts() . " $frame\n";
     }
 
-    public function get_csv() {
+    public function get_csv()
+    {
 
         $date = \Input::headers("Last-Modified", null);
 
-        if ($date) $date = strtotime($date);
+        if ($date)
+            $date = strtotime($date);
 
-        $f = fopen(DATAPATH.'/fixtures.csv', 'r');
+        $f = fopen(DATAPATH . '/fixtures.csv', 'r');
         while (($line = fgets($f)) !== FALSE) {
             if ($date) {
                 $data = str_getcsv($line);
-                if ($data[2] <= $date) continue;
+                if ($data[2] <= $date)
+                    continue;
             }
 
             echo $line;
@@ -29,7 +34,7 @@ class Controller_FixtureApi extends Controller_RestApi
 
         fclose($f);
     }
-    
+
     // --------------------------------------------------------------------------
     public function action_index2()
     {
@@ -37,25 +42,41 @@ class Controller_FixtureApi extends Controller_RestApi
         $ts = Input::headers('If-Modified-Since', null);
         $expanded = Input::param('expand', null);
 
+        $cacheKey = "fixtureapi." . ($section ?: "all");
+
+        try {
+            $content = Cache::get($cacheKey);
+            Log::debug("Returning cached data for $cacheKey");
+            return new Response($content, 200);
+        } catch (Exception $e) {
+            Log::debug("Cache expired: $cacheKey - reloading");
+        }
+
         $t = microtime(true);
         $timing = array("t0" => $t);
 
-        $fixturesFilename = DATAPATH.'/fixtures.json';
+        $fixturesFilename = DATAPATH . '/fixtures.json';
 
-        if ($ts) {
+        /*if ($ts) {
             $ts = strtotime($ts);
-            Log::debug("Timestamp: $ts ".(filemtime($fixturesFilename)));
+            Log::debug("Timestamp: $ts " . (filemtime($fixturesFilename)));
             if ((filemtime($fixturesFilename) <= $ts) && !Model_Matchcard::expandFixtures(null, $ts)) {
                 return new Response("Fixtures unchanged", 304);
             }
-        }
+        }*/
 
         $fixturesFile = file_get_contents($fixturesFilename);
         $allFixtures = json_decode($fixturesFile, true);
-        $allFixtures = array_filter($allFixtures, function($a) { return $a['status'] === 'active'; });
+        $allFixtures = array_filter($allFixtures, function ($a) {
+            return $a['status'] === 'active';
+        });
         if ($section != null)
-            $allFixtures = array_values(array_filter($allFixtures, 
-                function ($f) use ($section) { return $f['section'] == $section;}));
+            $allFixtures = array_values(array_filter(
+                $allFixtures,
+                function ($f) use ($section) {
+                    return $f['section'] == $section;
+                }
+            ));
 
         $timing['t1'] = microtime(true);
 
@@ -66,26 +87,30 @@ class Controller_FixtureApi extends Controller_RestApi
         $timing['tf'] = microtime(true);
 
         $result = json_encode(array(
-            'ts'=>$t,
-            'timing'=>$timing,
-            'fixtures'=> array_values($allFixtures)));
+            'ts' => $t,
+            'timing' => $timing,
+            'fixtures' => array_values($allFixtures)
+        ));
+
+        Cache::set($cacheKey, $result, 180);
 
         return new Response($result, 200);
     }
 
-    private static function formatFixture($f) {
-        $formatPlayer = function($name, $p) {
-            return array("name"=>$name, "date"=>$p['date']);
+    private static function formatFixture($f)
+    {
+        $formatPlayer = function ($name, $p) {
+            return array("name" => $name, "date" => $p['date']);
         };
 
         $result = array(
-            'id'=>$f['fixtureID'],
-            'datetime'=>$f['datetimeZ'],
-            'section'=>$f['section'],
-            'competition'=>$f['competition'],
-            'home'=>array('club'=>Arr::get($f, 'home_club', null), 'team'=>Arr::get($f, 'home_team', null)),
-            'away'=>array('club'=>Arr::get($f, 'away_club', null), 'team'=>Arr::get($f, 'away_team', null)),
-            'played'=>($f['played'] === 'yes')
+            'id' => $f['fixtureID'],
+            'datetime' => $f['datetimeZ'],
+            'section' => $f['section'],
+            'competition' => $f['competition'],
+            'home' => array('club' => Arr::get($f, 'home_club', null), 'team' => Arr::get($f, 'home_team', null)),
+            'away' => array('club' => Arr::get($f, 'away_club', null), 'team' => Arr::get($f, 'away_team', null)),
+            'played' => ($f['played'] === 'yes')
         );
 
         if ($f['played'] === 'yes') {
@@ -93,7 +118,7 @@ class Controller_FixtureApi extends Controller_RestApi
             $result['away']['score'] = $f['away_score'];
         }
 
-        if (Arr::get($f, 'home.players')) 
+        if (Arr::get($f, 'home.players'))
             $result['home']['players'] = array_map($formatPlayer, Arr::get($f, 'home.players'));
         if (Arr::get($f, 'away.players'))
             $result['away']['players'] = array_map($formatPlayer, Arr::get($f, 'away.players'));
@@ -105,17 +130,19 @@ class Controller_FixtureApi extends Controller_RestApi
     {
         try {
             $section = Input::param('section', null);
-            if ($section != null) $section = Model_Section::find_by_name($section);
+            if ($section != null)
+                $section = Model_Section::find_by_name($section);
             $ts = Input::headers('If-Modified-Since', null);
             $ts = $ts ? strtotime($ts) : null;
 
             $fixtures = Model_Fixture::all($section, $ts);
 
-            if (!$fixtures) return new Response("Fixtures unchanged: $ts", 304);
+            if (!$fixtures)
+                return new Response("Fixtures unchanged: $ts", 304);
 
             $fixtures = array_map("self::formatFixture", $fixtures);
 
-            $result = json_encode(array('data'=> $fixtures));
+            $result = json_encode(array('data' => $fixtures));
 
             return new Response($result, 200);
         } catch (Exception $e) {
@@ -146,12 +173,13 @@ class Controller_FixtureApi extends Controller_RestApi
                     $team = $card['home']['club'] == $club ? $card['home']['team'] : $card['away']['team'];
 
                     $section = Model_Section::find_by_id($card['section']);
-            
+
                     $card['players'] = array(
-                        "club"=>$club,
-                        "section"=>$card['section'],
-                        "team"=>$team,
-                        "values"=>Controller_RegistrationApi::getPlayersWithHistory($section, $club, $team));
+                        "club" => $club,
+                        "section" => $card['section'],
+                        "team" => $team,
+                        "values" => Controller_RegistrationApi::getPlayersWithHistory($section, $club, $team)
+                    );
                 }
             }
 
@@ -207,7 +235,7 @@ class Controller_FixtureApi extends Controller_RestApi
             });
         }
 
-        Log::debug("Fixtures loaded (".count($fixtures).")");
+        Log::debug("Fixtures loaded (" . count($fixtures) . ")");
         $t2 = self::ts($t0);
 
         usort($fixtures, function ($a, $b) {
@@ -216,7 +244,7 @@ class Controller_FixtureApi extends Controller_RestApi
 
         // Find the index where past/future fixtures meet
         $ts = Date::time()->get_timestamp();
-        $ct=0;
+        $ct = 0;
         foreach ($fixtures as &$fixture) {
             if ($fixture['datetime']->get_timestamp() > $ts) {
                 break;
@@ -226,11 +254,11 @@ class Controller_FixtureApi extends Controller_RestApi
 
         $id = -$ct;
         foreach ($fixtures as &$fixture) {
-            $fixture['index']=$id++;
+            $fixture['index'] = $id++;
         }
         $id = 0;
         foreach ($fixtures as &$fixture) {
-            $fixture['index0']=$id++;
+            $fixture['index0'] = $id++;
         }
 
         $first = \Input::param('i0', null);
@@ -291,227 +319,228 @@ class Controller_FixtureApi extends Controller_RestApi
 
         $t4 = self::ts($t0);
 
-        $fixtures = array_map(fn ($f) => array(
-            "id"=>$f['fixtureID'],
-            "datetimeZ"=>$f['datetime']->format('iso8601'),
-            "section"=>$f['section'],
-            "competition"=>$f['competition'],
-            "played"=>$f['played'],
-            "home"=>array(
-              "name"=>$f['home'],
-              "club"=>Arr::get($f, 'home_club'),
-              "team"=>Arr::get($f, 'home_team'),
-              "score"=>$f['home_score'],
-              "match_score"=>Arr::get($scores, 'Scored'.$f['fixtureID'].Arr::get($f, 'home_club'), 0),
-              "players"=>Arr::get($scores, 'Played'.$f['fixtureID'].Arr::get($f, 'home_club'), 0)
-              ),
-            "away"=>array(
-              "name"=>$f['away'],
-              "club"=>Arr::get($f, 'away_club'),
-              "team"=>Arr::get($f, 'away_team'),
-              "score"=>$f['away_score'],
-              "match_score"=>Arr::get($scores, 'Scored'.$f['fixtureID'].Arr::get($f, 'away_club'), 0),
-              "players"=>Arr::get($scores, 'Played'.$f['fixtureID'].Arr::get($f, 'away_club'), 0)
-              )
-            ), $fixtures);
+        $fixtures = array_map(fn($f) => array (
+            "id" => $f['fixtureID'],
+            "datetimeZ" => $f['datetime']->format('iso8601'),
+            "section" => $f['section'],
+            "competition" => $f['competition'],
+            "played" => $f['played'],
+            "home" => array (
+                "name" => $f['home'],
+                "club" => Arr::get($f, 'home_club'),
+                "team" => Arr::get($f, 'home_team'),
+                "score" => $f['home_score'],
+                "match_score" => Arr::get($scores, 'Scored' . $f['fixtureID'] . Arr::get($f, 'home_club'), 0),
+                "players" => Arr::get($scores, 'Played' . $f['fixtureID'] . Arr::get($f, 'home_club'), 0)
+            ),
+            "away" => array (
+                "name" => $f['away'],
+                "club" => Arr::get($f, 'away_club'),
+                "team" => Arr::get($f, 'away_team'),
+                "score" => $f['away_score'],
+                "match_score" => Arr::get($scores, 'Scored' . $f['fixtureID'] . Arr::get($f, 'away_club'), 0),
+                "players" => Arr::get($scores, 'Played' . $f['fixtureID'] . Arr::get($f, 'away_club'), 0)
+            )
+        ), $fixtures);
 
-        $result = array('page'=>$page, 'start'=>$start, 'size'=>$size, 'fixtures'=>$fixtures);
+        $result = array('page' => $page, 'start' => $start, 'size' => $size, 'fixtures' => $fixtures);
 
         $t5 = self::ts($t0);
 
-        Log::debug("Fixtures ready: ".count($fixtures)." $t1/$t2/$t3/$t4/$t5");
+        Log::debug("Fixtures ready: " . count($fixtures) . " $t1/$t2/$t3/$t4/$t5");
 
         return $this->response($result);
     }
 
-    public function get_test() {
+    public function get_test()
+    {
         self::log("start");
-            header('Access-Control-Allow-Origin: *');
-    
-            $id = $this->param('id');
-    
-            if ($id) {
-                $card = Model_Matchcard::find_by_fixture($id);
-                if (!$card) {
-                    return new Response("No such card", 404);
-                }
-    
-                return array('data' => $this->simplify($card));
-            }
-    
-            $page = \Input::param('p', 0);
-            $pagesize = \Input::param('n', 10);
-            $section = \Input::param('s', null);
-            $club = \Input::param('c', null);
-    
-            if ($club === null) {
-                $clubId = \Auth::get('club_id');
-                if ($clubId) {
-                    $club = Model_Club::find_by_id($clubId);
-                    $club = $club['name'];
-                }
-            }
-    
-            if ($section === null) {
-                $sectionId = \Auth::get('section_id');
-                if ($sectionId) {
-                    $section = Model_Section::find_by_id($sectionId);
-                    $section = $section['name'];
-                }
-            }
-    
-            Log::debug("Fixtures requested: $section/$club/$page size=$pagesize");
-    
-            $fixtures = Model_Fixture::getAll();
-            $fixtures = array_filter(
-                $fixtures,
-                function ($a) use ($section) {
-                    return !$a['hidden'] and $a['status'] === 'active' and ($section === null or $a['section'] === $section);
-                }
-            );
-    
-            if ($club) {
-                Log::debug("Filtering by club");
-                $clubFixtures = array();
-                foreach ($fixtures as $fixture) {
-                    if (!isset($fixture['home_club'])) {
-                        Log::error("Bad fixture: ".print_r($fixture, true));
-                        continue;
-                    }
-                    if (!isset($fixture['away_club'])) {
-                        Log::error("Bad fixture: ".print_r($fixture, true));
-                        continue;
-                    }
-                    if ($fixture['home_club'] != $club && $fixture['away_club'] != $club) {
-                        continue;
-                    }
-                    $clubFixtures[] = $fixture;
-                }
-                $fixtures = $clubFixtures;
-            }
-    
-            if ($section) {
-                $fixtures = array_filter($fixtures, function ($a) use ($section) {
-                    return $a['section'] === $section;
-                });
-            }
-    
-            Log::debug("Fixtures loaded (".count($fixtures).")");
-    
-            usort($fixtures, function ($a, $b) {
-                return $a['datetime']->get_timestamp() - $b['datetime']->get_timestamp();
-            });
-    
-            // Find the index where past/future fixtures meet
-            $ts = Date::time()->get_timestamp();
-            $ct=0;
-            foreach ($fixtures as &$fixture) {
-                if ($fixture['datetime']->get_timestamp() > $ts) {
-                    break;
-                }
-                $ct++;
-            }
-    
-            $id = -$ct;
-            foreach ($fixtures as &$fixture) {
-                $fixture['index']=$id++;
-            }
-            $id = 0;
-            foreach ($fixtures as &$fixture) {
-                $fixture['index0']=$id++;
-            }
-    
-            $first = \Input::param('i0', null);
-            $last = \Input::param('i1', null);
-    
-            if ($first != null) {
-                $first += $ct;
-                $last += $ct;
-                if ($first > $last) {
-                    $t = $first;
-                    $first = $last;
-                    $last = $t;
-                }
-                if ($first < 0) {
-                    $first = 0;
-                }
-                /*if ($last < 0 ) $last = 0;
-                if ($first > count($fixtures)) $first = count($fixtures);
-                if ($last > count($fixtures)) $last = count($fixtures);*/
-                $start = $first;
-                $size = $last - $first + 1;
-            } else {
-                if ($pagesize > 0) {
-                    $minPage = floor(-$ct / $pagesize);
-                } else {
-                    $minPage = $page;
-                    $pagesize = count($fixtures);
-                    $ct = 0;
-                }
-                Log::debug("Minimum page: $minPage/$pagesize ($ct)");
-    
-                if ($page < $minPage) {
-                    $start = 0;
-                    $size = 0;
-                } else {
-                    $size = $pagesize;
-                    $start = ($page * $pagesize) + $ct;
-                    if ($start < 0) {
-                        $size += $start;
-                        $start = 0;
-                    }
-                }
+        header('Access-Control-Allow-Origin: *');
+
+        $id = $this->param('id');
+
+        if ($id) {
+            $card = Model_Matchcard::find_by_fixture($id);
+            if (!$card) {
+                return new Response("No such card", 404);
             }
 
-            self::log("slicing");
-
-            Log::debug("Slicing absolute from:$start size=$size");
-            $fixtures = array_slice($fixtures, $start, $size);
-            $fixtureIds = array();
-    
-            foreach ($fixtures as &$fixture) {
-                $fixture['datetimeZ'] = $fixture['datetime']->format('%Y-%m-%dT%H:%M:%S');
-                if ($fixture['played'] === 'yes') {
-                    $fixture['state'] = 'result';
-                }
-    
-                $fixtureIds[] = $fixture['fixtureID'];
-            }
-    
-            $scores = Model_Matchcard::getAll($fixtureIds);
-    
-            Log::debug("Fixtures ready: ".count($fixtures));
-    
-            $fixtures = array_map(fn ($f) => array(
-                "id"=>$f['fixtureID'],
-                "datetimeZ"=>$f['datetime']->format('iso8601'),
-                "section"=>$f['section'],
-                "competition"=>$f['competition'],
-                "played"=>$f['played'],
-                "home"=>array(
-                  "name"=>$f['home'],
-                  "club"=>Arr::get($f, 'home_club'),
-                  "team"=>Arr::get($f, 'home_team'),
-                  "score"=>$f['home_score'],
-                  "match_score"=>Arr::get($scores, 'Scored'.$f['fixtureID'].Arr::get($f, 'home_club'), 0),
-                  "players"=>Arr::get($scores, 'Played'.$f['fixtureID'].Arr::get($f, 'home_club'), 0)
-                  ),
-                "away"=>array(
-                  "name"=>$f['away'],
-                  "club"=>Arr::get($f, 'away_club'),
-                  "team"=>Arr::get($f, 'away_team'),
-                  "score"=>$f['away_score'],
-                  "match_score"=>Arr::get($scores, 'Scored'.$f['fixtureID'].Arr::get($f, 'away_club'), 0),
-                  "players"=>Arr::get($scores, 'Played'.$f['fixtureID'].Arr::get($f, 'away_club'), 0)
-                  )
-                ), $fixtures);
-    
-            $result = array('page'=>$page, 'start'=>$start, 'size'=>$size, 'fixtures'=>$fixtures);
-    
-            self::log("end");
-            return $this->response($result);
+            return array('data' => $this->simplify($card));
         }
-    
+
+        $page = \Input::param('p', 0);
+        $pagesize = \Input::param('n', 10);
+        $section = \Input::param('s', null);
+        $club = \Input::param('c', null);
+
+        if ($club === null) {
+            $clubId = \Auth::get('club_id');
+            if ($clubId) {
+                $club = Model_Club::find_by_id($clubId);
+                $club = $club['name'];
+            }
+        }
+
+        if ($section === null) {
+            $sectionId = \Auth::get('section_id');
+            if ($sectionId) {
+                $section = Model_Section::find_by_id($sectionId);
+                $section = $section['name'];
+            }
+        }
+
+        Log::debug("Fixtures requested: $section/$club/$page size=$pagesize");
+
+        $fixtures = Model_Fixture::getAll();
+        $fixtures = array_filter(
+            $fixtures,
+            function ($a) use ($section) {
+                return !$a['hidden'] and $a['status'] === 'active' and ($section === null or $a['section'] === $section);
+            }
+        );
+
+        if ($club) {
+            Log::debug("Filtering by club");
+            $clubFixtures = array();
+            foreach ($fixtures as $fixture) {
+                if (!isset($fixture['home_club'])) {
+                    Log::error("Bad fixture: " . print_r($fixture, true));
+                    continue;
+                }
+                if (!isset($fixture['away_club'])) {
+                    Log::error("Bad fixture: " . print_r($fixture, true));
+                    continue;
+                }
+                if ($fixture['home_club'] != $club && $fixture['away_club'] != $club) {
+                    continue;
+                }
+                $clubFixtures[] = $fixture;
+            }
+            $fixtures = $clubFixtures;
+        }
+
+        if ($section) {
+            $fixtures = array_filter($fixtures, function ($a) use ($section) {
+                return $a['section'] === $section;
+            });
+        }
+
+        Log::debug("Fixtures loaded (" . count($fixtures) . ")");
+
+        usort($fixtures, function ($a, $b) {
+            return $a['datetime']->get_timestamp() - $b['datetime']->get_timestamp();
+        });
+
+        // Find the index where past/future fixtures meet
+        $ts = Date::time()->get_timestamp();
+        $ct = 0;
+        foreach ($fixtures as &$fixture) {
+            if ($fixture['datetime']->get_timestamp() > $ts) {
+                break;
+            }
+            $ct++;
+        }
+
+        $id = -$ct;
+        foreach ($fixtures as &$fixture) {
+            $fixture['index'] = $id++;
+        }
+        $id = 0;
+        foreach ($fixtures as &$fixture) {
+            $fixture['index0'] = $id++;
+        }
+
+        $first = \Input::param('i0', null);
+        $last = \Input::param('i1', null);
+
+        if ($first != null) {
+            $first += $ct;
+            $last += $ct;
+            if ($first > $last) {
+                $t = $first;
+                $first = $last;
+                $last = $t;
+            }
+            if ($first < 0) {
+                $first = 0;
+            }
+            /*if ($last < 0 ) $last = 0;
+            if ($first > count($fixtures)) $first = count($fixtures);
+            if ($last > count($fixtures)) $last = count($fixtures);*/
+            $start = $first;
+            $size = $last - $first + 1;
+        } else {
+            if ($pagesize > 0) {
+                $minPage = floor(-$ct / $pagesize);
+            } else {
+                $minPage = $page;
+                $pagesize = count($fixtures);
+                $ct = 0;
+            }
+            Log::debug("Minimum page: $minPage/$pagesize ($ct)");
+
+            if ($page < $minPage) {
+                $start = 0;
+                $size = 0;
+            } else {
+                $size = $pagesize;
+                $start = ($page * $pagesize) + $ct;
+                if ($start < 0) {
+                    $size += $start;
+                    $start = 0;
+                }
+            }
+        }
+
+        self::log("slicing");
+
+        Log::debug("Slicing absolute from:$start size=$size");
+        $fixtures = array_slice($fixtures, $start, $size);
+        $fixtureIds = array();
+
+        foreach ($fixtures as &$fixture) {
+            $fixture['datetimeZ'] = $fixture['datetime']->format('%Y-%m-%dT%H:%M:%S');
+            if ($fixture['played'] === 'yes') {
+                $fixture['state'] = 'result';
+            }
+
+            $fixtureIds[] = $fixture['fixtureID'];
+        }
+
+        $scores = Model_Matchcard::getAll($fixtureIds);
+
+        Log::debug("Fixtures ready: " . count($fixtures));
+
+        $fixtures = array_map(fn($f) => array (
+            "id" => $f['fixtureID'],
+            "datetimeZ" => $f['datetime']->format('iso8601'),
+            "section" => $f['section'],
+            "competition" => $f['competition'],
+            "played" => $f['played'],
+            "home" => array (
+                "name" => $f['home'],
+                "club" => Arr::get($f, 'home_club'),
+                "team" => Arr::get($f, 'home_team'),
+                "score" => $f['home_score'],
+                "match_score" => Arr::get($scores, 'Scored' . $f['fixtureID'] . Arr::get($f, 'home_club'), 0),
+                "players" => Arr::get($scores, 'Played' . $f['fixtureID'] . Arr::get($f, 'home_club'), 0)
+            ),
+            "away" => array (
+                "name" => $f['away'],
+                "club" => Arr::get($f, 'away_club'),
+                "team" => Arr::get($f, 'away_team'),
+                "score" => $f['away_score'],
+                "match_score" => Arr::get($scores, 'Scored' . $f['fixtureID'] . Arr::get($f, 'away_club'), 0),
+                "players" => Arr::get($scores, 'Played' . $f['fixtureID'] . Arr::get($f, 'away_club'), 0)
+            )
+        ), $fixtures);
+
+        $result = array('page' => $page, 'start' => $start, 'size' => $size, 'fixtures' => $fixtures);
+
+        self::log("end");
+        return $this->response($result);
+    }
+
     private function parseUsers($users, $section)
     {
         $result = array();
@@ -526,44 +555,46 @@ class Controller_FixtureApi extends Controller_RestApi
         return $result;
     }
 
-  public function get_contact()
-  {
-      $fixtureId  = \Input::param('id');
-      $fixture = Model_Fixture::get($fixtureId);
+    public function get_contact()
+    {
+        $fixtureId = \Input::param('id');
+        $fixture = Model_Fixture::get($fixtureId);
 
-      if ($fixture === null) {
-          return new Response("No such fixture $fixtureId", 404);
-      }
+        if ($fixture === null) {
+            return new Response("No such fixture $fixtureId", 404);
+        }
 
-      $users = $this->parseUsers(
-          array_merge(
-              Model_User::query()->related('club')
-                ->where('club.name', $fixture['home_club'])->get(),
-              Model_User::query()->related('club')
-                ->where('club.name', $fixture['away_club'])->get()
-          ),
-          $fixture['section']
-      );
+        $users = $this->parseUsers(
+            array_merge(
+                Model_User::query()->related('club')
+                    ->where('club.name', $fixture['home_club'])->get(),
+                Model_User::query()->related('club')
+                    ->where('club.name', $fixture['away_club'])->get()
+            ),
+            $fixture['section']
+        );
 
-      $cc = array();
-      if ($fixture['section'] == 'lha-men') {
-          $cc[] = 'men@leinsterhockey.ie';
-          $cc[] = 'andyiwaller@gmail.com';
-      }
-      $result = array('to' => $users,
-          'cc'=> $cc,
-          'fixture_id' => $fixture['id'],
-          'subject' => "{$fixture['zcompetition']}: {$fixture['zhome']} v {$fixture['zaway']} #{$fixture['id']}");
+        $cc = array();
+        if ($fixture['section'] == 'lha-men') {
+            $cc[] = 'men@leinsterhockey.ie';
+            $cc[] = 'andyiwaller@gmail.com';
+        }
+        $result = array(
+            'to' => $users,
+            'cc' => $cc,
+            'fixture_id' => $fixture['id'],
+            'subject' => "{$fixture['zcompetition']}: {$fixture['zhome']} v {$fixture['zaway']} #{$fixture['id']}"
+        );
 
-      return new Response(json_encode($result, JSON_PRETTY_PRINT), 200);
-  }
+        return new Response(json_encode($result, JSON_PRETTY_PRINT), 200);
+    }
 
     // ----- Internals --------------------------------------------------------
 
     private function getCardInfo($card, $side)
     {
         $sideX = $card[$side];
-        $result = array('signed'=>false, 'locked'=>false);
+        $result = array('signed' => false, 'locked' => false);
 
         if (isset($sideX['signed'])) {
             if ($sideX['signed'] === true) {
