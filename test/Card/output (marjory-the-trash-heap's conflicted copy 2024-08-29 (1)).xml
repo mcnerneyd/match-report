@@ -1,0 +1,491 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 7.0.1 (Python 3.11.8 on linux)" generated="2024-08-29T22:55:26.406179" rpa="false" schemaversion="5">
+<suite id="s1" name="Card" source="/home/david.mcnerney/CloudDrive/Workspace/registration/test/Card/Card.robot">
+<kw name="Login" owner="Common" type="SETUP">
+<kw name="Open Chrome" owner="Common">
+<kw name="Register Keyword To Run On Failure" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:26.516658" level="INFO">No keyword will be run on failure.</msg>
+<arg>NOTHING</arg>
+<doc>Sets the keyword to execute, when a Selenium2Library keyword fails.</doc>
+<status status="PASS" start="2024-08-29T22:55:26.516540" elapsed="0.000156"/>
+</kw>
+<kw name="Evaluate" owner="BuiltIn">
+<msg time="2024-08-29T22:55:26.516957" level="INFO">${chrome_options} = &lt;selenium.webdriver.chrome.options.Options object at 0x7f98d8ad1ad0&gt;</msg>
+<var>${chrome_options}</var>
+<arg>sys.modules['selenium.webdriver'].ChromeOptions()</arg>
+<arg>sys, selenium.webdriver</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<status status="PASS" start="2024-08-29T22:55:26.516795" elapsed="0.000182"/>
+</kw>
+<kw name="Call Method" owner="BuiltIn">
+<arg>${chrome_options}</arg>
+<arg>add_argument</arg>
+<arg>disable-gpu</arg>
+<doc>Calls the named method of the given object with the provided arguments.</doc>
+<status status="PASS" start="2024-08-29T22:55:26.517060" elapsed="0.000095"/>
+</kw>
+<kw name="Create Webdriver" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:26.517346" level="INFO">Creating an instance of the Chrome WebDriver.</msg>
+<arg>Chrome</arg>
+<arg>chrome_options=${chrome_options}</arg>
+<doc>Creates an instance of Selenium WebDriver.</doc>
+<status status="PASS" start="2024-08-29T22:55:26.517236" elapsed="1.168169"/>
+</kw>
+<status status="PASS" start="2024-08-29T22:55:26.515984" elapsed="1.169541"/>
+</kw>
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:27.685807" level="INFO">Opening url 'https://cards.leinsterhockey.ie/Login'</msg>
+<arg>${LOGIN URL}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T22:55:27.685654" elapsed="0.686536"/>
+</kw>
+<kw name="Input Text" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:28.372687" level="INFO">Typing text 'Aardvarks' into text field 'name=user'.</msg>
+<arg>name=user</arg>
+<arg>${username}</arg>
+<doc>Types the given ``text`` into the text field identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T22:55:28.372378" elapsed="0.111749"/>
+</kw>
+<kw name="Input Text" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:28.484699" level="INFO">Typing text '1102' into text field 'name=pin'.</msg>
+<arg>name=pin</arg>
+<arg>${password}</arg>
+<doc>Types the given ``text`` into the text field identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T22:55:28.484385" elapsed="0.076741"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:28.561663" level="INFO">Clicking element 'xpath=//form[@id='login']/button'.</msg>
+<arg>xpath=//form[@id='login']/button</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T22:55:28.561400" elapsed="1.566815"/>
+</kw>
+<kw name="Wait Until Page Contains Element" owner="Selenium2Library">
+<arg>id:user</arg>
+<doc>Waits until the element ``locator`` appears on the current page.</doc>
+<status status="PASS" start="2024-08-29T22:55:30.128472" elapsed="0.016781"/>
+</kw>
+<arg>Aardvarks</arg>
+<arg>1102</arg>
+<status status="PASS" start="2024-08-29T22:55:26.515726" elapsed="3.629685"/>
+</kw>
+<test id="s1-t1" name="User Can Add Any Name To Card" line="62">
+<kw name="Create Card With Player" type="SETUP">
+<kw name="Reset Card" owner="Common">
+<kw name="Create List" owner="BuiltIn">
+<msg time="2024-08-29T22:55:30.147191" level="INFO">${auth} = ['testadmin', 'password']</msg>
+<var>${auth}</var>
+<arg>testadmin</arg>
+<arg>password</arg>
+<doc>Returns a list containing given items.</doc>
+<status status="PASS" start="2024-08-29T22:55:30.147013" elapsed="0.000214"/>
+</kw>
+<kw name="Create Session" owner="RequestsLibrary">
+<msg time="2024-08-29T22:55:30.147680" level="INFO">Creating Session using : alias=cards, url=https://cards.leinsterhockey.ie, headers={},                     cookies={}, auth=&lt;requests.auth.HTTPBasicAuth object at 0x7f98d8adde10&gt;, timeout=None, proxies=None, verify=True,                     debug=0 </msg>
+<arg>cards</arg>
+<arg>${BASE}</arg>
+<arg>auth=${auth}</arg>
+<arg>verify=true</arg>
+<doc>Create Session: create a HTTP session to a server</doc>
+<status status="PASS" start="2024-08-29T22:55:30.147372" elapsed="0.000529"/>
+</kw>
+<kw name="DELETE On Session" owner="RequestsLibrary">
+<msg time="2024-08-29T22:55:31.140241" level="INFO">DELETE Request : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ path_url=/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ headers={'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Length': '0', 'Authorization': 'Basic dGVzdGFkbWluOnBhc3N3b3Jk'} 
+ body=None 
+ </msg>
+<msg time="2024-08-29T22:55:31.140339" level="INFO">DELETE Response : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ status=204, reason=No Content 
+ headers={'Date': 'Thu, 29 Aug 2024 21:55:30 GMT', 'Server': 'Apache/2.4.41 (Ubuntu)', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token', 'Set-Cookie': 'site=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/, fuelfid=a%3A1%3A%7Bi%3A0%3Bs%3A32%3A%227ed1a754fe2a27d6a5683a50d5e24759%22%3B%7D; expires=Sun, 29-Sep-2024 21:55:31 GMT; Max-Age=2678400; path=/', 'Keep-Alive': 'timeout=5, max=100', 'Connection': 'Keep-Alive'} 
+ body=None 
+ </msg>
+<arg>cards</arg>
+<arg>url=/cardapi?id=${fixtureid}</arg>
+<doc>Sends a DELETE request on a previously created HTTP Session.</doc>
+<status status="PASS" start="2024-08-29T22:55:30.148058" elapsed="0.992365"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T22:55:30.146524" elapsed="0.994024"/>
+</kw>
+<kw name="Open Card" owner="Common">
+<kw name="Go To Matches" owner="Common">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:31.141619" level="INFO">Opening url 'http://cards.leinsterhockey.ie/cards/ui/'</msg>
+<arg>http://${HOST}/cards/ui/</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T22:55:31.141443" elapsed="0.072011"/>
+</kw>
+<kw name="Run Keyword And Ignore Error" owner="BuiltIn">
+<kw name="Toggle Menu" owner="Common">
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:31.214486" level="INFO">Clicking element 'css:.navbar-toggler'.</msg>
+<msg time="2024-08-29T22:55:31.246496" level="FAIL">ElementNotInteractableException: Message: element not interactable
+  (Session info: chrome=123.0.6312.86)
+Stacktrace:
+#0 0x55d0f449f954 &lt;unknown&gt;
+#1 0x55d0f41792b3 &lt;unknown&gt;
+#2 0x55d0f41c7cf1 &lt;unknown&gt;
+#3 0x55d0f41baf14 &lt;unknown&gt;
+#4 0x55d0f41ea4d2 &lt;unknown&gt;
+#5 0x55d0f41ba852 &lt;unknown&gt;
+#6 0x55d0f41ea69e &lt;unknown&gt;
+#7 0x55d0f4209bf1 &lt;unknown&gt;
+#8 0x55d0f41ea253 &lt;unknown&gt;
+#9 0x55d0f41b8a28 &lt;unknown&gt;
+#10 0x55d0f41b98af &lt;unknown&gt;
+#11 0x55d0f4469d62 &lt;unknown&gt;
+#12 0x55d0f446d171 &lt;unknown&gt;
+#13 0x55d0f446cc51 &lt;unknown&gt;
+#14 0x55d0f446d695 &lt;unknown&gt;
+#15 0x55d0f445ad4b &lt;unknown&gt;
+#16 0x55d0f446da9c &lt;unknown&gt;
+#17 0x55d0f444662f &lt;unknown&gt;
+#18 0x55d0f448f0a7 &lt;unknown&gt;
+#19 0x55d0f448f264 &lt;unknown&gt;
+#20 0x55d0f449ec3e &lt;unknown&gt;
+#21 0x7f8c302fb55a &lt;unknown&gt;
+</msg>
+<arg>css:.navbar-toggler</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="FAIL" start="2024-08-29T22:55:31.214299" elapsed="0.034232">ElementNotInteractableException: Message: element not interactable
+  (Session info: chrome=123.0.6312.86)
+Stacktrace:
+#0 0x55d0f449f954 &lt;unknown&gt;
+#1 0x55d0f41792b3 &lt;unknown&gt;
+#2 0x55d0f41c7cf1 &lt;unknown&gt;
+#3 0x55d0f41baf14 &lt;unknown&gt;
+#4 0x55d0f41ea4d2 &lt;unknown&gt;
+#5 0x55d0f41ba852 &lt;unknown&gt;
+#6 0x55d0f41ea69e &lt;unknown&gt;
+#7 0x55d0f4209bf1 &lt;unknown&gt;
+#8 0x55d0f41ea253 &lt;unknown&gt;
+#9 0x55d0f41b8a28 &lt;unknown&gt;
+#10 0x55d0f41b98af &lt;unknown&gt;
+#11 0x55d0f4469d62 &lt;unknown&gt;
+#12 0x55d0f446d171 &lt;unknown&gt;
+#13 0x55d0f446cc51 &lt;unknown&gt;
+#14 0x55d0f446d695 &lt;unknown&gt;
+#15 0x55d0f445ad4b &lt;unknown&gt;
+#16 0x55d0f446da9c &lt;unknown&gt;
+#17 0x55d0f444662f &lt;unknown&gt;
+#18 0x55d0f448f0a7 &lt;unknown&gt;
+#19 0x55d0f448f264 &lt;unknown&gt;
+#20 0x55d0f449ec3e &lt;unknown&gt;
+#21 0x7f8c302fb55a &lt;unknown&gt;
+</status>
+</kw>
+<status status="FAIL" start="2024-08-29T22:55:31.214004" elapsed="0.034876">ElementNotInteractableException: Message: element not interactable
+  (Session info: chrome=123.0.6312.86)
+Stacktrace:
+#0 0x55d0f449f954 &lt;unknown&gt;
+#1 0x55d0f41792b3 &lt;unknown&gt;
+#2 0x55d0f41c7cf1 &lt;unknown&gt;
+#3 0x55d0f41baf14 &lt;unknown&gt;
+#4 0x55d0f41ea4d2 &lt;unknown&gt;
+#5 0x55d0f41ba852 &lt;unknown&gt;
+#6 0x55d0f41ea69e &lt;unknown&gt;
+#7 0x55d0f4209bf1 &lt;unknown&gt;
+#8 0x55d0f41ea253 &lt;unknown&gt;
+#9 0x55d0f41b8a28 &lt;unknown&gt;
+#10 0x55d0f41b98af &lt;unknown&gt;
+#11 0x55d0f4469d62 &lt;unknown&gt;
+#12 0x55d0f446d171 &lt;unknown&gt;
+#13 0x55d0f446cc51 &lt;unknown&gt;
+#14 0x55d0f446d695 &lt;unknown&gt;
+#15 0x55d0f445ad4b &lt;unknown&gt;
+#16 0x55d0f446da9c &lt;unknown&gt;
+#17 0x55d0f444662f &lt;unknown&gt;
+#18 0x55d0f448f0a7 &lt;unknown&gt;
+#19 0x55d0f448f264 &lt;unknown&gt;
+#20 0x55d0f449ec3e &lt;unknown&gt;
+#21 0x7f8c302fb55a &lt;unknown&gt;
+</status>
+</kw>
+<arg>Toggle Menu</arg>
+<doc>Runs the given keyword with the given arguments and ignores possible error.</doc>
+<status status="PASS" start="2024-08-29T22:55:31.213727" elapsed="0.035253"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T22:55:32.249486" level="INFO">Slept 1 second.</msg>
+<arg>1 second</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T22:55:31.249158" elapsed="1.000457"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:32.250104" level="INFO">Clicking element 'link=Matches'.</msg>
+<arg>link=Matches</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T22:55:32.249864" elapsed="0.094928"/>
+</kw>
+<status status="PASS" start="2024-08-29T22:55:31.141176" elapsed="1.203736"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T22:55:33.345351" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T22:55:32.345060" elapsed="1.000421"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:33.346010" level="INFO">Clicking element 'xpath=//tr[@data-key='test.testdivision1.aardvarks1.bears1']/*'.</msg>
+<arg>xpath=//tr[@data-key='${cardkey}']/*</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T22:55:33.345707" elapsed="0.636560"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T22:55:34.982809" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T22:55:33.982511" elapsed="1.000425"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T22:55:31.140773" elapsed="3.842309"/>
+</kw>
+<kw name="Select Player" owner="Common">
+<kw name="Get Element Attribute" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:35.012390" level="INFO">${name} = Jackeline GOSHA</msg>
+<var>${name}</var>
+<arg>xpath=//tr[contains(@data-name,'${player}')]</arg>
+<arg>data-name</arg>
+<doc>Returns the value of ``attribute`` from the element ``locator``.</doc>
+<status status="PASS" start="2024-08-29T22:55:34.984014" elapsed="0.028413"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:35.012993" level="INFO">Executing JavaScript:
+window.jQuery("[data-name='Jackeline GOSHA']")[0].scrollIntoView(true);
+Without any arguments.</msg>
+<arg>window.jQuery("[data-name='${name}']")[0].scrollIntoView(true);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T22:55:35.012580" elapsed="0.005480"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:35.018524" level="INFO">Executing JavaScript:
+window.scrollBy(0, -150);
+Without any arguments.</msg>
+<arg>window.scrollBy(0, -150);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T22:55:35.018209" elapsed="0.004440"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T22:55:37.023076" level="INFO">Slept 2 seconds.</msg>
+<arg>2s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T22:55:35.022789" elapsed="2.000416"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:37.023723" level="INFO">Clicking element 'jquery=[data-name='Jackeline GOSHA']'.</msg>
+<arg>jquery=[data-name='${name}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T22:55:37.023429" elapsed="0.048921"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:37.072885" level="INFO">Executing JavaScript:
+window.scrollTo(0, 0);
+Without any arguments.</msg>
+<arg>window.scrollTo(0, 0);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T22:55:37.072529" elapsed="0.004538"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<status status="PASS" start="2024-08-29T22:55:34.983341" elapsed="2.093844"/>
+</kw>
+<kw name="Submit Team" owner="Common">
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T22:55:39.077930" level="INFO">Slept 2 seconds.</msg>
+<arg>2 seconds</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T22:55:37.077653" elapsed="2.000405"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:39.078717" level="INFO">Executing JavaScript:
+scrollTo(0,0)
+Without any arguments.</msg>
+<arg>scrollTo(0,0)</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T22:55:39.078289" elapsed="0.005644"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:39.084292" level="INFO">Clicking element 'partial link=Submit Team'.</msg>
+<arg>partial link=Submit Team</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T22:55:39.084080" elapsed="0.476122"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="Selenium2Library">
+<arg>matchcard-home</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T22:55:39.560434" elapsed="0.033539"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>Selecting Players</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T22:55:39.594136" elapsed="0.000106"/>
+</kw>
+<status status="PASS" start="2024-08-29T22:55:37.077383" elapsed="2.516945"/>
+</kw>
+<arg>${card_key}</arg>
+<status status="PASS" start="2024-08-29T22:55:30.146099" elapsed="9.448298"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:39.594951" level="INFO">Executing JavaScript:
+window.jQuery("#submit-card .add-player")[0].scrollIntoView(true);
+Without any arguments.</msg>
+<arg>window.jQuery("#submit-card .add-player")[0].scrollIntoView(true);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T22:55:39.594604" elapsed="0.004756"/>
+</kw>
+<kw name="Click Link" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:39.599771" level="INFO">Clicking link 'css:#submit-card .add-player'.</msg>
+<arg>css:#submit-card .add-player</arg>
+<doc>Clicks a link identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T22:55:39.599606" elapsed="0.041805"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="Selenium2Library">
+<arg>css:#add-player-modal</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T22:55:39.641606" elapsed="0.233422"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:39.875528" level="INFO">Clicking element 'css:#player-name-selectized'.</msg>
+<arg>css:#player-name-selectized</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T22:55:39.875319" elapsed="0.068598"/>
+</kw>
+<kw name="Press Keys" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:39.944486" level="INFO">Sending key(s) ('Nobody McNobodyFace',) to css:#player-name-selectized element.</msg>
+<msg time="2024-08-29T22:55:40.228509" level="INFO">Sending keys Nobody McNobodyFace</msg>
+<arg>css:#player-name-selectized</arg>
+<arg>Nobody McNobodyFace</arg>
+<doc>Simulates the user pressing key(s) to an element or on the active browser.</doc>
+<status status="PASS" start="2024-08-29T22:55:39.944148" elapsed="0.310078"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T22:55:45.254813" level="INFO">Slept 5 seconds.</msg>
+<arg>5s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T22:55:40.254505" elapsed="5.000439"/>
+</kw>
+<kw name="Click Button" owner="Selenium2Library">
+<msg time="2024-08-29T22:55:45.255441" level="INFO">Clicking button 'css:#add-player-modal .btn-success'.</msg>
+<msg time="2024-08-29T22:55:46.368340" level="FAIL">ElementClickInterceptedException: Message: element click intercepted: Element &lt;button type="button" class="btn btn-success" data-dismiss="modal"&gt;...&lt;/button&gt; is not clickable at point (679, 165). Other element would receive the click: &lt;div class="option" data-selectable="" data-value="..."&gt;Regina BRANNER&lt;/div&gt;
+  (Session info: chrome=123.0.6312.86)
+Stacktrace:
+#0 0x55d0f449f954 &lt;unknown&gt;
+#1 0x55d0f417943d &lt;unknown&gt;
+#2 0x55d0f41cd8a8 &lt;unknown&gt;
+#3 0x55d0f41cb3ce &lt;unknown&gt;
+#4 0x55d0f41c8c89 &lt;unknown&gt;
+#5 0x55d0f41c7fbf &lt;unknown&gt;
+#6 0x55d0f41baf14 &lt;unknown&gt;
+#7 0x55d0f41ea4d2 &lt;unknown&gt;
+#8 0x55d0f41ba852 &lt;unknown&gt;
+#9 0x55d0f41ea69e &lt;unknown&gt;
+#10 0x55d0f4209bf1 &lt;unknown&gt;
+#11 0x55d0f41ea253 &lt;unknown&gt;
+#12 0x55d0f41b8a28 &lt;unknown&gt;
+#13 0x55d0f41b98af &lt;unknown&gt;
+#14 0x55d0f4469d62 &lt;unknown&gt;
+#15 0x55d0f446d171 &lt;unknown&gt;
+#16 0x55d0f446cc51 &lt;unknown&gt;
+#17 0x55d0f446d695 &lt;unknown&gt;
+#18 0x55d0f445ad4b &lt;unknown&gt;
+#19 0x55d0f446da9c &lt;unknown&gt;
+#20 0x55d0f444662f &lt;unknown&gt;
+#21 0x55d0f448f0a7 &lt;unknown&gt;
+#22 0x55d0f448f264 &lt;unknown&gt;
+#23 0x55d0f449ec3e &lt;unknown&gt;
+#24 0x7f8c302fb55a &lt;unknown&gt;
+</msg>
+<arg>css:#add-player-modal .btn-success</arg>
+<doc>Clicks the button identified by ``locator``.</doc>
+<status status="FAIL" start="2024-08-29T22:55:45.255230" elapsed="1.113952">ElementClickInterceptedException: Message: element click intercepted: Element &lt;button type="button" class="btn btn-success" data-dismiss="modal"&gt;...&lt;/button&gt; is not clickable at point (679, 165). Other element would receive the click: &lt;div class="option" data-selectable="" data-value="..."&gt;Regina BRANNER&lt;/div&gt;
+  (Session info: chrome=123.0.6312.86)
+Stacktrace:
+#0 0x55d0f449f954 &lt;unknown&gt;
+#1 0x55d0f417943d &lt;unknown&gt;
+#2 0x55d0f41cd8a8 &lt;unknown&gt;
+#3 0x55d0f41cb3ce &lt;unknown&gt;
+#4 0x55d0f41c8c89 &lt;unknown&gt;
+#5 0x55d0f41c7fbf &lt;unknown&gt;
+#6 0x55d0f41baf14 &lt;unknown&gt;
+#7 0x55d0f41ea4d2 &lt;unknown&gt;
+#8 0x55d0f41ba852 &lt;unknown&gt;
+#9 0x55d0f41ea69e &lt;unknown&gt;
+#10 0x55d0f4209bf1 &lt;unknown&gt;
+#11 0x55d0f41ea253 &lt;unknown&gt;
+#12 0x55d0f41b8a28 &lt;unknown&gt;
+#13 0x55d0f41b98af &lt;unknown&gt;
+#14 0x55d0f4469d62 &lt;unknown&gt;
+#15 0x55d0f446d171 &lt;unknown&gt;
+#16 0x55d0f446cc51 &lt;unknown&gt;
+#17 0x55d0f446d695 &lt;unknown&gt;
+#18 0x55d0f445ad4b &lt;unknown&gt;
+#19 0x55d0f446da9c &lt;unknown&gt;
+#20 0x55d0f444662f &lt;unknown&gt;
+#21 0x55d0f448f0a7 &lt;unknown&gt;
+#22 0x55d0f448f264 &lt;unknown&gt;
+#23 0x55d0f449ec3e &lt;unknown&gt;
+#24 0x7f8c302fb55a &lt;unknown&gt;
+</status>
+</kw>
+<kw name="Wait Until Element Is Not Visible" owner="Selenium2Library">
+<arg>css:#add-player-modal</arg>
+<doc>Waits until the element ``locator`` is not visible.</doc>
+<status status="NOT RUN" start="2024-08-29T22:55:46.369482" elapsed="0.000038"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="NOT RUN" start="2024-08-29T22:55:46.369695" elapsed="0.000043"/>
+</kw>
+<kw name="Verify Card">
+<arg>Played Nobody MCNOBODYFACE Aardvarks</arg>
+<status status="NOT RUN" start="2024-08-29T22:55:46.369931" elapsed="0.000032"/>
+</kw>
+<status status="FAIL" start="2024-08-29T22:55:30.145543" elapsed="16.224641">ElementClickInterceptedException: Message: element click intercepted: Element &lt;button type="button" class="btn btn-success" data-dismiss="modal"&gt;...&lt;/button&gt; is not clickable at point (679, 165). Other element would receive the click: &lt;div class="option" data-selectable="" data-value="..."&gt;Regina BRANNER&lt;/div&gt;
+  (Session info: chrome=123.0.6312.86)
+Stacktrace:
+#0 0x55d0f449f954 &lt;unknown&gt;
+#1 0x55d0f417943d &lt;unknown&gt;
+#2 0x55d0f41cd8a8 &lt;unknown&gt;
+#3 0x55d0f41cb3ce &lt;unknown&gt;
+#4 0x55d0f41c8c89 &lt;unknown&gt;
+#5 0x55d0f41c7fbf &lt;unknown&gt;
+#6 0x55d0f41baf14 &lt;unknown&gt;
+#7 0x55d0f41ea4d2 &lt;unknown&gt;
+#8 0x55d0f41ba852 &lt;unknown&gt;
+#9 0x55d0f41ea69e &lt;unknown&gt;
+#10 0x55d0f4209bf1 &lt;unknown&gt;
+#11 0x55d0f41ea253 &lt;unknown&gt;
+#12 0x55d0f41b8a28 &lt;unknown&gt;
+#13 0x55d0f41b98af &lt;unknown&gt;
+#14 0x55d0f4469d62 &lt;unknown&gt;
+#15 0x55d0f446d171 &lt;unknown&gt;
+#16 0x55d0f446cc51 &lt;unknown&gt;
+#17 0x55d0f446d695 &lt;unknown&gt;
+#18 0x55d0f445ad4b &lt;unknown&gt;
+#19 0x55d0f446da9c &lt;unknown&gt;
+#20 0x55d0f444662f &lt;unknown&gt;
+#21 0x55d0f448f0a7 &lt;unknown&gt;
+#22 0x55d0f448f264 &lt;unknown&gt;
+#23 0x55d0f449ec3e &lt;unknown&gt;
+#24 0x7f8c302fb55a &lt;unknown&gt;
+</status>
+</test>
+<kw name="Close Browser" owner="Selenium2Library" type="TEARDOWN">
+<doc>Closes the current browser.</doc>
+<status status="PASS" start="2024-08-29T22:55:46.370774" elapsed="0.059987"/>
+</kw>
+<status status="FAIL" start="2024-08-29T22:55:26.406659" elapsed="20.024208"/>
+</suite>
+<statistics>
+<total>
+<stat pass="0" fail="1" skip="0">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat pass="0" fail="1" skip="0" id="s1" name="Card">Card</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>

@@ -1,0 +1,3 @@
+curl -X PUT -u 'mcnerneyd@gmail.com:p@ssw0rd' -d '{"roles":["G"]}' \
+	-H 'Content-Type: application/json' \
+	'http://cards.leinsterhockey.ie/public/cardapi/player?site=lhamen&club=Bray&m=6277&p=David%20McNerney' 

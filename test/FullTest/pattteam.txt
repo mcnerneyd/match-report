@@ -1,0 +1,2 @@
+/(Donkeys|Foxes|Eagles) .*/!/
+/Eardvarks/Aardvarks/

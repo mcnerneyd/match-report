@@ -1,0 +1,3169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 7.0.1 (Python 3.11.8 on linux)" generated="2024-08-29T11:46:22.074296" rpa="false" schemaversion="5">
+<suite id="s1" name="Card" source="/home/david.mcnerney/CloudDrive/Workspace/registration/test/Card/Card.robot">
+<kw name="Login" owner="Common" type="SETUP">
+<kw name="Open Chrome" owner="Common">
+<kw name="Register Keyword To Run On Failure" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:22.183589" level="INFO">No keyword will be run on failure.</msg>
+<arg>NOTHING</arg>
+<doc>Sets the keyword to execute, when a Selenium2Library keyword fails.</doc>
+<status status="PASS" start="2024-08-29T11:46:22.183472" elapsed="0.000154"/>
+</kw>
+<kw name="Evaluate" owner="BuiltIn">
+<msg time="2024-08-29T11:46:22.183906" level="INFO">${chrome_options} = &lt;selenium.webdriver.chrome.options.Options object at 0x7ff5ea3e0490&gt;</msg>
+<var>${chrome_options}</var>
+<arg>sys.modules['selenium.webdriver'].ChromeOptions()</arg>
+<arg>sys, selenium.webdriver</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<status status="PASS" start="2024-08-29T11:46:22.183739" elapsed="0.000187"/>
+</kw>
+<kw name="Call Method" owner="BuiltIn">
+<arg>${chrome_options}</arg>
+<arg>add_argument</arg>
+<arg>headless</arg>
+<doc>Calls the named method of the given object with the provided arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:22.184010" elapsed="0.000097"/>
+</kw>
+<kw name="Call Method" owner="BuiltIn">
+<arg>${chrome_options}</arg>
+<arg>add_argument</arg>
+<arg>disable-gpu</arg>
+<doc>Calls the named method of the given object with the provided arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:22.184185" elapsed="0.000089"/>
+</kw>
+<kw name="Create Webdriver" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:22.184472" level="INFO">Creating an instance of the Chrome WebDriver.</msg>
+<arg>Chrome</arg>
+<arg>chrome_options=${chrome_options}</arg>
+<doc>Creates an instance of Selenium WebDriver.</doc>
+<status status="PASS" start="2024-08-29T11:46:22.184355" elapsed="0.671346"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:46:22.182960" elapsed="0.672854"/>
+</kw>
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:22.856087" level="INFO">Opening url 'https://cards.leinsterhockey.ie/Login'</msg>
+<arg>${LOGIN URL}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:46:22.855946" elapsed="0.698772"/>
+</kw>
+<kw name="Input Text" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:23.555209" level="INFO">Typing text 'Aardvarks' into text field 'name=user'.</msg>
+<arg>name=user</arg>
+<arg>${username}</arg>
+<doc>Types the given ``text`` into the text field identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:23.554899" elapsed="0.100435"/>
+</kw>
+<kw name="Input Text" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:23.655888" level="INFO">Typing text '1102' into text field 'name=pin'.</msg>
+<arg>name=pin</arg>
+<arg>${password}</arg>
+<doc>Types the given ``text`` into the text field identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:23.655587" elapsed="0.073786"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:23.729758" level="INFO">Clicking element 'xpath=//form[@id='login']/button'.</msg>
+<arg>xpath=//form[@id='login']/button</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:23.729557" elapsed="0.798380"/>
+</kw>
+<kw name="Wait Until Page Contains Element" owner="Selenium2Library">
+<arg>id:user</arg>
+<doc>Waits until the element ``locator`` appears on the current page.</doc>
+<status status="PASS" start="2024-08-29T11:46:24.528172" elapsed="0.055872"/>
+</kw>
+<arg>Aardvarks</arg>
+<arg>1102</arg>
+<status status="PASS" start="2024-08-29T11:46:22.182741" elapsed="2.401431"/>
+</kw>
+<test id="s1-t1" name="User Can Add Goal To Player" line="12">
+<kw name="Create Card With Player" type="SETUP">
+<kw name="Reset Card" owner="Common">
+<kw name="Create List" owner="BuiltIn">
+<msg time="2024-08-29T11:46:24.585640" level="INFO">${auth} = ['testadmin', 'password']</msg>
+<var>${auth}</var>
+<arg>testadmin</arg>
+<arg>password</arg>
+<doc>Returns a list containing given items.</doc>
+<status status="PASS" start="2024-08-29T11:46:24.585474" elapsed="0.000201"/>
+</kw>
+<kw name="Create Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:46:24.586111" level="INFO">Creating Session using : alias=cards, url=https://cards.leinsterhockey.ie, headers={},                     cookies={}, auth=&lt;requests.auth.HTTPBasicAuth object at 0x7ff5ea3f5b90&gt;, timeout=None, proxies=None, verify=True,                     debug=0 </msg>
+<arg>cards</arg>
+<arg>${BASE}</arg>
+<arg>auth=${auth}</arg>
+<arg>verify=true</arg>
+<doc>Create Session: create a HTTP session to a server</doc>
+<status status="PASS" start="2024-08-29T11:46:24.585820" elapsed="0.000502"/>
+</kw>
+<kw name="DELETE On Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:46:25.876249" level="INFO">DELETE Request : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ path_url=/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ headers={'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Length': '0', 'Authorization': 'Basic dGVzdGFkbWluOnBhc3N3b3Jk'} 
+ body=None 
+ </msg>
+<msg time="2024-08-29T11:46:25.876348" level="INFO">DELETE Response : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ status=204, reason=No Content 
+ headers={'Date': 'Thu, 29 Aug 2024 10:46:24 GMT', 'Server': 'Apache/2.4.41 (Ubuntu)', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token', 'Set-Cookie': 'site=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/, fuelfid=a%3A1%3A%7Bi%3A0%3Bs%3A32%3A%22e6473223ef4fd2caf900157ee44e5019%22%3B%7D; expires=Sun, 29-Sep-2024 10:46:25 GMT; Max-Age=2678400; path=/', 'Keep-Alive': 'timeout=5, max=100', 'Connection': 'Keep-Alive'} 
+ body=None 
+ </msg>
+<arg>cards</arg>
+<arg>url=/cardapi?id=${fixtureid}</arg>
+<doc>Sends a DELETE request on a previously created HTTP Session.</doc>
+<status status="PASS" start="2024-08-29T11:46:24.586458" elapsed="1.289976"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:46:24.585164" elapsed="1.291403"/>
+</kw>
+<kw name="Open Card" owner="Common">
+<kw name="Go To Matches" owner="Common">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:25.877652" level="INFO">Opening url 'http://cards.leinsterhockey.ie/cards/ui/'</msg>
+<arg>http://${HOST}/cards/ui/</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:46:25.877483" elapsed="0.115105"/>
+</kw>
+<kw name="Run Keyword And Ignore Error" owner="BuiltIn">
+<kw name="Toggle Menu" owner="Common">
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:25.993629" level="INFO">Clicking element 'css:.navbar-toggler'.</msg>
+<arg>css:.navbar-toggler</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:25.993437" elapsed="0.046715"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:46:25.993119" elapsed="0.047178"/>
+</kw>
+<arg>Toggle Menu</arg>
+<doc>Runs the given keyword with the given arguments and ignores possible error.</doc>
+<status status="PASS" start="2024-08-29T11:46:25.992849" elapsed="0.047512"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:46:27.040870" level="INFO">Slept 1 second.</msg>
+<arg>1 second</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:46:26.040544" elapsed="1.000452"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:27.041456" level="INFO">Clicking element 'link=Matches'.</msg>
+<arg>link=Matches</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:27.041222" elapsed="0.083338"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:46:25.877210" elapsed="1.247582"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:46:28.125284" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:46:27.124962" elapsed="1.000466"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:28.125968" level="INFO">Clicking element 'xpath=//tr[@data-key='test.testdivision1.aardvarks1.bears1']/*'.</msg>
+<arg>xpath=//tr[@data-key='${cardkey}']/*</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:28.125660" elapsed="1.040036"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:46:30.166251" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:46:29.165930" elapsed="1.000447"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:46:25.876791" elapsed="4.289717"/>
+</kw>
+<kw name="Select Player" owner="Common">
+<kw name="Get Element Attribute" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:30.193859" level="INFO">${name} = Jackeline GOSHA</msg>
+<var>${name}</var>
+<arg>xpath=//tr[contains(@data-name,'${player}')]</arg>
+<arg>data-name</arg>
+<doc>Returns the value of ``attribute`` from the element ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:30.167452" elapsed="0.026428"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:30.194220" level="INFO">Executing JavaScript:
+window.jQuery("[data-name='Jackeline GOSHA']")[0].scrollIntoView(true);
+Without any arguments.</msg>
+<arg>window.jQuery("[data-name='${name}']")[0].scrollIntoView(true);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:30.193976" elapsed="0.004515"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:30.198782" level="INFO">Executing JavaScript:
+window.scrollBy(0, -150);
+Without any arguments.</msg>
+<arg>window.scrollBy(0, -150);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:30.198581" elapsed="0.004970"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:46:32.203904" level="INFO">Slept 2 seconds.</msg>
+<arg>2s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:46:30.203674" elapsed="2.000332"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:32.204388" level="INFO">Clicking element 'jquery=[data-name='Jackeline GOSHA']'.</msg>
+<arg>jquery=[data-name='${name}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:32.204175" elapsed="0.043887"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:32.248467" level="INFO">Executing JavaScript:
+window.scrollTo(0, 0);
+Without any arguments.</msg>
+<arg>window.scrollTo(0, 0);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:32.248221" elapsed="0.003937"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<status status="PASS" start="2024-08-29T11:46:30.166765" elapsed="2.085447"/>
+</kw>
+<kw name="Submit Team" owner="Common">
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:46:34.252673" level="INFO">Slept 2 seconds.</msg>
+<arg>2 seconds</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:46:32.252475" elapsed="2.000286"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:34.253177" level="INFO">Executing JavaScript:
+scrollTo(0,0)
+Without any arguments.</msg>
+<arg>scrollTo(0,0)</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:34.252911" elapsed="0.004749"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:34.257984" level="INFO">Clicking element 'partial link=Submit Team'.</msg>
+<arg>partial link=Submit Team</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:34.257809" elapsed="0.940040"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="Selenium2Library">
+<arg>matchcard-home</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T11:46:35.198082" elapsed="0.028015"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>Selecting Players</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:35.226340" elapsed="0.000138"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:46:32.252315" elapsed="2.974264"/>
+</kw>
+<arg>${card_key}</arg>
+<status status="PASS" start="2024-08-29T11:46:24.584789" elapsed="10.641866"/>
+</kw>
+<kw name="Context Menu">
+<kw name="Player Menu">
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:35.228040" level="INFO">Executing JavaScript:
+$('#user').hide()
+Without any arguments.</msg>
+<arg>$('#user').hide()</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:35.227634" elapsed="0.004571"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:35.232624" level="INFO">Clicking element 'xpath=//tr[@data-name='Jackeline GOSHA']'.</msg>
+<arg>xpath=//tr[@data-name='${player}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:35.232373" elapsed="0.062118"/>
+</kw>
+<arg>${player}</arg>
+<status status="PASS" start="2024-08-29T11:46:35.227306" elapsed="0.067327"/>
+</kw>
+<kw name="Click Button" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:35.295071" level="INFO">Clicking button 'Add Goal'.</msg>
+<arg>${action}</arg>
+<doc>Clicks the button identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:35.294814" elapsed="0.066119"/>
+</kw>
+<kw name="Wait Until Element Is Not Visible" owner="Selenium2Library">
+<arg>css:#context-menu</arg>
+<doc>Waits until the element ``locator`` is not visible.</doc>
+<status status="PASS" start="2024-08-29T11:46:35.361248" elapsed="0.664812"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<arg>Add Goal</arg>
+<status status="PASS" start="2024-08-29T11:46:35.226919" elapsed="0.799276"/>
+</kw>
+<kw name="Verify Card">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:36.027033" level="INFO">Opening url 'https://cards.leinsterhockey.ie/Report/Card?key=test.testdivision1.aardvarks1.bears1'</msg>
+<arg>${BASE}/Report/Card?key=${card_key}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:46:36.026787" elapsed="0.996289"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>${description}</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:37.023325" elapsed="0.000154"/>
+</kw>
+<kw name="Page Should Contain Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:37.037418" level="INFO">Current page contains element 'xpath://tr[@data-description='Scored Jackeline GOSHA Aardvarks 1']'.</msg>
+<arg>xpath://tr[@data-description='${description}']</arg>
+<doc>Verifies that element ``locator`` is found on the current page.</doc>
+<status status="PASS" start="2024-08-29T11:46:37.023662" elapsed="0.013825"/>
+</kw>
+<arg>Scored Jackeline GOSHA Aardvarks 1</arg>
+<status status="PASS" start="2024-08-29T11:46:36.026452" elapsed="1.011126"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:46:24.584292" elapsed="12.453483"/>
+</test>
+<test id="s1-t2" name="User Can Clear Goals From Player" line="16">
+<kw name="Create Card With Player" type="SETUP">
+<kw name="Reset Card" owner="Common">
+<kw name="Create List" owner="BuiltIn">
+<msg time="2024-08-29T11:46:37.040000" level="INFO">${auth} = ['testadmin', 'password']</msg>
+<var>${auth}</var>
+<arg>testadmin</arg>
+<arg>password</arg>
+<doc>Returns a list containing given items.</doc>
+<status status="PASS" start="2024-08-29T11:46:37.039818" elapsed="0.000219"/>
+</kw>
+<kw name="Create Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:46:37.040465" level="INFO">Creating Session using : alias=cards, url=https://cards.leinsterhockey.ie, headers={},                     cookies={}, auth=&lt;requests.auth.HTTPBasicAuth object at 0x7ff5ea3e0250&gt;, timeout=None, proxies=None, verify=True,                     debug=0 </msg>
+<arg>cards</arg>
+<arg>${BASE}</arg>
+<arg>auth=${auth}</arg>
+<arg>verify=true</arg>
+<doc>Create Session: create a HTTP session to a server</doc>
+<status status="PASS" start="2024-08-29T11:46:37.040173" elapsed="0.000496"/>
+</kw>
+<kw name="DELETE On Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:46:39.133890" level="INFO">DELETE Request : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ path_url=/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ headers={'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Length': '0', 'Authorization': 'Basic dGVzdGFkbWluOnBhc3N3b3Jk'} 
+ body=None 
+ </msg>
+<msg time="2024-08-29T11:46:39.133988" level="INFO">DELETE Response : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ status=204, reason=No Content 
+ headers={'Date': 'Thu, 29 Aug 2024 10:46:37 GMT', 'Server': 'Apache/2.4.41 (Ubuntu)', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token', 'Set-Cookie': 'site=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/, fuelfid=a%3A1%3A%7Bi%3A0%3Bs%3A32%3A%22d9a58cc57aaaf53da40f0b47788f7c3c%22%3B%7D; expires=Sun, 29-Sep-2024 10:46:37 GMT; Max-Age=2678400; path=/', 'Keep-Alive': 'timeout=5, max=100', 'Connection': 'Keep-Alive'} 
+ body=None 
+ </msg>
+<arg>cards</arg>
+<arg>url=/cardapi?id=${fixtureid}</arg>
+<doc>Sends a DELETE request on a previously created HTTP Session.</doc>
+<status status="PASS" start="2024-08-29T11:46:37.040804" elapsed="2.093283"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:46:37.039530" elapsed="2.094676"/>
+</kw>
+<kw name="Open Card" owner="Common">
+<kw name="Go To Matches" owner="Common">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:39.135156" level="INFO">Opening url 'http://cards.leinsterhockey.ie/cards/ui/'</msg>
+<arg>http://${HOST}/cards/ui/</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:46:39.135008" elapsed="0.036343"/>
+</kw>
+<kw name="Run Keyword And Ignore Error" owner="BuiltIn">
+<kw name="Toggle Menu" owner="Common">
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:39.172096" level="INFO">Clicking element 'css:.navbar-toggler'.</msg>
+<arg>css:.navbar-toggler</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:39.171937" elapsed="0.043586"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:46:39.171706" elapsed="0.043906"/>
+</kw>
+<arg>Toggle Menu</arg>
+<doc>Runs the given keyword with the given arguments and ignores possible error.</doc>
+<status status="PASS" start="2024-08-29T11:46:39.171507" elapsed="0.044162"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:46:40.216044" level="INFO">Slept 1 second.</msg>
+<arg>1 second</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:46:39.215792" elapsed="1.000360"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:40.216568" level="INFO">Clicking element 'link=Matches'.</msg>
+<arg>link=Matches</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:40.216359" elapsed="0.072188"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:46:39.134776" elapsed="1.153906"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:46:41.289121" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:46:40.288846" elapsed="1.000407"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:41.289768" level="INFO">Clicking element 'xpath=//tr[@data-key='test.testdivision1.aardvarks1.bears1']/*'.</msg>
+<arg>xpath=//tr[@data-key='${cardkey}']/*</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:41.289479" elapsed="0.293832"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:46:42.583813" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:46:41.583533" elapsed="1.000396"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:46:39.134410" elapsed="3.449638"/>
+</kw>
+<kw name="Select Player" owner="Common">
+<kw name="Get Element Attribute" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:42.605989" level="INFO">${name} = Jackeline GOSHA</msg>
+<var>${name}</var>
+<arg>xpath=//tr[contains(@data-name,'${player}')]</arg>
+<arg>data-name</arg>
+<doc>Returns the value of ``attribute`` from the element ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:42.584631" elapsed="0.021394"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:42.606573" level="INFO">Executing JavaScript:
+window.jQuery("[data-name='Jackeline GOSHA']")[0].scrollIntoView(true);
+Without any arguments.</msg>
+<arg>window.jQuery("[data-name='${name}']")[0].scrollIntoView(true);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:42.606173" elapsed="0.004476"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:42.623935" level="INFO">Executing JavaScript:
+window.scrollBy(0, -150);
+Without any arguments.</msg>
+<arg>window.scrollBy(0, -150);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:42.610800" elapsed="0.016667"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:46:44.627920" level="INFO">Slept 2 seconds.</msg>
+<arg>2s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:46:42.627637" elapsed="2.000430"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:44.628595" level="INFO">Clicking element 'jquery=[data-name='Jackeline GOSHA']'.</msg>
+<arg>jquery=[data-name='${name}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:44.628299" elapsed="0.032322"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:44.661134" level="INFO">Executing JavaScript:
+window.scrollTo(0, 0);
+Without any arguments.</msg>
+<arg>window.scrollTo(0, 0);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:44.660781" elapsed="0.003536"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<status status="PASS" start="2024-08-29T11:46:42.584276" elapsed="2.080134"/>
+</kw>
+<kw name="Submit Team" owner="Common">
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:46:46.665105" level="INFO">Slept 2 seconds.</msg>
+<arg>2 seconds</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:46:44.664842" elapsed="2.000395"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:46.665880" level="INFO">Executing JavaScript:
+scrollTo(0,0)
+Without any arguments.</msg>
+<arg>scrollTo(0,0)</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:46.665469" elapsed="0.004419"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:46.670200" level="INFO">Clicking element 'partial link=Submit Team'.</msg>
+<arg>partial link=Submit Team</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:46.670033" elapsed="0.388100"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="Selenium2Library">
+<arg>matchcard-home</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T11:46:47.058401" elapsed="0.016368"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>Selecting Players</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:47.074929" elapsed="0.000103"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:46:44.664588" elapsed="2.410524"/>
+</kw>
+<arg>${card_key}</arg>
+<status status="PASS" start="2024-08-29T11:46:37.038491" elapsed="10.036689"/>
+</kw>
+<kw name="Context Menu">
+<kw name="Player Menu">
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:47.076317" level="INFO">Executing JavaScript:
+$('#user').hide()
+Without any arguments.</msg>
+<arg>$('#user').hide()</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:47.075989" elapsed="0.005018"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:47.081392" level="INFO">Clicking element 'xpath=//tr[@data-name='Jackeline GOSHA']'.</msg>
+<arg>xpath=//tr[@data-name='${player}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:47.081164" elapsed="0.044397"/>
+</kw>
+<arg>${player}</arg>
+<status status="PASS" start="2024-08-29T11:46:47.075709" elapsed="0.049986"/>
+</kw>
+<kw name="Click Button" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:47.126139" level="INFO">Clicking button 'Add Goal'.</msg>
+<arg>${action}</arg>
+<doc>Clicks the button identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:47.125884" elapsed="0.046217"/>
+</kw>
+<kw name="Wait Until Element Is Not Visible" owner="Selenium2Library">
+<arg>css:#context-menu</arg>
+<doc>Waits until the element ``locator`` is not visible.</doc>
+<status status="PASS" start="2024-08-29T11:46:47.172303" elapsed="0.446640"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<arg>Add Goal</arg>
+<status status="PASS" start="2024-08-29T11:46:47.075408" elapsed="0.543709"/>
+</kw>
+<kw name="Context Menu">
+<kw name="Player Menu">
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:47.620383" level="INFO">Executing JavaScript:
+$('#user').hide()
+Without any arguments.</msg>
+<arg>$('#user').hide()</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:47.620024" elapsed="0.003729"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:47.624131" level="INFO">Clicking element 'xpath=//tr[@data-name='Jackeline GOSHA']'.</msg>
+<arg>xpath=//tr[@data-name='${player}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:47.623903" elapsed="0.037546"/>
+</kw>
+<arg>${player}</arg>
+<status status="PASS" start="2024-08-29T11:46:47.619715" elapsed="0.041880"/>
+</kw>
+<kw name="Click Button" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:47.662033" level="INFO">Clicking button 'Add Goal'.</msg>
+<arg>${action}</arg>
+<doc>Clicks the button identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:47.661778" elapsed="0.047191"/>
+</kw>
+<kw name="Wait Until Element Is Not Visible" owner="Selenium2Library">
+<arg>css:#context-menu</arg>
+<doc>Waits until the element ``locator`` is not visible.</doc>
+<status status="PASS" start="2024-08-29T11:46:47.709207" elapsed="0.231650"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<arg>Add Goal</arg>
+<status status="PASS" start="2024-08-29T11:46:47.619379" elapsed="0.321622"/>
+</kw>
+<kw name="Context Menu">
+<kw name="Player Menu">
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:47.942281" level="INFO">Executing JavaScript:
+$('#user').hide()
+Without any arguments.</msg>
+<arg>$('#user').hide()</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:47.941902" elapsed="0.004191"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:47.946496" level="INFO">Clicking element 'xpath=//tr[@data-name='Jackeline GOSHA']'.</msg>
+<arg>xpath=//tr[@data-name='${player}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:47.946258" elapsed="0.045533"/>
+</kw>
+<arg>${player}</arg>
+<status status="PASS" start="2024-08-29T11:46:47.941596" elapsed="0.050354"/>
+</kw>
+<kw name="Click Button" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:47.992441" level="INFO">Clicking button 'Clear Goals'.</msg>
+<arg>${action}</arg>
+<doc>Clicks the button identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:47.992149" elapsed="0.063485"/>
+</kw>
+<kw name="Wait Until Element Is Not Visible" owner="Selenium2Library">
+<arg>css:#context-menu</arg>
+<doc>Waits until the element ``locator`` is not visible.</doc>
+<status status="PASS" start="2024-08-29T11:46:48.055879" elapsed="0.447147"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<arg>Clear Goals</arg>
+<status status="PASS" start="2024-08-29T11:46:47.941258" elapsed="0.561903"/>
+</kw>
+<kw name="Verify Card">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:48.503989" level="INFO">Opening url 'https://cards.leinsterhockey.ie/Report/Card?key=test.testdivision1.aardvarks1.bears1'</msg>
+<arg>${BASE}/Report/Card?key=${card_key}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:46:48.503753" elapsed="0.477262"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>${description}</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:48.981254" elapsed="0.000126"/>
+</kw>
+<kw name="Page Should Contain Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:48.993802" level="INFO">Current page contains element 'xpath://tr[@data-description='Scored Jackeline GOSHA Aardvarks 0']'.</msg>
+<arg>xpath://tr[@data-description='${description}']</arg>
+<doc>Verifies that element ``locator`` is found on the current page.</doc>
+<status status="PASS" start="2024-08-29T11:46:48.981511" elapsed="0.012359"/>
+</kw>
+<arg>Scored Jackeline GOSHA Aardvarks 0</arg>
+<status status="PASS" start="2024-08-29T11:46:48.503418" elapsed="0.490541"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:46:37.038076" elapsed="11.956071"/>
+</test>
+<test id="s1-t3" name="User Can Add Technical Yellow Card To Player" line="22">
+<kw name="Create Card With Player" type="SETUP">
+<kw name="Reset Card" owner="Common">
+<kw name="Create List" owner="BuiltIn">
+<msg time="2024-08-29T11:46:48.995556" level="INFO">${auth} = ['testadmin', 'password']</msg>
+<var>${auth}</var>
+<arg>testadmin</arg>
+<arg>password</arg>
+<doc>Returns a list containing given items.</doc>
+<status status="PASS" start="2024-08-29T11:46:48.995402" elapsed="0.000184"/>
+</kw>
+<kw name="Create Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:46:48.995966" level="INFO">Creating Session using : alias=cards, url=https://cards.leinsterhockey.ie, headers={},                     cookies={}, auth=&lt;requests.auth.HTTPBasicAuth object at 0x7ff5ea437b90&gt;, timeout=None, proxies=None, verify=True,                     debug=0 </msg>
+<arg>cards</arg>
+<arg>${BASE}</arg>
+<arg>auth=${auth}</arg>
+<arg>verify=true</arg>
+<doc>Create Session: create a HTTP session to a server</doc>
+<status status="PASS" start="2024-08-29T11:46:48.995715" elapsed="0.000424"/>
+</kw>
+<kw name="DELETE On Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:46:49.430679" level="INFO">DELETE Request : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ path_url=/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ headers={'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Length': '0', 'Authorization': 'Basic dGVzdGFkbWluOnBhc3N3b3Jk'} 
+ body=None 
+ </msg>
+<msg time="2024-08-29T11:46:49.430779" level="INFO">DELETE Response : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ status=204, reason=No Content 
+ headers={'Date': 'Thu, 29 Aug 2024 10:46:49 GMT', 'Server': 'Apache/2.4.41 (Ubuntu)', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token', 'Set-Cookie': 'site=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/, fuelfid=a%3A1%3A%7Bi%3A0%3Bs%3A32%3A%227e3bcc0bd23b8696f97015817a06809f%22%3B%7D; expires=Sun, 29-Sep-2024 10:46:49 GMT; Max-Age=2678400; path=/', 'Keep-Alive': 'timeout=5, max=100', 'Connection': 'Keep-Alive'} 
+ body=None 
+ </msg>
+<arg>cards</arg>
+<arg>url=/cardapi?id=${fixtureid}</arg>
+<doc>Sends a DELETE request on a previously created HTTP Session.</doc>
+<status status="PASS" start="2024-08-29T11:46:48.996364" elapsed="0.434518"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:46:48.995114" elapsed="0.435889"/>
+</kw>
+<kw name="Open Card" owner="Common">
+<kw name="Go To Matches" owner="Common">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:49.431993" level="INFO">Opening url 'http://cards.leinsterhockey.ie/cards/ui/'</msg>
+<arg>http://${HOST}/cards/ui/</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:46:49.431839" elapsed="0.036082"/>
+</kw>
+<kw name="Run Keyword And Ignore Error" owner="BuiltIn">
+<kw name="Toggle Menu" owner="Common">
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:49.468672" level="INFO">Clicking element 'css:.navbar-toggler'.</msg>
+<arg>css:.navbar-toggler</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:49.468512" elapsed="0.039018"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:46:49.468276" elapsed="0.039426"/>
+</kw>
+<arg>Toggle Menu</arg>
+<doc>Runs the given keyword with the given arguments and ignores possible error.</doc>
+<status status="PASS" start="2024-08-29T11:46:49.468076" elapsed="0.039708"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:46:50.508331" level="INFO">Slept 1 second.</msg>
+<arg>1 second</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:46:49.507988" elapsed="1.000475"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:50.508921" level="INFO">Clicking element 'link=Matches'.</msg>
+<arg>link=Matches</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:50.508691" elapsed="0.076263"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:46:49.431593" elapsed="1.153537"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:46:51.585677" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:46:50.585332" elapsed="1.000503"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:51.586474" level="INFO">Clicking element 'xpath=//tr[@data-key='test.testdivision1.aardvarks1.bears1']/*'.</msg>
+<arg>xpath=//tr[@data-key='${cardkey}']/*</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:51.586117" elapsed="0.385310"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:46:52.971950" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:46:51.971652" elapsed="1.000426"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:46:49.431218" elapsed="3.540986"/>
+</kw>
+<kw name="Select Player" owner="Common">
+<kw name="Get Element Attribute" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:52.989433" level="INFO">${name} = Jackeline GOSHA</msg>
+<var>${name}</var>
+<arg>xpath=//tr[contains(@data-name,'${player}')]</arg>
+<arg>data-name</arg>
+<doc>Returns the value of ``attribute`` from the element ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:52.972780" elapsed="0.016688"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:52.990010" level="INFO">Executing JavaScript:
+window.jQuery("[data-name='Jackeline GOSHA']")[0].scrollIntoView(true);
+Without any arguments.</msg>
+<arg>window.jQuery("[data-name='${name}']")[0].scrollIntoView(true);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:52.989614" elapsed="0.004231"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:52.994397" level="INFO">Executing JavaScript:
+window.scrollBy(0, -150);
+Without any arguments.</msg>
+<arg>window.scrollBy(0, -150);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:52.994031" elapsed="0.003498"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:46:54.997933" level="INFO">Slept 2 seconds.</msg>
+<arg>2s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:46:52.997669" elapsed="2.000399"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:54.998579" level="INFO">Clicking element 'jquery=[data-name='Jackeline GOSHA']'.</msg>
+<arg>jquery=[data-name='${name}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:54.998288" elapsed="0.033287"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:55.032191" level="INFO">Executing JavaScript:
+window.scrollTo(0, 0);
+Without any arguments.</msg>
+<arg>window.scrollTo(0, 0);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:55.031801" elapsed="0.004177"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<status status="PASS" start="2024-08-29T11:46:52.972437" elapsed="2.063639"/>
+</kw>
+<kw name="Submit Team" owner="Common">
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:46:57.036794" level="INFO">Slept 2 seconds.</msg>
+<arg>2 seconds</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:46:55.036522" elapsed="2.000403"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:57.037612" level="INFO">Executing JavaScript:
+scrollTo(0,0)
+Without any arguments.</msg>
+<arg>scrollTo(0,0)</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:57.037183" elapsed="0.004699"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:57.042202" level="INFO">Clicking element 'partial link=Submit Team'.</msg>
+<arg>partial link=Submit Team</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:57.042030" elapsed="0.397492"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="Selenium2Library">
+<arg>matchcard-home</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T11:46:57.439749" elapsed="0.017867"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>Selecting Players</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:57.457780" elapsed="0.000104"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:46:55.036262" elapsed="2.421791"/>
+</kw>
+<arg>${card_key}</arg>
+<status status="PASS" start="2024-08-29T11:46:48.994796" elapsed="8.463327"/>
+</kw>
+<kw name="Add Penalty">
+<kw name="Player Menu">
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:57.459260" level="INFO">Executing JavaScript:
+$('#user').hide()
+Without any arguments.</msg>
+<arg>$('#user').hide()</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:57.458928" elapsed="0.004743"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:57.464042" level="INFO">Clicking element 'xpath=//tr[@data-name='Jackeline GOSHA']'.</msg>
+<arg>xpath=//tr[@data-name='${player}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:57.463829" elapsed="0.046628"/>
+</kw>
+<arg>${player}</arg>
+<status status="PASS" start="2024-08-29T11:46:57.458649" elapsed="0.051929"/>
+</kw>
+<kw name="Click Menu">
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:57.511313" level="INFO">Clicking element 'xpath=//*[contains(text(), 'Technical - Breakdown')]'.</msg>
+<arg>xpath=//*[contains(text(), '${text}')]</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:57.511086" elapsed="0.047841"/>
+</kw>
+<arg>${action}</arg>
+<status status="PASS" start="2024-08-29T11:46:57.510747" elapsed="0.048286"/>
+</kw>
+<kw name="Wait Until Element Is Not Visible" owner="Selenium2Library">
+<arg>css:#context-menu</arg>
+<doc>Waits until the element ``locator`` is not visible.</doc>
+<status status="PASS" start="2024-08-29T11:46:57.559180" elapsed="0.231265"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<arg>Technical - Breakdown</arg>
+<status status="PASS" start="2024-08-29T11:46:57.458342" elapsed="0.332234"/>
+</kw>
+<kw name="Verify Card">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:57.791365" level="INFO">Opening url 'https://cards.leinsterhockey.ie/Report/Card?key=test.testdivision1.aardvarks1.bears1'</msg>
+<arg>${BASE}/Report/Card?key=${card_key}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:46:57.791134" elapsed="0.574396"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>${description}</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:46:58.365763" elapsed="0.000126"/>
+</kw>
+<kw name="Page Should Contain Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:58.379706" level="INFO">Current page contains element 'xpath://tr[@data-description='Yellow Card Jackeline GOSHA Aardvarks Technical - Breakdown']'.</msg>
+<arg>xpath://tr[@data-description='${description}']</arg>
+<doc>Verifies that element ``locator`` is found on the current page.</doc>
+<status status="PASS" start="2024-08-29T11:46:58.366021" elapsed="0.013750"/>
+</kw>
+<arg>Yellow Card Jackeline GOSHA Aardvarks Technical - Breakdown</arg>
+<status status="PASS" start="2024-08-29T11:46:57.790819" elapsed="0.589038"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:46:48.994420" elapsed="9.385615"/>
+</test>
+<test id="s1-t4" name="User Can Add Physical Yellow Card To Player" line="26">
+<kw name="Create Card With Player" type="SETUP">
+<kw name="Reset Card" owner="Common">
+<kw name="Create List" owner="BuiltIn">
+<msg time="2024-08-29T11:46:58.381436" level="INFO">${auth} = ['testadmin', 'password']</msg>
+<var>${auth}</var>
+<arg>testadmin</arg>
+<arg>password</arg>
+<doc>Returns a list containing given items.</doc>
+<status status="PASS" start="2024-08-29T11:46:58.381283" elapsed="0.000182"/>
+</kw>
+<kw name="Create Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:46:58.381842" level="INFO">Creating Session using : alias=cards, url=https://cards.leinsterhockey.ie, headers={},                     cookies={}, auth=&lt;requests.auth.HTTPBasicAuth object at 0x7ff5ea420b10&gt;, timeout=None, proxies=None, verify=True,                     debug=0 </msg>
+<arg>cards</arg>
+<arg>${BASE}</arg>
+<arg>auth=${auth}</arg>
+<arg>verify=true</arg>
+<doc>Create Session: create a HTTP session to a server</doc>
+<status status="PASS" start="2024-08-29T11:46:58.381592" elapsed="0.000419"/>
+</kw>
+<kw name="DELETE On Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:46:59.105388" level="INFO">DELETE Request : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ path_url=/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ headers={'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Length': '0', 'Authorization': 'Basic dGVzdGFkbWluOnBhc3N3b3Jk'} 
+ body=None 
+ </msg>
+<msg time="2024-08-29T11:46:59.105492" level="INFO">DELETE Response : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ status=204, reason=No Content 
+ headers={'Date': 'Thu, 29 Aug 2024 10:46:58 GMT', 'Server': 'Apache/2.4.41 (Ubuntu)', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token', 'Set-Cookie': 'site=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/, fuelfid=a%3A1%3A%7Bi%3A0%3Bs%3A32%3A%22544180fbeb46242973b99f872f554cd2%22%3B%7D; expires=Sun, 29-Sep-2024 10:46:59 GMT; Max-Age=2678400; path=/', 'Keep-Alive': 'timeout=5, max=100', 'Connection': 'Keep-Alive'} 
+ body=None 
+ </msg>
+<arg>cards</arg>
+<arg>url=/cardapi?id=${fixtureid}</arg>
+<doc>Sends a DELETE request on a previously created HTTP Session.</doc>
+<status status="PASS" start="2024-08-29T11:46:58.382140" elapsed="0.723452"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:46:58.381011" elapsed="0.724700"/>
+</kw>
+<kw name="Open Card" owner="Common">
+<kw name="Go To Matches" owner="Common">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:59.106662" level="INFO">Opening url 'http://cards.leinsterhockey.ie/cards/ui/'</msg>
+<arg>http://${HOST}/cards/ui/</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:46:59.106516" elapsed="0.050626"/>
+</kw>
+<kw name="Run Keyword And Ignore Error" owner="BuiltIn">
+<kw name="Toggle Menu" owner="Common">
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:46:59.158246" level="INFO">Clicking element 'css:.navbar-toggler'.</msg>
+<arg>css:.navbar-toggler</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:46:59.158075" elapsed="0.042035"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:46:59.157574" elapsed="0.042637"/>
+</kw>
+<arg>Toggle Menu</arg>
+<doc>Runs the given keyword with the given arguments and ignores possible error.</doc>
+<status status="PASS" start="2024-08-29T11:46:59.157329" elapsed="0.042936"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:00.200679" level="INFO">Slept 1 second.</msg>
+<arg>1 second</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:46:59.200407" elapsed="1.000400"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:00.201246" level="INFO">Clicking element 'link=Matches'.</msg>
+<arg>link=Matches</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:00.201024" elapsed="0.076122"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:46:59.106277" elapsed="1.171007"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:01.277741" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:00.277448" elapsed="1.000423"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:01.278487" level="INFO">Clicking element 'xpath=//tr[@data-key='test.testdivision1.aardvarks1.bears1']/*'.</msg>
+<arg>xpath=//tr[@data-key='${cardkey}']/*</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:01.278095" elapsed="0.287248"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:02.565882" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:01.565570" elapsed="1.000468"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:46:59.105918" elapsed="3.460277"/>
+</kw>
+<kw name="Select Player" owner="Common">
+<kw name="Get Element Attribute" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:02.584566" level="INFO">${name} = Jackeline GOSHA</msg>
+<var>${name}</var>
+<arg>xpath=//tr[contains(@data-name,'${player}')]</arg>
+<arg>data-name</arg>
+<doc>Returns the value of ``attribute`` from the element ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:02.566919" elapsed="0.017682"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:02.585147" level="INFO">Executing JavaScript:
+window.jQuery("[data-name='Jackeline GOSHA']")[0].scrollIntoView(true);
+Without any arguments.</msg>
+<arg>window.jQuery("[data-name='${name}']")[0].scrollIntoView(true);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:02.584750" elapsed="0.004347"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:02.589661" level="INFO">Executing JavaScript:
+window.scrollBy(0, -150);
+Without any arguments.</msg>
+<arg>window.scrollBy(0, -150);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:02.589280" elapsed="0.003504"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:04.593186" level="INFO">Slept 2 seconds.</msg>
+<arg>2s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:02.592922" elapsed="2.000395"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:04.593836" level="INFO">Clicking element 'jquery=[data-name='Jackeline GOSHA']'.</msg>
+<arg>jquery=[data-name='${name}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:04.593537" elapsed="0.032569"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:04.626604" level="INFO">Executing JavaScript:
+window.scrollTo(0, 0);
+Without any arguments.</msg>
+<arg>window.scrollTo(0, 0);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:04.626262" elapsed="0.003638"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<status status="PASS" start="2024-08-29T11:47:02.566488" elapsed="2.063504"/>
+</kw>
+<kw name="Submit Team" owner="Common">
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:06.630714" level="INFO">Slept 2 seconds.</msg>
+<arg>2 seconds</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:04.630441" elapsed="2.000402"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:06.631471" level="INFO">Executing JavaScript:
+scrollTo(0,0)
+Without any arguments.</msg>
+<arg>scrollTo(0,0)</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:06.631066" elapsed="0.004730"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:06.636117" level="INFO">Clicking element 'partial link=Submit Team'.</msg>
+<arg>partial link=Submit Team</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:06.635945" elapsed="0.366706"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="Selenium2Library">
+<arg>matchcard-home</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T11:47:07.002959" elapsed="0.015537"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>Selecting Players</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:07.018716" elapsed="0.000118"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:04.630172" elapsed="2.388745"/>
+</kw>
+<arg>${card_key}</arg>
+<status status="PASS" start="2024-08-29T11:46:58.380695" elapsed="8.638288"/>
+</kw>
+<kw name="Add Penalty">
+<kw name="Player Menu">
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:07.020167" level="INFO">Executing JavaScript:
+$('#user').hide()
+Without any arguments.</msg>
+<arg>$('#user').hide()</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:07.019819" elapsed="0.004554"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:07.024734" level="INFO">Clicking element 'xpath=//tr[@data-name='Jackeline GOSHA']'.</msg>
+<arg>xpath=//tr[@data-name='${player}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:07.024516" elapsed="0.041695"/>
+</kw>
+<arg>${player}</arg>
+<status status="PASS" start="2024-08-29T11:47:07.019515" elapsed="0.046796"/>
+</kw>
+<kw name="Click Menu">
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:07.066966" level="INFO">Clicking element 'xpath=//*[contains(text(), 'Physical - Tackle')]'.</msg>
+<arg>xpath=//*[contains(text(), '${text}')]</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:07.066760" elapsed="0.034054"/>
+</kw>
+<arg>${action}</arg>
+<status status="PASS" start="2024-08-29T11:47:07.066456" elapsed="0.034471"/>
+</kw>
+<kw name="Wait Until Element Is Not Visible" owner="Selenium2Library">
+<arg>css:#context-menu</arg>
+<doc>Waits until the element ``locator`` is not visible.</doc>
+<status status="PASS" start="2024-08-29T11:47:07.101077" elapsed="0.229749"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<arg>Physical - Tackle</arg>
+<status status="PASS" start="2024-08-29T11:47:07.019207" elapsed="0.311757"/>
+</kw>
+<kw name="Verify Card">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:07.331770" level="INFO">Opening url 'https://cards.leinsterhockey.ie/Report/Card?key=test.testdivision1.aardvarks1.bears1'</msg>
+<arg>${BASE}/Report/Card?key=${card_key}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:47:07.331534" elapsed="0.547663"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>${description}</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:07.879399" elapsed="0.000103"/>
+</kw>
+<kw name="Page Should Contain Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:07.891828" level="INFO">Current page contains element 'xpath://tr[@data-description='Yellow Card Jackeline GOSHA Aardvarks Physical - Tackle']'.</msg>
+<arg>xpath://tr[@data-description='${description}']</arg>
+<doc>Verifies that element ``locator`` is found on the current page.</doc>
+<status status="PASS" start="2024-08-29T11:47:07.879605" elapsed="0.012286"/>
+</kw>
+<arg>Yellow Card Jackeline GOSHA Aardvarks Physical - Tackle</arg>
+<status status="PASS" start="2024-08-29T11:47:07.331207" elapsed="0.560770"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:46:58.380300" elapsed="9.511855"/>
+</test>
+<test id="s1-t5" name="User Can Add Red Card To Player" line="30">
+<kw name="Create Card With Player" type="SETUP">
+<kw name="Reset Card" owner="Common">
+<kw name="Create List" owner="BuiltIn">
+<msg time="2024-08-29T11:47:07.893508" level="INFO">${auth} = ['testadmin', 'password']</msg>
+<var>${auth}</var>
+<arg>testadmin</arg>
+<arg>password</arg>
+<doc>Returns a list containing given items.</doc>
+<status status="PASS" start="2024-08-29T11:47:07.893367" elapsed="0.000171"/>
+</kw>
+<kw name="Create Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:47:07.894021" level="INFO">Creating Session using : alias=cards, url=https://cards.leinsterhockey.ie, headers={},                     cookies={}, auth=&lt;requests.auth.HTTPBasicAuth object at 0x7ff5ea3f6590&gt;, timeout=None, proxies=None, verify=True,                     debug=0 </msg>
+<arg>cards</arg>
+<arg>${BASE}</arg>
+<arg>auth=${auth}</arg>
+<arg>verify=true</arg>
+<doc>Create Session: create a HTTP session to a server</doc>
+<status status="PASS" start="2024-08-29T11:47:07.893766" elapsed="0.000429"/>
+</kw>
+<kw name="DELETE On Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:47:08.412205" level="INFO">DELETE Request : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ path_url=/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ headers={'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Length': '0', 'Authorization': 'Basic dGVzdGFkbWluOnBhc3N3b3Jk'} 
+ body=None 
+ </msg>
+<msg time="2024-08-29T11:47:08.412301" level="INFO">DELETE Response : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ status=204, reason=No Content 
+ headers={'Date': 'Thu, 29 Aug 2024 10:47:07 GMT', 'Server': 'Apache/2.4.41 (Ubuntu)', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token', 'Set-Cookie': 'site=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/, fuelfid=a%3A1%3A%7Bi%3A0%3Bs%3A32%3A%224654ba6371a35fc0f804adf82883ce6a%22%3B%7D; expires=Sun, 29-Sep-2024 10:47:08 GMT; Max-Age=2678400; path=/', 'Keep-Alive': 'timeout=5, max=100', 'Connection': 'Keep-Alive'} 
+ body=None 
+ </msg>
+<arg>cards</arg>
+<arg>url=/cardapi?id=${fixtureid}</arg>
+<doc>Sends a DELETE request on a previously created HTTP Session.</doc>
+<status status="PASS" start="2024-08-29T11:47:07.894327" elapsed="0.518072"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:47:07.893098" elapsed="0.519419"/>
+</kw>
+<kw name="Open Card" owner="Common">
+<kw name="Go To Matches" owner="Common">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:08.413482" level="INFO">Opening url 'http://cards.leinsterhockey.ie/cards/ui/'</msg>
+<arg>http://${HOST}/cards/ui/</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:47:08.413332" elapsed="0.037342"/>
+</kw>
+<kw name="Run Keyword And Ignore Error" owner="BuiltIn">
+<kw name="Toggle Menu" owner="Common">
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:08.451664" level="INFO">Clicking element 'css:.navbar-toggler'.</msg>
+<arg>css:.navbar-toggler</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:08.451484" elapsed="0.038508"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:08.451195" elapsed="0.038945"/>
+</kw>
+<arg>Toggle Menu</arg>
+<doc>Runs the given keyword with the given arguments and ignores possible error.</doc>
+<status status="PASS" start="2024-08-29T11:47:08.450912" elapsed="0.039288"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:09.490679" level="INFO">Slept 1 second.</msg>
+<arg>1 second</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:08.490367" elapsed="1.000440"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:09.491248" level="INFO">Clicking element 'link=Matches'.</msg>
+<arg>link=Matches</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:09.491026" elapsed="0.066845"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:08.413088" elapsed="1.144926"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:10.558475" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:09.558180" elapsed="1.000409"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:10.559086" level="INFO">Clicking element 'xpath=//tr[@data-key='test.testdivision1.aardvarks1.bears1']/*'.</msg>
+<arg>xpath=//tr[@data-key='${cardkey}']/*</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:10.558796" elapsed="0.269289"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:11.828604" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:10.828308" elapsed="1.000424"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:47:08.412726" elapsed="3.416130"/>
+</kw>
+<kw name="Select Player" owner="Common">
+<kw name="Get Element Attribute" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:11.844883" level="INFO">${name} = Jackeline GOSHA</msg>
+<var>${name}</var>
+<arg>xpath=//tr[contains(@data-name,'${player}')]</arg>
+<arg>data-name</arg>
+<doc>Returns the value of ``attribute`` from the element ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:11.829423" elapsed="0.015495"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:11.845720" level="INFO">Executing JavaScript:
+window.jQuery("[data-name='Jackeline GOSHA']")[0].scrollIntoView(true);
+Without any arguments.</msg>
+<arg>window.jQuery("[data-name='${name}']")[0].scrollIntoView(true);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:11.845073" elapsed="0.004550"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:11.850058" level="INFO">Executing JavaScript:
+window.scrollBy(0, -150);
+Without any arguments.</msg>
+<arg>window.scrollBy(0, -150);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:11.849763" elapsed="0.003161"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:13.853316" level="INFO">Slept 2 seconds.</msg>
+<arg>2s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:11.853059" elapsed="2.000389"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:13.853980" level="INFO">Clicking element 'jquery=[data-name='Jackeline GOSHA']'.</msg>
+<arg>jquery=[data-name='${name}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:13.853669" elapsed="0.029497"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:13.883684" level="INFO">Executing JavaScript:
+window.scrollTo(0, 0);
+Without any arguments.</msg>
+<arg>window.scrollTo(0, 0);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:13.883331" elapsed="0.003558"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<status status="PASS" start="2024-08-29T11:47:11.829087" elapsed="2.057897"/>
+</kw>
+<kw name="Submit Team" owner="Common">
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:15.887739" level="INFO">Slept 2 seconds.</msg>
+<arg>2 seconds</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:13.887448" elapsed="2.000420"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:15.888501" level="INFO">Executing JavaScript:
+scrollTo(0,0)
+Without any arguments.</msg>
+<arg>scrollTo(0,0)</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:15.888101" elapsed="0.004206"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:15.892725" level="INFO">Clicking element 'partial link=Submit Team'.</msg>
+<arg>partial link=Submit Team</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:15.892456" elapsed="0.342901"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="Selenium2Library">
+<arg>matchcard-home</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T11:47:16.235605" elapsed="0.014396"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>Selecting Players</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:16.250172" elapsed="0.000110"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:13.887186" elapsed="2.363181"/>
+</kw>
+<arg>${card_key}</arg>
+<status status="PASS" start="2024-08-29T11:47:07.892780" elapsed="8.357680"/>
+</kw>
+<kw name="Add Penalty">
+<kw name="Player Menu">
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:16.251671" level="INFO">Executing JavaScript:
+$('#user').hide()
+Without any arguments.</msg>
+<arg>$('#user').hide()</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:16.251313" elapsed="0.003874"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:16.255563" level="INFO">Clicking element 'xpath=//tr[@data-name='Jackeline GOSHA']'.</msg>
+<arg>xpath=//tr[@data-name='${player}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:16.255338" elapsed="0.031556"/>
+</kw>
+<arg>${player}</arg>
+<status status="PASS" start="2024-08-29T11:47:16.251011" elapsed="0.035998"/>
+</kw>
+<kw name="Click Menu">
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:16.287744" level="INFO">Clicking element 'xpath=//*[contains(text(), 'Red Card')]'.</msg>
+<arg>xpath=//*[contains(text(), '${text}')]</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:16.287514" elapsed="0.023344"/>
+</kw>
+<arg>${action}</arg>
+<status status="PASS" start="2024-08-29T11:47:16.287187" elapsed="0.023789"/>
+</kw>
+<kw name="Wait Until Element Is Not Visible" owner="Selenium2Library">
+<arg>css:#context-menu</arg>
+<doc>Waits until the element ``locator`` is not visible.</doc>
+<status status="PASS" start="2024-08-29T11:47:16.311137" elapsed="0.224644"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<arg>Red Card</arg>
+<status status="PASS" start="2024-08-29T11:47:16.250694" elapsed="0.285219"/>
+</kw>
+<kw name="Verify Card">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:16.536737" level="INFO">Opening url 'https://cards.leinsterhockey.ie/Report/Card?key=test.testdivision1.aardvarks1.bears1'</msg>
+<arg>${BASE}/Report/Card?key=${card_key}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:47:16.536488" elapsed="0.478162"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>${description}</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:17.014888" elapsed="0.000123"/>
+</kw>
+<kw name="Page Should Contain Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:17.024094" level="INFO">Current page contains element 'xpath://tr[@data-description='Red Card Jackeline GOSHA Aardvarks Red Card']'.</msg>
+<arg>xpath://tr[@data-description='${description}']</arg>
+<doc>Verifies that element ``locator`` is found on the current page.</doc>
+<status status="PASS" start="2024-08-29T11:47:17.015144" elapsed="0.009030"/>
+</kw>
+<arg>Red Card Jackeline GOSHA Aardvarks Red Card</arg>
+<status status="PASS" start="2024-08-29T11:47:16.536165" elapsed="0.488108"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:07.892419" elapsed="9.132048"/>
+</test>
+<test id="s1-t6" name="User Can Clear Cards From Player" line="34">
+<kw name="Create Card With Player" type="SETUP">
+<kw name="Reset Card" owner="Common">
+<kw name="Create List" owner="BuiltIn">
+<msg time="2024-08-29T11:47:17.026143" level="INFO">${auth} = ['testadmin', 'password']</msg>
+<var>${auth}</var>
+<arg>testadmin</arg>
+<arg>password</arg>
+<doc>Returns a list containing given items.</doc>
+<status status="PASS" start="2024-08-29T11:47:17.025990" elapsed="0.000184"/>
+</kw>
+<kw name="Create Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:47:17.026562" level="INFO">Creating Session using : alias=cards, url=https://cards.leinsterhockey.ie, headers={},                     cookies={}, auth=&lt;requests.auth.HTTPBasicAuth object at 0x7ff5ea436390&gt;, timeout=None, proxies=None, verify=True,                     debug=0 </msg>
+<arg>cards</arg>
+<arg>${BASE}</arg>
+<arg>auth=${auth}</arg>
+<arg>verify=true</arg>
+<doc>Create Session: create a HTTP session to a server</doc>
+<status status="PASS" start="2024-08-29T11:47:17.026304" elapsed="0.000435"/>
+</kw>
+<kw name="DELETE On Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:47:17.597023" level="INFO">DELETE Request : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ path_url=/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ headers={'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Length': '0', 'Authorization': 'Basic dGVzdGFkbWluOnBhc3N3b3Jk'} 
+ body=None 
+ </msg>
+<msg time="2024-08-29T11:47:17.597135" level="INFO">DELETE Response : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ status=204, reason=No Content 
+ headers={'Date': 'Thu, 29 Aug 2024 10:47:17 GMT', 'Server': 'Apache/2.4.41 (Ubuntu)', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token', 'Set-Cookie': 'site=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/, fuelfid=a%3A1%3A%7Bi%3A0%3Bs%3A32%3A%22bf6c43d24201478887cbbaba1e7a3e10%22%3B%7D; expires=Sun, 29-Sep-2024 10:47:17 GMT; Max-Age=2678400; path=/', 'Keep-Alive': 'timeout=5, max=100', 'Connection': 'Keep-Alive'} 
+ body=None 
+ </msg>
+<arg>cards</arg>
+<arg>url=/cardapi?id=${fixtureid}</arg>
+<doc>Sends a DELETE request on a previously created HTTP Session.</doc>
+<status status="PASS" start="2024-08-29T11:47:17.026870" elapsed="0.570364"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:47:17.025456" elapsed="0.571898"/>
+</kw>
+<kw name="Open Card" owner="Common">
+<kw name="Go To Matches" owner="Common">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:17.598300" level="INFO">Opening url 'http://cards.leinsterhockey.ie/cards/ui/'</msg>
+<arg>http://${HOST}/cards/ui/</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:47:17.598153" elapsed="0.026740"/>
+</kw>
+<kw name="Run Keyword And Ignore Error" owner="BuiltIn">
+<kw name="Toggle Menu" owner="Common">
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:17.625649" level="INFO">Clicking element 'css:.navbar-toggler'.</msg>
+<arg>css:.navbar-toggler</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:17.625479" elapsed="0.030892"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:17.625246" elapsed="0.031233"/>
+</kw>
+<arg>Toggle Menu</arg>
+<doc>Runs the given keyword with the given arguments and ignores possible error.</doc>
+<status status="PASS" start="2024-08-29T11:47:17.625050" elapsed="0.031486"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:18.656950" level="INFO">Slept 1 second.</msg>
+<arg>1 second</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:17.656673" elapsed="1.000418"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:18.657547" level="INFO">Clicking element 'link=Matches'.</msg>
+<arg>link=Matches</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:18.657316" elapsed="0.055078"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:17.597918" elapsed="1.114630"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:19.713041" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:18.712726" elapsed="1.000458"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:19.713756" level="INFO">Clicking element 'xpath=//tr[@data-key='test.testdivision1.aardvarks1.bears1']/*'.</msg>
+<arg>xpath=//tr[@data-key='${cardkey}']/*</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:19.713436" elapsed="0.812623"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:21.526701" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:20.526338" elapsed="1.000520"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:47:17.597560" elapsed="3.929451"/>
+</kw>
+<kw name="Select Player" owner="Common">
+<kw name="Get Element Attribute" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:21.545030" level="INFO">${name} = Jackeline GOSHA</msg>
+<var>${name}</var>
+<arg>xpath=//tr[contains(@data-name,'${player}')]</arg>
+<arg>data-name</arg>
+<doc>Returns the value of ``attribute`` from the element ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:21.527762" elapsed="0.017303"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:21.545615" level="INFO">Executing JavaScript:
+window.jQuery("[data-name='Jackeline GOSHA']")[0].scrollIntoView(true);
+Without any arguments.</msg>
+<arg>window.jQuery("[data-name='${name}']")[0].scrollIntoView(true);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:21.545216" elapsed="0.004362"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:21.550026" level="INFO">Executing JavaScript:
+window.scrollBy(0, -150);
+Without any arguments.</msg>
+<arg>window.scrollBy(0, -150);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:21.549732" elapsed="0.003391"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:23.553524" level="INFO">Slept 2 seconds.</msg>
+<arg>2s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:21.553259" elapsed="2.000395"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:23.554183" level="INFO">Clicking element 'jquery=[data-name='Jackeline GOSHA']'.</msg>
+<arg>jquery=[data-name='${name}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:23.553893" elapsed="0.036986"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:23.591364" level="INFO">Executing JavaScript:
+window.scrollTo(0, 0);
+Without any arguments.</msg>
+<arg>window.scrollTo(0, 0);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:23.591033" elapsed="0.003702"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<status status="PASS" start="2024-08-29T11:47:21.527325" elapsed="2.067502"/>
+</kw>
+<kw name="Submit Team" owner="Common">
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:25.595526" level="INFO">Slept 2 seconds.</msg>
+<arg>2 seconds</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:23.595256" elapsed="2.000417"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:25.596793" level="INFO">Executing JavaScript:
+scrollTo(0,0)
+Without any arguments.</msg>
+<arg>scrollTo(0,0)</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:25.595942" elapsed="0.004968"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:25.601305" level="INFO">Clicking element 'partial link=Submit Team'.</msg>
+<arg>partial link=Submit Team</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:25.601092" elapsed="0.346100"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="Selenium2Library">
+<arg>matchcard-home</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T11:47:25.947427" elapsed="0.015857"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>Selecting Players</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:25.963504" elapsed="0.000127"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:23.595005" elapsed="2.368716"/>
+</kw>
+<arg>${card_key}</arg>
+<status status="PASS" start="2024-08-29T11:47:17.025128" elapsed="8.938687"/>
+</kw>
+<kw name="Add Penalty">
+<kw name="Player Menu">
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:25.965080" level="INFO">Executing JavaScript:
+$('#user').hide()
+Without any arguments.</msg>
+<arg>$('#user').hide()</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:25.964707" elapsed="0.003943"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:25.969080" level="INFO">Clicking element 'xpath=//tr[@data-name='Jackeline GOSHA']'.</msg>
+<arg>xpath=//tr[@data-name='${player}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:25.968833" elapsed="0.044025"/>
+</kw>
+<arg>${player}</arg>
+<status status="PASS" start="2024-08-29T11:47:25.964391" elapsed="0.048667"/>
+</kw>
+<kw name="Click Menu">
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:26.013934" level="INFO">Clicking element 'xpath=//*[contains(text(), 'Red Card')]'.</msg>
+<arg>xpath=//*[contains(text(), '${text}')]</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:26.013664" elapsed="0.024329"/>
+</kw>
+<arg>${action}</arg>
+<status status="PASS" start="2024-08-29T11:47:26.013272" elapsed="0.024863"/>
+</kw>
+<kw name="Wait Until Element Is Not Visible" owner="Selenium2Library">
+<arg>css:#context-menu</arg>
+<doc>Waits until the element ``locator`` is not visible.</doc>
+<status status="PASS" start="2024-08-29T11:47:26.038315" elapsed="0.227390"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<arg>Red Card</arg>
+<status status="PASS" start="2024-08-29T11:47:25.964057" elapsed="0.301784"/>
+</kw>
+<kw name="Add Penaltyu">
+<msg time="2024-08-29T11:47:26.268479" level="FAIL">No keyword with name 'Add Penaltyu' found. Did you mean:
+    Add Penalty</msg>
+<arg>Jackeline GOSHA</arg>
+<arg>Clear Cards</arg>
+<status status="FAIL" start="2024-08-29T11:47:26.268422" elapsed="0.000117">No keyword with name 'Add Penaltyu' found. Did you mean:
+    Add Penalty</status>
+</kw>
+<kw name="Go To" owner="Selenium2Library">
+<arg>${BASE}/Report/Card/test.division1.aardvarks1.bears2</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="NOT RUN" start="2024-08-29T11:47:26.268740" elapsed="0.000038"/>
+</kw>
+<kw name="Page Should Not Contain Element" owner="Selenium2Library">
+<arg>xpath://tr[@data-description='Red Card Jackeline GOSHA Aardvarks Red Card']</arg>
+<doc>Verifies that element ``locator`` is not found on the current page.</doc>
+<status status="NOT RUN" start="2024-08-29T11:47:26.268962" elapsed="0.000040"/>
+</kw>
+<status status="FAIL" start="2024-08-29T11:47:17.024754" elapsed="9.244478">No keyword with name 'Add Penaltyu' found. Did you mean:
+    Add Penalty</status>
+</test>
+<test id="s1-t7" name="User Can Set Player Number" line="40">
+<kw name="Create Card With Player" type="SETUP">
+<kw name="Reset Card" owner="Common">
+<kw name="Create List" owner="BuiltIn">
+<msg time="2024-08-29T11:47:26.270838" level="INFO">${auth} = ['testadmin', 'password']</msg>
+<var>${auth}</var>
+<arg>testadmin</arg>
+<arg>password</arg>
+<doc>Returns a list containing given items.</doc>
+<status status="PASS" start="2024-08-29T11:47:26.270649" elapsed="0.000227"/>
+</kw>
+<kw name="Create Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:47:26.271307" level="INFO">Creating Session using : alias=cards, url=https://cards.leinsterhockey.ie, headers={},                     cookies={}, auth=&lt;requests.auth.HTTPBasicAuth object at 0x7ff5ea449050&gt;, timeout=None, proxies=None, verify=True,                     debug=0 </msg>
+<arg>cards</arg>
+<arg>${BASE}</arg>
+<arg>auth=${auth}</arg>
+<arg>verify=true</arg>
+<doc>Create Session: create a HTTP session to a server</doc>
+<status status="PASS" start="2024-08-29T11:47:26.271021" elapsed="0.000463"/>
+</kw>
+<kw name="DELETE On Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:47:26.791001" level="INFO">DELETE Request : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ path_url=/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ headers={'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Length': '0', 'Authorization': 'Basic dGVzdGFkbWluOnBhc3N3b3Jk'} 
+ body=None 
+ </msg>
+<msg time="2024-08-29T11:47:26.791099" level="INFO">DELETE Response : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ status=204, reason=No Content 
+ headers={'Date': 'Thu, 29 Aug 2024 10:47:26 GMT', 'Server': 'Apache/2.4.41 (Ubuntu)', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token', 'Set-Cookie': 'site=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/, fuelfid=a%3A1%3A%7Bi%3A0%3Bs%3A32%3A%220c76149a54fbb72fec3edc025a9a5917%22%3B%7D; expires=Sun, 29-Sep-2024 10:47:26 GMT; Max-Age=2678400; path=/', 'Keep-Alive': 'timeout=5, max=100', 'Connection': 'Keep-Alive'} 
+ body=None 
+ </msg>
+<arg>cards</arg>
+<arg>url=/cardapi?id=${fixtureid}</arg>
+<doc>Sends a DELETE request on a previously created HTTP Session.</doc>
+<status status="PASS" start="2024-08-29T11:47:26.271630" elapsed="0.519565"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:47:26.270335" elapsed="0.520977"/>
+</kw>
+<kw name="Open Card" owner="Common">
+<kw name="Go To Matches" owner="Common">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:26.792252" level="INFO">Opening url 'http://cards.leinsterhockey.ie/cards/ui/'</msg>
+<arg>http://${HOST}/cards/ui/</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:47:26.792104" elapsed="0.041325"/>
+</kw>
+<kw name="Run Keyword And Ignore Error" owner="BuiltIn">
+<kw name="Toggle Menu" owner="Common">
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:26.834324" level="INFO">Clicking element 'css:.navbar-toggler'.</msg>
+<arg>css:.navbar-toggler</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:26.834151" elapsed="0.037749"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:26.833894" elapsed="0.038098"/>
+</kw>
+<arg>Toggle Menu</arg>
+<doc>Runs the given keyword with the given arguments and ignores possible error.</doc>
+<status status="PASS" start="2024-08-29T11:47:26.833649" elapsed="0.038396"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:27.872425" level="INFO">Slept 1 second.</msg>
+<arg>1 second</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:26.872163" elapsed="1.000389"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:27.873004" level="INFO">Clicking element 'link=Matches'.</msg>
+<arg>link=Matches</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:27.872777" elapsed="0.075135"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:26.791873" elapsed="1.156177"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:28.948519" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:27.948217" elapsed="1.000432"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:28.949166" level="INFO">Clicking element 'xpath=//tr[@data-key='test.testdivision1.aardvarks1.bears1']/*'.</msg>
+<arg>xpath=//tr[@data-key='${cardkey}']/*</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:28.948881" elapsed="0.324629"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:30.274030" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:29.273752" elapsed="1.000351"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:47:26.791514" elapsed="3.482667"/>
+</kw>
+<kw name="Select Player" owner="Common">
+<kw name="Get Element Attribute" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:30.292395" level="INFO">${name} = Jackeline GOSHA</msg>
+<var>${name}</var>
+<arg>xpath=//tr[contains(@data-name,'${player}')]</arg>
+<arg>data-name</arg>
+<doc>Returns the value of ``attribute`` from the element ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:30.274558" elapsed="0.017875"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:30.293006" level="INFO">Executing JavaScript:
+window.jQuery("[data-name='Jackeline GOSHA']")[0].scrollIntoView(true);
+Without any arguments.</msg>
+<arg>window.jQuery("[data-name='${name}']")[0].scrollIntoView(true);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:30.292593" elapsed="0.004369"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:30.297432" level="INFO">Executing JavaScript:
+window.scrollBy(0, -150);
+Without any arguments.</msg>
+<arg>window.scrollBy(0, -150);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:30.297125" elapsed="0.003649"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:32.301174" level="INFO">Slept 2 seconds.</msg>
+<arg>2s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:30.300918" elapsed="2.000380"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:32.301806" level="INFO">Clicking element 'jquery=[data-name='Jackeline GOSHA']'.</msg>
+<arg>jquery=[data-name='${name}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:32.301517" elapsed="0.039601"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:32.341646" level="INFO">Executing JavaScript:
+window.scrollTo(0, 0);
+Without any arguments.</msg>
+<arg>window.scrollTo(0, 0);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:32.341293" elapsed="0.003695"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<status status="PASS" start="2024-08-29T11:47:30.274329" elapsed="2.070755"/>
+</kw>
+<kw name="Submit Team" owner="Common">
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:34.345794" level="INFO">Slept 2 seconds.</msg>
+<arg>2 seconds</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:32.345532" elapsed="2.000391"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:34.346695" level="INFO">Executing JavaScript:
+scrollTo(0,0)
+Without any arguments.</msg>
+<arg>scrollTo(0,0)</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:34.346281" elapsed="0.004261"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:34.350888" level="INFO">Clicking element 'partial link=Submit Team'.</msg>
+<arg>partial link=Submit Team</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:34.350704" elapsed="0.455082"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="Selenium2Library">
+<arg>matchcard-home</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T11:47:34.806012" elapsed="0.018768"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>Selecting Players</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:34.824947" elapsed="0.000111"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:32.345270" elapsed="2.479874"/>
+</kw>
+<arg>${card_key}</arg>
+<status status="PASS" start="2024-08-29T11:47:26.269986" elapsed="8.555226"/>
+</kw>
+<kw name="Player Menu">
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:34.826102" level="INFO">Executing JavaScript:
+$('#user').hide()
+Without any arguments.</msg>
+<arg>$('#user').hide()</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:34.825739" elapsed="0.003814"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:34.829935" level="INFO">Clicking element 'xpath=//tr[@data-name='Jackeline GOSHA']'.</msg>
+<arg>xpath=//tr[@data-name='${player}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:34.829707" elapsed="0.056882"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<status status="PASS" start="2024-08-29T11:47:34.825435" elapsed="0.061266"/>
+</kw>
+<kw name="Input Text" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:34.887166" level="INFO">Typing text '12' into text field 'name:shirt-number'.</msg>
+<arg>name:shirt-number</arg>
+<arg>12</arg>
+<doc>Types the given ``text`` into the text field identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:34.886949" elapsed="0.085062"/>
+</kw>
+<kw name="Click Button" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:34.972435" level="INFO">Clicking button 'css:#set-number button'.</msg>
+<arg>css:#set-number button</arg>
+<doc>Clicks the button identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:34.972258" elapsed="0.059104"/>
+</kw>
+<kw name="Wait Until Element Is Not Visible" owner="Selenium2Library">
+<arg>css:#context-menu</arg>
+<doc>Waits until the element ``locator`` is not visible.</doc>
+<status status="PASS" start="2024-08-29T11:47:35.031673" elapsed="0.227721"/>
+</kw>
+<kw name="Verify Card">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:35.259932" level="INFO">Opening url 'https://cards.leinsterhockey.ie/Report/Card?key=test.testdivision1.aardvarks1.bears1'</msg>
+<arg>${BASE}/Report/Card?key=${card_key}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:47:35.259801" elapsed="0.637376"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>${description}</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:35.897409" elapsed="0.000123"/>
+</kw>
+<kw name="Page Should Contain Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:35.909948" level="INFO">Current page contains element 'xpath://tr[@data-description='home GOSHA, Jackeline 12']'.</msg>
+<arg>xpath://tr[@data-description='${description}']</arg>
+<doc>Verifies that element ``locator`` is found on the current page.</doc>
+<status status="PASS" start="2024-08-29T11:47:35.897662" elapsed="0.012318"/>
+</kw>
+<arg>home GOSHA, Jackeline 12</arg>
+<status status="PASS" start="2024-08-29T11:47:35.259601" elapsed="0.650427"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:26.269607" elapsed="9.640523"/>
+</test>
+<test id="s1-t8" name="User Can Add Specific Player To Card" line="47">
+<kw name="Create Card With Player" type="SETUP">
+<kw name="Reset Card" owner="Common">
+<kw name="Create List" owner="BuiltIn">
+<msg time="2024-08-29T11:47:35.910876" level="INFO">${auth} = ['testadmin', 'password']</msg>
+<var>${auth}</var>
+<arg>testadmin</arg>
+<arg>password</arg>
+<doc>Returns a list containing given items.</doc>
+<status status="PASS" start="2024-08-29T11:47:35.910801" elapsed="0.000090"/>
+</kw>
+<kw name="Create Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:47:35.911089" level="INFO">Creating Session using : alias=cards, url=https://cards.leinsterhockey.ie, headers={},                     cookies={}, auth=&lt;requests.auth.HTTPBasicAuth object at 0x7ff5ea195bd0&gt;, timeout=None, proxies=None, verify=True,                     debug=0 </msg>
+<arg>cards</arg>
+<arg>${BASE}</arg>
+<arg>auth=${auth}</arg>
+<arg>verify=true</arg>
+<doc>Create Session: create a HTTP session to a server</doc>
+<status status="PASS" start="2024-08-29T11:47:35.910958" elapsed="0.000234"/>
+</kw>
+<kw name="DELETE On Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:47:36.415994" level="INFO">DELETE Request : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ path_url=/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ headers={'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Length': '0', 'Authorization': 'Basic dGVzdGFkbWluOnBhc3N3b3Jk'} 
+ body=None 
+ </msg>
+<msg time="2024-08-29T11:47:36.416101" level="INFO">DELETE Response : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ status=204, reason=No Content 
+ headers={'Date': 'Thu, 29 Aug 2024 10:47:35 GMT', 'Server': 'Apache/2.4.41 (Ubuntu)', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token', 'Set-Cookie': 'site=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/, fuelfid=a%3A1%3A%7Bi%3A0%3Bs%3A32%3A%228ffff44779a41a0560af4e79a1fef9d1%22%3B%7D; expires=Sun, 29-Sep-2024 10:47:36 GMT; Max-Age=2678400; path=/', 'Keep-Alive': 'timeout=5, max=100', 'Connection': 'Keep-Alive'} 
+ body=None 
+ </msg>
+<arg>cards</arg>
+<arg>url=/cardapi?id=${fixtureid}</arg>
+<doc>Sends a DELETE request on a previously created HTTP Session.</doc>
+<status status="PASS" start="2024-08-29T11:47:35.911259" elapsed="0.504968"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:47:35.910662" elapsed="0.505726"/>
+</kw>
+<kw name="Open Card" owner="Common">
+<kw name="Go To Matches" owner="Common">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:36.417422" level="INFO">Opening url 'http://cards.leinsterhockey.ie/cards/ui/'</msg>
+<arg>http://${HOST}/cards/ui/</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:47:36.417268" elapsed="0.040757"/>
+</kw>
+<kw name="Run Keyword And Ignore Error" owner="BuiltIn">
+<kw name="Toggle Menu" owner="Common">
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:36.458985" level="INFO">Clicking element 'css:.navbar-toggler'.</msg>
+<arg>css:.navbar-toggler</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:36.458803" elapsed="0.039659"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:36.458524" elapsed="0.040074"/>
+</kw>
+<arg>Toggle Menu</arg>
+<doc>Runs the given keyword with the given arguments and ignores possible error.</doc>
+<status status="PASS" start="2024-08-29T11:47:36.458269" elapsed="0.040389"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:37.499210" level="INFO">Slept 1 second.</msg>
+<arg>1 second</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:36.498909" elapsed="1.000432"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:37.499790" level="INFO">Clicking element 'link=Matches'.</msg>
+<arg>link=Matches</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:37.499567" elapsed="0.070532"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:36.417008" elapsed="1.153269"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:38.570855" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:37.570505" elapsed="1.000482"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:38.571505" level="INFO">Clicking element 'xpath=//tr[@data-key='test.testdivision1.aardvarks1.bears1']/*'.</msg>
+<arg>xpath=//tr[@data-key='${cardkey}']/*</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:38.571212" elapsed="0.257700"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:39.829460" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:38.829149" elapsed="1.000438"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:47:36.416633" elapsed="3.413079"/>
+</kw>
+<kw name="Select Player" owner="Common">
+<kw name="Get Element Attribute" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:39.848413" level="INFO">${name} = Jackeline GOSHA</msg>
+<var>${name}</var>
+<arg>xpath=//tr[contains(@data-name,'${player}')]</arg>
+<arg>data-name</arg>
+<doc>Returns the value of ``attribute`` from the element ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:39.830270" elapsed="0.018184"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:39.849040" level="INFO">Executing JavaScript:
+window.jQuery("[data-name='Jackeline GOSHA']")[0].scrollIntoView(true);
+Without any arguments.</msg>
+<arg>window.jQuery("[data-name='${name}']")[0].scrollIntoView(true);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:39.848626" elapsed="0.004855"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:39.853979" level="INFO">Executing JavaScript:
+window.scrollBy(0, -150);
+Without any arguments.</msg>
+<arg>window.scrollBy(0, -150);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:39.853646" elapsed="0.003951"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:41.858003" level="INFO">Slept 2 seconds.</msg>
+<arg>2s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:39.857736" elapsed="2.000390"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:41.858630" level="INFO">Clicking element 'jquery=[data-name='Jackeline GOSHA']'.</msg>
+<arg>jquery=[data-name='${name}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:41.858344" elapsed="0.036635"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:41.895609" level="INFO">Executing JavaScript:
+window.scrollTo(0, 0);
+Without any arguments.</msg>
+<arg>window.scrollTo(0, 0);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:41.895221" elapsed="0.003956"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<status status="PASS" start="2024-08-29T11:47:39.829938" elapsed="2.069333"/>
+</kw>
+<kw name="Submit Team" owner="Common">
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:43.899975" level="INFO">Slept 2 seconds.</msg>
+<arg>2 seconds</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:41.899710" elapsed="2.000391"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:43.900732" level="INFO">Executing JavaScript:
+scrollTo(0,0)
+Without any arguments.</msg>
+<arg>scrollTo(0,0)</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:43.900328" elapsed="0.004566"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:43.905223" level="INFO">Clicking element 'partial link=Submit Team'.</msg>
+<arg>partial link=Submit Team</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:43.905052" elapsed="0.363584"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="Selenium2Library">
+<arg>matchcard-home</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T11:47:44.268838" elapsed="0.011819"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>Selecting Players</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:44.280810" elapsed="0.000083"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:41.899452" elapsed="2.381495"/>
+</kw>
+<arg>${card_key}</arg>
+<status status="PASS" start="2024-08-29T11:47:35.910489" elapsed="8.370501"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:44.281342" level="INFO">Executing JavaScript:
+window.jQuery("#submit-card .add-player")[0].scrollIntoView(true);
+Without any arguments.</msg>
+<arg>window.jQuery("#submit-card .add-player")[0].scrollIntoView(true);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:44.281120" elapsed="0.002905"/>
+</kw>
+<kw name="Click Link" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:44.284241" level="INFO">Clicking link 'css:#submit-card .add-player'.</msg>
+<arg>css:#submit-card .add-player</arg>
+<doc>Clicks a link identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:44.284136" elapsed="0.035018"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="Selenium2Library">
+<arg>css:#player-name-selectized</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T11:47:44.319313" elapsed="0.220548"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:44.540349" level="INFO">Clicking element 'css:#player-name-selectized'.</msg>
+<arg>css:#player-name-selectized</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:44.540136" elapsed="0.058227"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:44.598766" level="INFO">Clicking element 'css:div[data-value='Ai CRIBB']'.</msg>
+<arg>css:div[data-value='Ai CRIBB']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:44.598578" elapsed="0.054559"/>
+</kw>
+<kw name="Click Button" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:44.653570" level="INFO">Clicking button 'css:#add-player-modal .btn-success'.</msg>
+<arg>css:#add-player-modal .btn-success</arg>
+<doc>Clicks the button identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:44.653378" elapsed="0.057900"/>
+</kw>
+<kw name="Wait Until Element Is Not Visible" owner="Selenium2Library">
+<arg>css:#add-player-modal</arg>
+<doc>Waits until the element ``locator`` is not visible.</doc>
+<status status="PASS" start="2024-08-29T11:47:44.711559" elapsed="0.338341"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:46.050626" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:45.050177" elapsed="1.000584"/>
+</kw>
+<kw name="Verify Card">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:46.051760" level="INFO">Opening url 'https://cards.leinsterhockey.ie/Report/Card?key=test.testdivision1.aardvarks1.bears1'</msg>
+<arg>${BASE}/Report/Card?key=${card_key}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:47:46.051468" elapsed="0.502336"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>${description}</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:46.554045" elapsed="0.000127"/>
+</kw>
+<kw name="Page Should Contain Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:46.567244" level="INFO">Current page contains element 'xpath://tr[@data-description='Played Ai CRIBB Aardvarks']'.</msg>
+<arg>xpath://tr[@data-description='${description}']</arg>
+<doc>Verifies that element ``locator`` is found on the current page.</doc>
+<status status="PASS" start="2024-08-29T11:47:46.554308" elapsed="0.013001"/>
+</kw>
+<arg>Played Ai CRIBB Aardvarks</arg>
+<status status="PASS" start="2024-08-29T11:47:46.051107" elapsed="0.516288"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:35.910279" elapsed="10.657318"/>
+</test>
+<test id="s1-t9" name="User Can Add Any Name To Card" line="58">
+<kw name="Create Card With Player" type="SETUP">
+<kw name="Reset Card" owner="Common">
+<kw name="Create List" owner="BuiltIn">
+<msg time="2024-08-29T11:47:46.568963" level="INFO">${auth} = ['testadmin', 'password']</msg>
+<var>${auth}</var>
+<arg>testadmin</arg>
+<arg>password</arg>
+<doc>Returns a list containing given items.</doc>
+<status status="PASS" start="2024-08-29T11:47:46.568818" elapsed="0.000178"/>
+</kw>
+<kw name="Create Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:47:46.569412" level="INFO">Creating Session using : alias=cards, url=https://cards.leinsterhockey.ie, headers={},                     cookies={}, auth=&lt;requests.auth.HTTPBasicAuth object at 0x7ff5ea179590&gt;, timeout=None, proxies=None, verify=True,                     debug=0 </msg>
+<arg>cards</arg>
+<arg>${BASE}</arg>
+<arg>auth=${auth}</arg>
+<arg>verify=true</arg>
+<doc>Create Session: create a HTTP session to a server</doc>
+<status status="PASS" start="2024-08-29T11:47:46.569154" elapsed="0.000415"/>
+</kw>
+<kw name="DELETE On Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:47:47.075228" level="INFO">DELETE Request : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ path_url=/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ headers={'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Length': '0', 'Authorization': 'Basic dGVzdGFkbWluOnBhc3N3b3Jk'} 
+ body=None 
+ </msg>
+<msg time="2024-08-29T11:47:47.075325" level="INFO">DELETE Response : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ status=204, reason=No Content 
+ headers={'Date': 'Thu, 29 Aug 2024 10:47:46 GMT', 'Server': 'Apache/2.4.41 (Ubuntu)', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token', 'Set-Cookie': 'site=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/, fuelfid=a%3A1%3A%7Bi%3A0%3Bs%3A32%3A%22c8222cd88da8b718ee3dccee9b712d8c%22%3B%7D; expires=Sun, 29-Sep-2024 10:47:47 GMT; Max-Age=2678400; path=/', 'Keep-Alive': 'timeout=5, max=100', 'Connection': 'Keep-Alive'} 
+ body=None 
+ </msg>
+<arg>cards</arg>
+<arg>url=/cardapi?id=${fixtureid}</arg>
+<doc>Sends a DELETE request on a previously created HTTP Session.</doc>
+<status status="PASS" start="2024-08-29T11:47:46.569701" elapsed="0.505721"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:47:46.568542" elapsed="0.506998"/>
+</kw>
+<kw name="Open Card" owner="Common">
+<kw name="Go To Matches" owner="Common">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:47.076518" level="INFO">Opening url 'http://cards.leinsterhockey.ie/cards/ui/'</msg>
+<arg>http://${HOST}/cards/ui/</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:47:47.076364" elapsed="0.040727"/>
+</kw>
+<kw name="Run Keyword And Ignore Error" owner="BuiltIn">
+<kw name="Toggle Menu" owner="Common">
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:47.118057" level="INFO">Clicking element 'css:.navbar-toggler'.</msg>
+<arg>css:.navbar-toggler</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:47.117870" elapsed="0.039773"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:47.117586" elapsed="0.040178"/>
+</kw>
+<arg>Toggle Menu</arg>
+<doc>Runs the given keyword with the given arguments and ignores possible error.</doc>
+<status status="PASS" start="2024-08-29T11:47:47.117331" elapsed="0.040493"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:48.158273" level="INFO">Slept 1 second.</msg>
+<arg>1 second</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:47.157976" elapsed="1.000426"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:48.158848" level="INFO">Clicking element 'link=Matches'.</msg>
+<arg>link=Matches</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:48.158625" elapsed="0.068767"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:47.076118" elapsed="1.151403"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:49.227966" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:48.227679" elapsed="1.000412"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:49.228611" level="INFO">Clicking element 'xpath=//tr[@data-key='test.testdivision1.aardvarks1.bears1']/*'.</msg>
+<arg>xpath=//tr[@data-key='${cardkey}']/*</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:49.228312" elapsed="0.270344"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:50.499155" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:49.498861" elapsed="1.000416"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:47:47.075747" elapsed="3.423647"/>
+</kw>
+<kw name="Select Player" owner="Common">
+<kw name="Get Element Attribute" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:50.517460" level="INFO">${name} = Jackeline GOSHA</msg>
+<var>${name}</var>
+<arg>xpath=//tr[contains(@data-name,'${player}')]</arg>
+<arg>data-name</arg>
+<doc>Returns the value of ``attribute`` from the element ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:50.500245" elapsed="0.017236"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:50.517801" level="INFO">Executing JavaScript:
+window.jQuery("[data-name='Jackeline GOSHA']")[0].scrollIntoView(true);
+Without any arguments.</msg>
+<arg>window.jQuery("[data-name='${name}']")[0].scrollIntoView(true);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:50.517573" elapsed="0.003627"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:50.521454" level="INFO">Executing JavaScript:
+window.scrollBy(0, -150);
+Without any arguments.</msg>
+<arg>window.scrollBy(0, -150);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:50.521282" elapsed="0.003231"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:52.524857" level="INFO">Slept 2 seconds.</msg>
+<arg>2s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:50.524645" elapsed="2.000350"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:52.525523" level="INFO">Clicking element 'jquery=[data-name='Jackeline GOSHA']'.</msg>
+<arg>jquery=[data-name='${name}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:52.525220" elapsed="0.035801"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:52.561666" level="INFO">Executing JavaScript:
+window.scrollTo(0, 0);
+Without any arguments.</msg>
+<arg>window.scrollTo(0, 0);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:52.561258" elapsed="0.003611"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<status status="PASS" start="2024-08-29T11:47:50.499623" elapsed="2.065346"/>
+</kw>
+<kw name="Submit Team" owner="Common">
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:54.565737" level="INFO">Slept 2 seconds.</msg>
+<arg>2 seconds</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:52.565439" elapsed="2.000473"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:54.566821" level="INFO">Executing JavaScript:
+scrollTo(0,0)
+Without any arguments.</msg>
+<arg>scrollTo(0,0)</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:54.566226" elapsed="0.005423"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:54.572217" level="INFO">Clicking element 'partial link=Submit Team'.</msg>
+<arg>partial link=Submit Team</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:54.571926" elapsed="0.405292"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="Selenium2Library">
+<arg>matchcard-home</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T11:47:54.977457" elapsed="0.017058"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>Selecting Players</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:54.994740" elapsed="0.000126"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:52.565160" elapsed="2.429795"/>
+</kw>
+<arg>${card_key}</arg>
+<status status="PASS" start="2024-08-29T11:47:46.568221" elapsed="8.426804"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:54.995613" level="INFO">Executing JavaScript:
+window.jQuery("#submit-card .add-player")[0].scrollIntoView(true);
+Without any arguments.</msg>
+<arg>window.jQuery("#submit-card .add-player")[0].scrollIntoView(true);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:47:54.995232" elapsed="0.004089"/>
+</kw>
+<kw name="Click Link" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:54.999676" level="INFO">Clicking link 'css:#submit-card .add-player'.</msg>
+<arg>css:#submit-card .add-player</arg>
+<doc>Clicks a link identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:54.999505" elapsed="0.041113"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="Selenium2Library">
+<arg>css:#add-player-modal</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T11:47:55.040893" elapsed="0.232286"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:55.273654" level="INFO">Clicking element 'css:#player-name-selectized'.</msg>
+<arg>css:#player-name-selectized</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:55.273450" elapsed="0.056604"/>
+</kw>
+<kw name="Press Keys" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:55.330672" level="INFO">Sending key(s) ('Nobody McNobodyFace',) to css:#player-name-selectized element.</msg>
+<msg time="2024-08-29T11:47:55.610340" level="INFO">Sending keys Nobody McNobodyFace</msg>
+<arg>css:#player-name-selectized</arg>
+<arg>Nobody McNobodyFace</arg>
+<doc>Simulates the user pressing key(s) to an element or on the active browser.</doc>
+<status status="PASS" start="2024-08-29T11:47:55.330271" elapsed="0.304364"/>
+</kw>
+<kw name="Click Button" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:55.634959" level="INFO">Clicking button 'css:#add-player-modal .btn-success'.</msg>
+<msg time="2024-08-29T11:47:56.745097" level="FAIL">ElementClickInterceptedException: Message: element click intercepted: Element &lt;button type="button" class="btn btn-success" data-dismiss="modal"&gt;...&lt;/button&gt; is not clickable at point (496, 165). Other element would receive the click: &lt;div class="option" data-selectable="" data-value="..."&gt;Randi SIMONEAUX&lt;/div&gt;
+  (Session info: chrome-headless-shell=123.0.6312.86)
+Stacktrace:
+#0 0x5555f79ea954 &lt;unknown&gt;
+#1 0x5555f76c443d &lt;unknown&gt;
+#2 0x5555f77188a8 &lt;unknown&gt;
+#3 0x5555f77163ce &lt;unknown&gt;
+#4 0x5555f7713c89 &lt;unknown&gt;
+#5 0x5555f7712fbf &lt;unknown&gt;
+#6 0x5555f7705f14 &lt;unknown&gt;
+#7 0x5555f77354d2 &lt;unknown&gt;
+#8 0x5555f7705852 &lt;unknown&gt;
+#9 0x5555f773569e &lt;unknown&gt;
+#10 0x5555f7754bf1 &lt;unknown&gt;
+#11 0x5555f7735253 &lt;unknown&gt;
+#12 0x5555f7703a28 &lt;unknown&gt;
+#13 0x5555f77048af &lt;unknown&gt;
+#14 0x5555f79b4d62 &lt;unknown&gt;
+#15 0x5555f79b8171 &lt;unknown&gt;
+#16 0x5555f79b7c51 &lt;unknown&gt;
+#17 0x5555f79b8695 &lt;unknown&gt;
+#18 0x5555f79a5d4b &lt;unknown&gt;
+#19 0x5555f79b8a9c &lt;unknown&gt;
+#20 0x5555f799162f &lt;unknown&gt;
+#21 0x5555f79da0a7 &lt;unknown&gt;
+#22 0x5555f79da264 &lt;unknown&gt;
+#23 0x5555f79e9c3e &lt;unknown&gt;
+#24 0x7fc72a1f355a &lt;unknown&gt;
+</msg>
+<arg>css:#add-player-modal .btn-success</arg>
+<doc>Clicks the button identified by ``locator``.</doc>
+<status status="FAIL" start="2024-08-29T11:47:55.634824" elapsed="1.112200">ElementClickInterceptedException: Message: element click intercepted: Element &lt;button type="button" class="btn btn-success" data-dismiss="modal"&gt;...&lt;/button&gt; is not clickable at point (496, 165). Other element would receive the click: &lt;div class="option" data-selectable="" data-value="..."&gt;Randi SIMONEAUX&lt;/div&gt;
+  (Session info: chrome-headless-shell=123.0.6312.86)
+Stacktrace:
+#0 0x5555f79ea954 &lt;unknown&gt;
+#1 0x5555f76c443d &lt;unknown&gt;
+#2 0x5555f77188a8 &lt;unknown&gt;
+#3 0x5555f77163ce &lt;unknown&gt;
+#4 0x5555f7713c89 &lt;unknown&gt;
+#5 0x5555f7712fbf &lt;unknown&gt;
+#6 0x5555f7705f14 &lt;unknown&gt;
+#7 0x5555f77354d2 &lt;unknown&gt;
+#8 0x5555f7705852 &lt;unknown&gt;
+#9 0x5555f773569e &lt;unknown&gt;
+#10 0x5555f7754bf1 &lt;unknown&gt;
+#11 0x5555f7735253 &lt;unknown&gt;
+#12 0x5555f7703a28 &lt;unknown&gt;
+#13 0x5555f77048af &lt;unknown&gt;
+#14 0x5555f79b4d62 &lt;unknown&gt;
+#15 0x5555f79b8171 &lt;unknown&gt;
+#16 0x5555f79b7c51 &lt;unknown&gt;
+#17 0x5555f79b8695 &lt;unknown&gt;
+#18 0x5555f79a5d4b &lt;unknown&gt;
+#19 0x5555f79b8a9c &lt;unknown&gt;
+#20 0x5555f799162f &lt;unknown&gt;
+#21 0x5555f79da0a7 &lt;unknown&gt;
+#22 0x5555f79da264 &lt;unknown&gt;
+#23 0x5555f79e9c3e &lt;unknown&gt;
+#24 0x7fc72a1f355a &lt;unknown&gt;
+</status>
+</kw>
+<kw name="Wait Until Element Is Not Visible" owner="Selenium2Library">
+<arg>css:#add-player-modal</arg>
+<doc>Waits until the element ``locator`` is not visible.</doc>
+<status status="NOT RUN" start="2024-08-29T11:47:56.747328" elapsed="0.000040"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="NOT RUN" start="2024-08-29T11:47:56.747515" elapsed="0.000030"/>
+</kw>
+<kw name="Verify Card">
+<arg>Played Nobody MCNOBODYFACE Aardvarks</arg>
+<status status="NOT RUN" start="2024-08-29T11:47:56.747762" elapsed="0.000034"/>
+</kw>
+<status status="FAIL" start="2024-08-29T11:47:46.567874" elapsed="10.180211">ElementClickInterceptedException: Message: element click intercepted: Element &lt;button type="button" class="btn btn-success" data-dismiss="modal"&gt;...&lt;/button&gt; is not clickable at point (496, 165). Other element would receive the click: &lt;div class="option" data-selectable="" data-value="..."&gt;Randi SIMONEAUX&lt;/div&gt;
+  (Session info: chrome-headless-shell=123.0.6312.86)
+Stacktrace:
+#0 0x5555f79ea954 &lt;unknown&gt;
+#1 0x5555f76c443d &lt;unknown&gt;
+#2 0x5555f77188a8 &lt;unknown&gt;
+#3 0x5555f77163ce &lt;unknown&gt;
+#4 0x5555f7713c89 &lt;unknown&gt;
+#5 0x5555f7712fbf &lt;unknown&gt;
+#6 0x5555f7705f14 &lt;unknown&gt;
+#7 0x5555f77354d2 &lt;unknown&gt;
+#8 0x5555f7705852 &lt;unknown&gt;
+#9 0x5555f773569e &lt;unknown&gt;
+#10 0x5555f7754bf1 &lt;unknown&gt;
+#11 0x5555f7735253 &lt;unknown&gt;
+#12 0x5555f7703a28 &lt;unknown&gt;
+#13 0x5555f77048af &lt;unknown&gt;
+#14 0x5555f79b4d62 &lt;unknown&gt;
+#15 0x5555f79b8171 &lt;unknown&gt;
+#16 0x5555f79b7c51 &lt;unknown&gt;
+#17 0x5555f79b8695 &lt;unknown&gt;
+#18 0x5555f79a5d4b &lt;unknown&gt;
+#19 0x5555f79b8a9c &lt;unknown&gt;
+#20 0x5555f799162f &lt;unknown&gt;
+#21 0x5555f79da0a7 &lt;unknown&gt;
+#22 0x5555f79da264 &lt;unknown&gt;
+#23 0x5555f79e9c3e &lt;unknown&gt;
+#24 0x7fc72a1f355a &lt;unknown&gt;
+</status>
+</test>
+<test id="s1-t10" name="User Can Add A Note To Card" line="69">
+<kw name="Create Card With Player" type="SETUP">
+<kw name="Reset Card" owner="Common">
+<kw name="Create List" owner="BuiltIn">
+<msg time="2024-08-29T11:47:56.749480" level="INFO">${auth} = ['testadmin', 'password']</msg>
+<var>${auth}</var>
+<arg>testadmin</arg>
+<arg>password</arg>
+<doc>Returns a list containing given items.</doc>
+<status status="PASS" start="2024-08-29T11:47:56.749324" elapsed="0.000187"/>
+</kw>
+<kw name="Create Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:47:56.749915" level="INFO">Creating Session using : alias=cards, url=https://cards.leinsterhockey.ie, headers={},                     cookies={}, auth=&lt;requests.auth.HTTPBasicAuth object at 0x7ff5ea3cf050&gt;, timeout=None, proxies=None, verify=True,                     debug=0 </msg>
+<arg>cards</arg>
+<arg>${BASE}</arg>
+<arg>auth=${auth}</arg>
+<arg>verify=true</arg>
+<doc>Create Session: create a HTTP session to a server</doc>
+<status status="PASS" start="2024-08-29T11:47:56.749651" elapsed="0.000464"/>
+</kw>
+<kw name="DELETE On Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:47:57.257944" level="INFO">DELETE Request : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ path_url=/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ headers={'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Length': '0', 'Authorization': 'Basic dGVzdGFkbWluOnBhc3N3b3Jk'} 
+ body=None 
+ </msg>
+<msg time="2024-08-29T11:47:57.258039" level="INFO">DELETE Response : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ status=204, reason=No Content 
+ headers={'Date': 'Thu, 29 Aug 2024 10:47:56 GMT', 'Server': 'Apache/2.4.41 (Ubuntu)', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token', 'Set-Cookie': 'site=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/, fuelfid=a%3A1%3A%7Bi%3A0%3Bs%3A32%3A%2213b099d64d2e392d847ef5e532e4d48c%22%3B%7D; expires=Sun, 29-Sep-2024 10:47:57 GMT; Max-Age=2678400; path=/', 'Keep-Alive': 'timeout=5, max=100', 'Connection': 'Keep-Alive'} 
+ body=None 
+ </msg>
+<arg>cards</arg>
+<arg>url=/cardapi?id=${fixtureid}</arg>
+<doc>Sends a DELETE request on a previously created HTTP Session.</doc>
+<status status="PASS" start="2024-08-29T11:47:56.750272" elapsed="0.507865"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:47:56.749048" elapsed="0.509204"/>
+</kw>
+<kw name="Open Card" owner="Common">
+<kw name="Go To Matches" owner="Common">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:57.259228" level="INFO">Opening url 'http://cards.leinsterhockey.ie/cards/ui/'</msg>
+<arg>http://${HOST}/cards/ui/</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:47:57.259074" elapsed="0.039908"/>
+</kw>
+<kw name="Run Keyword And Ignore Error" owner="BuiltIn">
+<kw name="Toggle Menu" owner="Common">
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:57.299855" level="INFO">Clicking element 'css:.navbar-toggler'.</msg>
+<arg>css:.navbar-toggler</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:57.299679" elapsed="0.040986"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:57.299427" elapsed="0.041345"/>
+</kw>
+<arg>Toggle Menu</arg>
+<doc>Runs the given keyword with the given arguments and ignores possible error.</doc>
+<status status="PASS" start="2024-08-29T11:47:57.299206" elapsed="0.041625"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:58.341269" level="INFO">Slept 1 second.</msg>
+<arg>1 second</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:57.340966" elapsed="1.000437"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:58.341867" level="INFO">Clicking element 'link=Matches'.</msg>
+<arg>link=Matches</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:58.341632" elapsed="0.076049"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:57.258830" elapsed="1.158983"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:47:59.418274" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:58.417978" elapsed="1.000429"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:47:59.418922" level="INFO">Clicking element 'xpath=//tr[@data-key='test.testdivision1.aardvarks1.bears1']/*'.</msg>
+<arg>xpath=//tr[@data-key='${cardkey}']/*</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:47:59.418630" elapsed="0.353941"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:48:00.773088" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:47:59.772788" elapsed="1.000430"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:47:57.258462" elapsed="3.514880"/>
+</kw>
+<kw name="Select Player" owner="Common">
+<kw name="Get Element Attribute" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:00.792060" level="INFO">${name} = Jackeline GOSHA</msg>
+<var>${name}</var>
+<arg>xpath=//tr[contains(@data-name,'${player}')]</arg>
+<arg>data-name</arg>
+<doc>Returns the value of ``attribute`` from the element ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:00.773938" elapsed="0.018171"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:00.792782" level="INFO">Executing JavaScript:
+window.jQuery("[data-name='Jackeline GOSHA']")[0].scrollIntoView(true);
+Without any arguments.</msg>
+<arg>window.jQuery("[data-name='${name}']")[0].scrollIntoView(true);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:48:00.792320" elapsed="0.004829"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:00.797625" level="INFO">Executing JavaScript:
+window.scrollBy(0, -150);
+Without any arguments.</msg>
+<arg>window.scrollBy(0, -150);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:48:00.797315" elapsed="0.006233"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:48:02.804104" level="INFO">Slept 2 seconds.</msg>
+<arg>2s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:48:00.803732" elapsed="2.000500"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:02.804758" level="INFO">Clicking element 'jquery=[data-name='Jackeline GOSHA']'.</msg>
+<arg>jquery=[data-name='${name}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:02.804459" elapsed="0.038596"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:02.843678" level="INFO">Executing JavaScript:
+window.scrollTo(0, 0);
+Without any arguments.</msg>
+<arg>window.scrollTo(0, 0);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:48:02.843285" elapsed="0.003943"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<status status="PASS" start="2024-08-29T11:48:00.773580" elapsed="2.073745"/>
+</kw>
+<kw name="Submit Team" owner="Common">
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:48:04.848051" level="INFO">Slept 2 seconds.</msg>
+<arg>2 seconds</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:48:02.847779" elapsed="2.000406"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:04.848803" level="INFO">Executing JavaScript:
+scrollTo(0,0)
+Without any arguments.</msg>
+<arg>scrollTo(0,0)</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:48:04.848410" elapsed="0.004456"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:04.853207" level="INFO">Clicking element 'partial link=Submit Team'.</msg>
+<arg>partial link=Submit Team</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:04.853028" elapsed="0.449215"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="Selenium2Library">
+<arg>matchcard-home</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T11:48:05.302448" elapsed="0.014602"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>Selecting Players</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:48:05.317241" elapsed="0.000100"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:48:02.847513" elapsed="2.469896"/>
+</kw>
+<arg>${card_key}</arg>
+<status status="PASS" start="2024-08-29T11:47:56.748711" elapsed="8.568752"/>
+</kw>
+<kw name="Click Link" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:05.317768" level="INFO">Clicking link 'partial link:Add Note'.</msg>
+<arg>partial link:Add Note</arg>
+<doc>Clicks a link identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:05.317621" elapsed="0.056000"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="Selenium2Library">
+<arg>css:#add-note</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T11:48:05.373894" elapsed="0.234915"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:05.609295" level="INFO">Clicking element 'css:#add-note textarea'.</msg>
+<arg>css:#add-note textarea</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:05.609085" elapsed="0.045625"/>
+</kw>
+<kw name="Input Text" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:05.655211" level="INFO">Typing text 'This is a note, of sorts' into text field 'css:#add-note textarea'.</msg>
+<arg>css:#add-note textarea</arg>
+<arg>This is a note, of sorts</arg>
+<doc>Types the given ``text`` into the text field identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:05.654992" elapsed="0.064633"/>
+</kw>
+<kw name="Click Button" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:05.720122" level="INFO">Clicking button 'css:#add-note .btn-success'.</msg>
+<arg>css:#add-note .btn-success</arg>
+<doc>Clicks the button identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:05.719910" elapsed="0.060776"/>
+</kw>
+<kw name="Wait Until Element Is Not Visible" owner="Selenium2Library">
+<arg>css:#add-note</arg>
+<doc>Waits until the element ``locator`` is not visible.</doc>
+<status status="PASS" start="2024-08-29T11:48:05.780967" elapsed="0.246526"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:48:07.028056" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:48:06.027760" elapsed="1.000433"/>
+</kw>
+<kw name="Verify Card">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:07.029083" level="INFO">Opening url 'https://cards.leinsterhockey.ie/Report/Card?key=test.testdivision1.aardvarks1.bears1'</msg>
+<arg>${BASE}/Report/Card?key=${card_key}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:48:07.028840" elapsed="0.521027"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>${description}</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:48:07.550100" elapsed="0.000126"/>
+</kw>
+<kw name="Page Should Contain Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:07.563419" level="INFO">Current page contains element 'xpath://tr[@data-description='Other Aardvarks "This is a note, of sorts"']'.</msg>
+<arg>xpath://tr[@data-description='${description}']</arg>
+<doc>Verifies that element ``locator`` is found on the current page.</doc>
+<status status="PASS" start="2024-08-29T11:48:07.550360" elapsed="0.013132"/>
+</kw>
+<arg>Other Aardvarks "This is a note, of sorts"</arg>
+<status status="PASS" start="2024-08-29T11:48:07.028496" elapsed="0.535087"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:47:56.748383" elapsed="10.815427"/>
+</test>
+<test id="s1-t11" name="Opposition Score Must Be Provided" line="79">
+<kw name="Create Card With Player" type="SETUP">
+<kw name="Reset Card" owner="Common">
+<kw name="Create List" owner="BuiltIn">
+<msg time="2024-08-29T11:48:07.565456" level="INFO">${auth} = ['testadmin', 'password']</msg>
+<var>${auth}</var>
+<arg>testadmin</arg>
+<arg>password</arg>
+<doc>Returns a list containing given items.</doc>
+<status status="PASS" start="2024-08-29T11:48:07.565295" elapsed="0.000192"/>
+</kw>
+<kw name="Create Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:48:07.565874" level="INFO">Creating Session using : alias=cards, url=https://cards.leinsterhockey.ie, headers={},                     cookies={}, auth=&lt;requests.auth.HTTPBasicAuth object at 0x7ff5ea3f7810&gt;, timeout=None, proxies=None, verify=True,                     debug=0 </msg>
+<arg>cards</arg>
+<arg>${BASE}</arg>
+<arg>auth=${auth}</arg>
+<arg>verify=true</arg>
+<doc>Create Session: create a HTTP session to a server</doc>
+<status status="PASS" start="2024-08-29T11:48:07.565616" elapsed="0.000427"/>
+</kw>
+<kw name="DELETE On Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:48:08.109220" level="INFO">DELETE Request : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ path_url=/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ headers={'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Length': '0', 'Authorization': 'Basic dGVzdGFkbWluOnBhc3N3b3Jk'} 
+ body=None 
+ </msg>
+<msg time="2024-08-29T11:48:08.109315" level="INFO">DELETE Response : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ status=204, reason=No Content 
+ headers={'Date': 'Thu, 29 Aug 2024 10:48:07 GMT', 'Server': 'Apache/2.4.41 (Ubuntu)', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token', 'Set-Cookie': 'site=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/, fuelfid=a%3A1%3A%7Bi%3A0%3Bs%3A32%3A%22b154b031517dd087da8dfc99057c0dd9%22%3B%7D; expires=Sun, 29-Sep-2024 10:48:08 GMT; Max-Age=2678400; path=/', 'Keep-Alive': 'timeout=5, max=100', 'Connection': 'Keep-Alive'} 
+ body=None 
+ </msg>
+<arg>cards</arg>
+<arg>url=/cardapi?id=${fixtureid}</arg>
+<doc>Sends a DELETE request on a previously created HTTP Session.</doc>
+<status status="PASS" start="2024-08-29T11:48:07.566178" elapsed="0.543326"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:48:07.564759" elapsed="0.544868"/>
+</kw>
+<kw name="Open Card" owner="Common">
+<kw name="Go To Matches" owner="Common">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:08.110629" level="INFO">Opening url 'http://cards.leinsterhockey.ie/cards/ui/'</msg>
+<arg>http://${HOST}/cards/ui/</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:48:08.110474" elapsed="0.051858"/>
+</kw>
+<kw name="Run Keyword And Ignore Error" owner="BuiltIn">
+<kw name="Toggle Menu" owner="Common">
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:08.163287" level="INFO">Clicking element 'css:.navbar-toggler'.</msg>
+<arg>css:.navbar-toggler</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:08.163104" elapsed="0.045049"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:48:08.162828" elapsed="0.045462"/>
+</kw>
+<arg>Toggle Menu</arg>
+<doc>Runs the given keyword with the given arguments and ignores possible error.</doc>
+<status status="PASS" start="2024-08-29T11:48:08.162579" elapsed="0.045772"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:48:09.208814" level="INFO">Slept 1 second.</msg>
+<arg>1 second</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:48:08.208510" elapsed="1.000439"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:09.209406" level="INFO">Clicking element 'link=Matches'.</msg>
+<arg>link=Matches</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:09.209176" elapsed="0.077873"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:48:08.110212" elapsed="1.176988"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:48:10.287653" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:48:09.287360" elapsed="1.000412"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:10.288275" level="INFO">Clicking element 'xpath=//tr[@data-key='test.testdivision1.aardvarks1.bears1']/*'.</msg>
+<arg>xpath=//tr[@data-key='${cardkey}']/*</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:10.287987" elapsed="0.504288"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:48:11.792780" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:48:10.792487" elapsed="1.000411"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:48:08.109838" elapsed="3.683182"/>
+</kw>
+<kw name="Select Player" owner="Common">
+<kw name="Get Element Attribute" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:11.811655" level="INFO">${name} = Jackeline GOSHA</msg>
+<var>${name}</var>
+<arg>xpath=//tr[contains(@data-name,'${player}')]</arg>
+<arg>data-name</arg>
+<doc>Returns the value of ``attribute`` from the element ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:11.793585" elapsed="0.018105"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:11.812256" level="INFO">Executing JavaScript:
+window.jQuery("[data-name='Jackeline GOSHA']")[0].scrollIntoView(true);
+Without any arguments.</msg>
+<arg>window.jQuery("[data-name='${name}']")[0].scrollIntoView(true);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:48:11.811837" elapsed="0.004927"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:11.817223" level="INFO">Executing JavaScript:
+window.scrollBy(0, -150);
+Without any arguments.</msg>
+<arg>window.scrollBy(0, -150);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:48:11.816903" elapsed="0.004034"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:48:13.821321" level="INFO">Slept 2 seconds.</msg>
+<arg>2s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:48:11.821070" elapsed="2.000362"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:13.821909" level="INFO">Clicking element 'jquery=[data-name='Jackeline GOSHA']'.</msg>
+<arg>jquery=[data-name='${name}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:13.821638" elapsed="0.038376"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:13.860595" level="INFO">Executing JavaScript:
+window.scrollTo(0, 0);
+Without any arguments.</msg>
+<arg>window.scrollTo(0, 0);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:48:13.860209" elapsed="0.004241"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<status status="PASS" start="2024-08-29T11:48:11.793248" elapsed="2.071297"/>
+</kw>
+<kw name="Submit Team" owner="Common">
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:48:15.865246" level="INFO">Slept 2 seconds.</msg>
+<arg>2 seconds</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:48:13.864980" elapsed="2.000392"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:15.866290" level="INFO">Executing JavaScript:
+scrollTo(0,0)
+Without any arguments.</msg>
+<arg>scrollTo(0,0)</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:48:15.865593" elapsed="0.004892"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:15.870810" level="INFO">Clicking element 'partial link=Submit Team'.</msg>
+<arg>partial link=Submit Team</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:15.870636" elapsed="0.468871"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="Selenium2Library">
+<arg>matchcard-home</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T11:48:16.339731" elapsed="0.019244"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>Selecting Players</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:48:16.359170" elapsed="0.000111"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:48:13.864726" elapsed="2.494629"/>
+</kw>
+<arg>${card_key}</arg>
+<status status="PASS" start="2024-08-29T11:48:07.564422" elapsed="8.794987"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:48:17.359801" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:48:16.359558" elapsed="1.000373"/>
+</kw>
+<kw name="Click Link" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:17.360433" level="INFO">Clicking link 'link:Submit Card'.</msg>
+<arg>link:Submit Card</arg>
+<doc>Clicks a link identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:17.360205" elapsed="0.064634"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:48:18.425423" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:48:17.425118" elapsed="1.000433"/>
+</kw>
+<kw name="Input Text" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:18.426056" level="INFO">Typing text 'billy umpire' into text field 'jquery:#submit-matchcard [name=umpire]'.</msg>
+<arg>jquery:#submit-matchcard [name=umpire]</arg>
+<arg>billy umpire</arg>
+<doc>Types the given ``text`` into the text field identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:18.425822" elapsed="0.077415"/>
+</kw>
+<kw name="Click Link" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:18.503765" level="INFO">Clicking link 'jquery:#submit-matchcard a.btn-success'.</msg>
+<arg>jquery:#submit-matchcard a.btn-success</arg>
+<doc>Clicks a link identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:18.503530" elapsed="0.051677"/>
+</kw>
+<kw name="Element Should Not Be Visible" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:18.570560" level="INFO">Element 'jquery:#submit-matchcard button.btn-success' exists but is not displayed.</msg>
+<arg>jquery:#submit-matchcard button.btn-success</arg>
+<doc>Verifies that the element identified by ``locator`` is NOT visible.</doc>
+<status status="PASS" start="2024-08-29T11:48:18.555536" elapsed="0.015129"/>
+</kw>
+<kw name="Input Text" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:18.571138" level="INFO">Typing text '2' into text field 'jquery:#submit-matchcard [name=opposition-score]'.</msg>
+<arg>jquery:#submit-matchcard [name=opposition-score]</arg>
+<arg>2</arg>
+<doc>Types the given ``text`` into the text field identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:18.570920" elapsed="0.066839"/>
+</kw>
+<kw name="Click Link" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:18.638252" level="INFO">Clicking link 'jquery:#submit-matchcard a.btn-success'.</msg>
+<arg>jquery:#submit-matchcard a.btn-success</arg>
+<doc>Clicks a link identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:18.638043" elapsed="0.043689"/>
+</kw>
+<kw name="Element Should Be Visible" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:18.695647" level="INFO">Element 'jquery:#submit-matchcard button.btn-success' is displayed.</msg>
+<arg>jquery:#submit-matchcard button.btn-success</arg>
+<doc>Verifies that the element identified by ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T11:48:18.682064" elapsed="0.013682"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:48:07.564062" elapsed="11.131898"/>
+</test>
+<test id="s1-t12" name="User Can Submit Card" line="90">
+<kw name="Create Card With Player" type="SETUP">
+<kw name="Reset Card" owner="Common">
+<kw name="Create List" owner="BuiltIn">
+<msg time="2024-08-29T11:48:18.697387" level="INFO">${auth} = ['testadmin', 'password']</msg>
+<var>${auth}</var>
+<arg>testadmin</arg>
+<arg>password</arg>
+<doc>Returns a list containing given items.</doc>
+<status status="PASS" start="2024-08-29T11:48:18.697231" elapsed="0.000186"/>
+</kw>
+<kw name="Create Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:48:18.697805" level="INFO">Creating Session using : alias=cards, url=https://cards.leinsterhockey.ie, headers={},                     cookies={}, auth=&lt;requests.auth.HTTPBasicAuth object at 0x7ff5ea200190&gt;, timeout=None, proxies=None, verify=True,                     debug=0 </msg>
+<arg>cards</arg>
+<arg>${BASE}</arg>
+<arg>auth=${auth}</arg>
+<arg>verify=true</arg>
+<doc>Create Session: create a HTTP session to a server</doc>
+<status status="PASS" start="2024-08-29T11:48:18.697547" elapsed="0.000419"/>
+</kw>
+<kw name="DELETE On Session" owner="RequestsLibrary">
+<msg time="2024-08-29T11:48:19.219085" level="INFO">DELETE Request : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ path_url=/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ headers={'User-Agent': 'python-requests/2.32.3', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'Content-Length': '0', 'Authorization': 'Basic dGVzdGFkbWluOnBhc3N3b3Jk'} 
+ body=None 
+ </msg>
+<msg time="2024-08-29T11:48:19.219181" level="INFO">DELETE Response : url=https://cards.leinsterhockey.ie/cardapi?id=test.testdivision1.aardvarks1.bears1 
+ status=204, reason=No Content 
+ headers={'Date': 'Thu, 29 Aug 2024 10:48:18 GMT', 'Server': 'Apache/2.4.41 (Ubuntu)', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token', 'Set-Cookie': 'site=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/, fuelfid=a%3A1%3A%7Bi%3A0%3Bs%3A32%3A%2259dd796c263124fc08a0a63faa3f57bc%22%3B%7D; expires=Sun, 29-Sep-2024 10:48:19 GMT; Max-Age=2678400; path=/', 'Keep-Alive': 'timeout=5, max=100', 'Connection': 'Keep-Alive'} 
+ body=None 
+ </msg>
+<arg>cards</arg>
+<arg>url=/cardapi?id=${fixtureid}</arg>
+<doc>Sends a DELETE request on a previously created HTTP Session.</doc>
+<status status="PASS" start="2024-08-29T11:48:18.698097" elapsed="0.521184"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:48:18.696923" elapsed="0.522480"/>
+</kw>
+<kw name="Open Card" owner="Common">
+<kw name="Go To Matches" owner="Common">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:19.220377" level="INFO">Opening url 'http://cards.leinsterhockey.ie/cards/ui/'</msg>
+<arg>http://${HOST}/cards/ui/</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:48:19.220220" elapsed="0.041302"/>
+</kw>
+<kw name="Run Keyword And Ignore Error" owner="BuiltIn">
+<kw name="Toggle Menu" owner="Common">
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:19.262313" level="INFO">Clicking element 'css:.navbar-toggler'.</msg>
+<arg>css:.navbar-toggler</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:19.262147" elapsed="0.043741"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:48:19.261900" elapsed="0.044110"/>
+</kw>
+<arg>Toggle Menu</arg>
+<doc>Runs the given keyword with the given arguments and ignores possible error.</doc>
+<status status="PASS" start="2024-08-29T11:48:19.261691" elapsed="0.044391"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:48:20.306517" level="INFO">Slept 1 second.</msg>
+<arg>1 second</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:48:19.306240" elapsed="1.000407"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:20.307117" level="INFO">Clicking element 'link=Matches'.</msg>
+<arg>link=Matches</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:20.306876" elapsed="0.077016"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:48:19.219978" elapsed="1.164053"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:48:21.384502" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:48:20.384198" elapsed="1.000431"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:21.385137" level="INFO">Clicking element 'xpath=//tr[@data-key='test.testdivision1.aardvarks1.bears1']/*'.</msg>
+<arg>xpath=//tr[@data-key='${cardkey}']/*</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:21.384847" elapsed="0.272450"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:48:22.657819" level="INFO">Slept 1 second.</msg>
+<arg>1s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:48:21.657522" elapsed="1.000424"/>
+</kw>
+<arg>${fixtureid}</arg>
+<status status="PASS" start="2024-08-29T11:48:19.219612" elapsed="3.438552"/>
+</kw>
+<kw name="Select Player" owner="Common">
+<kw name="Get Element Attribute" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:22.676940" level="INFO">${name} = Jackeline GOSHA</msg>
+<var>${name}</var>
+<arg>xpath=//tr[contains(@data-name,'${player}')]</arg>
+<arg>data-name</arg>
+<doc>Returns the value of ``attribute`` from the element ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:22.658733" elapsed="0.018251"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:22.677601" level="INFO">Executing JavaScript:
+window.jQuery("[data-name='Jackeline GOSHA']")[0].scrollIntoView(true);
+Without any arguments.</msg>
+<arg>window.jQuery("[data-name='${name}']")[0].scrollIntoView(true);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:48:22.677183" elapsed="0.004837"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:22.682512" level="INFO">Executing JavaScript:
+window.scrollBy(0, -150);
+Without any arguments.</msg>
+<arg>window.scrollBy(0, -150);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:48:22.682182" elapsed="0.004035"/>
+</kw>
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:48:24.686624" level="INFO">Slept 2 seconds.</msg>
+<arg>2s</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:48:22.686361" elapsed="2.000389"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:24.687274" level="INFO">Clicking element 'jquery=[data-name='Jackeline GOSHA']'.</msg>
+<arg>jquery=[data-name='${name}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:24.686970" elapsed="0.037802"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:24.725335" level="INFO">Executing JavaScript:
+window.scrollTo(0, 0);
+Without any arguments.</msg>
+<arg>window.scrollTo(0, 0);</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:48:24.724976" elapsed="0.003954"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<status status="PASS" start="2024-08-29T11:48:22.658398" elapsed="2.070624"/>
+</kw>
+<kw name="Submit Team" owner="Common">
+<kw name="Sleep" owner="BuiltIn">
+<msg time="2024-08-29T11:48:26.729712" level="INFO">Slept 2 seconds.</msg>
+<arg>2 seconds</arg>
+<doc>Pauses the test executed for the given time.</doc>
+<status status="PASS" start="2024-08-29T11:48:24.729452" elapsed="2.000388"/>
+</kw>
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:26.730464" level="INFO">Executing JavaScript:
+scrollTo(0,0)
+Without any arguments.</msg>
+<arg>scrollTo(0,0)</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:48:26.730063" elapsed="0.004648"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:26.735026" level="INFO">Clicking element 'partial link=Submit Team'.</msg>
+<arg>partial link=Submit Team</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:26.734857" elapsed="0.349692"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="Selenium2Library">
+<arg>matchcard-home</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T11:48:27.084785" elapsed="0.017617"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>Selecting Players</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:48:27.102577" elapsed="0.000110"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:48:24.729200" elapsed="2.373573"/>
+</kw>
+<arg>${card_key}</arg>
+<status status="PASS" start="2024-08-29T11:48:18.696579" elapsed="8.406266"/>
+</kw>
+<kw name="Context Menu">
+<kw name="Player Menu">
+<kw name="Execute Javascript" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:27.104101" level="INFO">Executing JavaScript:
+$('#user').hide()
+Without any arguments.</msg>
+<arg>$('#user').hide()</arg>
+<doc>Executes the given JavaScript code with possible arguments.</doc>
+<status status="PASS" start="2024-08-29T11:48:27.103733" elapsed="0.004992"/>
+</kw>
+<kw name="Click Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:27.109116" level="INFO">Clicking element 'xpath=//tr[@data-name='Jackeline GOSHA']'.</msg>
+<arg>xpath=//tr[@data-name='${player}']</arg>
+<doc>Click the element identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:27.108883" elapsed="0.046908"/>
+</kw>
+<arg>${player}</arg>
+<status status="PASS" start="2024-08-29T11:48:27.103406" elapsed="0.052494"/>
+</kw>
+<kw name="Click Button" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:27.156271" level="INFO">Clicking button 'Add Goal'.</msg>
+<arg>${action}</arg>
+<doc>Clicks the button identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:27.156051" elapsed="0.075271"/>
+</kw>
+<kw name="Wait Until Element Is Not Visible" owner="Selenium2Library">
+<arg>css:#context-menu</arg>
+<doc>Waits until the element ``locator`` is not visible.</doc>
+<status status="PASS" start="2024-08-29T11:48:27.231542" elapsed="0.230167"/>
+</kw>
+<arg>Jackeline GOSHA</arg>
+<arg>Add Goal</arg>
+<status status="PASS" start="2024-08-29T11:48:27.103077" elapsed="0.358758"/>
+</kw>
+<kw name="Submit Card">
+<kw name="Click Link" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:27.462572" level="INFO">Clicking link 'link:Submit Card'.</msg>
+<arg>link:Submit Card</arg>
+<doc>Clicks a link identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:27.462394" elapsed="0.043483"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="Selenium2Library">
+<arg>jquery:#submit-matchcard button.btn-success</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2024-08-29T11:48:27.506046" elapsed="0.225314"/>
+</kw>
+<kw name="Input Text" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:27.731774" level="INFO">Typing text '2' into text field 'jquery:#submit-matchcard [name=opposition-score]'.</msg>
+<arg>jquery:#submit-matchcard [name=opposition-score]</arg>
+<arg>2</arg>
+<doc>Types the given ``text`` into the text field identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:27.731561" elapsed="0.060932"/>
+</kw>
+<kw name="Input Text" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:27.792853" level="INFO">Typing text 'billy umpire' into text field 'jquery:#submit-matchcard [name=umpire]'.</msg>
+<arg>jquery:#submit-matchcard [name=umpire]</arg>
+<arg>billy umpire</arg>
+<doc>Types the given ``text`` into the text field identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:27.792664" elapsed="0.076497"/>
+</kw>
+<kw name="Click Link" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:27.869430" level="INFO">Clicking link 'jquery:#submit-matchcard a.btn-success'.</msg>
+<arg>jquery:#submit-matchcard a.btn-success</arg>
+<doc>Clicks a link identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:27.869306" elapsed="0.038813"/>
+</kw>
+<kw name="Click Button" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:27.908386" level="INFO">Clicking button 'jquery:#submit-matchcard button.btn-success'.</msg>
+<arg>jquery:#submit-matchcard button.btn-success</arg>
+<doc>Clicks the button identified by ``locator``.</doc>
+<status status="PASS" start="2024-08-29T11:48:27.908287" elapsed="0.052547"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:48:27.462092" elapsed="0.498811"/>
+</kw>
+<kw name="Verify Card">
+<kw name="Go To" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:27.961353" level="INFO">Opening url 'https://cards.leinsterhockey.ie/Report/Card?key=test.testdivision1.aardvarks1.bears1'</msg>
+<arg>${BASE}/Report/Card?key=${card_key}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2024-08-29T11:48:27.961228" elapsed="0.548652"/>
+</kw>
+<kw name="Comment" owner="BuiltIn">
+<arg>${description}</arg>
+<doc>Displays the given messages in the log file as keyword arguments.</doc>
+<status status="PASS" start="2024-08-29T11:48:28.510048" elapsed="0.000083"/>
+</kw>
+<kw name="Page Should Contain Element" owner="Selenium2Library">
+<msg time="2024-08-29T11:48:28.522440" level="INFO">Current page contains element 'xpath://tr[@data-description='Scored Jackeline GOSHA Aardvarks 1']'.</msg>
+<arg>xpath://tr[@data-description='${description}']</arg>
+<doc>Verifies that element ``locator`` is found on the current page.</doc>
+<status status="PASS" start="2024-08-29T11:48:28.510200" elapsed="0.012274"/>
+</kw>
+<arg>Scored Jackeline GOSHA Aardvarks 1</arg>
+<status status="PASS" start="2024-08-29T11:48:27.961048" elapsed="0.561473"/>
+</kw>
+<status status="PASS" start="2024-08-29T11:48:18.696220" elapsed="9.826404"/>
+</test>
+<kw name="Close Browser" owner="Selenium2Library" type="TEARDOWN">
+<doc>Closes the current browser.</doc>
+<status status="PASS" start="2024-08-29T11:48:28.522938" elapsed="0.061854"/>
+</kw>
+<status status="FAIL" start="2024-08-29T11:46:22.074779" elapsed="126.510084"/>
+</suite>
+<statistics>
+<total>
+<stat pass="10" fail="2" skip="0">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat pass="10" fail="2" skip="0" id="s1" name="Card">Card</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>
