@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: hockey_app
     volumes:
-      - "./fuelphp-1.8.2:/var/www/html"
+      #- "./fuelphp-1.8.2:/var/www/html"
       - "./code/api:/var/www/html/fuel/app"
       - ./code/public:/var/www/html/public
       #- ./code/cards:/var/www/html/public/cards
