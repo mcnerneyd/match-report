@@ -1,0 +1,1181 @@
+@import url("https://fonts.googleapis.com/css?family=Montserrat");
+
+$gap: 3mm;
+$buttonGap: 1mm;
+$smallWidth: 768px;
+$normalWidth: 24cm;
+
+.navbar { --bs-navbar-padding-x: 1rem; }
+
+html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+    width: 100vw;
+
+    overflow: hidden;
+    font-size: 11pt;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+#privacy {
+    position: fixed;
+    top: 50px;
+    left: 0;
+    display: block;
+    padding: 5px;
+
+    a {
+        font-size: 80%;
+        color:#b7337a;
+        text-decoration: dotted;
+    }
+}
+
+.xcontainer {
+    display: grid;
+    grid-template-rows: 3.5rem min-content min-content 1fr 4rem;
+    grid-template-columns: 1fr min($normalWidth, 90vw) 1fr;
+
+    height: 100%;
+}
+
+.container-cards {
+    .alert {
+        margin-block: 5mm;
+        grid-area: 2/2/3/3;
+    }
+}
+
+.user-alert {
+    margin-block: 5mm;
+    grid-area: 2/2/3/3;
+}
+
+.smallprint {
+    color: darkred;
+    text-align: center;
+    margin-top: 10rem;
+}
+
+/* ---------- Navbar ------------------------------------------- */
+.tab-pane {
+    padding: 20px 10px;
+}
+
+#user {
+    grid-area: 2/2/3/4;
+    height: 2rem;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 5px;
+    padding-right: 1rem;
+    color: crimson;
+    text-align: right;
+}
+
+#user select {
+    display: none;
+    position: absolute;
+    top: 20px;
+    right: 0;
+    z-index: 100;
+    color: black;
+}
+
+.objecttable {
+    margin: 20px 0;
+}
+
+.table>thead>tr>th {
+    border-bottom-color: black;
+}
+
+.table td {
+    padding: 0.5rem 0.25rem 0.15rem;
+}
+
+td.number {
+    text-align: center
+}
+
+.central-block {
+    grid-area: 4/2/6/3;
+}
+
+.central-toolbar {
+    grid-area: 3/2/4/3;
+}
+
+#fixtures-tab {
+    grid-area: 3/2/4/3;
+
+    &>div {
+        margin-bottom: 2mm;
+        border: 2px solid seagreen;
+        border-radius: 3mm;
+        padding: 2mm;
+        background: darkseagreen;
+    }
+
+    &>form {
+        display: flex;
+        gap: 2mm;
+
+        label {
+            height: 2.4rem;
+            margin-top: 0;
+        }
+    }
+}
+
+.xcontainer>h1,
+.command-group {
+    grid-area: 3/2/4/3;
+}
+
+.legacy,
+.content-header,
+#fixtures-container,
+#registration,
+#configform,
+#competitions-table_wrapper,
+#clubs-table_wrapper,
+#fixtures-table_wrapper,
+#fines-table_wrapper,
+#users-table_wrapper,
+#scorers-table_wrapper,
+#registration-info {
+    grid-area: 4/2/6/3;
+}
+
+#fixture,
+#results-table_wrapper,
+#login {
+    grid-area: 3/2/6/3;
+}
+
+#registration {
+    overflow: hidden auto;
+}
+
+#match-card {
+    grid-area: 3/1/5/4;
+    padding-inline: calc((100vw - $normalWidth)/2);
+    padding-bottom: 2cm;
+}
+
+@media screen and (max-width: $normalWidth) {
+    #match-card {
+        padding-inline: 1rem;
+    }
+}
+
+.btn-group {
+    gap: 2px;
+}
+
+/* ---------- General Styles ----------------------------------- */
+td,
+th {
+    white-space: nowrap;
+}
+
+div.command-group {
+    display: inline-flex;
+    justify-content: end;
+    align-items: start;
+
+    gap: $buttonGap;
+
+    select {
+        width: fit-content;
+    }
+}
+
+td.command-group {
+    text-align: right;
+}
+
+.modal-header {
+    background: mediumseagreen;
+    color: white;
+    border-radius: 0;
+    border: none;
+}
+
+.close {
+    color: white;
+    opacity: 1;
+    text-shadow: none;
+}
+
+.hints {
+    font-style: italic;
+    font-size: 0.9;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+/* ---------- Competition Tags --------------------------------- */
+.label-league,
+.label-cup,
+.label-team {
+    font-weight: 400;
+    font-size: 0.65rem;
+    vertical-align: middle;
+    border: 1px solid #7ab733;
+    padding: 2px 8px 3px 8px;
+    margin-right: 2px;
+    display: inline-block !important;
+}
+
+.label-league {
+    background-color: #7ab733;
+}
+
+.label-cup {
+    background-color: #eeffcc;
+    color: #7ab733;
+}
+
+.label-team {
+    border: 1px solid #b7337a;
+    color: white;
+    background-color: #b7337a;
+}
+
+.label-list {
+    white-space: normal;
+}
+
+/* ---------- Matchcard Formatting ------------------------------ */
+#match-card {
+    width: 100%;
+    overflow-x: hidden;
+    /* where screen is wide enough put side by side */
+
+    h1 {
+        width: 100%;
+        border-bottom: 2px solid black;
+        font-size: 30px;
+        font-weight: bold;
+        margin-top: 0;
+    }
+
+    #teams {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        gap: $gap;
+    }
+
+    .team {
+        width: 100%;
+        margin-bottom: 30px;
+    }
+
+    @media(max-width: $smallWidth) {
+        #teams {
+            flex-direction: column;
+        }
+    }
+
+    table {
+        width: 100%;
+    }
+
+    tr td {
+        padding: 5px 10px 5px 0;
+        border-bottom: 1px solid #ddd;
+
+        &:nth-child(2) {
+            font-style: italic;
+        }
+
+        &:nth-child(3) {
+            width: 60%;
+        }
+    }
+
+    detail, .detail {
+        width: 100%;
+        clear: both;
+        display: flex;
+        float: left;
+
+        dl {
+            padding-right: 30px;
+            float: left;
+            margin-bottom: 0;
+        }
+
+        dd {
+            float: left;
+        }
+
+        *:last-child {
+            flex-grow: 1;
+            text-align: right;
+
+            i {
+                padding: 5px;
+            }
+        }
+    }
+
+    #lock-code {
+        float: right;
+        padding-right: 0;
+
+        * {
+            text-align: right;
+        }
+    }
+
+    tr {
+        height: 2em;
+
+        &.filler {
+            background: repeating-linear-gradient(45deg, white, white 9px, #eee 2px, #eee 11px);
+        }
+    }
+
+    span.card-penalty img {
+        width: 1.5em;
+        margin: -1.5em -0.3em -0.5em 0.5em;
+    }
+
+    thead tr {
+        font-size: 20px;
+        color: black;
+        padding: 5px 10px 5px 0;
+        border-bottom: 1px solid black;
+        border-top: 1px solid black;
+
+        th {
+            text-align: left;
+        }
+
+        img {
+            height: 20px;
+        }
+    }
+
+    .ineligible {
+        background: repeating-linear-gradient(45deg, white, white 10px, #fea 10px, #fea 20px);
+    }
+
+    figure {
+        float: left;
+        margin: 5px 5px 0 0;
+        border: 1px solid #ccc;
+        padding: 5px;
+        position: relative;
+        overflow: hidden;
+
+        .score {
+            position: absolute;
+            top: 5px;
+            right: 8px;
+        }
+
+        .number {
+            width: 15px;
+            text-align: center;
+            display: block;
+        }
+    }
+
+    figcaption {
+        margin-top: -19px;
+        font-size: 70%;
+        text-align: left;
+        margin-left: 18px;
+        height: 1.6rem;
+
+        &:first-line {
+            font-size: 60%;
+            font-style: italic;
+        }
+    }
+
+    width: 100%;
+    overflow-x: hidden;
+    position: relative;
+    /* where screen is wide enough put side by side */
+
+    h2 {
+        font-size: 25px;
+    }
+
+    #headshot {
+        float: right;
+    }
+
+    tr th {
+        padding: 5px 10px 5px 0;
+        border-bottom: 1px solid #ddd;
+    }
+
+    #fixture tr {
+        height: 2em;
+    }
+
+    thead tr th,
+    #fixture thead tr th {
+        text-align: left;
+        width: 2em;
+    }
+
+    tbody tr th:first-child {
+        text-align: center;
+        width: 3em;
+    }
+
+    tr .player-annotations {
+        display: inline;
+        float: right;
+    }
+
+    #fixture table#players {
+        margin-top: 20px;
+    }
+
+    .score {
+        font-weight: bold;
+
+        &:nth-child(1) {
+            color: #484;
+
+            &:before {
+                content: "x";
+            }
+        }
+    }
+
+    .team-table thead tr {
+        font-size: 20px;
+        color: black;
+        padding: 5px 10px 5px 0;
+        border-bottom: 1px solid black;
+        border-top: 1px solid black;
+
+        .scores {
+            float: right;
+            position: relative;
+            margin-right: 10px;
+
+            span {
+                font-weight: bold;
+
+                &:nth-child(1) {
+                    color: #484;
+
+                    &:before {
+                        content: "x";
+                    }
+                }
+
+                &:nth-child(2) {
+                    &:before {
+                        content: "\\";
+                    }
+
+                    position: absolute;
+                    top:0;
+                    color: #aca;
+                    padding: 0;
+                    font-size: 80%;
+                }
+            }
+        }
+    }
+
+    .late {
+        color: #d9534f;
+    }
+
+    .deleted td {
+        position: relative;
+        color: #d9534f80;
+
+        &:after {
+            content: "";
+            display: block;
+            width: 100%;
+            height: 1px;
+            position: absolute;
+            top: 50%;
+            background: #d9534f80;
+        }
+    }
+
+    div.figures {
+        padding-top: 5px;
+    }
+
+    figure {
+        float: left;
+        margin: 5px 5px 0 0;
+        border: 1px solid #ccc;
+        padding: 5px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 2px 2px 2px #ccc;
+
+        img {
+            width: 100%;
+
+            &.card {
+                width: 1.5em;
+                position: absolute;
+                top: 4px;
+                left: 4px;
+            }
+        }
+
+        .number {
+            width: 15px;
+            text-align: center;
+            display: block;
+        }
+    }
+
+    figcaption {
+        margin-top: -19px;
+        font-size: 70%;
+        text-align: left;
+        margin-left: 18px;
+        height: 1.6rem;
+
+        &:first-line {
+            font-size: 60%;
+            font-style: italic;
+        }
+    }
+
+    button.add-player {
+        margin-top: 5px;
+    }
+
+    .flash {
+        background-color: white !important;
+        color: green;
+    }
+
+    .spacer {
+        height: 80px;
+    }
+
+    .alert-small {
+        font-size: 90% !important;
+        text-align: center !important;
+        padding: 2px 5px !important;
+        margin-bottom: 10px !important;
+    }
+
+    #context-menu {
+        padding-top: 0px;
+    }
+
+    #context-menu form {
+        padding: 0 1.5em;
+    }
+
+    #context-menu .modal-header {
+        margin-bottom: 7px;
+    }
+
+    #card-addx {
+        max-width: 80%;
+    }
+
+    #submit-card a.float-right {
+        margin-left: 10px;
+    }
+
+    h2 {
+        margin-top: 0.5rem;
+        font-size: 0.75em !important;
+        font-style: italic;
+    }
+
+    .role {
+        font-size: 0.7em;
+        font-weight: bold;
+        padding: 0 4px;
+        width: 30px;
+        text-align: center;
+        color: white;
+        border-radius: 2px;
+        margin-left: 3px;
+        margin-top: 3px;
+    }
+
+    #select-role {
+        xdisplay: none;
+    }
+
+    #select-role label {
+        color: white;
+        border: 0;
+        border-radius: 0;
+        padding: 2px 4px;
+        font-size: 80%;
+    }
+
+    .role-goalkeeper {
+        background: green;
+    }
+
+    .role-captain {
+        background: black;
+    }
+
+    div.role-captain {
+        border-radius: 0;
+    }
+
+    .role-manager {
+        background: blue;
+    }
+
+    .role-physio {
+        background: red;
+    }
+
+}
+
+.waiting {
+    cursor: progress !important;
+}
+
+.login {
+    color: white;
+}
+
+*:active,
+*:hover {
+    cursor: pointer;
+}
+
+.navbar-brand {
+    color: white !important;
+    margin-top: -2mm;
+    margin-bottom: -1px;
+
+    span {
+        display: block;
+        font-size: 0.7rem;
+        margin-top: -0.6rem;
+    }
+}
+
+pre {
+    white-space: pre-wrap;
+}
+
+header {
+    border-bottom: 3px solid crimson !important;
+}
+
+.modal small {
+    margin-top: 5px;
+    font-style: italic;
+    font-size: 80%;
+    display: block;
+    line-height: 1;
+}
+
+.modal-content {
+    border: 5px solid mediumseagreen;
+}
+
+.alert-detail {
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px dotted lightgray;
+}
+
+/* ---------- Matchcard Formatting ------------------------------ */
+#context-menu {
+    position: fixed;
+    z-index: 5000;
+    min-width: 15em;
+
+    h3 {
+        padding-top: 15px;
+        padding-bottom: 10px;
+    }
+
+    .card-yellow img,
+    .card-red img,
+    .card-green img,
+    .card-clear img,
+    .card {
+        width: 1em;
+        margin-right: 2px;
+    }
+
+    .card {
+        display: inline-block;
+        border: none;
+    }
+
+    li {
+        white-space: nowrap;
+        padding: 2px 10px;
+
+        .divider {
+            padding: 0;
+        }
+    }
+
+    #select-role {
+        display: inline-flex;
+        width: 100%;
+        label {
+            flex-grow: 1;
+        }
+    }
+
+    hr {
+        margin-block: 1rem;
+    }
+}
+
+#signatures {
+    div {
+        position: relative;
+        margin-top: 15px;
+
+        span {
+            position: absolute;
+            top: 0;
+            right: 0;
+            text-align: right;
+            color: red;
+        }
+
+        img {
+            max-width: 300px;
+            max-height: 100px;
+        }
+    }
+}
+
+#signature {
+    position: fixed;
+    display: none;
+    background: white;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+
+    .button-box {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        transform: rotate(-90deg);
+    }
+
+    h5 {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        transform: rotate(-90deg);
+    }
+}
+
+#submit-card {
+    /*position: fixed;
+    bottom: 0;
+    right: 0;
+    left: 0;*/
+    grid-area: 5/1/6/4;
+
+    background-color: #444;
+    padding: 10px;
+    z-index: 500;
+}
+
+#submit-matchcard #submit-form-signature canvas {
+    height: 230px;
+}
+
+#submit-form-signature {
+    div {
+        position: relative;
+
+        #clear-button {
+            position: absolute;
+            right: 5px;
+            top: 35px;
+        }
+    }
+}
+
+#login {
+    width: min(8cm, 80%);
+    margin: 0 auto;
+
+    .checkbox {
+        font-weight: normal;
+        font-size: 90%;
+    }
+
+    .form-control {
+        position: relative;
+        height: auto;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    #user-select {
+        height: 45px;
+        margin-top: 22px;
+        border-bottom-right-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+
+    .pin {
+        height: 45px;
+        margin-bottom: 10px;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+        border-top: 0;
+    }
+
+    button {
+        margin-top: 20px;
+    }
+
+    img {
+        width: 10em;
+        margin-left: -5em;
+        left: 50%;
+        position: relative;
+    }
+
+    h2 {
+        width: 100%;
+        text-align: center;
+
+        a {
+            color: black;
+        }
+    }
+
+    select#user-select {
+        margin-top: 14px !important;
+    }
+
+    input.pin {
+        -webkit-text-security: disc;
+    }
+
+    input.pin::-webkit-inner-spin-button,
+    input.pin::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    div#site-select {
+        max-width: 330px;
+        margin: 0 auto;
+
+        a {
+            margin: 5px;
+        }
+    }
+
+    .switch-login {
+        text-align: center;
+        margin-top: 8px;
+        font-size: 90%;
+        display: block;
+    }
+}
+
+#registration {
+    #date-select {
+        position: absolute;
+        z-index: 1000;
+        display: none;
+    }
+
+    #registration-table {
+
+        th,
+        td {
+            text-align: center;
+
+            &:nth-child(1) {
+                width: 32px;
+            }
+
+            &:nth-child(2) {
+                width: 24px;
+            }
+
+            &:nth-child(3) {
+                text-align: left;
+            }
+        }
+
+        .deleted {
+            text-decoration: line-through;
+            color: red;
+        }
+
+        .added {
+            font-style: italic;
+            color: green;
+        }
+
+        img.float-player {
+          margin: -0.4rem 0 0 0.5rem;
+          width: 7mm;
+          height: 7mm;
+        }
+
+        .match-pill {
+            margin: 2px;
+            display: block;
+            float: left;
+
+            span {
+                font-size: 80%;
+                color: black;
+                padding: 3px;
+                background: #fffff8;
+                border: 2px solid #b08080;
+                border-left: 0;
+                border-radius: 0 5px 5px 0;
+            }
+
+            span:first-child {
+                border-radius: 5px 0 0 5px;
+                background: #b08080;
+                color: white;
+                border-color: #b08080;
+                border-right: 0;
+            }
+        }
+
+        .match-pill-cup span {
+            border-color: #8080b0 !important;
+        }
+
+        .match-pill-cup span:first-child {
+            background: #8080b0;
+        }
+
+        img.membership {
+            width: 20px;
+            height: 20px;
+            margin: -2px 0 0 5px;
+        }
+    }
+
+    .form-confirmation {
+        position: relative;
+        height: 45px;
+
+        p {
+            position: absolute;
+            top: 2px;
+            left: 2em;
+            font-size: 75%;
+            font-style: italic;
+        }
+    }
+
+    .form-control label {
+        margin-bottom: 0;
+        font-size: 80%;
+    }
+
+    tr.error td {
+        color: red;
+    }
+
+    .dt-right {
+        text-align: right;
+    }
+
+    #errors {
+        display: none;
+
+        .error {
+            color: red;
+        }
+
+        .warn {
+            color: orange;
+        }
+    }
+}
+
+#users-select {
+    padding-left: 20px;
+    float: left;
+}
+
+#section-select {
+    width: 20rem;
+}
+
+#fixtures-table {
+    tr.hidden {
+        color: darkgray;
+        text-decoration: line-through;
+    }
+}
+
+#fixtures {
+    .date {
+        padding-right: 4px;
+    }
+
+    tr.error {
+        background-color: #ffd9d9;
+    }
+
+    tr.scoreError, tr.error-score {
+        background-image: linear-gradient(45deg, #ffd9d9 25%, 
+        #fff700 25%, #fff700 50%,
+        #ffd9d9 50%, #ffd9d9 75%, 
+        #fff700 75%, #fff700 100%);
+        background-size: 56.57px 56.57px;    
+    }
+
+    tr.lateError, tr.error-late {
+        background-image: linear-gradient(45deg, #ffd9d9 33.33%, 
+        #ffa3a3 33.33%, #ffa3a3 50%, 
+        #ffd9d9 50%, #ffd9d9 83.33%, 
+        #ffa3a3 83.33%, #ffa3a3 100%);
+        background-size: 42.43px 42.43px;
+    }
+
+    td.team-error {
+        color: rgb(231, 44, 103);
+        font-weight: bold;
+        text-decoration: wavy white;
+    }
+}
+
+#configform {
+    /*max-height: 100%;
+    padding-bottom: 1rem;
+    display: flex;
+    flex-direction: column;*/
+
+    .tab-content {
+        //overflow-y: auto;
+
+        .tab-pane {
+            display: none;
+        }
+
+        .active {
+            display: grid;
+            grid-gap: 3mm;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: repeat(10, min-content);
+        }
+
+        fieldset {
+            label {
+                padding-left: 2rem;
+            }
+
+            label:nth(4) {
+                margin-top: 1rem;
+            }
+        }
+
+        #fixtures {
+            div:first-child {
+                grid-area: 1/1/2/3;
+            }
+        }
+    }
+}
+
+/* ----- Overrides ----- */
+body.admin {
+
+    display: grid;
+    grid-template-rows: 3.5rem 1fr;
+
+    nav {
+        position: relative;
+    }
+    .xcontainer {
+        grid-template-rows: 0 2rem min-content 1fr 4rem;
+        overflow-y: auto;
+    }
+}
+
+div.help {
+    grid-area: 4/2/5/3;
+    h1 {
+        font-size: 28pt;
+        color: seagreen;
+        font-weight: bold;       
+    }
+}
+
+.btn-block {
+    width: 100%;
+}
+
+.xcard-yellow {
+    background-image: url(/assets/img/yellow-card.png)
+}
+
+.xcard-red {
+    background-image: url(/assets/img/red-card.png)
+}
+
+.xcard-green {
+    background-image: url(/assets/img/green-card.png)
+}
+
+#notes {
+    th, td {
+        white-space: normal;
+        vertical-align: top;
+        text-align: left;
+    }
+
+    .resolved {
+    color: #bbb;
+    }
+}
+
+#clubs-table {
+    table {
+        th, td { vertical-align: top; padding-top: 0; padding-bottom: 1mm; }
+        td { white-space: normal; }
+    }
+}

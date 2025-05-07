@@ -2,8 +2,8 @@
 // FuelPHP faking classes/functions
 
 define('DOCROOT', __DIR__.DIRECTORY_SEPARATOR.'/../');
-#define('FUELPATH', '/var/www/fuelphp-1.8.2');
-define('FUELPATH', getenv('FUELPATH') ?: DOCROOT.'/fuel');
+define('FUELPATH', '/var/www/html');
+#define('FUELPATH', getenv('FUELPATH') ?: DOCROOT.'/fuel');
 define('PKGPATH', FUELPATH.'/packages/');
 define('APPPATH', FUELPATH.'/app/');
 

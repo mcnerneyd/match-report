@@ -1,0 +1,54 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hockey_app
+    volumes:
+      - "./fuelphp-1.8.2:/var/www/html"
+      - "./code/api:/var/www/html/fuel/app"
+      - ./code/public:/var/www/html/public
+      #- ./code/cards:/var/www/html/public/cards
+      - ./data:/var/www/html/data
+      - ./php.ini:/usr/local/etc/php/conf.d/custom.ini
+    working_dir: /var/www/html
+    ports:
+      - "9001:9000"
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_USER=user
+      - DB_PASSWORD=password
+      - FUELPATH=/var/www/html/fuel/
+      - DATAPATH=/var/www/html/data/
+
+  db:
+    image: mariadb:10.5
+    container_name: hockey_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: hockey
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./code/db-init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "3306:3306"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:5.2.1
+    container_name: hockey_admin
+    environment:
+      PMA_HOST: db
+      PMA_USER: user
+      PMA_PASSWORD: password
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+
+volumes:
+  db_data:
+
