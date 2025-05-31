@@ -46,6 +46,9 @@ require APPPATH . 'vendor/autoload.php';
 require APPPATH . 'classes/lib/util.php';
 require APPPATH . 'classes/lib/exception.php';
 
+// early trigger of cookie to for cookie buffer to be initialized
+setcookie('triggercookie', 'ignore', time() + 3600, '/');
+
 define('DATAPATH', getenv('DATAPATH') ?: DOCROOT . '/data/');
 
 ensurePath(DATAPATH);
@@ -65,6 +68,8 @@ ensurePath(DATAPATH . "sections/");
 
 // Initialize the framework with the config file.
 \Fuel::init('config.php');
+
+Log::debug("After init");
 
 $route = \Router::process(\Request::forge(), true);
 $route = $route ? " (" . $route->controller . "/" . $route->action . ")" : "";

@@ -552,8 +552,7 @@
         }
         $email->html_body($body);
         $email->send();
-        Log::info("Receipt email sent to " . implode(',', $emailAddresses) . " =" . print_r($email, true));
-        //print_r($email);
+        Log::info("Receipt email sent to " . implode(',', $emailAddresses) . " =" . $email);
 
         return new Response($body);
     }
@@ -704,8 +703,7 @@
         loadSectionConfig($section);
 
         //echo "<pre>";
-        echo "<!-- Debug:\n";
-        print_r(Config::get("section.pattern.team", []));
+        echo "<!-- Debug:\n"; print_r(Config::get("section.pattern.team", []));
 
         $dbComps = array();
         foreach (Model_Competition::find('all') as $comp) {
@@ -761,10 +759,8 @@
         ksort($teams);
         $data = array('competitions' => $competitions, 'teams' => $teams);
 
-        echo "TEAMS:\n";
-        print_r($teams);
-        echo "COMPS:\n";
-        print_r($competitions);
+        echo "TEAMS:\n"; print_r($teams);
+        echo "COMPS:\n"; print_r($competitions);
         echo " -->\n";
 
         $this->template->title = "Parsing";

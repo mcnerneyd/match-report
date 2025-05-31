@@ -283,7 +283,7 @@ class Model_Matchcard extends \Orm\Model
 
         $res = \DB::query($sql)->execute();
 
-        Log::info(print_r($res, true));
+        Log::info("Matchcard:".print_r($res, true));
 
         $card = Model_Matchcard::find_by_fixture($fixtureid, false);
 

@@ -29,7 +29,7 @@ class Controller_FixtureApi extends Controller_RestApi
                     continue;
             }
 
-            echo $line;
+            /**/ echo $line;
         }
 
         fclose($f);

@@ -74,7 +74,7 @@ class Controller_Admin extends Controller_Hybrid
         $csv = array_map('str_getcsv', file($f));
         while (!$csv[0][0])
             array_shift($csv); # remove blank rows
-        print_r($csv[0]);
+        //print_r($csv[0]);
         for ($i = 0; $i < count($csv[0]); $i++)
             $csv[0][$i] = strtolower($csv[0][$i]);
         array_walk($csv, function (&$a) use ($csv) {
@@ -257,8 +257,7 @@ class Controller_Admin extends Controller_Hybrid
                                     $username = null;
                                     break;
                                 default:
-                                    print_r($item);
-                                    echo "Unknown user type: " . $item['group'] . "\n";
+                                    echo "Unknown user type: " . $item['group'];
                                     $username = null;
                             }
                             if (!$username) {
@@ -308,7 +307,7 @@ class Controller_Admin extends Controller_Hybrid
                             break;
 
                         default:
-                            echo $item['type'] . "\n";
+                            echo "Unknown type: ".$item['type'] . "\n";
                     }
                 } catch (Exception $e) {
                     Log::error("Failed to import item: " . $e->getMessage());

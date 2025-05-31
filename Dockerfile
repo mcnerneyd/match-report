@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     zip \
     curl \
     git \
+    nano \
     && docker-php-ext-install pdo_mysql mysqli mbstring gd zip intl
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*

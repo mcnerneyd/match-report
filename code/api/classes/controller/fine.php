@@ -62,7 +62,7 @@ class Controller_Fine extends Controller_Hybrid
 		$team = $card[$side];
 		$detail = $_POST['amount'].':'.$_POST['reason'];
 
-		print_r($card);
+		//print_r($card);
 
 		$newfine = new Model_Fine();
 		$newfine->matchcard_id = $card['id'];

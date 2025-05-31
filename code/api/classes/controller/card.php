@@ -199,8 +199,7 @@ class Controller_Card extends Controller_Template
 			if (strpos($msg, 'SPINDLE') !== false) {	// Include the word SPINDLE to make this a test
 				echo "<pre>";
 				echo "Subject: $subject\n";
-				echo "Message: $msg\n";
-				print_r($data);
+				echo "Message: $msg\n"; print_r($data);
 				echo "</pre>";
 				return new Response( "Received", 200);
 			}

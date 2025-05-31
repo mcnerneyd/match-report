@@ -130,7 +130,7 @@ class Controller_CardApi extends Controller_RestApi
 
     private function patch_index($data)
     {
-        print_r($data);
+        echo "Patch index ";print_r($data);
         return new Response("PATCH Not available yet", 400);
     }
 

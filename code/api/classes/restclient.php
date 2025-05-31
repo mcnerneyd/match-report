@@ -13,12 +13,10 @@ class RestClient
 		$result = curl_exec($process);
 		curl_close($process);
 
-		print_r($result);
+		//print_r($result);
 
 		return $result;
 	}
 }
 
 $bar = new RestClient("http://cards.leinsterhockey.ie/svc");
-
-$bar->get("?s=tst&c=Bray");

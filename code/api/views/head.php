@@ -8,6 +8,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1"/>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 
+    <script defer data-domain="cards.leinsterhockey.ie" src="https://plausible.squarepig.dev/js/script.file-downloads.hash.outbound-links.pageview-props.revenue.tagged-events.js"></script
+
 	<link rel='apple-touch-icon' sizes='57x57' href='<?= Uri::create('assets/favicon/apple-icon-57x57.png')?>'>
 	<link rel='apple-touch-icon' sizes='60x60' href='<?= Uri::create('assets/favicon/apple-icon-60x60.png')?>'>
 	<link rel='apple-touch-icon' sizes='72x72' href='<?= Uri::create('assets/favicon/apple-icon-72x72.png')?>'>
