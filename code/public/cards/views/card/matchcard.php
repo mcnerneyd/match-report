@@ -472,13 +472,13 @@ if ($cardIsOpen || \Auth::has_access('card.addcards')) {
               </select>
             </div>
             <a class='btn btn-secondary card-clear'>Clear Cards</a>
-            <hr>
             <?php
           } ?>
 
           <?php
           if (!user('Umpires')) {
             ?>
+            <hr>
             <div class='mb-3'>
               <button id='remove-player' class='btn btn-block btn-danger'>Remove Player</button>
             </div>

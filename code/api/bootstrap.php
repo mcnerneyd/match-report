@@ -1,4 +1,6 @@
 <?php
+// Force a header to avoid header error
+#header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
 
 // Bootstrap the framework DO NOT edit this
 require COREPATH . 'bootstrap.php';
@@ -19,10 +21,15 @@ require APPPATH . 'vendor/autoload.php';
         // Ignore the event if the original exception is an instance of MyException
         if ($hint !== null && $hint->exception instanceof HttpNotFoundException) {
             return null;
-	}
-	if ($event->getMessage() != null) {
-        if (strpos($event->getMessage(), "Module 'curl' already loaded") !== false) {
-            return null;
+	    }
+
+        if ($event->getMessage() != null) {
+            if (strpos($event->getMessage(), "Module 'curl' already loaded") !== false) {
+                return null;
+            }
+            if (strpos($event->getMessage(), "file_get_contents(): Unable to find the wrapper") !== false) {
+                return null;
+            }
         }
         if (strpos($event->getMessage(), "file_get_contents(): Unable to find the wrapper") !== false) {
             return null;
@@ -34,7 +41,7 @@ require APPPATH . 'vendor/autoload.php';
     // Then turn on this:
 	//print_r($event);
 
-        Log::error("Sentry severity " . print_r($event->getLevel(), true));
+        Log::error("Sentry: " . $event->getLevel() . " - " . $event->getMessage());
 
         if ($event->getLevel()->isEqualTo(\Sentry\Severity::warning())) {
             Log::error("Sentry warning (ignoring): " . $event->getMessage());
@@ -50,7 +57,8 @@ require APPPATH . 'classes/lib/util.php';
 require APPPATH . 'classes/lib/exception.php';
 
 // early trigger of cookie to for cookie buffer to be initialized
-setcookie('triggercookie', 'ignore', time() + 3600, '/');
+//setcookie('triggercookie', 'ignore', time() + 3600, '/');
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
 
 define('DATAPATH', getenv('DATAPATH') ?: DOCROOT . '/data/');
 

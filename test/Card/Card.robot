@@ -3,10 +3,10 @@
 
 *** Settings ***
 Resource            ../Common.robot
-
-Suite Setup         Login    Aardvarks    1102
-Suite Teardown      Close Browser
+Variables           vars.yaml
+Suite Setup         Login    ${username}    ${password}
 Test Setup          Create Card With Player    ${card_key}
+Suite Teardown      Close Browser
 
 *** Variables ***
 ${card_key}     test.testdivision1.aardvarks1.bears1
@@ -52,10 +52,10 @@ User Can Add Specific Player To Card
     Click Link    css:#submit-card .add-player
     Wait Until Element Is Visible    css:#player-name-selectized
     Click Element    css:#player-name-selectized    # Activate selectize
-    Click Element    css:div[data-value='Ai CRIBB']
+    Click Element    css:div[data-value='Anabella PUND']
     Click Button    css:#add-player-modal .btn-success
     Wait Until Element Is Not Visible    css:#add-player-modal
-    Verify Card    Played Ai CRIBB Aardvarks
+    Verify Card    Played Anabella PUND Aardvarks
 
 User Can Add Any Name To Card
     Execute Javascript    window.jQuery("#submit-card .add-player")[0].scrollIntoView(true);

@@ -190,6 +190,9 @@ class Card
         }
 
         if ($homeId == 'null' and $awayId == 'null') {
+            Log::warn("Teams are not from this section {$fixture['home_club']} ".
+                "{$fixture['home_team']} v {$fixture['away_club']} {$fixture['away_team']} ".
+                "fixture={$fixture['fixtureID']}");
             throw new Exception("Teams are not from this section");
         }
 

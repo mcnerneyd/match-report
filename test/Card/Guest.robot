@@ -1,9 +1,7 @@
-*** Variables ***
-${card_key}     test.testdivision1.aardvarks1.bears1
-
 *** Settings ***
 Resource			../Common.robot
-Suite Setup         Login    Aardvarks    1102
+Variables           vars.yaml
+Suite Setup         Login    ${username}    ${password}
 Test Setup			Open Card For View		${card_key}
 Suite Teardown	    Close Browser
 
@@ -27,7 +25,8 @@ Open Card For View
 	[Arguments]			${fixtureid}
 	Reset Card		    ${fixtureid}
 	Open Card			${fixtureid}
-    Click Link          css:#logout
+    Submit Team
+    Logout
 	Open Card			${fixtureid}
 
 Player Menu

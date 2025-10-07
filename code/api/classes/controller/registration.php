@@ -53,6 +53,9 @@ class Controller_Registration extends Controller_Template
 			'registrations'=>$registrations]);
     }
 
+    /**
+     * List the players for a specific club/section that are valid on a specified date.
+     */
     public function action_registration()
     {
 

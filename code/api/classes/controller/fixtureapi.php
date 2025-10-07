@@ -65,8 +65,13 @@ class Controller_FixtureApi extends Controller_RestApi
             }
         }*/
 
-        $fixturesFile = file_get_contents($fixturesFilename);
-        $allFixtures = json_decode($fixturesFile, true);
+        if (file_exists($fixturesFilename)) {
+            $fixturesFile = file_get_contents($fixturesFilename);
+            $allFixtures = json_decode($fixturesFile, true);
+        } else {
+            $allFixture = array();
+        }
+        
         $allFixtures = array_filter($allFixtures, function ($a) {
             return $a['status'] === 'active';
         });
@@ -574,11 +579,12 @@ class Controller_FixtureApi extends Controller_RestApi
             $fixture['section']
         );
 
-        $cc = array();
-        if ($fixture['section'] == 'lha-men') {
-            $cc[] = 'men@leinsterhockey.ie';
-            $cc[] = 'andyiwaller@gmail.com';
-        }
+        loadSectionConfig($fixture['section']);
+
+        $cc = Config::get("section.cc.email");
+        if ($cc) $cc = explode(",", $cc);
+        else $cc = array();
+        
         $result = array(
             'to' => $users,
             'cc' => $cc,

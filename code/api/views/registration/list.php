@@ -101,6 +101,8 @@ const format = (d) => {
     </tbody>
   </table>
 
+  <!-- <?php print_r($info); ?> -->
+
   <p class='subinfo'>Valid from <?= Date::forge($info['initial'])->format('%Y-%m-%d') ?>
     to <?= Date::forge($info['current'])->format('%Y-%m-%d') ?></p>
   <table class='subinfo'>

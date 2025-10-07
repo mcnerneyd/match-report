@@ -12,7 +12,7 @@ services:
     working_dir: /var/www/html
     entrypoint: sh -c "chown -R www-data:www-data /var/www/html/data && php-fpm"
     ports:
-      - "9001:9000"
+      - "127.0.0.1:9001:9000"
     depends_on:
       - db
     user: "${HOST_UID}:${HOST_GID}"
@@ -34,10 +34,8 @@ services:
       MYSQL_USER: user
       MYSQL_PASSWORD: password
     volumes:
-      - db_data:/var/lib/mysql
+      - ./data/db:/var/lib/mysql
       - ./code/db-init:/docker-entrypoint-initdb.d:ro
-    ports:
-      - "3306:3306"
 
   phpmyadmin:
     image: phpmyadmin:5.2.1
@@ -47,7 +45,20 @@ services:
       PMA_USER: user
       PMA_PASSWORD: password
     ports:
-      - "8081:80"
+      - "127.0.0.1:8081:80"
+    depends_on:
+      - db
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: api
+    volumes:
+      - ./code/apix:/app
+      - ./data:/data:ro
+    ports:
+      - "8000:80"
     depends_on:
       - db
 

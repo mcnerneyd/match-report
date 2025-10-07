@@ -1,10 +1,11 @@
 *** Settings ***
-Resource				../Common.robot
+# vim:et:ts=3:sw=3
+Resource			   ../Common.robot
+Variables         vars.yaml
 Suite Setup			Run Keywords	Set Strict
-...														Standard Login
-										
-Test Setup			Create Card With Player
-Suite Teardown	Close Browser
+...					Standard Login
+Test Setup			Create Card With Player     ${card_key}
+Suite Teardown	   Close Browser
 
 *** Test Cases ***
 User Can Add Goal To Player
@@ -46,8 +47,9 @@ All Players Must Have Shirt Numbers
 
 *** Keywords ***
 Create Card With Player
-	Reset Card		35
-	Open Card			35
+    [Arguments]             ${fixtureid}
+    Reset Card              ${fixtureid}
+    Open Card               ${fixtureid}
 	Select Player			Jackeline GOSHA
 	Submit Team
 	Page Should Contain		matchcard has officially appointed umpires
@@ -60,7 +62,7 @@ Set Strict
 	#Close Browser
 
 Standard Login
-	Login					Aardvarks		1111
+	Login					${username}     ${password}
 
 Player Menu
 	[Arguments]			${player}

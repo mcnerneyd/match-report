@@ -1,5 +1,5 @@
 <?php
-  use \Mailjet\Resources;
+use \Mailjet\Resources;
 class Controller_AdminApi extends Controller_RestApi
 {
     // --------------------------------------------------------------------------
@@ -10,29 +10,29 @@ class Controller_AdminApi extends Controller_RestApi
 
     public function get_email()
     {
-      $mj = new \Mailjet\Client('cecdf92235559f2fabba85fd7d119132','88e0f7a41e5973bc178e3d5656ad3009',true,['version' => 'v3.1']);
-      $body = [
-        'Messages' => [
-          [
-            'From' => [
-              'Email' => "lhamcs@gmail.com",
-              'Name' => "Leinster Hockey Matchcard System"
-            ],
-            'To' => [
-              [
-                'Email' => "mcnerneyd@gmail.com",
-                'Name' => "David"
-              ]
-            ],
-            'Subject' => "Greetings from Mailjet.",
-            'TextPart' => "My first Mailjet email",
-            'HTMLPart' => "<h3>Dear passenger 1, welcome to <a href='https://www.mailjet.com/'>Mailjet</a>!</h3><br />May the delivery force be with you!",
-            'CustomID' => "AppGettingStartedTest"
-          ]
-        ]
-      ];
-      $response = $mj->post(Resources::$Email, ['body' => $body]);
-      $response->success() && var_dump($response->getData());
+        $mj = new \Mailjet\Client('cecdf92235559f2fabba85fd7d119132', '88e0f7a41e5973bc178e3d5656ad3009', true, ['version' => 'v3.1']);
+        $body = [
+            'Messages' => [
+                [
+                    'From' => [
+                        'Email' => "lhamcs@gmail.com",
+                        'Name' => "Leinster Hockey Matchcard System"
+                    ],
+                    'To' => [
+                        [
+                            'Email' => "mcnerneyd@gmail.com",
+                            'Name' => "David"
+                        ]
+                    ],
+                    'Subject' => "Greetings from Mailjet.",
+                    'TextPart' => "My first Mailjet email",
+                    'HTMLPart' => "<h3>Dear passenger 1, welcome to <a href='https://www.mailjet.com/'>Mailjet</a>!</h3><br />May the delivery force be with you!",
+                    'CustomID' => "AppGettingStartedTest"
+                ]
+            ]
+        ];
+        $response = $mj->post(Resources::$Email, ['body' => $body]);
+        $response->success() && var_dump($response->getData());
     }
 
     public function get_structure()
@@ -41,11 +41,14 @@ class Controller_AdminApi extends Controller_RestApi
             throw new HttpNoAccessException;
         }
 
-        foreach (Model_Club::find('all') as $c) $c->log();
+        foreach (Model_Club::find('all') as $c)
+            $c->log();
 
-        foreach (Model_Competition::find('all') as $x) $x->log();
+        foreach (Model_Competition::find('all') as $x)
+            $x->log();
 
-        foreach (Model_User::find('all') as $u) $u->log();
+        foreach (Model_User::find('all') as $u)
+            $u->log();
     }
 
     public function delete_test()
@@ -67,7 +70,7 @@ class Controller_AdminApi extends Controller_RestApi
             }
         }
 
-        self::deleteDir(DATAPATH."/sections/test/");
+        self::deleteDir(DATAPATH . "/sections/test/");
 
         $s = new Model_Section();
         $s['name'] = 'test';
@@ -80,7 +83,7 @@ class Controller_AdminApi extends Controller_RestApi
         $u['group'] = 99;
         $u->save();
     }
-  
+
     private static function deleteDir($path)
     {
         if (empty($path)) {
@@ -92,7 +95,7 @@ class Controller_AdminApi extends Controller_RestApi
         $class_func = array(__CLASS__, __FUNCTION__);
         return is_file($path) ?
             @unlink($path) :
-            array_map($class_func, glob($path.'/*')) == @rmdir($path);
+            array_map($class_func, glob($path . '/*')) == @rmdir($path);
     }
 
     public function get_config()
@@ -102,27 +105,27 @@ class Controller_AdminApi extends Controller_RestApi
         Log::debug("AdminAPI getConfig");
 
         $config = array(
-            'site'=>array(
-                'title'=>Config::get("$section.title"),
+            'site' => array(
+                'title' => Config::get("$section.title"),
             ),
-            'fixtures'=>array(
-                'sources'=>Config::get("$section.fixtures"),
-                'fixes'=>array(
-                    'competitions'=>Config::get("$section.pattern.competition"),
-                    'clubs'=>Config::get("$section.pattern.team"),
+            'fixtures' => array(
+                'sources' => Config::get("$section.fixtures"),
+                'fixes' => array(
+                    'competitions' => Config::get("$section.pattern.competition"),
+                    'clubs' => Config::get("$section.pattern.team"),
                 ),
             ),
-            'registration'=>array(
-                'upload'=>Config::get("$section.automation.allowrequest") ? "secretary" : "admin",
-                'restriction_date'=>Config::get("$section.date.restrict"),
-                'player_id'=>Config::get("$section.registration.mandatoryhi", "noselect"),
-                'allow_placeholder'=>Config::get("$section.registration.placeholders", true),
-                'allow_assignment'=>Config::get("$section.allowassignment", true),
+            'registration' => array(
+                'upload' => Config::get("$section.automation.allowrequest") ? "secretary" : "admin",
+                'restriction_date' => Config::get("$section.date.restrict"),
+                'player_id' => Config::get("$section.registration.mandatoryhi", "noselect"),
+                'allow_placeholder' => Config::get("$section.registration.placeholders", true),
+                'allow_assignment' => Config::get("$section.allowassignment", true),
                 'errors' => Config::get("$section.registration.blockerrors") ? 'block' : 'warning',
             ),
-            'cards'=>array(
-                'post_results'=>Config::get("$section.result.submit", 'no'),
-                'results_button'=>Config::get("$section.result.button", 'yes'),
+            'cards' => array(
+                'post_results' => Config::get("$section.result.submit", 'no'),
+                'results_button' => Config::get("$section.result.button", 'yes'),
             ),
         );
 
@@ -138,7 +141,7 @@ class Controller_AdminApi extends Controller_RestApi
         $section = Input::post('section', null);
 
         if ($section) {
-            $configFile = ensurePath(DATAPATH."./sections/$section/", "config.json");
+            $configFile = ensurePath(DATAPATH . "./sections/$section/", "config.json");
 
             Log::info("Post config");
             Config::set("$section.title", Input::post("title"));
@@ -175,9 +178,10 @@ class Controller_AdminApi extends Controller_RestApi
         return new Response("", 200);
     }
 
-    public function get_trigger() {
+    public function get_trigger()
+    {
         $frame = Input::param("frame");
-        Log::debug("trigger ".$frame);
+        Log::debug("trigger " . $frame);
 
         switch ($frame) {
             case 'fivemins':
@@ -199,34 +203,42 @@ class Controller_AdminApi extends Controller_RestApi
         $result = array();
 
         foreach (Model_Section::find('all') as $section) {
-            $result[] = array('type'=>'section',
-          'name'=>$section['name']);
+            $result[] = array(
+                'type' => 'section',
+                'name' => $section['name']
+            );
         }
 
         foreach (Model_Club::find('all') as $club) {
-            $result[] = array('type'=>'club',
-          'name'=>$club['name'],
-          'code'=>$club['code']);
+            $result[] = array(
+                'type' => 'club',
+                'name' => $club['name'],
+                'code' => $club['code']
+            );
         }
 
         foreach (Model_Competition::find('all') as $competition) {
-            $result[] = array('type'=>'competition',
-          'section'=>$competition->section['name'],
-          'name'=>$competition['name'],
-          'code'=>$competition['code'],
-          'groups'=>$competition['groups'],
-          'format'=>$competition['format'],
-          'teamsize'=>$competition['teamsize'],
-          'teamstars'=>$competition['teamstars'],
-          'sequence'=>$competition['sequence']);
+            $result[] = array(
+                'type' => 'competition',
+                'section' => $competition->section['name'],
+                'name' => $competition['name'],
+                'code' => $competition['code'],
+                'groups' => $competition['groups'],
+                'format' => $competition['format'],
+                'teamsize' => $competition['teamsize'],
+                'teamstars' => $competition['teamstars'],
+                'sequence' => $competition['sequence']
+            );
         }
 
         foreach (Model_User::find('all') as $user) {
-            $u = array('type'=>'user',
-          'username'=>$user['username'],
-          'password'=>$user['password'],
-          'email'=>$user['email'],
-          'group'=>$user['group']);
+            $u = array(
+                'type' => 'user',
+                'username' => $user['username'],
+                'password' => $user['password'],
+                'email' => $user['email'],
+                'group' => $user['group']
+            );
 
             if ($user->section) {
                 $u['section'] = $user->section['name'];
@@ -242,11 +254,13 @@ class Controller_AdminApi extends Controller_RestApi
         return $result;
     }
 
-    public function get_import() {
+    public function get_import()
+    {
         self::import("data/logs/out.log");
     }
 
-    public static function import(string $file) {
+    public static function import(string $file)
+    {
         $clubIdMap = array();
         $competitionIdMap = array();
         $fixtureIdMap = array();
@@ -283,17 +297,21 @@ class Controller_AdminApi extends Controller_RestApi
                     $props = $matches["props"];
                     if ($props != null) {
                         $props = explode(";", $props);
-                        if (count($props)>0 && $props[0] != '') $competition->sequence = $props[0];
-                        if (count($props)>1 && $props[1] != '') $competition->teamsize = $props[1];
-                        if (count($props)>2 && $props[2] != '') $competition->teamstars = $props[2];
-                        if (count($props)>3 && $props[3] != '') $competition->groups = $props[3];
+                        if (count($props) > 0 && $props[0] != '')
+                            $competition->sequence = $props[0];
+                        if (count($props) > 1 && $props[1] != '')
+                            $competition->teamsize = $props[1];
+                        if (count($props) > 2 && $props[2] != '')
+                            $competition->teamstars = $props[2];
+                        if (count($props) > 3 && $props[3] != '')
+                            $competition->groups = $props[3];
                     }
 
                     $competition->save();
                     $competition->log();
                 }
                 $competitionIdMap[$matches["id"]] = $competition->id;
-            } else if (preg_match("/^(?<date>[0-9T:-]+) \[I\] \+USER (?:\[(?<username>.*?)(?:<(?<email>.*)>)?\])?(?:@(?<club>.+?)\/(?<section>.+?))?(?:=(?<role>.*))? {(?<password>.*?)} #(?<id>[0-9]+)\/.*/", $line, $matches)) {
+            } else if (preg_match("/^(?<date>[0-9T:-]+) \[I\] \+USER (?:\[(?<username>.*?)(?:<(?<email>.*)>)?\])?(?:(?:@(?<club>.+?))?(\/(?<section>.+?))?)?(?:=(?<role>.*))? {(?<password>.*?)} #(?<id>[0-9]+)\/.*/", $line, $matches)) {
                 $section = Model_Section::find_by_name($matches["section"]);
 
                 if ($section == null && $matches["section"]) {
@@ -325,18 +343,22 @@ class Controller_AdminApi extends Controller_RestApi
                     case null:
                         $user->group = 1;
                         $user->username = $matches['club'];
-                        if ($section != null) $user->username .= " ({$section->name})";
+                        if ($section != null)
+                            $user->username .= " ({$section->name})";
                         $user->club = Model_Club::find_by_name($matches['club']);
                         break;
                 }
 
                 if (Model_User::find_by_username($user->username) == null) {
+                    Log::info("import:user add " . $user->username);
                     $user->save();
                     $user->log();
+                } else {
+                    Log::info("import:user " . $user->username . " already exists");
                 }
 
             } else if (preg_match("/^(?<date>[0-9T:-]+) \[I\] CARD (?:\?(?<mid>[0-9]+)) #(?<id>[0-9]+).*/", $line, $matches)) {
-                
+
                 $card = Model_Matchcard::query()->where("fixture_id", $matches['id'])->get_one();
 
                 if ($card == null) {
@@ -350,11 +372,13 @@ class Controller_AdminApi extends Controller_RestApi
                 $card->date = $matches['date'];
                 $card->save();
 
-                if ($matches['mid'] !== null) $fixtureIdMap[$matches['mid']] = $card->id;
+                if ($matches['mid'] !== null)
+                    $fixtureIdMap[$matches['mid']] = $card->id;
             } else if (preg_match("/^(?<date>[0-9T:-]+) \[I\] PLAYED \[(?<player>.*)\/(?<club>.*)\] #(?<id>[0-9]+).*/", $line, $matches)) {
                 $fixtureId = $fixtureIdMap[$matches['id']];
                 $cardId = Model_Matchcard::query()->where("fixture_id", $matches['id'])->get_one();
-                if ($cardId != null) $cardId = $cardId['id'];
+                if ($cardId != null)
+                    $cardId = $cardId['id'];
 
                 $incident = Model_Incident::query()
                     ->where("type", "PLAYED")
@@ -373,6 +397,8 @@ class Controller_AdminApi extends Controller_RestApi
                     $incident->resolved = 0;
                     $incident->save();
                 }
+            } else {
+                Log::info("import:no match");
             }
         }
     }

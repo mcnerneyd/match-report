@@ -1,12 +1,12 @@
 *** Settings ***
 Resource				../Common.robot
-Suite Setup			Login	Aardvarks	1111
+Suite Setup			    Login	Aardvarks (Test)	1102
 #Suite Teardown	Close Browser
 
 *** Test Cases ***
 User Can Create A Card
-	Reset Card		test.division1.aardvarks1.bears2
-	Open Card			test.division1.aardvarks1.bears2
+	Reset Card		        test.testdivision1.aardvarks1.bears1
+	Open Card			    test.testdivision1.aardvarks1.bears1
 	Select Player			Jackeline GOSHA
 	Select Player			Alia LINDAHL
 	Select Player			Kenyatta SHORE
@@ -37,8 +37,8 @@ User Can Create A Card
 Add Last Players To Fixture
 
 Clear Players On Fixture
-	Reset Card		    test.division1.aardvarks1.bears2
-	Open Card			    test.division1.aardvarks1.bears2
+	Reset Card		    test.testdivision1.aardvarks1.bears1
+	Open Card			    test.testdivision1.aardvarks1.bears1
 	Select Player			Jackeline GOSHA
 	Select Player			Alia LINDAHL
 	Select Player			Kenyatta SHORE

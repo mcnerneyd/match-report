@@ -417,8 +417,9 @@ $(document).ready(function () {
     $('#context-menu .card-clear').click(function () {
         incident('clearcards', '', function () {
             getPlayerRow().find('.player-annotations .card-penalty').remove();
+            $('#context-menu').modal('hide');
         });
-        $('#context-menu').hide();
+        //$('#context-menu').hide();
     });
 
     $('#context-menu .close').click(function () {

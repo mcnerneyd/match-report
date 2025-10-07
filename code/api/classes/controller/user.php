@@ -120,6 +120,8 @@ class Controller_User extends Controller_Template
 
         $newPassword = Input::param('p');
         if ($newPassword) {
+          // newPassword provided - change the users password
+            Log::warning("Resetting password:$username [$newPassword]");
             $user['password'] = \Auth::hash_password($newPassword);
             $user->save();
             $this->template->title = "Password Reset";
@@ -130,6 +132,7 @@ class Controller_User extends Controller_Template
                 )
             );
         } else {
+          // no password passed - so show the reset password view
             $this->template->title = "Reset Password";
             $this->template->content = View::forge(
                 'user/changepassword',
@@ -217,7 +220,7 @@ class Controller_User extends Controller_Template
         $data['selectedUser'] = Input::param('user', null);
 
         if (Input::post()) {
-            Log::debug("Crypted password: " . Auth::hash_password(\Input::param('pin')));
+            Log::debug("Crypted password: " . Auth::hash_password(\Input::param('pin')) . " [".\Input::param('pin')."]"); // FIXME remove this - not safe
             if (Auth::login()) {
                 Input::param("remember-me", false) ? \Auth::remember_me() : \Auth::dont_remember_me();
                 $username = Session::get('username');

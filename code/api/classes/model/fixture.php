@@ -104,6 +104,29 @@ class Model_Fixture extends \Model
             $result = self::loadSectionFixtures($section);
             $allfixtures = array_merge($allfixtures, $result['fixtures']);
             $failureCount += $result['failures'];
+            $data = $result['fixtures'];
+            foreach ($data as &$fixture) {
+                unset($fixture['lastupdated_t']);
+                unset($fixture['feed']);
+                unset($fixture['x']);
+                unset($fixture['y']);
+                unset($fixture['zaway']);
+                unset($fixture['zhome']);
+                unset($fixture['zcompetition']);
+                unset($fixture['hidden']);
+                unset($fixture['cover']);
+                unset($fixture['datetime']);
+                unset($fixture['comment']);
+                unset($fixture['id']);
+                unset($fixture['home']);
+                unset($fixture['away']);
+            }
+            $data = json_encode($data, JSON_PRETTY_PRINT);
+            $filename = DATAPATH . '/sections/'. $section['name'].'/fixtures.json';
+            if (!file_exists($filename) || md5($data) != md5_file($filename)) {
+                file_put_contents($filename, $data);
+            }
+            
             gc_collect_cycles();
         }
 
