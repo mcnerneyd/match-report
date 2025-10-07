@@ -10,6 +10,7 @@ services:
       - ./data:/var/www/html/data
       - ./php.ini:/usr/local/etc/php/conf.d/custom.ini
     working_dir: /var/www/html
+    entrypoint: sh -c "chown -R www-data:www-data /var/www/html/data && php-fpm"
     ports:
       - "9001:9000"
     depends_on:
@@ -49,6 +50,18 @@ services:
       - "8081:80"
     depends_on:
       - db
+
+  nginx:
+    image: nginx:stable
+    container_name: hockey_nginx_local
+    ports:
+      - "8088:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./code/public:/var/www/html/public
+    depends_on:
+      - php
+    profiles: ["development"]
 
 volumes:
   db_data:

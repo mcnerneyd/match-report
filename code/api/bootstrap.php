@@ -29,7 +29,10 @@ require APPPATH . 'vendor/autoload.php';
 	}
 	}
 
-//	print_r($event);
+    // If you get this error (which happens before the FuelPhp error handler is loaded):
+    // "There is no security.output_filter defined in your application config file"
+    // Then turn on this:
+	//print_r($event);
 
         Log::error("Sentry severity " . print_r($event->getLevel(), true));
 
