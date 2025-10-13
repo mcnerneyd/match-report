@@ -41,7 +41,7 @@ class Model_Report
 		if ($response->success()) {
 			Log::info("Email sent to:$email");
 		} else {
-			Log::warning("Failed to send email");
+			Log::warning("Failed to send email: ".$response->error_get_last());
 		}
 
 		return $response;
