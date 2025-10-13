@@ -34,7 +34,6 @@ require APPPATH . 'vendor/autoload.php';
         if (strpos($event->getMessage(), "file_get_contents(): Unable to find the wrapper") !== false) {
             return null;
 	}
-	}
 
     // If you get this error (which happens before the FuelPhp error handler is loaded):
     // "There is no security.output_filter defined in your application config file"
