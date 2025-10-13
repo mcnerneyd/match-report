@@ -41,7 +41,7 @@ require APPPATH . 'vendor/autoload.php';
     // Then turn on this:
 	//print_r($event);
 
-        Log::error("Sentry: " . $event->getLevel() . " - " . $event->getMessage());
+        //Log::error("Sentry: " . $event->getLevel() . " - " . $event->getMessage());
 
         if ($event->getLevel()->isEqualTo(\Sentry\Severity::warning())) {
             Log::error("Sentry warning (ignoring): " . $event->getMessage());
