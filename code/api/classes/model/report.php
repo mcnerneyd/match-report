@@ -20,6 +20,8 @@ class Model_Report
 
 	public static function email(array $email, string $subject, string $htmlBody, string $textBody)
 	{
+		Log::debug("Sending email to $email");
+
 		$mj = new \Mailjet\Client('cecdf92235559f2fabba85fd7d119132', '88e0f7a41e5973bc178e3d5656ad3009', true, ['version' => 'v3.1']);
 
 		$body = [
@@ -38,6 +40,8 @@ class Model_Report
 
 		if ($response->success()) {
 			Log::info("Email sent to:$email");
+		} else {
+			Log::warn("Failed to send email");
 		}
 
 		return $response;
