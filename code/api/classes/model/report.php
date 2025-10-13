@@ -43,7 +43,7 @@ class Model_Report
 		$response = $mj->post(Resources::$Email, ['body' => $body]);
 
 		if ($response->success()) {
-			Log::info("Email sent to:$email");
+			Log::info("Email sent to:".json_encode($email));
 		} else {
 			Log::warning("Failed to send email: ".$response->getReasonPhrase()." -- ".print_r($response->getData(), true));
 		}
