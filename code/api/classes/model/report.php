@@ -24,15 +24,17 @@ class Model_Report
 
 		$body = [
 			'Messages' => [
-				'From' => [
-					'Email' => "lhamcs@gmail.com",
-					'Name' => "Leinster Hockey Matchcard System"
-				],
-				'To' => array_map(fn($value) => array("Email" => $value) , $email),
-				'Subject' => "Leinster Hockey Cards - $subject",
-				'TextPart' => $textBody,
-				'HTMLPart' => $htmlBody,
-				'CustomID' => $subject,
+				[
+					'From' => [
+						'Email' => "lhamcs@gmail.com",
+						'Name' => "Leinster Hockey Matchcard System"
+					],
+					'To' => array_map(fn($value) => array("Email" => $value) , $email),
+					'Subject' => "Leinster Hockey Cards - $subject",
+					'TextPart' => $textBody,
+					'HTMLPart' => $htmlBody,
+					'CustomID' => $subject,
+				]
 			]
 		];
 
