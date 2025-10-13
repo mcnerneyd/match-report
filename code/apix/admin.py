@@ -6,8 +6,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from db import get_db
 
-#from models import Competition
-
 router = APIRouter()
 
 @router.get("/competitions") #, response_model=Competition)

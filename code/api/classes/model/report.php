@@ -18,6 +18,31 @@ class Model_Report
 			group by player, c.name, x.id")->execute();
 	}
 
+	public static function email(array $email, string $subject, string $htmlBody, string $textBody)
+	{
+		$mj = new \Mailjet\Client('cecdf92235559f2fabba85fd7d119132', '88e0f7a41e5973bc178e3d5656ad3009', true, ['version' => 'v3.1']);
+
+		$body = [
+			'Messages' => [
+				'Email' => "lhamcs@gmail.com",
+				'Name' => "Leinster Hockey Matchcard System"
+			],
+			'To' => array_map(fn($value) => array("Email" => $value) , $email),
+			'Subject' => "Leinster Hockey Cards - $subject",
+			'TextPart' => $textBody,
+			'HTMLPart' => $htmlBody,
+			'CustomID' => $subject,
+		];
+
+		$response = $mj->post(Resources::$Email, ['body' => $body]);
+
+		if ($response->success()) {
+			Log::info("Email sent to:$email");
+		}
+
+		return $response;
+	}
+
 	public static function emailForgottenPassword(string $email, string $salt)
 	{
 		$ts = Date::forge()->get_timestamp();
@@ -25,31 +50,13 @@ class Model_Report
 
 		$link = Uri::create("/User/ForgottenPassword?e=$email&ts=$ts&h=$hash");
 
-
-
-		$mj = new \Mailjet\Client('cecdf92235559f2fabba85fd7d119132', '88e0f7a41e5973bc178e3d5656ad3009', true, ['version' => 'v3.1']);
-		$body = [
-			'Messages' => [
-				[
-					'From' => [
-						'Email' => "lhamcs@gmail.com",
-						'Name' => "Leinster Hockey Matchcard System"
-					],
-					'To' => [
-						[
-							'Email' => $email
-						]
-					],
-					'Subject' => "Leinster Hockey Cards - Password Reset",
-					'TextPart' => "You have requested a password reset. Please open the following url in your browser: $link",
-					'HTMLPart' => "<h3>Password Reset Requested</h3>
+		$response = self::email(array($email), "Password Reset", 
+			"You have requested a password reset. Please open the following url in your browser: $link",
+			"<h3>Password Reset Requested</h3>
                         <p>Someone has requested a password reset for this email address</p>
-                        <p>To reset the password please click the following link: $link</p>",
-					'CustomID' => "Password Reset"
-				]
-			]
-		];
-		$response = $mj->post(Resources::$Email, ['body' => $body]);
+                        <p>To reset the password please click the following link: $link</p>"
+		);
+
 		if ($response->success()) {
 			$ts = Date::forge()->get_timestamp() + (60*60*1000);
 			$hash = md5("$email $ts $salt");
@@ -57,7 +64,5 @@ class Model_Report
 
 			Log::info("Password reset email sent to:$email (1h hash=$link)");
 		}
-
 	}
-
 }

@@ -541,7 +541,7 @@ class Controller_CardApi extends Controller_RestApi
                 $email->subject($matches[1]);
             }
             $email->html_body($body);
-            $email->send();
+#            $email->send();
             Log::info("Receipt email sent to $emailAddress");
         }
 
